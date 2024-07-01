@@ -23,6 +23,7 @@ class CompanySeeder extends Seeder
         $company->save();
 
         $user = new User;
+        $user->role_id = 1;
         $user->name = 'Peak Tek';
         $user->email = 'peaktek@gmail.com';
         $user->password = Hash::make('Abc@123!');
@@ -31,7 +32,6 @@ class CompanySeeder extends Seeder
         $user_role = new UserRole;
         $user_role->company_id = $company->id;
         $user_role->user_id = $user->id;
-        $user_role->role_id = 1;
         $user_role->save();
     }
 }
