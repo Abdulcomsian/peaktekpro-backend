@@ -32,7 +32,7 @@ class AuthController extends Controller
             $user_role = new UserRole;
             $user_role->user_id = $user->id;
             $user_role->company_id = 1;
-            $user_role->role_id = 1;
+            $user_role->role_id = 4;
             $user_role->save();
 
             // Generate a token for the user
