@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyJob;
 use App\Models\CustomerAgreement;
+use App\Models\Status;
+use Illuminate\Support\Collection;
 
 class CompanyJobController extends Controller
 {
@@ -47,8 +49,7 @@ class CompanyJobController extends Controller
     {
         try {
             $user = Auth::user();
-            $jobs = CompanyJob::where('user_id', $user->created_by)
-            ->with('status')
+            $jobs = CompanyJob::select('id','name','address','status_id')->where('user_id', $user->created_by)
             ->orderBy('status_id', 'asc')
             ->get();
 
@@ -56,11 +57,18 @@ class CompanyJobController extends Controller
             $groupedJobs = $jobs->groupBy(function ($job) {
                 return $job->status->name;
             });
-            return response()->json([
-                'status' => 200,
-                'message' => 'Jobs Found Successfully',
-                'jobs' => $groupedJobs
-            ], 200);
+
+            $statuses = Status::all();
+            // Structure the response
+            $response = $statuses->map(function ($status) use ($groupedJobs) {
+                return [
+                    'id' => $status->id,
+                    'name' => $status->name,
+                    'tasks' => $groupedJobs->get($status->name, new Collection()),
+                ];
+            });
+
+            return response()->json($response);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
