@@ -54,6 +54,11 @@ class AuthController extends Controller
                 'password' => 'required|string',
             ]);
 
+            $userExists = User::where('email', $request->email)->exists();
+            if (!$userExists) {
+                return response()->json(['status' => 422, 'message' => 'Email Not Found']);
+            }
+
             if (Auth::attempt($request->only('email', 'password'))) {
                 $user = Auth::user();
                 $token = $user->createToken('auth_token')->plainTextToken;
