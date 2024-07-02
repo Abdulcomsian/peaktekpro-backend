@@ -39,7 +39,7 @@ class AuthController extends Controller
             $token = $user->createToken('auth_token')->plainTextToken;
 
             DB::commit();
-            return response()->json(['user' => $user, 'token' => $token], 201);
+            return response()->json(['status' => 201, 'user' => $user, 'token' => $token], 201);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
@@ -58,7 +58,7 @@ class AuthController extends Controller
                 $user = Auth::user();
                 $token = $user->createToken('auth_token')->plainTextToken;
 
-                return response()->json(['user' => $user, 'token' => $token], 200);
+                return response()->json(['status' => 200, 'user' => $user, 'token' => $token], 200);
             }
 
             // Authentication failed
@@ -71,6 +71,6 @@ class AuthController extends Controller
     public function getUser()
     {
         $user = Auth::user();
-        return response()->json(['user' => $user]);
+        return response()->json(['status' => 200, 'user' => $user]);
     }
 }

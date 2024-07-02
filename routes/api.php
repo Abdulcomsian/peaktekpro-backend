@@ -28,4 +28,6 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
+    Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
+    Route::post('customer-agreement/{jobId}', [CompanyJobController::class, 'customerAgreement']);
 });
