@@ -101,9 +101,9 @@ class MaterialOrderController extends Controller
         $material_order->save();
 
         //Update Job Status
-        $job = CompanyJob::find($material_order->company_job_id);
-        $job->status_id = 2;
-        $job->save();
+        // $job = CompanyJob::find($material_order->company_job_id);
+        // $job->status_id = 2;
+        // $job->save();
 
         return response()->json([
             'status' => 200,
