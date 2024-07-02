@@ -16,8 +16,8 @@ class CompanyJobController extends Controller
                 'latitude' => 'required',
                 'longitude' => 'required',
                 'name' => 'required',
-                'email' => 'nullable|unique:company_jobs,email',
-                'phone' => 'nullable'
+                'email' => 'required|unique:company_jobs,email',
+                'phone' => 'required'
             ]);
 
             //Create Job
@@ -42,8 +42,16 @@ class CompanyJobController extends Controller
     {
         try {
             $user = Auth::user();
-            $jobs = CompanyJob::where('user_id', $user->created_by)->get();
-            return response()->json(['jobs' => $jobs], 200);
+            $jobs = CompanyJob::where('user_id', $user->created_by)
+            ->with('status')
+            ->orderBy('status_id', 'asc')
+            ->get();
+
+            // Group jobs by status name
+            $groupedJobs = $jobs->groupBy(function ($job) {
+                return $job->status->name;
+            });
+            return response()->json(['jobs' => $groupedJobs], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
