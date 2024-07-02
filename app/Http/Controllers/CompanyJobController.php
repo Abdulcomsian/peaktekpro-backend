@@ -33,7 +33,11 @@ class CompanyJobController extends Controller
             $job->phone = $request->phone;
             $job->save();
 
-            return response()->json(['status' => 201, 'job' => $job], 201);
+            return response()->json([
+                'status' => 201,
+                'message' => 'Job Created Successfully',
+                'job' => $job
+            ], 201);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -52,7 +56,11 @@ class CompanyJobController extends Controller
             $groupedJobs = $jobs->groupBy(function ($job) {
                 return $job->status->name;
             });
-            return response()->json(['status' => 200, 'jobs' => $groupedJobs], 200);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'jobs' => $groupedJobs
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -63,57 +71,17 @@ class CompanyJobController extends Controller
         try {
             $job = CompanyJob::find($id);
             if(!$job) {
-                return response()->json(['status' => 422, 'message' => 'Job not found']);
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
             }
 
-            return response()->json(['status' => 200, 'job' => $job]); 
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    public function customerAgreement(Request $request, $id)
-    {
-        try {
-            $this->validate($request, [
-                'street' => 'required',
-                'city' => 'required',
-                'state' => 'required',
-                'zip_code' => 'required',
-                'insurance' => 'required',
-                'claim_number' => 'required',
-                'policy_number' => 'required',
-                'company_signature' => 'required',
-                'company_printed_name' => 'required',
-                'company_date' => 'required|date',
-                'customer_signature' => 'required',
-                'customer_printed_name' => 'required',
-                'customer_date' => 'required|date',
-            ]);
-
-            $job = CompanyJob::find($id);
-            if(!$job) {
-                return response()->json(['status' => 422, 'message' => 'Job not found']);
-            }
-
-            $agreement = new CustomerAgreement;
-            $agreement->company_job_id = $id;
-            $agreement->street = $request->street;
-            $agreement->city = $request->city;
-            $agreement->state = $request->state;
-            $agreement->zip_code = $request->zip_code;
-            $agreement->insurance = $request->insurance;
-            $agreement->claim_number = $request->claim_number;
-            $agreement->policy_number = $request->policy_number;
-            $agreement->company_signature = $request->company_signature;
-            $agreement->company_printed_name = $request->company_printed_name;
-            $agreement->company_date = $request->company_date;
-            $agreement->customer_signature = $request->customer_signature;
-            $agreement->customer_printed_name = $request->customer_printed_name;
-            $agreement->customer_date = $request->customer_date;
-            $agreement->save();
-
-            return response()->json(['status' => 200, 'message' => 'Agreement created successfully', 'agreement' => $agreement]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Found Successfully',
+                'job' => $job
+            ], 200); 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

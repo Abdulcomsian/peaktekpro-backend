@@ -39,7 +39,12 @@ class AuthController extends Controller
             $token = $user->createToken('auth_token')->plainTextToken;
 
             DB::commit();
-            return response()->json(['status' => 201, 'user' => $user, 'token' => $token], 201);
+            return response()->json([
+                'status' => 201,
+                'message' => 'User Registered Successfully',
+                'user' => $user,
+                'token' => $token
+            ], 201);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
@@ -56,18 +61,28 @@ class AuthController extends Controller
 
             $userExists = User::where('email', $request->email)->exists();
             if (!$userExists) {
-                return response()->json(['status' => 422, 'message' => 'Email Not Found']);
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Email Not Found'
+                ], 422);
             }
 
             if (Auth::attempt($request->only('email', 'password'))) {
                 $user = Auth::user();
                 $token = $user->createToken('auth_token')->plainTextToken;
 
-                return response()->json(['status' => 200, 'user' => $user, 'token' => $token], 200);
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Login Successfully',
+                    'user' => $user,
+                    'token' => $token
+                ], 200);
             }
 
             // Authentication failed
-            return response()->json(['message' => 'Invalid Credentials'], 422);
+            return response()->json([
+                'message' => 'Invalid Credentials'
+            ], 422);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

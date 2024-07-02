@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyJobController;
+use App\Http\Controllers\CustomerAgreementController;
 
 
 /*
@@ -26,8 +27,12 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('/user', [AuthController::class, 'getUser']);
+    //Jobs Api's
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
     Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
-    Route::post('customer-agreement/{jobId}', [CompanyJobController::class, 'customerAgreement']);
+    //Customer Agreements Api's
+    Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
+    Route::post('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
+    Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
 });
