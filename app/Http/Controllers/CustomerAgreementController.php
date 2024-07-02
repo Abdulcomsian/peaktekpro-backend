@@ -33,7 +33,7 @@ class CustomerAgreementController extends Controller
             if(!$job) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Job not found'
+                    'message' => 'Job Not Found'
                 ], 422);
             }
 
@@ -56,7 +56,7 @@ class CustomerAgreementController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Agreement created successfully',
+                'message' => 'Agreement Created Successfully',
                 'agreement' => $agreement
             ], 200);
         } catch (\Exception $e) {
@@ -71,13 +71,13 @@ class CustomerAgreementController extends Controller
             if(!$agreement) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Agreement not found'
+                    'message' => 'Agreement Not Found'
                 ], 422);
             }
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Agreement Found successfully',
+                'message' => 'Agreement Found Successfully',
                 'agreement' => $agreement
             ], 200);
         } catch (\Exception $e) {
@@ -95,7 +95,7 @@ class CustomerAgreementController extends Controller
         if(!$agreement) {
             return response()->json([
                 'status' => 422,
-                'message' => 'Agreement not found'
+                'message' => 'Agreement Not Found'
             ], 422);
         }
 

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\CustomerAgreementController;
+use App\Http\Controllers\MaterialOrderController;
 
 
 /*
@@ -33,6 +34,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
     //Customer Agreements Api's
     Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
-    Route::post('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
+    Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
+    //Material Order Api's
+    Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
+    Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);
+    Route::post('update/material-order/{id}', [MaterialOrderController::class, 'updateMaterialOrder']);
 });
