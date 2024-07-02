@@ -112,6 +112,11 @@ class CustomerAgreementController extends Controller
         $agreement->sign_image_url = $imageUrl;
         $agreement->save();
 
+        //Update Job Status
+        $job = CompanyJob::find($agreement->company_job_id);
+        $job->status_id = 2;
+        $job->save();
+
         return response()->json([
             'status' => 200,
             'message' => 'Signature Image Added Successfully',
