@@ -68,7 +68,11 @@ class CompanyJobController extends Controller
                 ];
             });
 
-            return response()->json($response);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'response' => $response
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
