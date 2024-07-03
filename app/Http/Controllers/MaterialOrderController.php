@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Models\CompanyJob;
+use Illuminate\Http\Request;
 use App\Models\MaterialOrder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Models\MaterialOrderMaterial;
+use Illuminate\Support\Facades\Storage;
+use App\Models\MaterialOrderDeliveryInformation;
 
 class MaterialOrderController extends Controller
 {
     public function materialOrder(Request $request, $id)
     {
+        DB::beginTransaction();
         try {
             $this->validate($request, [
                 'street' => 'required',
@@ -21,6 +25,14 @@ class MaterialOrderController extends Controller
                 'insurance' => 'required',
                 'claim_number' => 'required',
                 'policy_number' => 'required',
+                'date_needed' => 'required|date',
+                'square_count' => 'required',
+                'total_perimeter' => 'required',
+                'ridge_lf' => 'required',
+                'build_date' => 'required|date',
+                'valley_sf' => 'required',
+                'hip_and_ridge_lf' => 'required',
+                'drip_edge_lf' => 'required',
             ]);
 
             $job = CompanyJob::find($id);
@@ -31,6 +43,7 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
 
+            //Store Material Order
             $material_order = new MaterialOrder;
             $material_order->company_job_id = $id;
             $material_order->street = $request->street;
@@ -42,12 +55,40 @@ class MaterialOrderController extends Controller
             $material_order->policy_number = $request->policy_number;
             $material_order->save();
 
+            //Store Delivery Information
+            $delivery_information = new MaterialOrderDeliveryInformation;
+            $delivery_information->material_order_id = $material_order->id;
+            $delivery_information->date_needed = $request->date_needed;
+            $delivery_information->square_count = $request->square_count;
+            $delivery_information->total_perimeter = $request->total_perimeter;
+            $delivery_information->ridge_lf = $request->ridge_lf;
+            $delivery_information->build_date = $request->date_build_dateneeded;
+            $delivery_information->valley_sf = $request->valley_sf;
+            $delivery_information->hip_and_ridge_lf = $request->hip_and_ridge_lf;
+            $delivery_information->drip_edge_lf = $request->drip_edge_lf;
+            $delivery_information->save();
+
+            //Store Materials
+            if(isset($request->materials) && count($request->materials) > 0) {
+                foreach($request->materials as $material) {
+                    $add_material = new MaterialOrderMaterial;
+                    $add_material->material_order_id = $material_order->id;
+                    $add_material->material = $material['material'];
+                    $add_material->quantity = $material['quantity'];
+                    $add_material->color = $material['color'];
+                    $add_material->order_key = $material['order_key'];
+                    $add_material->save();
+                }
+            }
+
+            DB::commit();
             return response()->json([
                 'status' => 200,
                 'message' => 'Material Order Created Successfully',
                 'material_order' => $material_order
             ], 200);
         } catch (\Exception $e) {
+            DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -55,7 +96,7 @@ class MaterialOrderController extends Controller
     public function getMaterialOrder($id)
     {
         try {
-            $material_order = MaterialOrder::find($id);
+            $material_order = MaterialOrder::where('id', $id)->with('deliveryInformation','materials')->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
