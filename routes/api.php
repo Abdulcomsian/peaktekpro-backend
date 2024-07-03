@@ -36,6 +36,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
+    Route::get('sign-by-email/{id}', [CustomerAgreementController::class, 'signCustomerAgreementByEmail']);
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
     Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);

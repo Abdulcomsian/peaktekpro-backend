@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CompanyJob;
 use App\Models\CustomerAgreement;
+use App\Jobs\SignEmailJob;
 
 class CustomerAgreementController extends Controller
 {
@@ -123,5 +124,24 @@ class CustomerAgreementController extends Controller
             'agreement' => $agreement
         ], 200);
 
+    }
+
+    public function signCustomerAgreementByEmail($id)
+    {
+        $agreement = CustomerAgreement::find($id);
+        if(!$agreement) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Agreement Not Found'
+            ], 422);
+        }
+
+        $customer = CompanyJob::find($agreement->company_job_id);
+        dispatch(new SignEmailJob($customer));
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Email Sent Successfully',
+        ], 200);
     }
 }
