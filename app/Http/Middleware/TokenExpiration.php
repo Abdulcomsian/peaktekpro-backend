@@ -20,13 +20,19 @@ class TokenExpiration
         $token = $request->bearerToken();
         
         if (!$token) {
-            return response()->json(['message' => 'Token not provided'], 401);
+            return response()->json([
+                'status' => 401,
+                'message' => 'Token not provided'
+            ], 401);
         }
 
         $accessToken = PersonalAccessToken::findToken($token);
 
         if (!$accessToken) {
-            return response()->json(['message' => 'Invalid token'], 401);
+            return response()->json([
+                'status' => 401,
+                'message' => 'Invalid token'
+            ], 401);
         }
 
         $tokenCreationTime = $accessToken->created_at;
@@ -34,7 +40,10 @@ class TokenExpiration
         
         if (now()->diffInMinutes($tokenCreationTime) > $tokenLifetime) {
             $accessToken->delete();
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json([
+                'status' => 401,
+                'message' => 'Unauthorized'
+            ], 401);
         }
 
         return $next($request);
