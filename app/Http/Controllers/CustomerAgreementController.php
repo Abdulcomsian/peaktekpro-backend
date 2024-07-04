@@ -13,6 +13,7 @@ class CustomerAgreementController extends Controller
 {
     public function customerAgreement(Request $request, $id)
     {
+        return $request->all();
         try {
             $this->validate($request, [
                 'street' => 'required',
@@ -110,7 +111,18 @@ class CustomerAgreementController extends Controller
         Storage::disk('public')->put('customer_agreement_signature/' . $filename, $decodedImage);
         $imageUrl = '/storage/customer_agreement_signature/' . $filename;
 
+        //Save Image Path
         $agreement->sign_image_url = $imageUrl;
+        $agreement->save();
+
+        //Generate PDF
+        $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
+        $pdf_fileName = time() . '.pdf';
+        $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
+        Storage::put('public/' . $pdf_filePath, $pdf->output());
+
+        //Save PDF Path
+        $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
         $agreement->save();
 
         //Update Job Status
