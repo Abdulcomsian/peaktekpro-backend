@@ -33,7 +33,7 @@ class SignEmailMail extends Mailable
     public function envelope()
     {
         return new Envelope(
-            subject: 'Signature Email',
+            subject: 'Signature Request Email',
         );
     }
 

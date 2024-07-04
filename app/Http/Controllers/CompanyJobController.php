@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\CompanyJob;
-use App\Models\CustomerAgreement;
 use App\Models\Status;
+use App\Models\CompanyJob;
+use Illuminate\Http\Request;
+use App\Models\CustomerAgreement;
+use App\Models\ProjectDesignPage;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use App\Models\ProjectDesignPageStatus;
 
 class CompanyJobController extends Controller
 {
@@ -35,6 +37,19 @@ class CompanyJobController extends Controller
             $job->phone = $request->phone;
             $job->save();
 
+            //Update Project Design Status Table
+            $pages = ProjectDesignPage::all();
+            foreach($pages as $page)
+            {
+                $status = ProjectDesignPageStatus::updateOrCreate([
+                    'project_design_page_id' => $page->id,
+                    'company_job_id' => $job->id,
+                ],[
+                    'project_design_page_id' => $page->id,
+                    'company_job_id' => $job->id,
+                ]);
+            }
+
             return response()->json([
                 'status' => 201,
                 'message' => 'Job Created Successfully',
@@ -51,6 +66,7 @@ class CompanyJobController extends Controller
             $user = Auth::user();
             $jobs = CompanyJob::select('id','name','address','status_id')->where('user_id', $user->created_by)
             ->orderBy('status_id', 'asc')
+            ->orderBy('id', 'desc')
             ->get();
 
             // Group jobs by status name

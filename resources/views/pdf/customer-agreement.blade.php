@@ -6,6 +6,6 @@
     <title>Customer Agreement</title>
 </head>
 <body>
-    <h1>Dear {{$data->name}}</h1>
+    <h1>Dear {{$data->street}}</h1>
 </body>
 </html>

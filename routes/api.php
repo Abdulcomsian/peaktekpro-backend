@@ -4,8 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyJobController;
-use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\MaterialOrderController;
+use App\Http\Controllers\ProjectDesignController;
+use App\Http\Controllers\CustomerAgreementController;
 
 
 /*
@@ -41,4 +42,15 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
     Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);
     Route::post('update/material-order/{id}', [MaterialOrderController::class, 'updateMaterialOrder']);
+    //Project Design Api's
+    Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
+    //Project Design Title
+    Route::post('store/project-design/title/{jobId}', [ProjectDesignController::class, 'storeProjectDesignTitle']);
+    Route::get('get/project-design/title/{jobId}', [ProjectDesignController::class, 'getProjectDesignTitle']);
+    //Project Design Introduction
+    Route::post('store/project-design/introduction/{jobId}', [ProjectDesignController::class, 'storeProjectDesignIntroduction']);
+    Route::get('get/project-design/introduction/{jobId}', [ProjectDesignController::class, 'getProjectDesignIntroduction']);
+    //Project Design Inspection
+    Route::post('store/project-design/inspection/{jobId}', [ProjectDesignController::class, 'storeProjectDesignInspection']);
+    Route::get('get/project-design/inspection/{jobId}', [ProjectDesignController::class, 'getProjectDesignInspection']);
 });
