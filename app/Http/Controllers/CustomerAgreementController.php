@@ -13,7 +13,6 @@ class CustomerAgreementController extends Controller
 {
     public function customerAgreement(Request $request, $id)
     {
-        return $request->all();
         try {
             $this->validate($request, [
                 'street' => 'required',
