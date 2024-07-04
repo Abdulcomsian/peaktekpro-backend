@@ -115,14 +115,14 @@ class CustomerAgreementController extends Controller
         $agreement->save();
 
         //Generate PDF
-        $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
-        $pdf_fileName = time() . '.pdf';
-        $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
-        Storage::put('public/' . $pdf_filePath, $pdf->output());
+        // $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
+        // $pdf_fileName = time() . '.pdf';
+        // $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
+        // Storage::put('public/' . $pdf_filePath, $pdf->output());
 
-        //Save PDF Path
-        $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
-        $agreement->save();
+        // //Save PDF Path
+        // $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
+        // $agreement->save();
 
         //Update Job Status
         $job = CompanyJob::find($agreement->company_job_id);
@@ -148,7 +148,7 @@ class CustomerAgreementController extends Controller
         }
 
         $customer = CompanyJob::find($agreement->company_job_id);
-        dispatch(new SignEmailJob($customer));
+        // dispatch(new SignEmailJob($customer));
 
         return response()->json([
             'status' => 200,
