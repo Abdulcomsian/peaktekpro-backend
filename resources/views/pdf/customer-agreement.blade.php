@@ -591,7 +591,7 @@
             </tr>
             <tr>
                 <td>
-                    <span style="margin-top: 20px;display: inline-block;">Customer Signature:</span> <span style="border: 1px solid rgb(0, 0, 0); width: 200px; display: inline-block;"><img src="{{ public_path($data->sign_image_url) }}"></span>
+                    <span style="margin-top: 20px;display: inline-block;">Customer Signature:</span> <span style="border: 1px solid rgb(0, 0, 0); width: 250px; display: inline-block;"><img src="{{ public_path($data->sign_image_url) }}"></span>
                 </td>
             </tr>
   </table>
