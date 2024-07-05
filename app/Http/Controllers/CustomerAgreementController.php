@@ -148,7 +148,7 @@ class CustomerAgreementController extends Controller
         }
 
         $customer = CompanyJob::find($agreement->company_job_id);
-        // dispatch(new SignEmailJob($customer));
+        dispatch(new SignEmailJob($customer));
 
         return response()->json([
             'status' => 200,
