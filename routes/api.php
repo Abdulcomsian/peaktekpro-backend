@@ -7,6 +7,7 @@ use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\CustomerAgreementController;
+use App\Http\Controllers\ProjectDesignQuoteController;
 
 
 /*
@@ -53,4 +54,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Project Design Inspection
     Route::post('store/project-design/inspection/{jobId}', [ProjectDesignController::class, 'storeProjectDesignInspection']);
     Route::get('get/project-design/inspection/{jobId}', [ProjectDesignController::class, 'getProjectDesignInspection']);
+    //Project Design Quote
+    Route::post('store/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'storeProjectDesignQuote']);
+    Route::get('get/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'getProjectDesignQuote']);
+    Route::post('section/update-status/{jobId}', [ProjectDesignQuoteController::class, 'updateSectionStatus']);
 });

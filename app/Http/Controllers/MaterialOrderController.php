@@ -89,7 +89,7 @@ class MaterialOrderController extends Controller
             ], 200);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
 
@@ -110,7 +110,7 @@ class MaterialOrderController extends Controller
                 'material_order' => $material_order
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
 
@@ -120,45 +120,49 @@ class MaterialOrderController extends Controller
             'sign_image' => 'required',
         ]);
 
-        $material_order = MaterialOrder::find($id);
-        if(!$material_order) {
-            return response()->json([
-                'status' => 422,
-                'message' => 'Material Order Not Found'
-            ], 422);
-        }
-
-        // Get base64 image data
-        $base64Image = $request->input('sign_image');
-        $data = substr($base64Image, strpos($base64Image, ',') + 1);
-        $decodedImage = base64_decode($data);
-
-        // Generate a unique filename
-        $filename = 'image_' . time() . '.png';
-        // Check if the old image exists and delete it
-        if ($material_order->sign_image_url) {
-            $oldImagePath = public_path($material_order->sign_image_url);
-            if (file_exists($oldImagePath)) {
-                unlink($oldImagePath);
+        try {
+            $material_order = MaterialOrder::find($id);
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 422);
             }
+
+            // Get base64 image data
+            $base64Image = $request->input('sign_image');
+            $data = substr($base64Image, strpos($base64Image, ',') + 1);
+            $decodedImage = base64_decode($data);
+
+            // Generate a unique filename
+            $filename = 'image_' . time() . '.png';
+            // Check if the old image exists and delete it
+            if ($material_order->sign_image_url) {
+                $oldImagePath = public_path($material_order->sign_image_url);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+            //Save the new image
+            Storage::disk('public')->put('material_order_signature/' . $filename, $decodedImage);
+            $imageUrl = '/storage/material_order_signature/' . $filename;
+
+            $material_order->sign_image_url = $imageUrl;
+            $material_order->save();
+
+            //Update Job Status
+            // $job = CompanyJob::find($material_order->company_job_id);
+            // $job->status_id = 2;
+            // $job->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Signature Image Added Successfully',
+                'material_order' => $material_order
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
-        //Save the new image
-        Storage::disk('public')->put('material_order_signature/' . $filename, $decodedImage);
-        $imageUrl = '/storage/material_order_signature/' . $filename;
-
-        $material_order->sign_image_url = $imageUrl;
-        $material_order->save();
-
-        //Update Job Status
-        // $job = CompanyJob::find($material_order->company_job_id);
-        // $job->status_id = 2;
-        // $job->save();
-
-        return response()->json([
-            'status' => 200,
-            'message' => 'Signature Image Added Successfully',
-            'material_order' => $material_order
-        ], 200);
 
     }
 }
