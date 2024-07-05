@@ -28,7 +28,7 @@ class CustomerAgreementController extends Controller
                 'company_date' => 'required|date',
                 'customer_signature' => 'required',
                 'customer_printed_name' => 'required',
-                'customer_date' => 'required|date',
+                'customer_date' => 'required',
             ]);
 
             $job = CompanyJob::find($id);
