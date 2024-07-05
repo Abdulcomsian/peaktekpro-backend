@@ -135,6 +135,14 @@ class MaterialOrderController extends Controller
 
         // Generate a unique filename
         $filename = 'image_' . time() . '.png';
+        // Check if the old image exists and delete it
+        if ($material_order->sign_image_url) {
+            $oldImagePath = public_path($material_order->sign_image_url);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+        }
+        //Save the new image
         Storage::disk('public')->put('material_order_signature/' . $filename, $decodedImage);
         $imageUrl = '/storage/material_order_signature/' . $filename;
 

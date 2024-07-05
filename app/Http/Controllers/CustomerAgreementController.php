@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\CompanyJob;
 use App\Models\CustomerAgreement;
 use App\Jobs\SignEmailJob;
+use PDF;
 
 class CustomerAgreementController extends Controller
 {
@@ -107,6 +108,14 @@ class CustomerAgreementController extends Controller
 
         // Generate a unique filename
         $filename = 'image_' . time() . '.png';
+        // Check if the old image exists and delete it
+        if ($agreement->sign_image_url) {
+            $oldImagePath = public_path($agreement->sign_image_url);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+        }
+        // Save the new image
         Storage::disk('public')->put('customer_agreement_signature/' . $filename, $decodedImage);
         $imageUrl = '/storage/customer_agreement_signature/' . $filename;
 
@@ -115,14 +124,22 @@ class CustomerAgreementController extends Controller
         $agreement->save();
 
         //Generate PDF
-        // $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
-        // $pdf_fileName = time() . '.pdf';
-        // $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
-        // Storage::put('public/' . $pdf_filePath, $pdf->output());
+        $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
+        $pdf_fileName = time() . '.pdf';
+        $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
+        // Check if the old PDF exists and delete it
+        if ($agreement->sign_pdf_url) {
+            $oldPdfPath = public_path($agreement->sign_pdf_url);
+            if (file_exists($oldPdfPath)) {
+                unlink($oldPdfPath);
+            }
+        }
+        // Save the new PDF
+        Storage::put('public/' . $pdf_filePath, $pdf->output());
 
-        // //Save PDF Path
-        // $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
-        // $agreement->save();
+        //Save PDF Path
+        $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
+        $agreement->save();
 
         //Update Job Status
         $job = CompanyJob::find($agreement->company_job_id);
