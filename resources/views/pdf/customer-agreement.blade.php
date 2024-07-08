@@ -63,7 +63,7 @@
       <tbody>
         <tr>
           <td>
-            <img src="{{ asset('assets/pdf_header.png') }}" alt="" style="width: 100%" />
+            <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_header.png')))}}" width="1500"/>
           </td>
         </tr>
       </tbody>
@@ -281,11 +281,6 @@
         </tr>
       </tbody>
     </table>
-
-    <!-- Page Break -->
-    <div class="page-break"></div>
-    <!-- End -->
-
     <table style="width: 1200px; margin: auto">
       <thead>
         <tr>
@@ -349,6 +344,11 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Page Break -->
+    <div class="page-break"></div>
+    <!-- End -->
+
     <table style="max-width: 1200px; margin: auto">
       <tr>
         <td>
