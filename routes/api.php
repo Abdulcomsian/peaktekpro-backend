@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
+use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
@@ -63,4 +64,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Project Design Authorization
     Route::post('store/project-design/authorization/{jobId}', [ProjectDesignAuthorizationController::class, 'storeProjectDesignAuthorization']);
     Route::get('get/project-design/authorization/{jobId}', [ProjectDesignAuthorizationController::class, 'getProjectDesignAuthorization']);
+    //Project Design Payment Schedule
+    Route::post('store/payment-schedule/{jobId}', [PaymentScheduleController::class, 'storePaymentSchedule']);
+    Route::get('get/payment-schedule/{jobId}', [PaymentScheduleController::class, 'getPaymentSchedule']);
 });

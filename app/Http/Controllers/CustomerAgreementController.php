@@ -77,6 +77,14 @@ class CustomerAgreementController extends Controller
                 ], 422);
             }
 
+            //Get Job
+            $job = CompanyJob::find($agreement->company_job_id);
+            if($job) {
+                $agreement->name = $job->name;
+                $agreement->email = $job->email;
+                $agreement->phone = $job->phone;
+            }
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Found Successfully',
@@ -198,6 +206,11 @@ class CustomerAgreementController extends Controller
                     'message' => 'Customer Agreement Not Found'
                 ], 422);
             }
+
+            //Get Job
+            $agreement->name = $job->name;
+            $agreement->email = $job->email;
+            $agreement->phone = $job->phone;
 
             return response()->json([
                 'status' => 200,
