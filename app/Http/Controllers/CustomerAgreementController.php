@@ -179,4 +179,34 @@ class CustomerAgreementController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function checkCustomerAgreement($jobId)
+    {
+        try {
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
+            if(!$agreement) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Customer Agreement Not Found'
+                ], 422);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Customer Agreement Found Successfully',
+                'agreement' => $agreement
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }

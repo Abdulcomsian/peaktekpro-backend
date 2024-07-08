@@ -8,6 +8,7 @@ use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
+use App\Http\Controllers\ProjectDesignAuthorizationController;
 
 
 /*
@@ -39,6 +40,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
     Route::get('sign-by-email/{id}', [CustomerAgreementController::class, 'signCustomerAgreementByEmail']);
+    Route::get('check/customer-agreement/{jobId}', [CustomerAgreementController::class, 'checkCustomerAgreement']);
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
     Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);
@@ -58,4 +60,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('store/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'storeProjectDesignQuote']);
     Route::get('get/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'getProjectDesignQuote']);
     Route::post('section/update-status/{jobId}', [ProjectDesignQuoteController::class, 'updateSectionStatus']);
+    //Project Design Authorization
+    Route::post('store/project-design/authorization/{jobId}', [ProjectDesignAuthorizationController::class, 'storeProjectDesignAuthorization']);
+    Route::get('get/project-design/authorization/{jobId}', [ProjectDesignAuthorizationController::class, 'getProjectDesignAuthorization']);
 });
