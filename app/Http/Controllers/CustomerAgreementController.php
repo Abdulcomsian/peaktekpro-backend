@@ -39,22 +39,24 @@ class CustomerAgreementController extends Controller
                 ], 422);
             }
 
-            $agreement = new CustomerAgreement;
-            $agreement->company_job_id = $id;
-            $agreement->street = $request->street;
-            $agreement->city = $request->city;
-            $agreement->state = $request->state;
-            $agreement->zip_code = $request->zip_code;
-            $agreement->insurance = $request->insurance;
-            $agreement->claim_number = $request->claim_number;
-            $agreement->policy_number = $request->policy_number;
-            $agreement->company_signature = $request->company_signature;
-            $agreement->company_printed_name = $request->company_printed_name;
-            $agreement->company_date = $request->company_date;
-            $agreement->customer_signature = $request->customer_signature;
-            $agreement->customer_printed_name = $request->customer_printed_name;
-            $agreement->customer_date = $request->customer_date;
-            $agreement->save();
+            $agreement = CustomerAgreement::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'street' => $request->street,
+                'city' => $request->city,
+                'state' => $request->state,
+                'zip_code' => $request->zip_code,
+                'insurance' => $request->insurance,
+                'claim_number' => $request->claim_number,
+                'policy_number' => $request->policy_number,
+                'company_signature' => $request->company_signature,
+                'company_printed_name' => $request->company_printed_name,
+                'company_date' => $request->company_date,
+                'customer_signature' => $request->customer_signature,
+                'customer_printed_name' => $request->customer_printed_name,
+                'customer_date' => $request->customer_date,
+            ]);
 
             return response()->json([
                 'status' => 200,
