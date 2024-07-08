@@ -8,6 +8,7 @@ use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\RoofComponentController;
 use App\Http\Controllers\PaymentScheduleController;
+use App\Http\Controllers\XactimateReportController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
@@ -71,4 +72,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Roof Component Generic
     Route::post('store/roof-component/{jobId}', [RoofComponentController::class, 'storeRoofComponent']);
     Route::get('get/roof-component/{jobId}', [RoofComponentController::class, 'getRoofComponent']);
+    //Xactimate Report
+    Route::post('store/xactimate-report/{jobId}', [XactimateReportController::class, 'storeXactimateReport']);
+    Route::get('get/xactimate-report/{jobId}', [XactimateReportController::class, 'getXactimateReport']);
 });
