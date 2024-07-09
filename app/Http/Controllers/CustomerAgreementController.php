@@ -218,10 +218,17 @@ class CustomerAgreementController extends Controller
             //Check Agreement
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
             if(!$agreement) {
+
+                //Job Information
+                $job_info = new \stdClass();
+                $job_info->name = $job->name;
+                $job_info->email = $job->email;
+                $job_info->phone = $job->phone;
+                
                 return response()->json([
                     'status' => 200,
                     'message' => 'Customer Agreement Not Found',
-                    'data' => new \stdClass()
+                    'data' => $job_info
                 ], 200);
             }
 
