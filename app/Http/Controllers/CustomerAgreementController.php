@@ -27,10 +27,10 @@ class CustomerAgreementController extends Controller
                 'policy_number' => 'required',
                 'company_signature' => 'required',
                 'company_printed_name' => 'required',
-                'company_date' => 'required|date',
+                'company_date' => 'required|date_format:d/m/Y',
                 'customer_signature' => 'required',
                 'customer_printed_name' => 'required',
-                'customer_date' => 'required',
+                'customer_date' => 'required|date_format:d/m/Y',
             ]);
 
             //Check Job
