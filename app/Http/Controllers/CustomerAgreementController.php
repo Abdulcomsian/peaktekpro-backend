@@ -15,6 +15,8 @@ class CustomerAgreementController extends Controller
     public function customerAgreement(Request $request, $id)
     {
         try {
+
+            //Validate Request
             $this->validate($request, [
                 'street' => 'required',
                 'city' => 'required',
@@ -31,6 +33,7 @@ class CustomerAgreementController extends Controller
                 'customer_date' => 'required',
             ]);
 
+            //Check Job
             $job = CompanyJob::find($id);
             if(!$job) {
                 return response()->json([
@@ -39,6 +42,7 @@ class CustomerAgreementController extends Controller
                 ], 422);
             }
 
+            //Update Agreement
             $agreement = CustomerAgreement::updateOrCreate([
                 'company_job_id' => $id,
             ],[
@@ -71,6 +75,8 @@ class CustomerAgreementController extends Controller
     public function getCustomerAgreement($id)
     {
         try {
+
+            //Check Agreement
             $agreement = CustomerAgreement::find($id);
             if(!$agreement) {
                 return response()->json([
@@ -99,10 +105,13 @@ class CustomerAgreementController extends Controller
 
     public function updateCustomerAgreement(Request $request, $id)
     {
+        //Validate Request
         $this->validate($request, [
             'sign_image' => 'required',
         ]);
         try {
+
+            //Check Agreement
             $agreement = CustomerAgreement::find($id);
             if(!$agreement) {
                 return response()->json([
@@ -170,6 +179,8 @@ class CustomerAgreementController extends Controller
     public function signCustomerAgreementByEmail($id)
     {
         try {
+
+            //Check Agreement
             $agreement = CustomerAgreement::find($id);
             if(!$agreement) {
                 return response()->json([
@@ -178,6 +189,7 @@ class CustomerAgreementController extends Controller
                 ], 422);
             }
 
+            //Send Email
             $customer = CompanyJob::find($agreement->company_job_id);
             dispatch(new SignEmailJob($customer));
 
@@ -193,6 +205,8 @@ class CustomerAgreementController extends Controller
     public function checkCustomerAgreement($jobId)
     {
         try {
+
+            //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
                 return response()->json([
@@ -201,6 +215,7 @@ class CustomerAgreementController extends Controller
                 ], 422);
             }
 
+            //Check Agreement
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
             if(!$agreement) {
                 return response()->json([

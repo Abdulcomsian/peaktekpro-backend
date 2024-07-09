@@ -15,15 +15,17 @@ class CompanyJobController extends Controller
 {
     public function createJob(Request $request)
     {
+        //Validate Request
+        $this->validate($request, [
+            'address' => 'required',
+            'latitude' => 'required',
+            'longitude' => 'required',
+            'name' => 'required',
+            'email' => 'required|unique:company_jobs,email',
+            'phone' => 'required'
+        ]);
+
         try {
-            $this->validate($request, [
-                'address' => 'required',
-                'latitude' => 'required',
-                'longitude' => 'required',
-                'name' => 'required',
-                'email' => 'required|unique:company_jobs,email',
-                'phone' => 'required'
-            ]);
 
             //Create Job
             $job = new CompanyJob;
@@ -97,6 +99,7 @@ class CompanyJobController extends Controller
     public function getSingleJob($id)
     {
         try {
+            //Check Job
             $job = CompanyJob::find($id);
             if(!$job) {
                 return response()->json([

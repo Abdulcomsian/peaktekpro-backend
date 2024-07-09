@@ -15,26 +15,29 @@ class MaterialOrderController extends Controller
 {
     public function materialOrder(Request $request, $id)
     {
+        //Validate Request
+        $this->validate($request, [
+            'street' => 'required',
+            'city' => 'required',
+            'state' => 'required',
+            'zip_code' => 'required',
+            'insurance' => 'required',
+            'claim_number' => 'required',
+            'policy_number' => 'required',
+            'date_needed' => 'required|date',
+            'square_count' => 'required',
+            'total_perimeter' => 'required',
+            'ridge_lf' => 'required',
+            'build_date' => 'required|date',
+            'valley_sf' => 'required',
+            'hip_and_ridge_lf' => 'required',
+            'drip_edge_lf' => 'required',
+        ]);
+
         DB::beginTransaction();
         try {
-            $this->validate($request, [
-                'street' => 'required',
-                'city' => 'required',
-                'state' => 'required',
-                'zip_code' => 'required',
-                'insurance' => 'required',
-                'claim_number' => 'required',
-                'policy_number' => 'required',
-                'date_needed' => 'required|date',
-                'square_count' => 'required',
-                'total_perimeter' => 'required',
-                'ridge_lf' => 'required',
-                'build_date' => 'required|date',
-                'valley_sf' => 'required',
-                'hip_and_ridge_lf' => 'required',
-                'drip_edge_lf' => 'required',
-            ]);
 
+            //Check Job
             $job = CompanyJob::find($id);
             if(!$job) {
                 return response()->json([
@@ -96,6 +99,8 @@ class MaterialOrderController extends Controller
     public function getMaterialOrder($id)
     {
         try {
+
+            //Check Material Order
             $material_order = MaterialOrder::where('id', $id)->with('deliveryInformation','materials')->first();
             if(!$material_order) {
                 return response()->json([
@@ -116,11 +121,14 @@ class MaterialOrderController extends Controller
 
     public function updateMaterialOrder(Request $request, $id)
     {
+        //Validate Request
         $this->validate($request, [
             'sign_image' => 'required',
         ]);
 
         try {
+
+            //Check Material Order
             $material_order = MaterialOrder::find($id);
             if(!$material_order) {
                 return response()->json([

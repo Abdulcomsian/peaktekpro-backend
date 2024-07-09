@@ -14,6 +14,7 @@ class PaymentScheduleController extends Controller
 {
     public function storePaymentSchedule(Request $request, $jobId)
     {
+        //Validate Request
         $this->validate($request, [
             'acknowledge' => 'nullable|in:0,1',
             'title' => 'required|string|in:My PDFs,Shared PDFs,Single Use PDFs,Text Page',

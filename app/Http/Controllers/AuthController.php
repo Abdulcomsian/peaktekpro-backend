@@ -13,13 +13,15 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        //Validate Request
+        $this->validate($request, [
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+        ]);
+
         DB::beginTransaction();
         try {
-            $this->validate($request, [
-                'name' => 'required|string',
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:8',
-            ]);
 
             // Create a new user
             $user = User::create([
@@ -53,12 +55,15 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        //Validate Request
+        $this->validate($request, [
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+        
         try {
-            $this->validate($request, [
-                'email' => 'required|email',
-                'password' => 'required|string',
-            ]);
 
+            //Check on Email
             $userExists = User::where('email', $request->email)->exists();
             if (!$userExists) {
                 return response()->json([
