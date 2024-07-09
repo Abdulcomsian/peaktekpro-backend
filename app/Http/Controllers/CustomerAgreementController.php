@@ -219,9 +219,10 @@ class CustomerAgreementController extends Controller
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
             if(!$agreement) {
                 return response()->json([
-                    'status' => 422,
-                    'message' => 'Customer Agreement Not Found'
-                ], 422);
+                    'status' => 200,
+                    'message' => 'Customer Agreement Not Found',
+                    'data' => []
+                ], 200);
             }
 
             //Get Job
