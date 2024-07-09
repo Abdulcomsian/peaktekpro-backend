@@ -221,7 +221,7 @@ class CustomerAgreementController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message' => 'Customer Agreement Not Found',
-                    'data' => []
+                    'data' => new \stdClass()
                 ], 200);
             }
 
