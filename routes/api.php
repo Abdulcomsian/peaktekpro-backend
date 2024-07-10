@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JobLogController;
+use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
@@ -41,8 +42,12 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
     Route::post('update/job-summary/{id}', [CompanyJobController::class, 'updateJobSummary']);
     //Adjustor Meeting Api
-    Route::post('create/adjustor-meeting/{jobId}', [CompanyJobController::class, 'createAdjustorMeeting']);
-    Route::post('update-status/adjustor-meeting/{id}', [CompanyJobController::class, 'updateAdjustorMeetingStatus']);
+    Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
+    Route::post('update-status/adjustor-meeting/{id}', [MeetingController::class, 'updateAdjustorMeetingStatus']);
+    Route::get('get/adjustor-meeting/{jobId}', [MeetingController::class, 'getAdjustorMeeting']);
+    //Overturn Meeting Api
+    Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
+    Route::get('get/overturn-meeting/{jobId}', [MeetingController::class, 'getOverturnMeeting']);
     //Customer Agreements Api's
     Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
