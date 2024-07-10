@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\JobLogController;
 use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
@@ -48,6 +49,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
     Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);
     Route::post('update/material-order/{id}', [MaterialOrderController::class, 'updateMaterialOrder']);
+    Route::get('check/material-order/{jobId}', [MaterialOrderController::class, 'checkMaterialOrder']);
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
     //Project Design Title
@@ -75,4 +77,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Xactimate Report
     Route::post('store/xactimate-report/{jobId}', [XactimateReportController::class, 'storeXactimateReport']);
     Route::get('get/xactimate-report/{jobId}', [XactimateReportController::class, 'getXactimateReport']);
+    //Job Log Api's
+    Route::post('store/job-log/{jobId}', [JobLogController::class, 'storeJobLog']);
+    Route::get('get/job-log/{jobId}', [JobLogController::class, 'getJobLog']);
 });

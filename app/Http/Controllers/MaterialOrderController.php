@@ -32,6 +32,11 @@ class MaterialOrderController extends Controller
             'valley_sf' => 'required',
             'hip_and_ridge_lf' => 'required',
             'drip_edge_lf' => 'required',
+            'materials' => 'required|array',
+            'materials.*.material' => 'required|string',
+            'materials.*.quantity' => 'required',
+            'materials.*.color' => 'required',
+            'materials.*.order_key' => 'required',
         ]);
 
         DB::beginTransaction();
@@ -172,5 +177,51 @@ class MaterialOrderController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
 
+    }
+
+    public function checkMaterialOrder($jobId)
+    {
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Check Agreement
+            $material_order = MaterialOrder::where('company_job_id', $jobId)->first();
+            if(!$material_order) {
+
+                //Job Information
+                $job_info = new \stdClass();
+                $job_info->name = $job->name;
+                $job_info->email = $job->email;
+                $job_info->phone = $job->phone;
+                
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Material Order Not Found',
+                    'agreement' => $job_info
+                ], 200);
+            }
+
+            //Get Job
+            $material_order->name = $job->name;
+            $material_order->email = $job->email;
+            $material_order->phone = $job->phone;
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Material Order Found Successfully',
+                'agreement' => $agreement
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
     }
 }
