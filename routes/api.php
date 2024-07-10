@@ -39,6 +39,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
     Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
+    Route::post('update/job-summary/{id}', [CompanyJobController::class, 'updateJobSummary']);
+    //Adjustor Meeting Api
+    Route::post('create/adjustor-meeting/{jobId}', [CompanyJobController::class, 'createAdjustorMeeting']);
+    Route::post('update-status/adjustor-meeting/{id}', [CompanyJobController::class, 'updateAdjustorMeetingStatus']);
     //Customer Agreements Api's
     Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);

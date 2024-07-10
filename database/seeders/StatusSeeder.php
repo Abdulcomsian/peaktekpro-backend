@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Status;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class StatusSeeder extends Seeder
 {
@@ -15,11 +16,18 @@ class StatusSeeder extends Seeder
      */
     public function run()
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        // Truncate the table
+        Status::truncate();
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        
         $statuses = [
             ['name' => 'New Lead'],
             ['name' => 'Signed Deal'],
             ['name' => 'Adjustor'],
-            ['name' => 'Full Approval & Overturn'],
+            ['name' => 'Full Approval'],
+            ['name' => 'Overturn'],
             ['name' => 'Appraisal'],
             ['name' => 'Approved'],
             ['name' => 'Design Meeting'],
