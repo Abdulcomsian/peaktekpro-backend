@@ -63,13 +63,6 @@ class MaterialOrderController extends Controller
                 'insurance' => $request->insurance,
                 'claim_number' => $request->claim_number,
                 'policy_number' => $request->policy_number,
-            ]);
-
-            //Store Delivery Information
-            $delivery_information = MaterialOrderDeliveryInformation::updateOrCreate([
-                'material_order_id' => $material_order->id,
-            ],[
-                'material_order_id' => $material_order->id,
                 'date_needed' => $request->date_needed,
                 'square_count' => $request->square_count,
                 'total_perimeter' => $request->total_perimeter,
@@ -131,7 +124,7 @@ class MaterialOrderController extends Controller
         try {
 
             //Check Material Order
-            $material_order = MaterialOrder::where('id', $id)->with('deliveryInformation','materials')->first();
+            $material_order = MaterialOrder::where('id', $id)->with('materials')->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
@@ -218,7 +211,7 @@ class MaterialOrderController extends Controller
             }
 
             //Check Agreement
-            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('deliveryInformation','materials')->first();
+            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('materials')->first();
             if(!$material_order) {
 
                 //Job Information

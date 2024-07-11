@@ -11,11 +11,6 @@ class MaterialOrder extends Model
 
     protected $guarded = [];
 
-    public function deliveryInformation()
-    {
-        return $this->hasOne(MaterialOrderDeliveryInformation::class);
-    }
-
     public function materials()
     {
         return $this->hasMany(MaterialOrderMaterial::class);

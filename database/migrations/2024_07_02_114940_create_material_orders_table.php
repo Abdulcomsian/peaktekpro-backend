@@ -24,6 +24,14 @@ return new class extends Migration
             $table->string('claim_number')->nullable();
             $table->string('policy_number')->nullable();
             $table->string('sign_image_url')->nullable();
+            $table->string('date_needed')->nullable();
+            $table->string('square_count')->nullable();
+            $table->string('total_perimeter')->nullable();
+            $table->string('ridge_lf')->nullable();
+            $table->string('build_date')->nullable();
+            $table->string('valley_sf')->nullable();
+            $table->string('hip_and_ridge_lf')->nullable();
+            $table->string('drip_edge_lf')->nullable();
             $table->timestamps();
         });
     }
