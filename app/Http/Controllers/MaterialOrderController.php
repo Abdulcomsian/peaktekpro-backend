@@ -24,11 +24,11 @@ class MaterialOrderController extends Controller
             'insurance' => 'required',
             'claim_number' => 'required',
             'policy_number' => 'required',
-            'date_needed' => 'required|date',
+            'date_needed' => 'required|date_format:d/m/Y',
             'square_count' => 'required',
             'total_perimeter' => 'required',
             'ridge_lf' => 'required',
-            'build_date' => 'required|date',
+            'build_date' => 'required|date_format:d/m/Y',
             'valley_sf' => 'required',
             'hip_and_ridge_lf' => 'required',
             'drip_edge_lf' => 'required',
@@ -80,7 +80,7 @@ class MaterialOrderController extends Controller
                 'drip_edge_lf' => $request->drip_edge_lf,
             ]);
 
-             // Delete materials that are not in the incoming data
+            // Delete materials that are not in the incoming data
             $existingMaterials = MaterialOrderMaterial::where('material_order_id', $material_order->id)->get();
             $incomingMaterials = $request->materials;
             $incomingMaterialIds = array_column($incomingMaterials, 'id');
@@ -91,7 +91,6 @@ class MaterialOrderController extends Controller
                 }
             }
 
-            // Store Materials
             foreach($request->materials as $material) {
                 if(isset($material['id'])) {
                     // Update existing material
