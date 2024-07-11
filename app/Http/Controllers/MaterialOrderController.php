@@ -218,7 +218,7 @@ class MaterialOrderController extends Controller
             }
 
             //Check Agreement
-            $material_order = MaterialOrder::where('company_job_id', $jobId)->first();
+            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('deliveryInformation','materials')->first();
             if(!$material_order) {
 
                 //Job Information
