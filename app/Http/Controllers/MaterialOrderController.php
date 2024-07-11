@@ -242,7 +242,7 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Material Order Found Successfully',
-                'agreement' => $agreement
+                'data' => $material_order
             ], 200);
 
         } catch (\Exception $e) {
