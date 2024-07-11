@@ -98,7 +98,7 @@ class MeetingController extends Controller
             if($request->status != 'Denial') {
                 if($request->status == 'Full Approval') {
                     //Get Status
-                    $get_status = Status::where('name', $request->status)->first();
+                    $get_status = Status::where('name', 'Full Approval')->first();
                     //Update Job Status
                     $job->status_id = $get_status->id;
                     $job->save();
@@ -279,6 +279,59 @@ class MeetingController extends Controller
                 'data' => $overturn_meeting
             ], 200);
 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function updateOverturnMeetingStatus(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'status' => 'required|in:Full Approval,Archive'
+        ]);
+
+        try {
+
+            //Check Adjustor Meeting
+            $overturn_meeting = OverturnMeeting::find($id);
+            if(!$overturn_meeting) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Meeting Not Found'
+                ], 422);
+            }
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            if($request->status == 'Full Approval') {
+                //Get Status
+                $get_status = Status::where('name', 'Full Approval')->first();
+                //Update Job Status
+                $job->status_id = $get_status->id;
+                $job->save();
+
+                //Update Meeting Status
+                $overturn_meeting->status = 'completed';
+                $overturn_meeting->save();
+            } else {
+                $job->status_id = 5;
+                $job->save();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Status Updated Successfully',
+                'data' => $job
+            ], 200);            
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

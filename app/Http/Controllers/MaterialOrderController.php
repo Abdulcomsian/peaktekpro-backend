@@ -34,9 +34,9 @@ class MaterialOrderController extends Controller
             'drip_edge_lf' => 'required',
             'materials' => 'required|array',
             'materials.*.material' => 'required|string',
-            'materials.*.quantity' => 'required',
-            'materials.*.color' => 'required',
-            'materials.*.order_key' => 'required',
+            'materials.*.quantity' => 'nullable',
+            'materials.*.color' => 'nullable',
+            'materials.*.order_key' => 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -52,39 +52,65 @@ class MaterialOrderController extends Controller
             }
 
             //Store Material Order
-            $material_order = new MaterialOrder;
-            $material_order->company_job_id = $id;
-            $material_order->street = $request->street;
-            $material_order->city = $request->city;
-            $material_order->state = $request->state;
-            $material_order->zip_code = $request->zip_code;
-            $material_order->insurance = $request->insurance;
-            $material_order->claim_number = $request->claim_number;
-            $material_order->policy_number = $request->policy_number;
-            $material_order->save();
+            $material_order = MaterialOrder::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'street' => $request->street,
+                'city' => $request->city,
+                'state' => $request->state,
+                'zip_code' => $request->zip_code,
+                'insurance' => $request->insurance,
+                'claim_number' => $request->claim_number,
+                'policy_number' => $request->policy_number,
+            ]);
 
             //Store Delivery Information
-            $delivery_information = new MaterialOrderDeliveryInformation;
-            $delivery_information->material_order_id = $material_order->id;
-            $delivery_information->date_needed = $request->date_needed;
-            $delivery_information->square_count = $request->square_count;
-            $delivery_information->total_perimeter = $request->total_perimeter;
-            $delivery_information->ridge_lf = $request->ridge_lf;
-            $delivery_information->build_date = $request->date_build_dateneeded;
-            $delivery_information->valley_sf = $request->valley_sf;
-            $delivery_information->hip_and_ridge_lf = $request->hip_and_ridge_lf;
-            $delivery_information->drip_edge_lf = $request->drip_edge_lf;
-            $delivery_information->save();
+            $delivery_information = MaterialOrderDeliveryInformation::updateOrCreate([
+                'material_order_id' => $material_order->id,
+            ],[
+                'material_order_id' => $material_order->id,
+                'date_needed' => $request->date_needed,
+                'square_count' => $request->square_count,
+                'total_perimeter' => $request->total_perimeter,
+                'ridge_lf' => $request->ridge_lf,
+                'build_date' => $request->build_date,
+                'valley_sf' => $request->valley_sf,
+                'hip_and_ridge_lf' => $request->hip_and_ridge_lf,
+                'drip_edge_lf' => $request->drip_edge_lf,
+            ]);
 
-            //Store Materials
-            if(isset($request->materials) && count($request->materials) > 0) {
-                foreach($request->materials as $material) {
+             // Delete materials that are not in the incoming data
+            $existingMaterials = MaterialOrderMaterial::where('material_order_id', $material_order->id)->get();
+            $incomingMaterials = $request->materials;
+            $incomingMaterialIds = array_column($incomingMaterials, 'id');
+
+            foreach ($existingMaterials as $existingMaterial) {
+                if (!in_array($existingMaterial->id, $incomingMaterialIds)) {
+                    $existingMaterial->delete();
+                }
+            }
+
+            // Store Materials
+            foreach($request->materials as $material) {
+                if(isset($material['id'])) {
+                    // Update existing material
+                    $get_material = MaterialOrderMaterial::find($material['id']);
+                    if ($get_material) {
+                        $get_material->material = $material['material'];
+                        $get_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                        $get_material->color = isset($material['color']) ? $material['color'] : null;
+                        $get_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
+                        $get_material->save();
+                    }
+                } else {
+                    //Store New Material
                     $add_material = new MaterialOrderMaterial;
                     $add_material->material_order_id = $material_order->id;
                     $add_material->material = $material['material'];
-                    $add_material->quantity = $material['quantity'];
-                    $add_material->color = $material['color'];
-                    $add_material->order_key = $material['order_key'];
+                    $add_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                    $add_material->color = isset($material['color']) ? $material['color'] : null;
+                    $add_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
                     $add_material->save();
                 }
             }

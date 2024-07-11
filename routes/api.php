@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Overturn Meeting Api
     Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
     Route::get('get/overturn-meeting/{jobId}', [MeetingController::class, 'getOverturnMeeting']);
+    Route::post('update-status/overturn-meeting/{id}', [MeetingController::class, 'updateOverturnMeetingStatus']);
     //Customer Agreements Api's
     Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
