@@ -2,10 +2,12 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CocController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JobLogController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\CompanyJobController;
+use App\Http\Controllers\QcInspectionController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\RoofComponentController;
@@ -90,4 +92,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Job Log Api's
     Route::post('store/job-log/{jobId}', [JobLogController::class, 'storeJobLog']);
     Route::get('get/job-log/{jobId}', [JobLogController::class, 'getJobLog']);
+    //QC Inspection Api's
+    Route::post('store/qc-inspection/{jobId}', [QcInspectionController::class, 'storeQcInspection']);
+    Route::get('get/qc-inspection/{jobId}', [QcInspectionController::class, 'getQcInspection']);
+    //Certificate Of Completion Api's
+    Route::post('store/coc/{jobId}', [CocController::class, 'storeCoc']);
+    Route::get('get/coc/{jobId}', [CocController::class, 'getCoc']);
 });

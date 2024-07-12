@@ -97,10 +97,8 @@ class MeetingController extends Controller
 
             if($request->status != 'Denial') {
                 if($request->status == 'Full Approval') {
-                    //Get Status
-                    $get_status = Status::where('name', 'Full Approval')->first();
                     //Update Job Status
-                    $job->status_id = $get_status->id;
+                    $job->status_id = 4;
                     $job->save();
 
                     //Update Meeting Status
@@ -313,10 +311,8 @@ class MeetingController extends Controller
             }
 
             if($request->status == 'Full Approval') {
-                //Get Status
-                $get_status = Status::where('name', 'Full Approval')->first();
                 //Update Job Status
-                $job->status_id = $get_status->id;
+                $job->status_id = 4;
                 $job->save();
 
                 //Update Meeting Status
