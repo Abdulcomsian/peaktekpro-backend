@@ -54,4 +54,32 @@ class SubContractorController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function getSubContractors($jobId)
+    {
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found'
+                ], 422);
+            }
+
+            $sub_contractors = User::where('role_id', 2)->whereHas('userRoles', function($query) use ($jobId){
+                $query->where('company_id', $jobId);
+            })->get();
+
+            return response()->json([
+                'status' => 201,
+                'message' => 'Sub Contractors Found Successfully',
+                'user' => $sub_contractors,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }

@@ -107,6 +107,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
     //Supplier Api
     Route::post('store/supplier/{jobId}', [SupplierController::class, 'storeSupplier']);
+    Route::get('get/suppliers/{jobId}', [SupplierController::class, 'getSuppliers']);
     //Sub Contractor Api
     Route::post('store/sub-contractor/{jobId}', [SubContractorController::class, 'storeSubContractor']);
+    Route::get('get/sub-contractors/{jobId}', [SubContractorController::class, 'getSubContractors']);
 });

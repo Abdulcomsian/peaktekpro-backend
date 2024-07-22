@@ -54,4 +54,32 @@ class SupplierController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function getSuppliers($jobId)
+    {
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found'
+                ], 422);
+            }
+
+            $suppliers = User::where('role_id', 3)->whereHas('userRoles', function($query) use ($jobId){
+                $query->where('company_id', $jobId);
+            })->get();
+
+            return response()->json([
+                'status' => 201,
+                'message' => 'Suppliers Found Successfully',
+                'user' => $suppliers,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }
