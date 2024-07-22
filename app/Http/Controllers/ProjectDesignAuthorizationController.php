@@ -114,6 +114,13 @@ class ProjectDesignAuthorizationController extends Controller
             }
 
             $get_authorization = ProjectDesignAuthorization::where('company_job_id', $jobId)->with('sections.items')->first();
+            if(!$get_authorization) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Authorization Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,

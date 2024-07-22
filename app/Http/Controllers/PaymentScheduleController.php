@@ -103,6 +103,13 @@ class PaymentScheduleController extends Controller
             }
 
             $get_payment_schedule = PaymentSchedule::where('company_job_id', $jobId)->with('types.pdfs')->first();
+            if(!$get_payment_schedule) {
+                return response()->json([
+                    'status' => 200, 
+                    'message' => 'Payment Schedule Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,

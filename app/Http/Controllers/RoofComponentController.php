@@ -102,12 +102,19 @@ class RoofComponentController extends Controller
                 ], 422);
             }
 
-            $get_payment_schedule = RoofComponentGeneric::where('company_job_id', $jobId)->with('types.pdfs')->first();
+            $get_roof_component = RoofComponentGeneric::where('company_job_id', $jobId)->with('types.pdfs')->first();
+            if(!$get_roof_component) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Roof Component Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,
                 'message' => 'Roof Component Found Successfully',
-                'data' => $get_payment_schedule
+                'data' => $get_roof_component
             ]);
 
         } catch (\Exception $e) {

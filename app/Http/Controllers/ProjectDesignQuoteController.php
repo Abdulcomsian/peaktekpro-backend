@@ -100,6 +100,13 @@ class ProjectDesignQuoteController extends Controller
             }
 
             $get_quote = ProjectDesignQuote::where('company_job_id', $jobId)->with('sections.items')->first();
+            if(!$get_quote) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Quote Details Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,

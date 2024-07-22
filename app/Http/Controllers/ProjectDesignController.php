@@ -62,7 +62,7 @@ class ProjectDesignController extends Controller
             'state' => 'required|string',
             'zip' => 'required',
             'report_type' => 'required',
-            'date' => 'required|date',
+            'date' => 'required|date_format:d/m/Y',
             'primary_image' => 'nullable|image',
             'secondary_image' => 'nullable|image',
         ]);
@@ -152,6 +152,13 @@ class ProjectDesignController extends Controller
             }
 
             $get_title = ProjectDesignTitle::where('company_job_id', $jobId)->first();
+            if(!$get_title) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Project Design Title Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,
@@ -211,6 +218,13 @@ class ProjectDesignController extends Controller
             }
 
             $get_introduction = ProjectDesignIntroduction::where('company_job_id', $jobId)->first();
+            if(!$get_introduction) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Project Design Introduction Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,
@@ -294,6 +308,13 @@ class ProjectDesignController extends Controller
             }
 
             $get_inspection = ProjectDesignInspection::where('company_job_id', $jobId)->with('attachments')->first();
+            if(!$get_inspection) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Project Design Inspection Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,

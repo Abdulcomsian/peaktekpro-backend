@@ -103,6 +103,13 @@ class XactimateReportController extends Controller
             }
 
             $get_xactimate_report = XactimateReport::where('company_job_id', $jobId)->with('types.pdfs')->first();
+            if(!$get_xactimate_report) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Xactimate Report Not Yet Created',
+                    'data' => (object) []
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,
