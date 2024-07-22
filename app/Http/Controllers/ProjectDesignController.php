@@ -363,4 +363,41 @@ class ProjectDesignController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function deleteProjectDesignInspection($id)
+    {
+        try {
+
+            //Check Inspection
+            $get_inspection = ProjectDesignInspection::find($id);
+            if(!$get_inspection) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Inspection Item Not Found',
+                    'data' => []
+                ], 200);
+            }
+
+            // Remove old attachments
+            $oldAttachment = ProjectDesignInspectionMedia::where('inspection_id', $id)->first();
+            if ($oldAttachment) {
+                $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
+                Storage::delete($oldFilePath);
+                $oldAttachment->delete();
+            }
+
+            //Remove Inspection
+            $get_inspection->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inspection Item Deleted Successfully',
+                'data' => []
+            ], 200);
+
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }

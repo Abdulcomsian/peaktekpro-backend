@@ -73,6 +73,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Project Design Inspection
     Route::post('store/project-design/inspection/{jobId}', [ProjectDesignController::class, 'storeProjectDesignInspection']);
     Route::get('get/project-design/inspection/{jobId}', [ProjectDesignController::class, 'getProjectDesignInspection']);
+    Route::get('delete/project-design/inspection/{id}', [ProjectDesignController::class, 'deleteProjectDesignInspection']);
     //Project Design Quote
     Route::post('store/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'storeProjectDesignQuote']);
     Route::get('get/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'getProjectDesignQuote']);
