@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\ProjectDesignTitle;
+use Illuminate\Support\Facades\DB;
 use App\Models\ProjectDesignInspection;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
@@ -245,6 +246,7 @@ class ProjectDesignController extends Controller
             'inspections.*.attachment' => 'nullable',
         ]);
 
+        DB::beginTransaction();
         try {
             //Check Job
             $job = CompanyJob::find($jobId);
@@ -323,12 +325,14 @@ class ProjectDesignController extends Controller
                 }
             }
 
+            DB::commit();
             return response()->json([
                 'status' => 200,
                 'message' => 'Inspection Added Successfully',
                 'data' => []
             ], 200);
         } catch (\Exception $e) {
+            DB::rollback();
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }

@@ -6,11 +6,14 @@ use App\Http\Controllers\CocController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JobLogController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\QcInspectionController;
+use App\Http\Controllers\ReadyToBuildController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\RoofComponentController;
+use App\Http\Controllers\SubContractorController;
 use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
 use App\Http\Controllers\CustomerAgreementController;
@@ -99,4 +102,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Certificate Of Completion Api's
     Route::post('store/coc/{jobId}', [CocController::class, 'storeCoc']);
     Route::get('get/coc/{jobId}', [CocController::class, 'getCoc']);
+    //Ready To Build Api's
+    Route::post('store/ready-to-build/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuild']);
+    Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
+    //Supplier Api
+    Route::post('store/supplier/{jobId}', [SupplierController::class, 'storeSupplier']);
+    //Sub Contractor Api
+    Route::post('store/sub-contractor/{jobId}', [SubContractorController::class, 'storeSubContractor']);
 });
