@@ -11,8 +11,8 @@ class ProjectDesignInspection extends Model
 
     protected $guarded = [];
 
-    public function attachments()
+    public function attachment()
     {
-        return $this->hasMany(ProjectDesignInspectionMedia::class, 'inspection_id','id');
+        return $this->hasOne(ProjectDesignInspectionMedia::class, 'inspection_id','id');
     }
 }
