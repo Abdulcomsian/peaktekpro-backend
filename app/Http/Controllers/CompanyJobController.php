@@ -9,6 +9,7 @@ use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignPage;
 use Illuminate\Support\Collection;
+use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ProjectDesignPageStatus;
 
@@ -52,6 +53,9 @@ class CompanyJobController extends Controller
                     'company_job_id' => $job->id,
                 ]);
             }
+
+            //Fire an Event
+            event(new JobStatusUpdateEvent('Refresh Pgae'));
 
             return response()->json([
                 'status' => 201,

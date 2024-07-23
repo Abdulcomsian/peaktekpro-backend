@@ -7,6 +7,7 @@ use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\AdjustorMeeting;
 use App\Models\OverturnMeeting;
+use App\Events\JobStatusUpdateEvent;
 use App\Models\OverturnMeetingMedia;
 use Illuminate\Support\Facades\Storage;
 
@@ -109,6 +110,9 @@ class MeetingController extends Controller
                     $job->save();
                 }
             }
+
+            //Fire an Event
+            event(new JobStatusUpdateEvent('Refresh Pgae'));
 
             return response()->json([
                 'status' => 200,
@@ -322,6 +326,9 @@ class MeetingController extends Controller
                 $job->status_id = 5;
                 $job->save();
             }
+
+            //Fire an Event
+            event(new JobStatusUpdateEvent('Refresh Pgae'));
 
             return response()->json([
                 'status' => 200,

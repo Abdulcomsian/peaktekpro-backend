@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use PDF;
+use App\Jobs\SignEmailJob;
+use App\Models\CompanyJob;
 use Illuminate\Http\Request;
+use App\Models\CustomerAgreement;
+use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\CompanyJob;
-use App\Models\CustomerAgreement;
-use App\Jobs\SignEmailJob;
-use PDF;
 
 class CustomerAgreementController extends Controller
 {
@@ -164,6 +165,9 @@ class CustomerAgreementController extends Controller
             $job = CompanyJob::find($agreement->company_job_id);
             $job->status_id = 2;
             $job->save();
+
+            //Fire an Event
+            event(new JobStatusUpdateEvent('Refresh Pgae'));
 
             return response()->json([
                 'status' => 200,
