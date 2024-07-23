@@ -65,6 +65,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);
     Route::post('update/material-order/{id}', [MaterialOrderController::class, 'updateMaterialOrder']);
     Route::get('check/material-order/{jobId}', [MaterialOrderController::class, 'checkMaterialOrder']);
+    Route::post('material-order/email/{jobId}', [MaterialOrderController::class, 'MaterialOrderEmail']);
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
     //Project Design Title

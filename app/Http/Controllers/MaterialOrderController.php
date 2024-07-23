@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\MaterialOrder;
+use App\Jobs\MaterialOrderJob;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MaterialOrderMaterial;
@@ -239,6 +241,71 @@ class MaterialOrderController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function MaterialOrderEmail(Request $request, $jobId)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'supplier_id' => 'required|integer',
+            'sub_contractor_id' => 'required|integer',
+            'material_order_id' => 'required|integer',
+        ]);
+
+        DB::beginTransaction();
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Check Material Order
+            $material_order = MaterialOrder::where('id', $request->material_order_id)->first();
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 422);
+            }
+
+            //Check Supplier
+            $supplier = User::where('id', $request->supplier_id)->where('role_id', 3)->first();
+            if(!$supplier) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Supplier Not Found'
+                ], 422);
+            }
+
+            //Check Sub Contractor
+            $sub_contractor = User::where('id', $request->sub_contractor_id)->where('role_id', 2)->first();
+            if(!$sub_contractor) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Sub Contractor Not Found'
+                ], 422);
+            }
+
+            //Dispatch Email Through Queue
+            dispatch(new MaterialOrderJob($supplier,$material_order));
+            dispatch(new MaterialOrderJob($sub_contractor,$material_order));
+
+            DB::commit();
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Sent successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollback();
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }

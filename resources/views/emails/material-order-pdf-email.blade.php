@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signature Email</title>
+    <title>Material Order</title>
 </head>
 <body>
 <style>
@@ -36,12 +36,24 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 </style>
-    <h1>Dear <strong>{{$customer->name}}</strong></h1>
+    <h1>Dear <strong>{{$user->name}}</strong></h1>
 
-    <p>I hope this email finds you well.<p>
-    <p>We are reaching out to inform you that we require your signature on the document of Customer Agreement. Please review and sign the document at your earliest convenience by clicking on the link below:</p>
+    <p>I hope this message finds you well.</p>
+    <p>We are pleased to inform you that your requested material order PDF is now ready for your review.</p>
 
-    <center><a href="http://www.google.com" target="_blank" class="btn">Visit Link</a></center>
+    <h2>Material Order Details:</h2>
+    <ul>
+        <li><strong>City: </strong>{{$material_order->city}}</li>
+        <li><strong>State: </strong>{{$material_order->state}}</li>
+        <li><strong>Build Date: </strong>{{$material_order->build_date}}</li>
+        <li><strong>Policy Number: </strong>{{$material_order->policy_number}}</li>
+        <li><strong>Claim Number: </strong>{{$material_order->claim_number}}</li>
+    </ul>
+
+    <p>Please click the link below to view the PDF for furthur details:</p>
+
+    <center><a href="{{ url('') . $material_order->sign_pdf_url }}" target="_blank" class="btn">View Material Order PDF</a></center>
+    <br>
 
     <p>If you have any questions or require further assistance, please do not hesitate to contact us.<p>
     <p>Thank you for your prompt attention to this matter.</p>
