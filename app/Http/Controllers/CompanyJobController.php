@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Status;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
+use App\Models\JobContentMedia;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignPage;
@@ -12,6 +13,7 @@ use Illuminate\Support\Collection;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ProjectDesignPageStatus;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyJobController extends Controller
 {
@@ -170,6 +172,105 @@ class CompanyJobController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Job Summary Updated Successfully',
+                'job' => $job
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function getJobSummary($id)
+    {
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $job_summary = CompanyJobSummary::where('company_job_id', $job->id)->with('images')->first();
+            if(!$job_summary) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Summary Not Found'
+                ], 422);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Summary Found Successfully',
+                'job' => $job_summary
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function updateJobContent(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'notes' => 'required',
+            'images' => 'required|array',
+            'images.*' => 'mimes:png,jpg,jpeg,gif'
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $job_summary = CompanyJobSummary::where('company_job_id', $job->id)->first();
+            if(!$job_summary) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Summary Not Found'
+                ], 422);
+            }
+
+            //Update Job Summary
+            $job_summary->notes = $request->notes;
+            $job_summary->save();
+
+            if(isset($request->images)) {
+                //Remove Old Images
+                $oldImages = JobContentMedia::where('summary_id', $job_summary->id)->get();
+                foreach($oldImages as $oldImage) {
+                    $oldFilePath = str_replace('/storage', 'public', $oldImage->media_url);
+                    Storage::delete($oldFilePath);
+                    $oldImage->delete();
+                }
+
+                //Store New Images
+                foreach($request->file('images') as $file)
+                {
+                    $fileName = $file->getClientOriginalName();
+                    $fileName = time() . '_' . $fileName;
+                    $path = $file->storeAs('public/job_content_media', $fileName);
+
+                    //Update Job Content
+                    $media = new JobContentMedia;
+                    $media->summary_id = $job_summary->id;
+                    $media->media_url = Storage::url($path);
+                    $media->save();
+                }
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Content Updated Successfully',
                 'job' => $job
             ], 200); 
 
