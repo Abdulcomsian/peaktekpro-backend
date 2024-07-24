@@ -216,8 +216,8 @@ class CompanyJobController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'notes' => 'required',
-            'images' => 'required|array',
+            'notes' => 'nullable',
+            'images' => 'nullable|array',
             'images.*' => 'mimes:png,jpg,jpeg,gif'
         ]);
 
