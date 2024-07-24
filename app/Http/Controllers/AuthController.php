@@ -98,4 +98,19 @@ class AuthController extends Controller
         $user = Auth::user();
         return response()->json(['status' => 200, 'user' => $user]);
     }
+
+    public function logout(Request $request)
+    {
+        try {
+            $request->user()->tokens()->delete();
+            return response()->json([
+                'status' => 200,
+                'message' => 'Logout Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }

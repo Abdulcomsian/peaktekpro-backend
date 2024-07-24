@@ -41,6 +41,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('/user', [AuthController::class, 'getUser']);
+    Route::post('/logout', [AuthController::class, 'logout']);
     //Jobs Api's
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
