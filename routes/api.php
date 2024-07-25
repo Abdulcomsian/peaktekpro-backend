@@ -41,6 +41,8 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('/user', [AuthController::class, 'getUser']);
+    Route::post('check/old-password', [AuthController::class, 'checkOldPassword']);
+    Route::post('update/profile', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     //Jobs Api's
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
@@ -49,6 +51,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/job-summary/{id}', [CompanyJobController::class, 'updateJobSummary']);
     Route::get('get/job-summary/{id}', [CompanyJobController::class, 'getJobSummary']);
     Route::post('update/job-content/{id}', [CompanyJobController::class, 'updateJobContent']);
+    Route::get('get/job-content/{id}', [CompanyJobController::class, 'getJobContent']);
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
     Route::post('update-status/adjustor-meeting/{id}', [MeetingController::class, 'updateAdjustorMeetingStatus']);

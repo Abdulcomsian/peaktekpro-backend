@@ -277,4 +277,36 @@ class CompanyJobController extends Controller
         }
     }
 
+    public function getJobContent($id)
+    {
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $job_content = CompanyJobContent::where('company_job_id', $job->id)->with('images')->first();
+            if(!$job_content) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Content Not Found'
+                ], 422);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Content Found Successfully',
+                'job' => $job_content
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
 }
