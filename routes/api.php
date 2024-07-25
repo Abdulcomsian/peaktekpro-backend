@@ -39,16 +39,16 @@ use App\Http\Controllers\ProjectDesignAuthorizationController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+//Forgot Password Api
+Route::post('send/otp', [ForgotPasswordController::class, 'sendOTP']);
+Route::post('verify/otp', [ForgotPasswordController::class, 'verifyOTP']);
+Route::post('change/password', [ForgotPasswordController::class, 'changePassword']);
 
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::post('check/old-password', [AuthController::class, 'checkOldPassword']);
     Route::post('update/profile', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    //Forgot Password Api
-    Route::post('send/otp', [ForgotPasswordController::class, 'sendOTP']);
-    Route::post('verify/otp', [ForgotPasswordController::class, 'verifyOTP']);
-    Route::post('change/password', [ForgotPasswordController::class, 'changePassword']);
     //Jobs Api's
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
