@@ -55,13 +55,22 @@ class ForgotPasswordController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'otp' => 'required'
+            'otp' => 'required',
+            'email' => 'required|email'
         ]);
 
         try {
 
-            //Delete OTP
-            $otp = Otp::where('otp', $request->otp)->first();
+            $user = User::where('email', $request->email)->first();
+            if(!$user) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'User Not Found'
+                ], 422);
+            }
+
+            //Verify OTP
+            $otp = Otp::where('otp', $request->otp)->where('user_id', $user->id)->first();
             if($otp->otp == $request->otp) {
                 return response()->json([
                     'status' => 200,
