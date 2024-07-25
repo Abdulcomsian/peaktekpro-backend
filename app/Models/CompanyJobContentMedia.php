@@ -10,4 +10,6 @@ class CompanyJobContentMedia extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    protected $table = 'company_job_content_media';
 }

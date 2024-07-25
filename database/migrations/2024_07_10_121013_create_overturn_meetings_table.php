@@ -16,9 +16,7 @@ return new class extends Migration
         Schema::create('overturn_meetings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('name');
             $table->string('email')->unique();
-            $table->string('phone');
             $table->string('time');
             $table->string('date');
             $table->text('notes')->nullable();
