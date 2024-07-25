@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('job_content_media', function (Blueprint $table) {
+        Schema::create('company_job_content', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('summary_id')->constrained('company_job_summaries')->onDelete('cascade');
-            $table->string('media_url');
+            $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }

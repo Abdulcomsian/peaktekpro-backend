@@ -13,8 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('company_job_summaries', function (Blueprint $table) {
-            $table->text('notes')->after('balance')->nullable();
+        Schema::create('company_job_content_media', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('content_id')->constrained('company_job_content')->onDelete('cascade');
+            $table->string('media_url');
+            $table->timestamps();
         });
     }
 
@@ -25,8 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('company_job_summaries', function (Blueprint $table) {
-            $table->dropColumn('notes');
-        });
+        Schema::dropIfExists('company_job_content_media');
     }
 };

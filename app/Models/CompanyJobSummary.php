@@ -10,9 +10,4 @@ class CompanyJobSummary extends Model
     use HasFactory;
 
     protected $guarded = [];
-
-    public function images()
-    {
-        return $this->hasMany(JobContentMedia::class, 'summary_id', 'id');
-    }
 }

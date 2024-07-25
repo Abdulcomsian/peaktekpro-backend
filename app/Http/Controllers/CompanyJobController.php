@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Status;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
-use App\Models\JobContentMedia;
+use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignPage;
 use Illuminate\Support\Collection;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 
@@ -193,7 +194,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_summary = CompanyJobSummary::where('company_job_id', $job->id)->with('images')->first();
+            $job_summary = CompanyJobSummary::where('company_job_id', $job->id)->first();
             if(!$job_summary) {
                 return response()->json([
                     'status' => 422,
@@ -232,21 +233,18 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_summary = CompanyJobSummary::where('company_job_id', $job->id)->first();
-            if(!$job_summary) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Job Summary Not Found'
-                ], 422);
-            }
-
-            //Update Job Summary
-            $job_summary->notes = $request->notes;
-            $job_summary->save();
+            //Update Job Content
+            $content = CompanyJobContent::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'notes' => $request->notes,
+            ]);
+            
 
             if(isset($request->images)) {
                 //Remove Old Images
-                $oldImages = JobContentMedia::where('summary_id', $job_summary->id)->get();
+                $oldImages = CompanyJobContentMedia::where('content_id', $content->id)->get();
                 foreach($oldImages as $oldImage) {
                     $oldFilePath = str_replace('/storage', 'public', $oldImage->media_url);
                     Storage::delete($oldFilePath);
@@ -261,8 +259,8 @@ class CompanyJobController extends Controller
                     $path = $file->storeAs('public/job_content_media', $fileName);
 
                     //Update Job Content
-                    $media = new JobContentMedia;
-                    $media->summary_id = $job_summary->id;
+                    $media = new CompanyJobContentMedia;
+                    $media->content_id = $content->id;
                     $media->media_url = Storage::url($path);
                     $media->save();
                 }
