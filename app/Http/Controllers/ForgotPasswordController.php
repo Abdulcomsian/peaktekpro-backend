@@ -95,7 +95,8 @@ class ForgotPasswordController extends Controller
         //Validate Request
         $this->validate($request, [
             'email' => 'required|email',
-            'password' => 'required|string|min:8'
+            'password' => 'required|string|min:8',
+            'confirm_password' => 'required|string|min:8|same:password',
         ]);
 
         try {
