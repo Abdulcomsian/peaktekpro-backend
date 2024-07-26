@@ -24,7 +24,7 @@ class ForgotPasswordController extends Controller
             if(!$user) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'User Not Found'
+                    'message' => 'This Email Is Not Registered In Our Record'
                 ], 422);
             }
 
@@ -65,7 +65,7 @@ class ForgotPasswordController extends Controller
             if(!$user) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'User Not Found'
+                    'message' => 'This Email Is Not Registered In Our Record'
                 ], 422);
             }
 
@@ -104,7 +104,7 @@ class ForgotPasswordController extends Controller
             if(!$user) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'User Not Found'
+                    'message' => 'This Email Is Not Registered In Our Record'
                 ], 422);
             }
 
