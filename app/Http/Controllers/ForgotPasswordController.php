@@ -96,7 +96,7 @@ class ForgotPasswordController extends Controller
         $this->validate($request, [
             'email' => 'required|email',
             'password' => 'required|string|min:8',
-            'confirm_password' => 'required|string|min:8|same:password',
+            'confirm_password' => 'required|string|min:8',
         ]);
 
         try {
@@ -106,6 +106,13 @@ class ForgotPasswordController extends Controller
                 return response()->json([
                     'status' => 422,
                     'message' => 'Email is not registered in our record' //According to Basit Khattak 
+                ], 422);
+            }
+
+            if($request->password != $request->confirm_password) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Password & Confirm Password did not match'
                 ], 422);
             }
 
