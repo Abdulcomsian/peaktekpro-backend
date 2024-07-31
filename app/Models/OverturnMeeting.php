@@ -13,11 +13,16 @@ class OverturnMeeting extends Model
 
     public function attachments()
     {
-        return $this->hasMany(OverturnMeetingMedia::class, 'overturn_id', 'id')->where('media_type', 'attachment');
+        return $this->hasMany(OverturnMeetingMedia::class, 'overturn_id', 'id')->where('media_type', 'Document');
     }
 
     public function images()
     {
         return $this->hasMany(OverturnMeetingMedia::class, 'overturn_id', 'id')->where('media_type', 'image');
+    }
+    
+    public function manufacturerAttachments()
+    {
+        return $this->hasMany(OverturnMeetingMedia::class, 'overturn_id', 'id')->where('media_type', 'Manufacturer Document');
     }
 }

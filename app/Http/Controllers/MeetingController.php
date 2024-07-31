@@ -10,6 +10,7 @@ use App\Models\OverturnMeeting;
 use Illuminate\Support\Facades\DB;
 use App\Events\JobStatusUpdateEvent;
 use App\Models\OverturnMeetingMedia;
+use App\Models\AdjustorMeetingMedia;
 use Illuminate\Support\Facades\Storage;
 
 class MeetingController extends Controller
@@ -18,9 +19,7 @@ class MeetingController extends Controller
     {
         //Validate Rules
         $rules = [
-            'name' => 'required|string|max:255',
             'email' => 'required|email',
-            'phone' => 'required|string|max:20',
             'time' => 'required|date_format:h:i A', // 12-hour format
             'date' => 'required|date_format:d/m/Y',
         ];
@@ -52,9 +51,7 @@ class MeetingController extends Controller
                 'company_job_id' => $jobId,
             ],[
                 'company_job_id' => $jobId,
-                'name' => $request->name,
                 'email' => $request->email,
-                'phone' => $request->phone,
                 'date' => $request->date,
                 'time' => $request->time,
             ]);
@@ -66,6 +63,121 @@ class MeetingController extends Controller
             ], 200); 
 
         } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function updateAdjustorMeetingMedia(Request $request, $jobId)
+    {
+        //Validate Rules
+        $this->validate($request, [
+            'attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+            'images.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
+            'manufacturer_attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+            'notes' => 'nullable'
+        ]);
+        
+        DB::beginTransaction();
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Update Overturn Meeting
+            $adjustor_meeting = AdjustorMeeting::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'notes' => $request->notes
+            ]);
+
+            //Store Meeting Attachments
+            if(isset($request->attachments) && count($request->attachments) > 0) {
+                // Remove old attachments
+                $oldAttachments = AdjustorMeetingMedia::where('adjustor_id', $adjustor_meeting->id)->where('media_type', 'Document')->get();
+                foreach ($oldAttachments as $oldAttachment) {
+                    $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
+                    Storage::delete($oldFilePath);
+                    $oldAttachment->delete();
+                }
+
+                //Store New Attachments
+                foreach($request->attachments as $attachment) {
+                    $fileName = time() . '_' . $attachment->getClientOriginalName();
+                    $filePath = $attachment->storeAs('public/adjustor_meeting_attachments', $fileName);
+
+                    // Store Path
+                    $media = new AdjustorMeetingMedia();
+                    $media->adjustor_id = $adjustor_meeting->id;
+                    $media->media_type = 'Document';
+                    $media->media_url = Storage::url($filePath);
+                    $media->save();
+                }
+            } 
+
+            //Store Meeting Images
+            if(isset($request->images) && count($request->images) > 0) {
+                // Remove old attachments
+                $oldImages = AdjustorMeetingMedia::where('adjustor_id', $adjustor_meeting->id)->where('media_type', 'image')->get();
+                foreach ($oldImages as $oldImage) {
+                    $oldImagePath = str_replace('/storage', 'public', $oldImage->url);
+                    Storage::delete($oldImagePath);
+                    $oldImage->delete();
+                }
+
+                //Store New Images
+                foreach($request->images as $image) {
+                    $image_fileName = time() . '_' . $image->getClientOriginalName();
+                    $image_filePath = $image->storeAs('public/adjustor_meeting_images', $image_fileName);
+
+                    // Store Path
+                    $media = new AdjustorMeetingMedia();
+                    $media->adjustor_id = $adjustor_meeting->id;
+                    $media->media_type = 'image';
+                    $media->media_url = Storage::url($image_filePath);
+                    $media->save();
+                }
+            } 
+
+            //Store Manufacturer Attachments
+            if(isset($request->manufacturer_attachments) && count($request->manufacturer_attachments) > 0) {
+                // Remove old attachments
+                $oldManufacturerAttachments = AdjustorMeetingMedia::where('adjustor_id', $adjustor_meeting->id)->where('media_type', 'Manufacturer Document')->get();
+                foreach ($oldManufacturerAttachments as $oldManufacturerAttachment) {
+                    $oldManufacturerFilePath = str_replace('/storage', 'public', $oldManufacturerAttachment->url);
+                    Storage::delete($oldManufacturerFilePath);
+                    $oldManufacturerAttachment->delete();
+                }
+
+                //Store New Attachments
+                foreach($request->manufacturer_attachments as $manufacturer_attachment) {
+                    $manufacturerFileName = time() . '_' . $manufacturer_attachment->getClientOriginalName();
+                    $manufacturerFilePath = $manufacturer_attachment->storeAs('public/adjustor_meeting_attachments', $manufacturerFileName);
+
+                    // Store Path
+                    $media = new AdjustorMeetingMedia();
+                    $media->adjustor_id = $adjustor_meeting->id;
+                    $media->media_type = 'Manufacturer Document';
+                    $media->media_url = Storage::url($manufacturerFilePath);
+                    $media->save();
+                }
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Meeting Updated Successfully',
+                'data' => $adjustor_meeting
+            ], 200); 
+
+        } catch (\Exception $e) {
+            DB::rollback();
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
@@ -139,7 +251,7 @@ class MeetingController extends Controller
                 ], 422);
             }
 
-            $adjustor_meeting = AdjustorMeeting::where('company_job_id', $jobId)->first();
+            $adjustor_meeting = AdjustorMeeting::where('company_job_id', $jobId)->with('attachments','images','manufacturerAttachments')->first();
 
             return response()->json([
                 'status' => 200,
@@ -333,7 +445,7 @@ class MeetingController extends Controller
                 ], 422);
             }
 
-            $overturn_meeting = OverturnMeeting::where('company_job_id', $jobId)->with('attachments','images')->first();
+            $overturn_meeting = OverturnMeeting::where('company_job_id', $jobId)->with('attachments','images','manufacturerAttachments')->first();
 
             return response()->json([
                 'status' => 200,

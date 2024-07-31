@@ -13,14 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('adjustor_meetings', function (Blueprint $table) {
+        Schema::create('adjustor_meeting_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('email')->unique();
-            $table->string('time');
-            $table->string('date');
-            $table->text('notes')->nullable();
-            $table->string('status')->default('pending');
+            $table->foreignId('adjustor_id')->constrained('adjustor_meetings')->onDelete('cascade');
+            $table->string('media_type');
+            $table->string('media_url');
             $table->timestamps();
         });
     }
@@ -32,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('adjustor_meetings');
+        Schema::dropIfExists('adjustor_meeting_media');
     }
 };
