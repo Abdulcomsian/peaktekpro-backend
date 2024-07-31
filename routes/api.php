@@ -8,6 +8,7 @@ use App\Http\Controllers\JobLogController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CompanyJobController;
+use App\Http\Controllers\CarrierScopeController;
 use App\Http\Controllers\QcInspectionController;
 use App\Http\Controllers\ReadyToBuildController;
 use App\Http\Controllers\MaterialOrderController;
@@ -119,10 +120,13 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Ready To Build Api's
     Route::post('store/ready-to-build/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuild']);
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
-    //Supplier Api
+    //Supplier Api's
     Route::post('store/supplier/{jobId}', [SupplierController::class, 'storeSupplier']);
     Route::get('get/suppliers/{jobId}', [SupplierController::class, 'getSuppliers']);
-    //Sub Contractor Api
+    //Sub Contractor Api's
     Route::post('store/sub-contractor/{jobId}', [SubContractorController::class, 'storeSubContractor']);
     Route::get('get/sub-contractors/{jobId}', [SubContractorController::class, 'getSubContractors']);
+    //Carrier Scope Api's
+    Route::post('store/carrier-scope/{jobId}', [CarrierScopeController::class, 'storeCarrierScope']);
+    Route::get('get/carrier-scope/{jobId}', [CarrierScopeController::class, 'getCarrierScope']);
 });

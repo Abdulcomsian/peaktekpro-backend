@@ -158,7 +158,7 @@ class MeetingController extends Controller
                 //Store New Attachments
                 foreach($request->manufacturer_attachments as $manufacturer_attachment) {
                     $manufacturerFileName = time() . '_' . $manufacturer_attachment->getClientOriginalName();
-                    $manufacturerFilePath = $manufacturer_attachment->storeAs('public/adjustor_meeting_attachments', $manufacturerFileName);
+                    $manufacturerFilePath = $manufacturer_attachment->storeAs('public/adjustor_meeting_manufacturer_attachments', $manufacturerFileName);
 
                     // Store Path
                     $media = new AdjustorMeetingMedia();
