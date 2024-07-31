@@ -110,6 +110,20 @@ class CocController extends Controller
             }
 
             $get_coc = Coc::where('company_job_id', $jobId)->first();
+            if(is_null($get_coc)) {
+
+                // Create a new stdClass object
+                $coc = new \stdClass();
+                $coc->name = $job->name;
+                $coc->email = $job->email;
+                $coc->phone = $job->phone;
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'COC Not Found',
+                    'data' => $coc
+                ], 200);
+            }
 
             return response()->json([
                 'status' => 200,
