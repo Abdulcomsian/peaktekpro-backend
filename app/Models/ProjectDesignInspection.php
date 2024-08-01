@@ -13,6 +13,6 @@ class ProjectDesignInspection extends Model
 
     public function attachment()
     {
-        return $this->hasOne(ProjectDesignInspectionMedia::class, 'inspection_id','id');
+        return $this->hasMany(ProjectDesignInspectionMedia::class, 'inspection_id','id');
     }
 }

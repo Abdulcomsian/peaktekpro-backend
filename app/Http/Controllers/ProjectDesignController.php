@@ -271,7 +271,8 @@ class ProjectDesignController extends Controller
                         // Handle attachments
                         if (isset($inspection['attachment']) && !is_null($inspection['attachment']) && $inspection['attachment'] != 'null') {
                             // Remove old attachments
-                            $oldAttachment = ProjectDesignInspectionMedia::where('inspection_id', $get_inspection->id)->first();
+                            $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $get_inspection->id)->get();
+                            foreach($oldAttachments as $oldAttachment)
                             if ($oldAttachment) {
                                 $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
                                 Storage::delete($oldFilePath);
@@ -279,17 +280,18 @@ class ProjectDesignController extends Controller
                             }
 
                             // Store new attachments
-                            $file = $inspection['attachment'];
-                            $fileName = time() . '_' . $file->getClientOriginalName();
-                            $filePath = $file->storeAs('public/project_design_inspection', $fileName);
+                            foreach($inspection['attachment'] as $attachment)
+                            {
+                                $file = $attachment;
+                                $fileName = time() . '_' . $file->getClientOriginalName();
+                                $filePath = $file->storeAs('public/project_design_inspection', $fileName);
 
-                            // Store Path
-                            $media = ProjectDesignInspectionMedia::updateOrCreate([
-                                'inspection_id' => $get_inspection->id,
-                            ],[
-                                'inspection_id' => $get_inspection->id,
-                                'url' => Storage::url($filePath)
-                            ]);
+                                // Store Path
+                                $media = new ProjectDesignInspectionMedia;
+                                $media->inspection_id = $get_inspection->id;
+                                $media->url = Storage::url($filePath);
+                                $media->save();
+                            }
                         }
                     }
                 } else {
@@ -302,7 +304,8 @@ class ProjectDesignController extends Controller
                     // Handle attachments
                     if (isset($inspection['attachment']) && !is_null($inspection['attachment']) && $inspection['attachment'] != 'null') {
                         // Remove old attachments
-                        $oldAttachment = ProjectDesignInspectionMedia::where('inspection_id', $create_inspection->id)->first();
+                        $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $create_inspection->id)->get();
+                        foreach($oldAttachments as $oldAttachment)
                         if ($oldAttachment) {
                             $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
                             Storage::delete($oldFilePath);
@@ -310,17 +313,18 @@ class ProjectDesignController extends Controller
                         }
 
                         // Store new attachments
-                        $file = $inspection['attachment'];
-                        $fileName = time() . '_' . $file->getClientOriginalName();
-                        $filePath = $file->storeAs('public/project_design_inspection', $fileName);
+                        foreach($inspection['attachment'] as $attachment)
+                        {
+                            $file = $attachment;
+                            $fileName = time() . '_' . $file->getClientOriginalName();
+                            $filePath = $file->storeAs('public/project_design_inspection', $fileName);
 
-                        // Store Path
-                        $media = ProjectDesignInspectionMedia::updateOrCreate([
-                            'inspection_id' => $create_inspection->id,
-                        ],[
-                            'inspection_id' => $create_inspection->id,
-                            'url' => Storage::url($filePath)
-                        ]);
+                            // Store Path
+                            $media = new ProjectDesignInspectionMedia;
+                            $media->inspection_id = $create_inspection->id;
+                            $media->url = Storage::url($filePath);
+                            $media->save();
+                        }
                     }
                 }
             }
