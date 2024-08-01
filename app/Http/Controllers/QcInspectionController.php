@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\CompanyJob;
 use App\Models\QcInspection;
 use Illuminate\Http\Request;
+use App\Models\QcInspectionMedia;
 use App\Models\QcInspectionMaterials;
+use Illuminate\Support\Facades\Storage;
 
 class QcInspectionController extends Controller
 {
@@ -24,16 +26,19 @@ class QcInspectionController extends Controller
             'insurance' => 'required',
             'claim_number' => 'required',
             'policy_number' => 'required',
-            'company_representative' => 'required',
+            'notes' => 'required|string',
+            'company_signature' => 'required',
             'company_printed_name' => 'required',
-            'company_signed_date' => 'required|date_format:d/m/Y',
+            'company_date' => 'required|date_format:d/m/Y',
             'customer_signature' => 'required',
             'customer_printed_name' => 'required',
-            'customer_signed_date' => 'required|date_format:d/m/Y',
+            'customer_date' => 'required|date_format:d/m/Y',
             'materials' => 'required|array',
             'materials.*.material' => 'required|string',
             'materials.*.damaged' => 'nullable|in:0,1',
             'materials.*.notes' => 'nullable|string',
+            'images' => 'required|array',
+            'images.*' => 'required|image|max:10240|mimes:png,jpg,jpeg,gif',
         ];
 
         // If updating an existing record, ignore the current record's email for uniqueness check
@@ -73,12 +78,13 @@ class QcInspectionController extends Controller
                 'insurance' => $request->insurance,
                 'claim_number' => $request->claim_number,
                 'policy_number' => $request->policy_number,
-                'company_representative' => $request->company_representative,
+                'notes' => $request->notes,
+                'company_representative' => $request->company_signature,
                 'company_printed_name' => $request->company_printed_name,
-                'company_signed_date' => $request->company_signed_date,
+                'company_signed_date' => $request->company_date,
                 'customer_signature' => $request->customer_signature,
                 'customer_printed_name' => $request->customer_printed_name,
-                'customer_signed_date' => $request->customer_signed_date,
+                'customer_signed_date' => $request->customer_date,
             ]);
 
             // Delete materials that are not in the incoming data
@@ -116,6 +122,32 @@ class QcInspectionController extends Controller
                 }
             }
 
+            //Store QC Inspections Images
+            if(isset($request->images) && count($request->images) > 0) {
+                // Remove old images
+                $oldImages = QcInspectionMedia::where('qc_inspection_id', $qc_inspection->id)->get();
+                foreach ($oldImages as $oldImage) {
+                    if(!is_null($oldImage)) {
+                        $oldImagePath = str_replace('/storage', 'public', $oldImage->image_url);
+                        Storage::delete($oldImagePath);
+                        $oldImage->delete();
+                    }
+                }
+
+                //Store New Images
+                foreach($request->file('images') as $image) {
+                    $image_fileName = time() . '_' . $image->getClientOriginalName();
+                    $image_filePath = $image->storeAs('public/qc_inspection_images', $image_fileName);
+
+                    // Store Path
+                    $qc_inspection_media = new QcInspectionMedia();
+                    $qc_inspection_media->qc_inspection_id = $qc_inspection->id;
+                    $qc_inspection_media->image_url = Storage::url($image_filePath);
+                    $qc_inspection_media->save();
+                }
+            } 
+
+
             return response()->json([
                 'status' => 200,
                 'message' => 'QC Inspection Added Successfully',
@@ -140,7 +172,7 @@ class QcInspectionController extends Controller
                 ], 422);
             }
 
-            $qc_inspection = QcInspection::where('company_job_id', $jobId)->with('materials')->first();
+            $qc_inspection = QcInspection::where('company_job_id', $jobId)->with('materials','images')->first();
 
             return response()->json([
                 'status' => 200,

@@ -15,4 +15,9 @@ class QcInspection extends Model
     {
         return $this->hasMany(QcInspectionMaterials::class);
     }
+
+    public function images()
+    {
+        return $this->hasMany(QcInspectionMedia::class);
+    }
 }
