@@ -136,8 +136,8 @@ class CustomerAgreementController extends Controller
                 }
             }
             // Save the new image
-            Storage::disk('public')->put('customer_agreement_signature/' . $filename, $decodedImage);
-            $imageUrl = '/storage/customer_agreement_signature/' . $filename;
+            Storage::disk('public')->put('agreement_signature/' . $filename, $decodedImage);
+            $imageUrl = '/storage/agreement_signature/' . $filename;
 
             //Save Image Path
             $agreement->sign_image_url = $imageUrl;

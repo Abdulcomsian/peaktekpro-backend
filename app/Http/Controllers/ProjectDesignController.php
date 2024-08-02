@@ -105,7 +105,7 @@ class ProjectDesignController extends Controller
                 $primary_image = $request->file('primary_image');
                 $primary_image_filename = $primary_image->getClientOriginalName();
                 $primary_fileName = time() . '_' . $primary_image_filename;
-                $primary_image_path = $primary_image->storeAs('public/project_design_title', $primary_fileName);
+                $primary_image_path = $primary_image->storeAs('public/pd_title', $primary_fileName);
 
                 // Save the image path in the database
                 $title->primary_image = Storage::url($primary_image_path);
@@ -123,7 +123,7 @@ class ProjectDesignController extends Controller
                 $secondary_image = $request->file('secondary_image');
                 $secondary_image_filename = $secondary_image->getClientOriginalName();
                 $secondary_fileName = time() . '_' . $secondary_image_filename;
-                $secondary_image_path = $secondary_image->storeAs('public/project_design_title', $secondary_fileName);
+                $secondary_image_path = $secondary_image->storeAs('public/pd_title', $secondary_fileName);
 
                 // Save the image path in the database
                 $title->secondary_image = Storage::url($secondary_image_path);
