@@ -18,7 +18,7 @@ class QcInspectionController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email',
-            'phone' => 'required|string|max:25',
+            'phone' => 'required|max:25',
             'street' => 'required',
             'city' => 'required',
             'state' => 'required',
