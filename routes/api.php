@@ -44,6 +44,9 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('send/otp', [ForgotPasswordController::class, 'sendOTP']);
 Route::post('verify/otp', [ForgotPasswordController::class, 'verifyOTP']);
 Route::post('change/password', [ForgotPasswordController::class, 'changePassword']);
+//Customer Signature Api
+Route::get('get/sign/customer-agreement/{jobId}', [CustomerAgreementController::class, 'getSignCustomerAgreement']);
+Route::post('sign/customer/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
 
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('/user', [AuthController::class, 'getUser']);
