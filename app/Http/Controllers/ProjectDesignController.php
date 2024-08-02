@@ -11,7 +11,7 @@ use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ProjectDesignIntroduction;
 use App\Models\ProjectDesignInspectionMedia;
-
+use Illuminate\Support\Facades\Log;
 class ProjectDesignController extends Controller
 {
     public function updateProjectDesignPageStatus(Request $request, $jobId)
