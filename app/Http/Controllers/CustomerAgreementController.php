@@ -11,6 +11,7 @@ use App\Models\CustomerAgreement;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 
 class CustomerAgreementController extends Controller
@@ -182,8 +183,13 @@ class CustomerAgreementController extends Controller
 
     }
 
-    public function signCustomerAgreementByEmail($id)
+    public function signCustomerAgreementByEmail(Request $request, $id)
     {
+        //Validate Request
+        $this->validate($request, [
+            'url' => 'required',
+        ]);
+
         try {
 
             //Check Agreement
@@ -196,9 +202,10 @@ class CustomerAgreementController extends Controller
             }
 
             //Send Email
+            $encrypted_url = Crypt::encryptString($request->url);
             $customer = CompanyJob::find($agreement->company_job_id);
-            // dispatch(new SignEmailJob($customer));
-            Mail::to($customer->email)->send(new SignEmailMail($customer));
+            // dispatch(new SignEmailJob($customer,$encrypted_url));
+            Mail::to($customer->email)->send(new SignEmailMail($customer,$encrypted_url));
 
             return response()->json([
                 'status' => 200,

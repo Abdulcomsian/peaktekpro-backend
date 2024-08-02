@@ -14,15 +14,17 @@ class SignEmailMail extends Mailable
     use Queueable, SerializesModels;
 
     public $customer;
+    public $encrypted_url;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($customer)
+    public function __construct($customer,$encrypted_url)
     {
         $this->customer = $customer;
+        $this->encrypted_url = $encrypted_url;
     }
 
     /**

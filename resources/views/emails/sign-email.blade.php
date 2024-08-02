@@ -41,7 +41,7 @@
     <p>I hope this email finds you well.<p>
     <p>We are reaching out to inform you that we require your signature on the document of Customer Agreement. Please review and sign the document at your earliest convenience by clicking on the link below:</p>
 
-    <center><a href="http://www.google.com" target="_blank" class="btn">Visit Link</a></center>
+    <center><a href="{{\Illuminate\Support\Facades\Crypt::decryptString($encrypted_url)}}" target="_blank" class="btn">Visit Link</a></center>
 
     <p>If you have any questions or require further assistance, please do not hesitate to contact us.<p>
     <p>Thank you for your prompt attention to this matter.</p>

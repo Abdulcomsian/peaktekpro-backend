@@ -15,14 +15,16 @@ class SignEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     public $customer;
+    public $encrypted_url;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($customer)
+    public function __construct($customer, $encrypted_url)
     {
         $this->customer = $customer;
+        $this->encrypted_url = $encrypted_url;
     }
 
     /**
@@ -32,6 +34,6 @@ class SignEmailJob implements ShouldQueue
      */
     public function handle()
     {
-        Mail::to($this->customer->email)->send(new SignEmailMail($this->customer));
+        Mail::to($this->customer->email)->send(new SignEmailMail($this->customer,$this->encrypted_url));
     }
 }
