@@ -10,4 +10,9 @@ class QcInspectionMaterials extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function getDamagedAttribute()
+    {
+        return $this->attributes['damaged'] != 0;
+    }
 }
