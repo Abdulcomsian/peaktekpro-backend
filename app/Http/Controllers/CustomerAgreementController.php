@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use PDF;
 use App\Jobs\SignEmailJob;
 use App\Models\CompanyJob;
+use App\Mail\SignEmailMail;
 use Illuminate\Http\Request;
 use App\Models\CustomerAgreement;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class CustomerAgreementController extends Controller
@@ -195,7 +197,8 @@ class CustomerAgreementController extends Controller
 
             //Send Email
             $customer = CompanyJob::find($agreement->company_job_id);
-            dispatch(new SignEmailJob($customer));
+            // dispatch(new SignEmailJob($customer));
+            Mail::to($customer->email)->send(new SignEmailMail($customer));
 
             return response()->json([
                 'status' => 200,
