@@ -130,16 +130,16 @@ class CompanyJobController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'job_total' => 'required',
-            'first_payment' => 'required',
-            'first_payment_cheque_number' => 'required',
-            'deductable' => 'required',
-            'deductable_cheque_number' => 'required',
-            'final_payment' => 'required',
-            'final_payment_cheque_number' => 'required',
-            'upgrades' => 'required',
-            'upgrades_cheque_number' => 'required',
-            'balance' => 'required'
+            'job_total' => 'nullable',
+            'first_payment' => 'nullable',
+            'first_payment_cheque_number' => 'nullable',
+            'deductable' => 'nullable',
+            'deductable_cheque_number' => 'nullable',
+            'final_payment' => 'nullable',
+            'final_payment_cheque_number' => 'nullable',
+            'upgrades' => 'nullable',
+            'upgrades_cheque_number' => 'nullable',
+            'balance' => 'nullable'
         ]);
 
         try {

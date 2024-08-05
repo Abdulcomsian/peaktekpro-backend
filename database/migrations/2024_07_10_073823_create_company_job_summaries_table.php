@@ -16,16 +16,16 @@ return new class extends Migration
         Schema::create('company_job_summaries', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('job_total');
-            $table->string('first_payment');
-            $table->string('first_payment_cheque_number');
-            $table->string('deductable');
-            $table->string('deductable_cheque_number');
-            $table->string('upgrades');
-            $table->string('upgrades_cheque_number');
-            $table->string('final_payment');
-            $table->string('final_payment_cheque_number');
-            $table->string('balance');
+            $table->string('job_total')->nullable();
+            $table->string('first_payment')->nullable();
+            $table->string('first_payment_cheque_number')->nullable();
+            $table->string('deductable')->nullable();
+            $table->string('deductable_cheque_number')->nullable();
+            $table->string('upgrades')->nullable();
+            $table->string('upgrades_cheque_number')->nullable();
+            $table->string('final_payment')->nullable();
+            $table->string('final_payment_cheque_number')->nullable();
+            $table->string('balance')->nullable();
             $table->timestamps();
         });
     }
