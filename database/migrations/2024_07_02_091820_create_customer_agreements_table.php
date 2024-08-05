@@ -16,11 +16,11 @@ return new class extends Migration
         Schema::create('customer_agreements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('street');
-            $table->string('city');
-            $table->string('state');
-            $table->string('zip_code');
-            $table->string('insurance');
+            $table->string('street')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->string('insurance')->nullable();
             $table->string('claim_number')->nullable();
             $table->string('policy_number')->nullable();
             $table->string('sign_image_url')->nullable();

@@ -22,19 +22,19 @@ class CustomerAgreementController extends Controller
 
             //Validate Request
             $this->validate($request, [
-                'street' => 'required',
-                'city' => 'required',
-                'state' => 'required',
-                'zip_code' => 'required',
-                'insurance' => 'required',
-                'claim_number' => 'required',
-                'policy_number' => 'required',
-                'company_signature' => 'required',
-                'company_printed_name' => 'required',
-                'company_date' => 'required|date_format:d/m/Y',
-                'customer_signature' => 'required',
-                'customer_printed_name' => 'required',
-                'customer_date' => 'required|date_format:d/m/Y',
+                'street' => 'nullable',
+                'city' => 'nullable',
+                'state' => 'nullable',
+                'zip_code' => 'nullable',
+                'insurance' => 'nullable',
+                'claim_number' => 'nullable',
+                'policy_number' => 'nullable',
+                'company_signature' => 'nullable',
+                'company_printed_name' => 'nullable',
+                'company_date' => 'nullable|date_format:d/m/Y',
+                'customer_signature' => 'nullable',
+                'customer_printed_name' => 'nullable',
+                'customer_date' => 'nullable|date_format:d/m/Y',
             ]);
 
             //Check Job
