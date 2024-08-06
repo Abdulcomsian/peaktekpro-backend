@@ -19,11 +19,11 @@ class MeetingController extends Controller
     {
         //Validate Rules
         $rules = [
-            'email' => 'required|email',
-            'time' => 'required|date_format:h:i A', // 12-hour format
-            'date' => 'required|date_format:d/m/Y',
-            'name' => 'required|string|max:255',
-            'phone' => 'required',
+            'email' => 'nullable|email',
+            'time' => 'nullable|date_format:h:i A', // 12-hour format
+            'date' => 'nullable|date_format:d/m/Y',
+            'name' => 'nullable|string|max:255',
+            'phone' => 'nullable',
         ];
 
         // If updating an existing record, ignore the current record's email for uniqueness check
@@ -273,11 +273,11 @@ class MeetingController extends Controller
     {
         //Validate Rules
         $rules = [
-            'email' => 'required|email',
-            'time' => 'required|date_format:h:i A', // 12-hour format
-            'date' => 'required|date_format:d/m/Y',
-            'name' => 'required|string|max:255',
-            'phone' => 'required',
+            'email' => 'nullable|email',
+            'time' => 'nullable|date_format:h:i A', // 12-hour format
+            'date' => 'nullable|date_format:d/m/Y',
+            'name' => 'nullable|string|max:255',
+            'phone' => 'nullable',
         ];
 
         // If updating an existing record, ignore the current record's email for uniqueness check
