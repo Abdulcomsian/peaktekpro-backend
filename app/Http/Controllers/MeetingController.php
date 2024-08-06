@@ -22,6 +22,8 @@ class MeetingController extends Controller
             'email' => 'required|email',
             'time' => 'required|date_format:h:i A', // 12-hour format
             'date' => 'required|date_format:d/m/Y',
+            'name' => 'required|string|max:255',
+            'phone' => 'required',
         ];
 
         // If updating an existing record, ignore the current record's email for uniqueness check
@@ -54,6 +56,8 @@ class MeetingController extends Controller
                 'email' => $request->email,
                 'date' => $request->date,
                 'time' => $request->time,
+                'name' => $request->name,
+                'phone' => $request->phone,
             ]);
 
             return response()->json([
@@ -272,6 +276,8 @@ class MeetingController extends Controller
             'email' => 'required|email',
             'time' => 'required|date_format:h:i A', // 12-hour format
             'date' => 'required|date_format:d/m/Y',
+            'name' => 'required|string|max:255',
+            'phone' => 'required',
         ];
 
         // If updating an existing record, ignore the current record's email for uniqueness check
@@ -304,6 +310,8 @@ class MeetingController extends Controller
                 'email' => $request->email,
                 'date' => $request->date,
                 'time' => $request->time,
+                'name' => $request->name,
+                'phone' => $request->phone,
             ]); 
 
             return response()->json([
