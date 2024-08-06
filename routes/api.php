@@ -116,6 +116,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/job-log/{jobId}', [JobLogController::class, 'getJobLog']);
     //QC Inspection Api's
     Route::post('store/qc-inspection/{jobId}', [QcInspectionController::class, 'storeQcInspection']);
+    Route::post('store/qc-inspection/media/{jobId}', [QcInspectionController::class, 'storeQcInspectionMedia']);
     Route::get('get/qc-inspection/{jobId}', [QcInspectionController::class, 'getQcInspection']);
     //Certificate Of Completion Api's
     Route::post('store/coc/{jobId}', [CocController::class, 'storeCoc']);

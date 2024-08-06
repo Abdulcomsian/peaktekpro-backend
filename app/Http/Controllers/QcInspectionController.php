@@ -26,7 +26,6 @@ class QcInspectionController extends Controller
             'insurance' => 'required',
             'claim_number' => 'required',
             'policy_number' => 'required',
-            'notes' => 'required|string',
             'company_signature' => 'required',
             'company_printed_name' => 'required',
             'company_date' => 'required|date_format:d/m/Y',
@@ -37,8 +36,6 @@ class QcInspectionController extends Controller
             'materials.*.material' => 'required|string',
             'materials.*.damaged' => 'nullable|in:0,1',
             'materials.*.notes' => 'nullable|string',
-            'images' => 'required|array',
-            'images.*' => 'required|image|max:10240|mimes:png,jpg,jpeg,gif',
         ];
 
         // If updating an existing record, ignore the current record's email for uniqueness check
@@ -78,7 +75,6 @@ class QcInspectionController extends Controller
                 'insurance' => $request->insurance,
                 'claim_number' => $request->claim_number,
                 'policy_number' => $request->policy_number,
-                'notes' => $request->notes,
                 'company_representative' => $request->company_signature,
                 'company_printed_name' => $request->company_printed_name,
                 'company_signed_date' => $request->company_date,
@@ -122,6 +118,54 @@ class QcInspectionController extends Controller
                 }
             }
 
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'QC Inspection Added Successfully',
+                'data' => $qc_inspection
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function storeQcInspectionMedia(Request $request, $jobId)
+    {
+        $this->validate($request, [
+            'notes' => 'required|string',
+            'images' => 'required|array',
+            'images.*' => 'required|image|max:10240|mimes:png,jpg,jpeg,gif',
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Check QC Inspection
+            $qc_inspection = QcInspection::where('company_job_id', $jobId)->first();
+            if(!$qc_inspection) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'QC Inspection Not Found'
+                ], 422);
+            }
+
+            //Update QC Inspection
+            $qc_inspection = QcInspection::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'notes' => $request->notes,
+            ]);
+
             //Store QC Inspections Images
             if(isset($request->images) && count($request->images) > 0) {
                 // Remove old images
@@ -145,12 +189,11 @@ class QcInspectionController extends Controller
                     $qc_inspection_media->image_url = Storage::url($image_filePath);
                     $qc_inspection_media->save();
                 }
-            } 
-
+            }
 
             return response()->json([
                 'status' => 200,
-                'message' => 'QC Inspection Added Successfully',
+                'message' => 'QC Inspection Media Added Successfully',
                 'data' => $qc_inspection
             ], 200);
 
