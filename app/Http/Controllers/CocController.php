@@ -79,7 +79,7 @@ class CocController extends Controller
                 'customer_paid_upgrades' => $request->customer_paid_upgrades,
                 'deductible' => $request->deductible,
                 'acv_check' => $request->acv_check,
-                'rcv_check' => $request->dedrcv_checkuctible,
+                'rcv_check' => $request->rcv_check,
                 'supplemental_items' => $request->supplemental_items,
                 'awarded_to' => $request->awarded_to,
                 'released_to' => $request->released_to,

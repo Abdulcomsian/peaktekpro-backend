@@ -34,7 +34,7 @@ class QcInspectionController extends Controller
             'customer_date' => 'required|date_format:d/m/Y',
             'materials' => 'required|array',
             'materials.*.material' => 'required|string',
-            'materials.*.damaged' => 'nullable|in:0,1',
+            'materials.*.damaged' => 'nullable|boolean',
             'materials.*.notes' => 'nullable|string',
         ];
 
