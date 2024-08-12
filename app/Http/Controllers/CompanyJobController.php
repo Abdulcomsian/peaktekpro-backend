@@ -219,7 +219,7 @@ class CompanyJobController extends Controller
         $this->validate($request, [
             'notes' => 'nullable',
             'images' => 'nullable|array',
-            'images.*' => 'mimes:png,jpg,jpeg,gif'
+            'images.*' => 'image|mimes:png,jpg,jpeg,gif'
         ]);
 
         try {

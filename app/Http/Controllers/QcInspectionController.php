@@ -134,8 +134,8 @@ class QcInspectionController extends Controller
     {
         $this->validate($request, [
             'notes' => 'required|string',
-            'images' => 'required|array',
-            'images.*' => 'required|image|max:10240|mimes:png,jpg,jpeg,gif',
+            'images' => 'nullable|array',
+            'images.*' => 'image|max:10240|mimes:png,jpg,jpeg,gif',
         ]);
 
         try {
