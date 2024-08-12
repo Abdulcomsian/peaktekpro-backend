@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/job-summary/{id}', [CompanyJobController::class, 'getJobSummary']);
     Route::post('update/job-content/{id}', [CompanyJobController::class, 'updateJobContent']);
     Route::get('get/job-content/{id}', [CompanyJobController::class, 'getJobContent']);
+    Route::post('change/job-content/file-name/{id}', [CompanyJobController::class, 'updateJobContentFileName']);
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
     Route::post('update/adjustor-meeting-media/{jobId}', [MeetingController::class, 'updateAdjustorMeetingMedia']);
@@ -118,6 +119,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('store/qc-inspection/{jobId}', [QcInspectionController::class, 'storeQcInspection']);
     Route::post('store/qc-inspection/media/{jobId}', [QcInspectionController::class, 'storeQcInspectionMedia']);
     Route::get('get/qc-inspection/{jobId}', [QcInspectionController::class, 'getQcInspection']);
+    Route::post('change/qc-inspection/file-name/{id}', [QcInspectionController::class, 'changeQcInspectionFileName']);
     //Certificate Of Completion Api's
     Route::post('store/coc/{jobId}', [CocController::class, 'storeCoc']);
     Route::get('get/coc/{jobId}', [CocController::class, 'getCoc']);

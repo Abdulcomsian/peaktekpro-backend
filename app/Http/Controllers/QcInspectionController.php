@@ -227,4 +227,37 @@ class QcInspectionController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function changeQcInspectionFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check QC Inspection
+            $check_qc_inspection = QcInspectionMedia::find($id);
+            if(!$check_qc_inspection) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'QC Inspection Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_qc_inspection->file_name = $request->file_name;
+            $check_qc_inspection->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }

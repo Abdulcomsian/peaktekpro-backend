@@ -309,4 +309,37 @@ class CompanyJobController extends Controller
         }
     }
 
+    public function updateJobContentFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Company Job Content
+            $check_media = CompanyJobContentMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Content Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_media->file_name = $request->file_name;
+            $check_media->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
 }
