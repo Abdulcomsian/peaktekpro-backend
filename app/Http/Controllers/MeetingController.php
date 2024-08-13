@@ -520,4 +520,37 @@ class MeetingController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function updateOverturnMeetingFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Overturn Meeting
+            $check_overturn_meeting_media = OverturnMeetingMedia::find($id);
+            if(!$check_overturn_meeting_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Overturn Meeting Media Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_overturn_meeting_media->file_name = $request->file_name;
+            $check_overturn_meeting_media->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }

@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Overturn Meeting Api
     Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
     Route::post('update/overturn-meeting-media/{jobId}', [MeetingController::class, 'updateOverturnMeetingMedia']);
+    Route::post('change/overturn-meeting/file-name/{id}', [MeetingController::class, 'updateOverturnMeetingFileName']);
     Route::get('get/overturn-meeting/{jobId}', [MeetingController::class, 'getOverturnMeeting']);
     Route::post('update-status/overturn-meeting/{id}', [MeetingController::class, 'updateOverturnMeetingStatus']);
     //Customer Agreements Api's
