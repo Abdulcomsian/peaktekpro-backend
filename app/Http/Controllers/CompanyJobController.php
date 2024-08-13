@@ -243,14 +243,6 @@ class CompanyJobController extends Controller
             
 
             if(isset($request->images)) {
-                //Remove Old Images
-                $oldImages = CompanyJobContentMedia::where('content_id', $content->id)->get();
-                foreach($oldImages as $oldImage) {
-                    $oldFilePath = str_replace('/storage', 'public', $oldImage->media_url);
-                    Storage::delete($oldFilePath);
-                    $oldImage->delete();
-                }
-
                 //Store New Images
                 foreach($request->file('images') as $file)
                 {
@@ -334,6 +326,40 @@ class CompanyJobController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function deleteJobContentMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'media_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Company Job Content
+            $check_media = CompanyJobContentMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Content Not Found'
+                ], 422);
+            }
+
+            //Delete Media
+            $oldFilePath = str_replace('/storage', 'public', $check_media->media_url);
+            Storage::delete($oldFilePath);
+            $check_media->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
                 'data' => []
             ], 200);
 

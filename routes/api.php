@@ -62,6 +62,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/job-content/{id}', [CompanyJobController::class, 'updateJobContent']);
     Route::get('get/job-content/{id}', [CompanyJobController::class, 'getJobContent']);
     Route::post('change/job-content/file-name/{id}', [CompanyJobController::class, 'updateJobContentFileName']);
+    Route::post('delete/job-content/media/{id}', [CompanyJobController::class, 'deleteJobContentMedia']);
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
     Route::post('update/adjustor-meeting-media/{jobId}', [MeetingController::class, 'updateAdjustorMeetingMedia']);
