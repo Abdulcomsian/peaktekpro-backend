@@ -130,6 +130,8 @@ class ProjectDesignController extends Controller
                 $title->save();
             }
 
+            $title = ProjectDesignTitle::find($title->id);
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Title Added Successfully',
