@@ -109,6 +109,7 @@ class ProjectDesignController extends Controller
 
                 // Save the image path in the database
                 $title->primary_image = Storage::url($primary_image_path);
+                $title->primary_image_file_name = 'primary image';
                 $title->save();
             }
 
@@ -127,6 +128,7 @@ class ProjectDesignController extends Controller
 
                 // Save the image path in the database
                 $title->secondary_image = Storage::url($secondary_image_path);
+                $title->secondary_image_file_name = 'secondary image';
                 $title->save();
             }
 
