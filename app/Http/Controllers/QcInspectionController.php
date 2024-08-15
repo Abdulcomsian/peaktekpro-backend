@@ -168,16 +168,6 @@ class QcInspectionController extends Controller
 
             //Store QC Inspections Images
             if(isset($request->images) && count($request->images) > 0) {
-                // Remove old images
-                $oldImages = QcInspectionMedia::where('qc_inspection_id', $qc_inspection->id)->get();
-                foreach ($oldImages as $oldImage) {
-                    if(!is_null($oldImage)) {
-                        $oldImagePath = str_replace('/storage', 'public', $oldImage->image_url);
-                        Storage::delete($oldImagePath);
-                        $oldImage->delete();
-                    }
-                }
-
                 //Store New Images
                 foreach($request->file('images') as $image) {
                     $image_fileName = time() . '_' . $image->getClientOriginalName();
@@ -253,6 +243,40 @@ class QcInspectionController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function deleteQcInspectionMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'image_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Media
+            $check_media = QcInspectionMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'QC Inspection Media Not Found'
+                ], 422);
+            }
+
+            //Delete Media
+            $oldImagePath = str_replace('/storage', 'public', $check_media->image_url);
+            Storage::delete($oldImagePath);
+            $check_media->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
                 'data' => []
             ], 200);
 

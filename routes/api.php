@@ -122,6 +122,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('store/qc-inspection/media/{jobId}', [QcInspectionController::class, 'storeQcInspectionMedia']);
     Route::get('get/qc-inspection/{jobId}', [QcInspectionController::class, 'getQcInspection']);
     Route::post('change/qc-inspection/file-name/{id}', [QcInspectionController::class, 'changeQcInspectionFileName']);
+    Route::post('delete/qc-inspection/media/{id}', [QcInspectionController::class, 'deleteQcInspectionMedia']);
     //Certificate Of Completion Api's
     Route::post('store/coc/{jobId}', [CocController::class, 'storeCoc']);
     Route::get('get/coc/{jobId}', [CocController::class, 'getCoc']);
