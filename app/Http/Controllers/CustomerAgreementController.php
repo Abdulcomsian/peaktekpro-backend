@@ -95,6 +95,11 @@ class CustomerAgreementController extends Controller
                 $agreement->name = $job->name;
                 $agreement->email = $job->email;
                 $agreement->phone = $job->phone;
+                if($agreement->isComplete()) {
+                    $agreement->is_complete = true;
+                } else {
+                    $agreement->is_complete = false;
+                }
             }
 
             return response()->json([
@@ -250,6 +255,11 @@ class CustomerAgreementController extends Controller
             $agreement->name = $job->name;
             $agreement->email = $job->email;
             $agreement->phone = $job->phone;
+            if($agreement->isComplete()) {
+                $agreement->is_complete = true;
+            } else {
+                $agreement->is_complete = false;
+            }
 
             return response()->json([
                 'status' => 200,
