@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('project_design_introductions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->text('introduction');
+            $table->longText('introduction');
             $table->timestamps();
         });
     }

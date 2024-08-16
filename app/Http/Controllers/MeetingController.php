@@ -357,14 +357,6 @@ class MeetingController extends Controller
 
             //Store Meeting Attachments
             if(isset($request->attachments) && count($request->attachments) > 0) {
-                // Remove old attachments
-                $oldAttachments = OverturnMeetingMedia::where('overturn_id', $overturn_meeting->id)->where('media_type', 'document')->get();
-                foreach ($oldAttachments as $oldAttachment) {
-                    $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                    Storage::delete($oldFilePath);
-                    $oldAttachment->delete();
-                }
-
                 //Store New Attachments
                 foreach($request->attachments as $attachment) {
                     $fileName = time() . '_' . $attachment->getClientOriginalName();
@@ -381,14 +373,6 @@ class MeetingController extends Controller
 
             //Store Meeting Images
             if(isset($request->images) && count($request->images) > 0) {
-                // Remove old attachments
-                $oldImages = OverturnMeetingMedia::where('overturn_id', $overturn_meeting->id)->where('media_type', 'image')->get();
-                foreach ($oldImages as $oldImage) {
-                    $oldImagePath = str_replace('/storage', 'public', $oldImage->url);
-                    Storage::delete($oldImagePath);
-                    $oldImage->delete();
-                }
-
                 //Store New Images
                 foreach($request->images as $image) {
                     $image_fileName = time() . '_' . $image->getClientOriginalName();
@@ -405,14 +389,6 @@ class MeetingController extends Controller
 
             //Store Manufacturer Attachments
             if(isset($request->manufacturer_attachments) && count($request->manufacturer_attachments) > 0) {
-                // Remove old attachments
-                $oldManufacturerAttachments = OverturnMeetingMedia::where('overturn_id', $overturn_meeting->id)->where('media_type', 'Manufacturer Document')->get();
-                foreach ($oldManufacturerAttachments as $oldManufacturerAttachment) {
-                    $oldManufacturerFilePath = str_replace('/storage', 'public', $oldManufacturerAttachment->url);
-                    Storage::delete($oldManufacturerFilePath);
-                    $oldManufacturerAttachment->delete();
-                }
-
                 //Store New Attachments
                 foreach($request->manufacturer_attachments as $manufacturer_attachment) {
                     $manufacturerFileName = time() . '_' . $manufacturer_attachment->getClientOriginalName();
@@ -546,6 +522,40 @@ class MeetingController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function deleteOverturnMeetingMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'media_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Media
+            $check_media = OverturnMeetingMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Overturn Meeting Media Not Found'
+                ], 422);
+            }
+
+            // Remove Media
+            $oldPath = str_replace('/storage', 'public', $check_media->media_url);
+            Storage::delete($oldPath);
+            $check_media->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
                 'data' => []
             ], 200);
 
