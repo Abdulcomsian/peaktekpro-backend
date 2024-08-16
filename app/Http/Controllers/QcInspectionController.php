@@ -133,7 +133,7 @@ class QcInspectionController extends Controller
     public function storeQcInspectionMedia(Request $request, $jobId)
     {
         $this->validate($request, [
-            'notes' => 'required|string',
+            'notes' => 'nullable|string',
             'images' => 'nullable|array',
             'images.*' => 'image|max:10240|mimes:png,jpg,jpeg,gif',
         ]);
