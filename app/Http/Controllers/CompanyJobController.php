@@ -368,4 +368,35 @@ class CompanyJobController extends Controller
         }
     }
 
+    public function updateJobStatus(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'status_id' => 'required|integer'
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $job->status_id = $request->status_id;
+            $job->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Status Updated Successfully',
+                'job' => $job
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
 }

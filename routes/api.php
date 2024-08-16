@@ -57,6 +57,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
     Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
+    Route::post('update/job-status/{id}', [CompanyJobController::class, 'updateJobStatus']);
     Route::post('update/job-summary/{id}', [CompanyJobController::class, 'updateJobSummary']);
     Route::get('get/job-summary/{id}', [CompanyJobController::class, 'getJobSummary']);
     Route::post('update/job-content/{id}', [CompanyJobController::class, 'updateJobContent']);
