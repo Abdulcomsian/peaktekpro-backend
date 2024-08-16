@@ -95,7 +95,7 @@ class ProjectDesignController extends Controller
             ]);
 
             // Store Primary Image if provided
-            if (isset($request->primary_image) && $request->hasFile('primary_image')) {
+            if (isset($request->primary_image) && $request->hasFile('primary_image') && $request->primary_image != "null") {
                 // Delete the old primary image if it exists
                 if ($title->primary_image) {
                     $oldPrimaryImagePath = str_replace('/storage', 'public', $title->primary_image);
@@ -114,7 +114,7 @@ class ProjectDesignController extends Controller
             }
 
             // Store Secondary Image if provided
-            if (isset($request->secondary_image) && $request->hasFile('secondary_image')) {
+            if (isset($request->secondary_image) && $request->hasFile('secondary_image') && $request->secondary_image != "null") {
                 // Delete the old secondary image if it exists
                 if ($title->secondary_image) {
                     $oldSecondaryImagePath = str_replace('/storage', 'public', $title->secondary_image);
