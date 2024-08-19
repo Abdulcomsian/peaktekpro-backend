@@ -249,6 +249,10 @@ class ProjectDesignController extends Controller
         //     'inspections.*.inspection' => 'required|string',
         //     'inspections.*.attachment' => 'nullable',
         // ]);
+        $this->validate($request, [
+            '*.inspection' => 'required',
+            '*.attachment' => 'nullable|array'
+        ]);
 
         DB::beginTransaction();
         try {
