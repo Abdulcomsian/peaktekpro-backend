@@ -247,7 +247,7 @@ class ProjectDesignController extends Controller
         $this->validate($request, [
             'data' => 'required|array',
             'data.*.inspection' => 'required',
-            'data.*.attachment' => 'nullable',
+            'data.*.attachment' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
