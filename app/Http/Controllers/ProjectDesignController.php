@@ -250,7 +250,7 @@ class ProjectDesignController extends Controller
         //     'inspections.*.attachment' => 'nullable',
         // ]);
         $this->validate($request, [
-            '*.inspection' => 'required|string|regex:/^<p>.*<\/p>$/',
+            '*.inspection' => 'required',
             '*.attachment' => 'nullable|array'
         ]);
 
