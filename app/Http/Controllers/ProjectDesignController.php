@@ -64,8 +64,8 @@ class ProjectDesignController extends Controller
             'zip' => 'required',
             'report_type' => 'required',
             'date' => 'required|date_format:d/m/Y',
-            'primary_image' => 'nullable|image',
-            'secondary_image' => 'nullable|image',
+            'primary_image' => 'nullable',
+            'secondary_image' => 'nullable',
         ]);
 
         try {
