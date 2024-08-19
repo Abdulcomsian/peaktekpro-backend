@@ -244,14 +244,10 @@ class ProjectDesignController extends Controller
     public function storeProjectDesignInspection(Request $request, $jobId)
     {
         //Validate Request
-        // $this->validate($request, [
-        //     'inspections' => 'required|array',
-        //     'inspections.*.inspection' => 'required|string',
-        //     'inspections.*.attachment' => 'nullable',
-        // ]);
         $this->validate($request, [
-            '*.inspection' => 'required',
-            '*.attachment' => 'nullable|array'
+            'data' => 'required|array',
+            'data.*.inspection' => 'required',
+            'data.*.attachment' => 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -266,7 +262,7 @@ class ProjectDesignController extends Controller
             }
 
             //Store Project Design Inspection
-            $inspections = $request->all();
+            $inspections = $request->input('data');
             foreach($inspections as $inspection) {
                 if(isset($inspection['id'])) {
                     $get_inspection = ProjectDesignInspection::find($inspection['id']);
