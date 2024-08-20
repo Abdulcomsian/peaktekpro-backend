@@ -27,7 +27,8 @@ return new class extends Migration
     public function down()
     {
         Schema::table('project_design_titles', function (Blueprint $table) {
-            $table->dropColumns(['primary_image','secondary_image']);
+            $table->dropColumn('primary_image_file_name');
+            $table->dropColumn('secondary_image_file_name');
         });
     }
 };

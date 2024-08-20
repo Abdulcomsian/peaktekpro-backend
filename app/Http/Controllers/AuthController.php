@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserRole;
+use App\Jobs\CreateUserJob;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -65,7 +67,7 @@ class AuthController extends Controller
         try {
 
             //Check on Email
-            $userExists = User::where('email', $request->email)->exists();
+            $userExists = User::where('email', $request->email)->first();
             if (!$userExists) {
                 return response()->json([
                     'status' => 422,
@@ -73,22 +75,31 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            if (Auth::attempt($request->only('email', 'password'))) {
-                $user = Auth::user();
-                $token = $user->createToken('auth_token')->plainTextToken;
+            if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5) {
 
+                if (Auth::attempt($request->only('email', 'password'))) {
+                    $user = Auth::user();
+                    $token = $user->createToken('auth_token')->plainTextToken;
+
+                    return response()->json([
+                        'status' => 200,
+                        'message' => 'Login Successfully',
+                        'user' => $user,
+                        'token' => $token
+                    ], 200);
+                }
+
+                // Authentication failed
                 return response()->json([
-                    'status' => 200,
-                    'message' => 'Login Successfully',
-                    'user' => $user,
-                    'token' => $token
-                ], 200);
+                    'message' => 'Invalid Credentials'
+                ], 422);
             }
 
-            // Authentication failed
             return response()->json([
-                'message' => 'Invalid Credentials'
+                'status' => 422,
+                'message' => 'Permission Denied'
             ], 422);
+
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
@@ -96,7 +107,7 @@ class AuthController extends Controller
 
     public function getUser()
     {
-        $user = Auth::user();
+        $user = User::whereId(Auth::id())->with('role')->first();
         return response()->json(['status' => 200, 'user' => $user]);
     }
 
@@ -190,6 +201,53 @@ class AuthController extends Controller
                 'status' => 200,
                 'message' => 'Logout Successfully',
                 'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function createUser(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'role_id' => 'required|integer|in:3,4,5,6'
+        ]);
+
+        try {
+
+            if($user->role_id == 1 || $user->role_id == 2) {
+                // Create a new user
+                $password = Str::random(8);
+                
+                $user = User::create([
+                    'role_id' => $request->role_id,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($password),
+                ]);
+
+                //Assign Role
+                $user_role = new UserRole;
+                $user_role->user_id = $user->id;
+                $user_role->company_id = 1;
+                $user_role->save();
+
+                //Send Email
+                dispatch(new CreateUserJob($user,$password));
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => $user->role->name . ' Created Successfully',
+                    'data' => []
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => 422,
+                'message' => 'Permission Denied',
             ], 200);
 
         } catch (\Exception $e) {

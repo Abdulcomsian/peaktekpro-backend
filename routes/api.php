@@ -49,6 +49,9 @@ Route::get('get/sign/customer-agreement/{jobId}', [CustomerAgreementController::
 Route::post('sign/customer/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
 
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
+
+    //Api for creating different users
+    Route::post('create/user', [AuthController::class, 'createUser']);
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::post('check/old-password', [AuthController::class, 'checkOldPassword']);
     Route::post('update/profile', [AuthController::class, 'updateProfile']);

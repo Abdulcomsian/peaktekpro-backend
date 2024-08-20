@@ -18,6 +18,7 @@ class CompanySeeder extends Seeder
      */
     public function run()
     {
+        // Create Company
         $company = new Company;
         $company->name = 'Peak Tek';
         $company->save();
@@ -33,5 +34,22 @@ class CompanySeeder extends Seeder
         $user_role->company_id = $company->id;
         $user_role->user_id = $user->id;
         $user_role->save();
+
+        //Company Created
+
+        // Create Manager
+        $manager = new User;
+        $manager->role_id = 2;
+        $manager->name = 'Peak Tek';
+        $manager->email = 'peaktekmanager@gmail.com';
+        $manager->password = Hash::make('Abc@123!');
+        $manager->save();
+
+        $user_role = new UserRole;
+        $user_role->company_id = $company->id;
+        $user_role->user_id = $manager->id;
+        $user_role->save();
+
+        //Manager Created
     }
 }
