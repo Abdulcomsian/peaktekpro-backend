@@ -35,7 +35,7 @@ class CompanyJobController extends Controller
             //Create Job
             $job = new CompanyJob;
             $job->status_id = 1;
-            $job->user_id = Auth::user()->created_by;
+            $job->user_id = Auth::id();
             $job->name = $request->name;
             $job->address = $request->address;
             $job->latitude = $request->latitude;
