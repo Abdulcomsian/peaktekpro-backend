@@ -10,4 +10,9 @@ class ReadyToBuild extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function subContractor()
+    {
+        return $this->belongsTo(User::class, 'sub_contractor_id', 'id');
+    }
 }

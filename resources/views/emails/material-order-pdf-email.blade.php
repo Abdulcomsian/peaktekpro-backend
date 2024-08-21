@@ -52,7 +52,7 @@
 
     <p>Please click the link below to view the PDF for furthur details:</p>
 
-    <center><a href="{{ url('') . $material_order->sign_pdf_url }}" target="_blank" class="btn">View Material Order PDF</a></center>
+    <center><a href="{{ url('/') . $material_order->sign_pdf_url }}" target="_blank" class="btn">View Material Order PDF</a></center>
     <br>
 
     <p>If you have any questions or require further assistance, please do not hesitate to contact us.<p>

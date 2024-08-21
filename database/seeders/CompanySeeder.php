@@ -28,6 +28,7 @@ class CompanySeeder extends Seeder
         $user->name = 'Peak Tek';
         $user->email = 'peaktek@gmail.com';
         $user->password = Hash::make('Abc@123!');
+        $user->created_by = 0;
         $user->save();
 
         $user_role = new UserRole;
@@ -43,6 +44,7 @@ class CompanySeeder extends Seeder
         $manager->name = 'Peak Tek';
         $manager->email = 'peaktekmanager@gmail.com';
         $manager->password = Hash::make('Abc@123!');
+        $manager->created_by = 0;
         $manager->save();
 
         $user_role = new UserRole;

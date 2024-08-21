@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CocController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JobLogController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CompanyJobController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\SubContractorController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
+use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
@@ -52,6 +54,12 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Api for creating different users
     Route::post('create/user', [AuthController::class, 'createUser']);
+    //Company Api's
+    Route::get('get/company-users', [CompanyController::class, 'getCompanyUsers']);
+    Route::get('get/company-sub-contractors', [CompanyController::class, 'getCompanySubContractors']);
+    Route::get('get/company-suppliers', [CompanyController::class, 'getCompanySuppliers']);
+    Route::get('get/company-adjustors', [CompanyController::class, 'getCompanyAdjustors']);
+
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::post('check/old-password', [AuthController::class, 'checkOldPassword']);
     Route::post('update/profile', [AuthController::class, 'updateProfile']);
@@ -91,6 +99,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/material-order/{id}', [MaterialOrderController::class, 'updateMaterialOrder']);
     Route::get('check/material-order/{jobId}', [MaterialOrderController::class, 'checkMaterialOrder']);
     Route::post('material-order/email/{jobId}', [MaterialOrderController::class, 'MaterialOrderEmail']);
+    Route::get('send/email/{jobId}', [MaterialOrderController::class, 'EmailToSupplier']);
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
     //Project Design Title
@@ -143,4 +152,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Carrier Scope Api's
     Route::post('store/carrier-scope/{jobId}', [CarrierScopeController::class, 'storeCarrierScope']);
     Route::get('get/carrier-scope/{jobId}', [CarrierScopeController::class, 'getCarrierScope']);
+    //Term & Conditions Api's
+    Route::post('store/term-and-condition/{jobId}', [TermAndConditionController::class, 'storeTermAndConditions']);
+    Route::get('get/term-and-condition/{jobId}', [TermAndConditionController::class, 'getTermAndConditions']);
 });

@@ -28,7 +28,7 @@ class AuthController extends Controller
 
             // Create a new user
             $user = User::create([
-                'role_id' => 4,
+                'role_id' => 5,
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -218,7 +218,7 @@ class AuthController extends Controller
 
         try {
 
-            if($user->role_id == 1 || $user->role_id == 2) {
+            if(auth()->user()->role_id == 1 || auth()->user()->role_id == 2) {
                 // Create a new user
                 $password = Str::random(8);
                 
@@ -248,7 +248,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 422,
                 'message' => 'Permission Denied',
-            ], 200);
+            ], 422);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

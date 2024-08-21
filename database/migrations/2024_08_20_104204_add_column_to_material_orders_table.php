@@ -13,11 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('payment_schedule_media', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('payment_schedule_id')->constrained('payment_schedules')->onDelete('cascade');
-            $table->string('pdf_url');
-            $table->timestamps();
+        Schema::table('material_orders', function (Blueprint $table) {
+            $table->integer('supplier_id')->nullable()->after('company_job_id');
         });
     }
 
@@ -28,6 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payment_schedule_media');
+        Schema::table('material_orders', function (Blueprint $table) {
+            $table->dropColumn('supplier_id');
+        });
     }
 };

@@ -13,11 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('payment_schedule_types', function (Blueprint $table) {
+        Schema::create('term_and_conditions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payment_schedule_id')->constrained('payment_schedules')->onDelete('cascade');
-            $table->string('title');
-            $table->text('content')->nullable();
+            $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
+            $table->string('sign_image');
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payment_schedule_types');
+        Schema::dropIfExists('term_and_conditions');
     }
 };

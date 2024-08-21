@@ -11,8 +11,8 @@ class PaymentSchedule extends Model
 
     protected $guarded = [];
 
-    public function types()
+    public function pdfs()
     {
-        return $this->hasMany(PaymentScheduleType::class);
+        return $this->hasMany(PaymentScheduleMedia::class);
     }
 }

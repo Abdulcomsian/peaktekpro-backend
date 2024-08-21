@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
             $table->boolean('acknowledge')->default(false);
+            $table->string('title');
+            $table->text('content')->nullable();
             $table->timestamps();
         });
     }

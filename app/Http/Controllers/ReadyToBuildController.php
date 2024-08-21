@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\CompanyJob;
 use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ class ReadyToBuildController extends Controller
             'time' => 'required|date_format:h:i A', // 12-hour format
             'date' => 'required|date_format:d/m/Y',
             'text' => 'required',
+            'sub_contractor_id' => 'required|integer'
         ]);
 
         try {
@@ -29,11 +31,21 @@ class ReadyToBuildController extends Controller
                 ], 422);
             }
 
+            //Check Sub Contractor
+            $sub_contractor = User::whereId($request->sub_contractor_id)->where('role_id', 3)->first();
+            if(!$sub_contractor) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Sub Contractor not found'
+                ], 422);
+            }
+
             //Update Ready To Build
             $ready_to_build = ReadyToBuild::updateOrCreate([
                 'company_job_id' => $jobId,
             ],[
                 'company_job_id' => $jobId,
+                'sub_contractor_id' => $request->sub_contractor_id,
                 'recipient' => $request->recipient,
                 'date' => $request->date,
                 'time' => $request->time,
@@ -64,7 +76,7 @@ class ReadyToBuildController extends Controller
                 ], 422);
             }
 
-            $get_ready_to_build = ReadyToBuild::where('company_job_id', $jobId)->first();
+            $get_ready_to_build = ReadyToBuild::where('company_job_id', $jobId)->with('subContractor')->first();
             if(!$get_ready_to_build) {
                 return response()->json([
                     'status' => 200,

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
 use App\Models\MaterialOrderDeliveryInformation;
+use PDF;
 
 class MaterialOrderController extends Controller
 {
@@ -19,6 +20,7 @@ class MaterialOrderController extends Controller
     {
         //Validate Request
         $this->validate($request, [
+            'supplier_id' => 'required|integer',
             'street' => 'required',
             'city' => 'required',
             'state' => 'required',
@@ -53,11 +55,21 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
 
+            //Check Supplier
+            $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
+            if(!$supplier) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Supplier Not Found'
+                ], 422);
+            }
+
             //Store Material Order
             $material_order = MaterialOrder::updateOrCreate([
                 'company_job_id' => $id,
             ],[
                 'company_job_id' => $id,
+                'supplier_id' => $request->supplier_id,
                 'street' => $request->street,
                 'city' => $request->city,
                 'state' => $request->state,
@@ -126,7 +138,7 @@ class MaterialOrderController extends Controller
         try {
 
             //Check Material Order
-            $material_order = MaterialOrder::where('id', $id)->with('materials')->first();
+            $material_order = MaterialOrder::where('id', $id)->with('materials','supplier')->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
@@ -213,7 +225,7 @@ class MaterialOrderController extends Controller
             }
 
             //Check Agreement
-            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('materials')->first();
+            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('materials','supplier')->first();
             if(!$material_order) {
 
                 //Job Information
@@ -306,6 +318,78 @@ class MaterialOrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function EmailToSupplier($jobId)
+    {
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Check Material Order
+            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('job','materials')->first();
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 422);
+            }
+
+            //Check if Supplier is assigned
+            $assigned_supplier = MaterialOrder::whereNotNull('supplier_id')->first();
+            if(!$assigned_supplier) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Supplier Not Yet Assigned'
+                ], 422);
+            }
+
+            //Check Supplier
+            $supplier = User::where('id', $material_order->supplier_id)->where('role_id', 4)->first();
+            if(!$supplier) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Supplier Not Found'
+                ], 422);
+            }
+
+            //Generate PDF
+            $pdf = PDF::loadView('pdf.material-order', ['data' => $material_order]);
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
+            // Check if the old PDF exists and delete it
+            if ($material_order->sign_pdf_url) {
+                $oldPdfPath = public_path($material_order->sign_pdf_url);
+                if (file_exists($oldPdfPath)) {
+                    unlink($oldPdfPath);
+                }
+            }
+            // Save the new PDF
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+
+            //Save PDF Path
+            $material_order->sign_pdf_url = '/storage/' . $pdf_filePath;
+            $material_order->save();
+
+            //Dispatch Email Through Queue
+            dispatch(new MaterialOrderJob($supplier,$material_order));
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Sent successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }

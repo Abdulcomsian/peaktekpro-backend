@@ -6,7 +6,6 @@ use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\PaymentSchedule;
 use Illuminate\Support\Facades\DB;
-use App\Models\PaymentScheduleType;
 use App\Models\PaymentScheduleMedia;
 use Illuminate\Support\Facades\Storage;
 
@@ -40,23 +39,25 @@ class PaymentScheduleController extends Controller
                 'company_job_id' => $job->id,
             ],[
                 'company_job_id' => $job->id,
-                'acknowledge' => $request->acknowledge
-            ]);
-
-            //Save Payment Schedule Type
-            $schedule_type = PaymentScheduleType::updateOrCreate([
-                'payment_schedule_id' => $schedule->id,
-                'title' => $request->title,
-            ],[
-                'payment_schedule_id' => $schedule->id,
+                'acknowledge' => $request->acknowledge,
                 'title' => $request->title,
                 'content' => $request->content
             ]);
 
+            //Save Payment Schedule Type
+            // $schedule_type = PaymentScheduleType::updateOrCreate([
+            //     'payment_schedule_id' => $schedule->id,
+            //     'title' => $request->title,
+            // ],[
+            //     'payment_schedule_id' => $schedule->id,
+            //     'title' => $request->title,
+            //     'content' => $request->content
+            // ]);
+
             //Save Payment Schedule Media
             if ($request->hasFile('pdfs')) {
                 // Remove old PDFs
-                $oldAttachments = PaymentScheduleMedia::where('payment_schedule_type_id', $schedule_type->id)->get();
+                $oldAttachments = PaymentScheduleMedia::where('payment_schedule_id', $schedule->id)->get();
                 foreach ($oldAttachments as $oldAttachment) {
                     $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
                     Storage::delete($oldFilePath);
@@ -70,7 +71,7 @@ class PaymentScheduleController extends Controller
 
                     // Store Path
                     $media = new PaymentScheduleMedia();
-                    $media->payment_schedule_type_id = $schedule_type->id;
+                    $media->payment_schedule_id = $schedule->id;
                     $media->pdf_url = Storage::url($filePath);
                     $media->save();
                 }
@@ -102,7 +103,7 @@ class PaymentScheduleController extends Controller
                 ], 422);
             }
 
-            $get_payment_schedule = PaymentSchedule::where('company_job_id', $jobId)->with('types.pdfs')->first();
+            $get_payment_schedule = PaymentSchedule::where('company_job_id', $jobId)->with('pdfs')->first();
             if(!$get_payment_schedule) {
                 return response()->json([
                     'status' => 200, 
