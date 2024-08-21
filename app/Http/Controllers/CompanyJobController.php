@@ -139,7 +139,9 @@ class CompanyJobController extends Controller
             'final_payment_cheque_number' => 'nullable',
             'upgrades' => 'nullable',
             'upgrades_cheque_number' => 'nullable',
-            'balance' => 'nullable'
+            'balance' => 'nullable',
+            'user_ids' => 'nullable|array',
+            'user_ids.*' => 'integer|exists:users,id'
         ]);
 
         try {
@@ -169,6 +171,11 @@ class CompanyJobController extends Controller
                 'final_payment_cheque_number' => $request->final_payment_cheque_number,
                 'balance' => $request->balance
             ]);
+
+            // Assign Job To Users
+            if(isset($request->user_ids) && count($request->user_ids) > 0) {
+                $job->users()->sync($request->user_ids);
+            }
 
             return response()->json([
                 'status' => 200,

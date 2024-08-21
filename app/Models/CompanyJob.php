@@ -25,4 +25,9 @@ class CompanyJob extends Model
     {
         return $this->hasOne(CompanyJobSummary::class);
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
 }
