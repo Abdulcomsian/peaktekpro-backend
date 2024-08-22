@@ -175,6 +175,82 @@ class ProjectDesignController extends Controller
         }
     }
 
+    public function changeProjectDesignTitleFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string',
+            'type' => 'required|string|in:primary_image_file_name,secondary_image_file_name'
+        ]);
+
+        try {
+
+            //Check PD Title
+            $check_pd_title = ProjectDesignTitle::find($id);
+            if(!$check_pd_title) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Project Design Title Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_pd_title->{$request->type} = $request->file_name;
+            $check_pd_title->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function deleteProjectDesignTitleMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'image_url' => 'required|string',
+            'type' => 'required|string|in:primary_image,secondary_image'
+        ]);
+
+        try {
+
+            //Check PD Title
+            $check_pd_title = ProjectDesignTitle::find($id);
+            if(!$check_pd_title) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Project Design Title Not Found'
+                ], 422);
+            }
+
+            //Delete Media
+            $oldImagePath = str_replace('/storage', 'public', $check_pd_title->{$request->type});
+            Storage::delete($oldImagePath);
+
+            // Determine the file name column based on the type
+            $fileColumn = $request->type . '_file_name';
+
+            //Update File Name
+            $check_pd_title->{$request->type} = null;
+            $check_pd_title->{$fileColumn} = null;
+            $check_pd_title->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function storeProjectDesignIntroduction(Request $request, $jobId)
     {
         //Validate Request
