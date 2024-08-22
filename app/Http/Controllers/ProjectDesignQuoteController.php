@@ -54,23 +54,59 @@ class ProjectDesignQuoteController extends Controller
 
             foreach($request->sections as $section)
             {
-                //Store Section
-                $add_section = new Section;
-                $add_section->quote_id = $quote->id;
-                $add_section->title = $section['title'];
-                $add_section->section_total = $section['section_total'];
-                $add_section->save();
+                if(isset($section['id'])) {
+                    //Update Existing Section
+                    $update_section = Section::find($section['id']);
+                    if($update_section) {
+                        $update_section->quote_id = $quote->id;
+                        $update_section->title = $section['title'];
+                        $update_section->section_total = $section['section_total'];
+                        $update_section->save();
 
-                //Store Items
-                foreach($section['items']  as $item)
-                {
-                    $add_item = new Item;
-                    $add_item->section_id = $add_section->id;
-                    $add_item->item = $item['item'];
-                    $add_item->quantity = $item['quantity'];
-                    $add_item->price = $item['price'];
-                    $add_item->line_total = $item['line_total'];
-                    $add_item->save();
+                        //Store Items
+                        foreach($section['items']  as $item)
+                        {
+                            if(isset($item['id'])) {
+                                //Update Existing Item
+                                $update_item = Item::find($item['id']);
+                                $update_item->section_id = $add_section->id;
+                                $update_item->item = $item['item'];
+                                $update_item->quantity = $item['quantity'];
+                                $update_item->price = $item['price'];
+                                $update_item->line_total = $item['line_total'];
+                                $update_item->save();
+                            } else {
+                                //Add New Item
+                                $add_item = new Item;
+                                $add_item->section_id = $add_section->id;
+                                $add_item->item = $item['item'];
+                                $add_item->quantity = $item['quantity'];
+                                $add_item->price = $item['price'];
+                                $add_item->line_total = $item['line_total'];
+                                $add_item->save();
+                            }
+                        }
+                    }
+
+                } else {
+                    //Store Section
+                    $add_section = new Section;
+                    $add_section->quote_id = $quote->id;
+                    $add_section->title = $section['title'];
+                    $add_section->section_total = $section['section_total'];
+                    $add_section->save();
+
+                    //Store Items
+                    foreach($section['items']  as $item)
+                    {
+                        $add_item = new Item;
+                        $add_item->section_id = $add_section->id;
+                        $add_item->item = $item['item'];
+                        $add_item->quantity = $item['quantity'];
+                        $add_item->price = $item['price'];
+                        $add_item->line_total = $item['line_total'];
+                        $add_item->save();
+                    }
                 }
             }
 

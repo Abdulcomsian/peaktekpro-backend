@@ -463,12 +463,11 @@ class ProjectDesignController extends Controller
             }
 
             $get_inspection = ProjectDesignInspection::where('company_job_id', $jobId)->with('attachment')->get();
-            if(!$get_inspection) {
+            if(count($get_inspection) == 0) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 404,
                     'message' => 'Project Design Inspection Not Yet Created',
-                    'data' => []
-                ], 200);
+                ], 404);
             }
 
             return response()->json([
