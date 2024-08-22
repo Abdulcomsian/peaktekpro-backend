@@ -206,7 +206,7 @@ class ProjectDesignController extends Controller
         //Validate Request
         $this->validate($request, [
             'file_name' => 'required|string',
-            'type' => 'required|string|in:primary_image_file_name,secondary_image_file_name'
+            'type' => 'required|string|in:primary_image,secondary_image'
         ]);
 
         try {
@@ -220,8 +220,11 @@ class ProjectDesignController extends Controller
                 ], 422);
             }
 
+            // Determine the file name column based on the type
+            $fileColumn = $request->type . '_file_name';
+
             //Update File Name
-            $check_pd_title->{$request->type} = $request->file_name;
+            $check_pd_title->{$fileColumn} = $request->file_name;
             $check_pd_title->save();
 
             return response()->json([
