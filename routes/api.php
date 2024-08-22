@@ -19,6 +19,7 @@ use App\Http\Controllers\SubContractorController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
+use App\Http\Controllers\EstimatePreparedController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
@@ -157,4 +158,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Term & Conditions Api's
     Route::post('store/term-and-condition/{jobId}', [TermAndConditionController::class, 'storeTermAndConditions']);
     Route::get('get/term-and-condition/{jobId}', [TermAndConditionController::class, 'getTermAndConditions']);
+    //Estimate Prepared Api's
+    Route::post('store/estimate-prepared/{jobId}', [EstimatePreparedController::class, 'storeEstimatePrepared']);
+    Route::get('get/estimate-prepared/{jobId}', [EstimatePreparedController::class, 'getEstimatePrepared']);
 });

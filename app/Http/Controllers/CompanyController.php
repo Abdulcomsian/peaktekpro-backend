@@ -46,6 +46,7 @@ class CompanyController extends Controller
     public function getCompanySubContractors(Request $request)
     {
         try {
+            $data = [];
 
             $user = Auth::user();
             // Determine the company ID
@@ -70,7 +71,7 @@ class CompanyController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Sub Contractors Found Successfully',
-                'data' => $user
+                'data' => $users
             ], 200);
 
         } catch (\Exception $e) {
