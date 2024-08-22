@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
             $table->string('image_url');
+            $table->string('file_name')->nullable();
             $table->timestamps();
         });
     }

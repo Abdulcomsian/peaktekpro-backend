@@ -70,7 +70,7 @@ class CompanyController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Sub Contractors Found Successfully',
-                'data' => $contractots
+                'data' => $user
             ], 200);
 
         } catch (\Exception $e) {
@@ -105,7 +105,7 @@ class CompanyController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Suppliers Found Successfully',
-                'data' => $suppliers
+                'data' => $users
             ], 200);
 
         } catch (\Exception $e) {
@@ -140,7 +140,7 @@ class CompanyController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Adjustors Found Successfully',
-                'data' => $adjustors
+                'data' => $users
             ], 200);
 
         } catch (\Exception $e) {
