@@ -171,7 +171,8 @@ class ProjectDesignController extends Controller
             if(!is_null($get_title->primary_image)) {
                 $primary_object = new \stdClass();
                 $primary_object->id = $get_title->id;
-                $primary_object->primary_image = $get_title->primary_image;
+                $primary_object->image_url = $get_title->primary_image;
+                $primary_object->type = 'primary_image_file_name';
 
                 $primary_image[] = $primary_object;
 
@@ -182,7 +183,8 @@ class ProjectDesignController extends Controller
             if(!is_null($get_title->secondary_image)) {
                 $secondary_object = new \stdClass();
                 $secondary_object->id = $get_title->id;
-                $secondary_object->primary_image = $get_title->primary_image;
+                $secondary_object->image_url = $get_title->primary_image;
+                $secondary_object->type = 'secondary_image_file_name';
 
                 $secondary_image[] = $secondary_object;
 
