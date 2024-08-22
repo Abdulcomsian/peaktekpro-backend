@@ -147,6 +147,8 @@ class ProjectDesignController extends Controller
     public function getProjectDesignTitle($jobId)
     {
         try {
+            $primary_image = [];
+            $secondary_image = [];
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -163,6 +165,28 @@ class ProjectDesignController extends Controller
                     'message' => 'Project Design Title Not Yet Created',
                     'data' => (object) []
                 ], 200);
+            }
+
+            //Creating Array for Primary Image
+            if(!is_null($get_title->primary_image)) {
+                $primary_object = new \stdClass();
+                $primary_object->id = $get_title->id;
+                $primary_object->primary_image = $get_title->primary_image;
+
+                $primary_image[] = $primary_object;
+
+                $get_title->primary_images = $primary_image;
+            }
+
+            //Creating Array for Secondary Image
+            if(!is_null($get_title->secondary_image)) {
+                $secondary_object = new \stdClass();
+                $secondary_object->id = $get_title->id;
+                $secondary_object->primary_image = $get_title->primary_image;
+
+                $secondary_image[] = $secondary_object;
+
+                $get_title->secondary_images = $secondary_image;
             }
 
             return response()->json([
