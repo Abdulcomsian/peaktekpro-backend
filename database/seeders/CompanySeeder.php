@@ -44,7 +44,7 @@ class CompanySeeder extends Seeder
         $manager->name = 'Peak Tek';
         $manager->email = 'peaktekmanager@gmail.com';
         $manager->password = Hash::make('Abc@123!');
-        $manager->created_by = 0;
+        $manager->created_by = 1;
         $manager->save();
 
         $user_role = new UserRole;

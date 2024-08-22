@@ -32,13 +32,6 @@ class CarrierScopeController extends Controller
 
             //Store Carrier Scope
             if(isset($request->images) && count($request->images) > 0) {
-                // Remove old images
-                $oldImages = CarrierScope::where('company_job_id', $jobId)->get();
-                foreach ($oldImages as $oldImage) {
-                    $oldImagePath = str_replace('/storage', 'public', $oldImage->image_url);
-                    Storage::delete($oldImagePath);
-                    $oldImage->delete();
-                }
 
                 //Store New Images
                 foreach($request->file('images') as $image) {
@@ -85,6 +78,41 @@ class CarrierScopeController extends Controller
                 'status' => 200,
                 'message' => 'Carrier Scope Found Successfully',
                 'data' => $get_carrier_scope
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function deleteCarrierScopeMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'image_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Media
+            $check_media = CarrierScope::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Carrier Scope Media Not Found'
+                ], 422);
+            }
+
+            // Remove old images
+            $oldImage = CarrierScope::find($id);
+            $oldImagePath = str_replace('/storage', 'public', $oldImage->image_url);
+            Storage::delete($oldImagePath);
+            $oldImage->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => []
             ], 200);
 
         } catch (\Exception $e) {

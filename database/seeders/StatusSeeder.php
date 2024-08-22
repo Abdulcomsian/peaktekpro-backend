@@ -23,19 +23,22 @@ class StatusSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         
         $statuses = [
-            ['name' => 'New Lead'],
-            ['name' => 'Signed Deal'],
+            ['name' => 'New Leads'],
+            ['name' => 'Signed Deals'],
+            ['name' => 'Estimate Prepared'],
             ['name' => 'Adjustor'],
-            ['name' => 'Full Approval'],
             ['name' => 'Overturn'],
-            ['name' => 'Appraisal'],
             ['name' => 'Approved'],
             ['name' => 'Design Meeting'],
-            ['name' => 'Schedule'],
-            ['name' => 'Ready To Built'],
+            ['name' => 'Ready To Build'],
+            ['name' => 'Build Scheduled'],
             ['name' => 'In Progress'],
-            ['name' => 'COC'],
+            ['name' => 'Build Complete'],
+            ['name' => 'COC Required'],
+            ['name' => 'Final Payment Due'],
+            ['name' => 'Ready to Close'],
             ['name' => 'Completed'],
+            ['name' => 'Lost'],
         ];
 
         foreach($statuses as $status)

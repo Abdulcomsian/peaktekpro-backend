@@ -32,10 +32,17 @@ class CompanyJobController extends Controller
 
         try {
 
+            $user = Auth::user();
+            if($user->created_by == 0) {
+                $created_by = 1;
+            } else {
+                $created_by = $user->created_by;
+            }
+
             //Create Job
             $job = new CompanyJob;
             $job->status_id = 1;
-            $job->user_id = Auth::id();
+            $job->user_id = $created_by;
             $job->name = $request->name;
             $job->address = $request->address;
             $job->latitude = $request->latitude;
