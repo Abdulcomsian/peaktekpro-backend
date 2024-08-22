@@ -152,6 +152,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Carrier Scope Api's
     Route::post('store/carrier-scope/{jobId}', [CarrierScopeController::class, 'storeCarrierScope']);
     Route::get('get/carrier-scope/{jobId}', [CarrierScopeController::class, 'getCarrierScope']);
+    Route::post('change/carrier-scope/file-name/{id}', [CarrierScopeController::class, 'changeCarrierScopeFileName']);
     Route::post('delete/carrier-scope/media/{id}', [CarrierScopeController::class, 'deleteCarrierScopeMedia']);
     //Term & Conditions Api's
     Route::post('store/term-and-condition/{jobId}', [TermAndConditionController::class, 'storeTermAndConditions']);

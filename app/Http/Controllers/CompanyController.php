@@ -8,18 +8,29 @@ use Illuminate\Support\Facades\Auth;
 
 class CompanyController extends Controller
 {
-    public function getCompanyUsers()
+    public function getCompanyUsers(Request $request)
     {
         try {
 
             $user = Auth::user();
-            if($user->created_by == 0) {
-                $companyId = 1;
-            } else {
-                $companyId = $user->created_by;
-            }
+            // Determine the company ID
+            $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
 
-            $users = User::where('created_by', $companyId)->where('role_id', 5)->with('role')->get();
+            // Get pagination parameters
+            $results = $request->input('results', 15);
+            $page = $request->input('page', 1);
+
+            // Calculate the offset for skipping
+            $skipped = ($page - 1) * $results;
+
+            $usersQuery = User::where('created_by', $companyId)
+                ->where('role_id', 5)->with('role');
+
+            if (isset($request->results) && isset($request->page)) {
+                $users = $usersQuery->skip($skipped)->take($results)->get();
+            } else {
+                $users = $usersQuery->get();
+            }
 
             return response()->json([
                 'status' => 200,
@@ -32,18 +43,29 @@ class CompanyController extends Controller
         }
     }
 
-    public function getCompanySubContractors()
+    public function getCompanySubContractors(Request $request)
     {
         try {
 
             $user = Auth::user();
-            if($user->created_by == 0) {
-                $companyId = 1;
-            } else {
-                $companyId = $user->created_by;
-            }
+            // Determine the company ID
+            $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
 
-            $contractots = User::where('created_by', $companyId)->where('role_id', 3)->with('role')->get();
+            // Get pagination parameters
+            $results = $request->input('results', 15);
+            $page = $request->input('page', 1);
+
+            // Calculate the offset for skipping
+            $skipped = ($page - 1) * $results;
+
+            $usersQuery = User::where('created_by', $companyId)
+                ->where('role_id', 3)->with('role');
+
+            if (isset($request->results) && isset($request->page)) {
+                $users = $usersQuery->skip($skipped)->take($results)->get();
+            } else {
+                $users = $usersQuery->get();
+            }
 
             return response()->json([
                 'status' => 200,
@@ -56,18 +78,29 @@ class CompanyController extends Controller
         }
     }
 
-    public function getCompanySuppliers()
+    public function getCompanySuppliers(Request $request)
     {
         try {
 
             $user = Auth::user();
-            if($user->created_by == 0) {
-                $companyId = 1;
-            } else {
-                $companyId = $user->created_by;
-            }
+            // Determine the company ID
+            $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
 
-            $suppliers = User::where('created_by', $companyId)->where('role_id', 4)->with('role')->get();
+            // Get pagination parameters
+            $results = $request->input('results', 15);
+            $page = $request->input('page', 1);
+
+            // Calculate the offset for skipping
+            $skipped = ($page - 1) * $results;
+
+            $usersQuery = User::where('created_by', $companyId)
+                ->where('role_id', 4)->with('role');
+
+            if (isset($request->results) && isset($request->page)) {
+                $users = $usersQuery->skip($skipped)->take($results)->get();
+            } else {
+                $users = $usersQuery->get();
+            }
 
             return response()->json([
                 'status' => 200,
@@ -80,18 +113,29 @@ class CompanyController extends Controller
         }
     }
 
-    public function getCompanyAdjustors()
+    public function getCompanyAdjustors(Request $request)
     {
         try {
 
             $user = Auth::user();
-            if($user->created_by == 0) {
-                $companyId = 1;
-            } else {
-                $companyId = $user->created_by;
-            }
+            // Determine the company ID
+            $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
 
-            $adjustors = User::where('created_by', $companyId)->where('role_id', 6)->with('role')->get();
+            // Get pagination parameters
+            $results = $request->input('results', 15);
+            $page = $request->input('page', 1);
+
+            // Calculate the offset for skipping
+            $skipped = ($page - 1) * $results;
+
+            $usersQuery = User::where('created_by', $companyId)
+                ->where('role_id', 6)->with('role');
+
+            if (isset($request->results) && isset($request->page)) {
+                $users = $usersQuery->skip($skipped)->take($results)->get();
+            } else {
+                $users = $usersQuery->get();
+            }
 
             return response()->json([
                 'status' => 200,

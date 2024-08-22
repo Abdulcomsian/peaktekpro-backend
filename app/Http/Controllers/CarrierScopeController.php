@@ -85,6 +85,39 @@ class CarrierScopeController extends Controller
         }
     }
 
+    public function changeCarrierScopeFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Carrier Scope
+            $check_carrier_scope = CarrierScope::find($id);
+            if(!$check_carrier_scope) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Carrier Scope Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_carrier_scope->file_name = $request->file_name;
+            $check_carrier_scope->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function deleteCarrierScopeMedia(Request $request, $id)
     {
         //Validate Request
