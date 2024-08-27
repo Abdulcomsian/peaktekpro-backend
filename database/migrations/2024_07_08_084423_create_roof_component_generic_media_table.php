@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('roof_component_generic_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('type_id')->constrained('roof_component_generic_types')->onDelete('cascade');
+            $table->foreignId('roof_component_generic_id')->constrained('roof_component_generics')->onDelete('cascade');
             $table->string('pdf_url');
             $table->timestamps();
         });

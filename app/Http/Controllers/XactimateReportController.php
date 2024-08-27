@@ -6,7 +6,6 @@ use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\XactimateReport;
 use Illuminate\Support\Facades\DB;
-use App\Models\XactimateReportType;
 use App\Models\XactimateReportMedia;
 use Illuminate\Support\Facades\Storage;
 
@@ -40,37 +39,22 @@ class XactimateReportController extends Controller
                 'company_job_id' => $job->id,
             ],[
                 'company_job_id' => $job->id,
-                'acknowledge' => $request->acknowledge
-            ]);
-
-            //Save Payment Schedule Type
-            $report_type = XactimateReportType::updateOrCreate([
-                'xactimate_report_id' => $report->id,
-                'title' => $request->title,
-            ],[
-                'xactimate_report_id' => $report->id,
+                'acknowledge' => $request->acknowledge,
                 'title' => $request->title,
                 'content' => $request->content
             ]);
 
             //Save Payment Schedule Media
             if ($request->hasFile('pdfs')) {
-                // Remove old PDFs
-                $oldAttachments = XactimateReportMedia::where('type_id', $report_type->id)->get();
-                foreach ($oldAttachments as $oldAttachment) {
-                    $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                    Storage::delete($oldFilePath);
-                    $oldAttachment->delete();
-                }
 
                 //Add New
                 foreach ($request->file('pdfs') as $file) {
                     $fileName = time() . '_' . $file->getClientOriginalName();
-                    $filePath = $file->storeAs('public/roof_component', $fileName);
+                    $filePath = $file->storeAs('public/xactimate-report', $fileName);
 
                     // Store Path
                     $media = new XactimateReportMedia();
-                    $media->type_id = $report_type->id;
+                    $media->type_id = $report->id;
                     $media->pdf_url = Storage::url($filePath);
                     $media->save();
                 }
@@ -102,13 +86,12 @@ class XactimateReportController extends Controller
                 ], 422);
             }
 
-            $get_xactimate_report = XactimateReport::where('company_job_id', $jobId)->with('types.pdfs')->first();
+            $get_xactimate_report = XactimateReport::where('company_job_id', $jobId)->with('pdfs')->first();
             if(!$get_xactimate_report) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 422,
                     'message' => 'Xactimate Report Not Yet Created',
-                    'data' => (object) []
-                ], 200);
+                ], 422);
             }
 
             return response()->json([
@@ -116,6 +99,73 @@ class XactimateReportController extends Controller
                 'message' => 'Xactimate Report Found Successfully',
                 'data' => $get_xactimate_report
             ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function changeXactimateReportFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Xactimate Report
+            $check_xactimate_report = XactimateReportMedia::find($id);
+            if(!$check_xactimate_report) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Xactimate Report Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_xactimate_report->file_name = $request->file_name;
+            $check_xactimate_report->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function deleteXactimateReportMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'media_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Xactimate Report
+            $check_xactimate_report = XactimateReportMedia::find($id);
+            if(!$check_xactimate_report) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Xactimate Report Not Found'
+                ], 422);
+            }
+
+            //Delete Media
+            $oldImagePath = str_replace('/storage', 'public', $check_xactimate_report->pdf_url);
+            Storage::delete($oldImagePath);
+            $check_xactimate_report->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => $check_xactimate_report
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

@@ -33,16 +33,13 @@ class CompanyJobController extends Controller
         try {
 
             $user = Auth::user();
-            if($user->created_by == 0) {
-                $created_by = 1;
-            } else {
-                $created_by = $user->created_by;
-            }
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
 
             //Create Job
             $job = new CompanyJob;
             $job->status_id = 1;
-            $job->user_id = $created_by;
+            $job->user_id = Auth::id();
+            $job->created_by = $created_by;
             $job->name = $request->name;
             $job->address = $request->address;
             $job->latitude = $request->latitude;
@@ -81,10 +78,24 @@ class CompanyJobController extends Controller
     {
         try {
             $user = Auth::user();
-            $jobs = CompanyJob::select('id','name','address','status_id')->where('user_id', $user->created_by)
-            ->orderBy('status_id', 'asc')
-            ->orderBy('id', 'desc')
-            ->get();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
+            
+            if($user->role_id == 1 || $user->role_id == 2) {
+                $jobs = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get();
+            } else {
+                $jobs = CompanyJob::select('id','name','address','status_id')->where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get();   
+            }
 
             // Group jobs by status name
             $groupedJobs = $jobs->groupBy(function ($job) {

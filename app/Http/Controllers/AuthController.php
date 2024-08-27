@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use App\Mail\CreateUserMail;
 
 class AuthController extends Controller
 {
@@ -80,6 +81,8 @@ class AuthController extends Controller
                 if (Auth::attempt($request->only('email', 'password'))) {
                     $user = Auth::user();
                     $token = $user->createToken('auth_token')->plainTextToken;
+                    
+                    $user = User::where('id', $user->id)->with('role')->first();
 
                     return response()->json([
                         'status' => 200,
@@ -236,7 +239,8 @@ class AuthController extends Controller
                 $user_role->save();
 
                 //Send Email
-                dispatch(new CreateUserJob($user,$password));
+                // dispatch(new CreateUserJob($user,$password));
+                \Mail::to($user->email)->send(new CreateUserMail($user, $password));
 
                 return response()->json([
                     'status' => 200,

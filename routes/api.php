@@ -119,18 +119,28 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('store/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'storeProjectDesignQuote']);
     Route::get('get/project-design/quote/{jobId}', [ProjectDesignQuoteController::class, 'getProjectDesignQuote']);
     Route::post('section/update-status/{jobId}', [ProjectDesignQuoteController::class, 'updateSectionStatus']);
+    Route::post('delete/section/{jobId}', [ProjectDesignQuoteController::class, 'deleteSection']);
+    Route::post('delete/item/{jobId}', [ProjectDesignQuoteController::class, 'deleteItem']);
     //Project Design Authorization
     Route::post('store/project-design/authorization/{jobId}', [ProjectDesignAuthorizationController::class, 'storeProjectDesignAuthorization']);
     Route::get('get/project-design/authorization/{jobId}', [ProjectDesignAuthorizationController::class, 'getProjectDesignAuthorization']);
+    Route::post('delete/authorization-section/{jobId}', [ProjectDesignAuthorizationController::class, 'deleteAuthorizationSection']);
+    Route::post('delete/authorization-item/{jobId}', [ProjectDesignAuthorizationController::class, 'deleteAuthorizationItem']);
     //Project Design Payment Schedule
     Route::post('store/payment-schedule/{jobId}', [PaymentScheduleController::class, 'storePaymentSchedule']);
     Route::get('get/payment-schedule/{jobId}', [PaymentScheduleController::class, 'getPaymentSchedule']);
+    Route::post('change/payment-schedule/file-name/{id}', [PaymentScheduleController::class, 'changePaymentScheduleFileName']);
+    Route::post('delete/payment-schedule/media/{id}', [PaymentScheduleController::class, 'deletePaymentScheduleMedia']);
     //Roof Component Generic
     Route::post('store/roof-component/{jobId}', [RoofComponentController::class, 'storeRoofComponent']);
     Route::get('get/roof-component/{jobId}', [RoofComponentController::class, 'getRoofComponent']);
+    Route::post('change/roof-component/file-name/{id}', [RoofComponentController::class, 'changeRoofComponentFileName']);
+    Route::post('delete/roof-component/media/{id}', [RoofComponentController::class, 'deleteRoofComponentMedia']);
     //Xactimate Report
     Route::post('store/xactimate-report/{jobId}', [XactimateReportController::class, 'storeXactimateReport']);
     Route::get('get/xactimate-report/{jobId}', [XactimateReportController::class, 'getXactimateReport']);
+    Route::post('change/xactimate-report/file-name/{id}', [XactimateReportController::class, 'changeXactimateReportFileName']);
+    Route::post('delete/xactimate-report/media/{id}', [XactimateReportController::class, 'deleteXactimateReportMedia']);
     //Job Log Api's
     Route::post('store/job-log/{jobId}', [JobLogController::class, 'storeJobLog']);
     Route::get('get/job-log/{jobId}', [JobLogController::class, 'getJobLog']);

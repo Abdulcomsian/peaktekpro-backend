@@ -11,8 +11,8 @@ class RoofComponentGeneric extends Model
 
     protected $guarded = [];
 
-    public function types()
+    public function pdfs()
     {
-        return $this->hasMany(RoofComponentGenericType::class);
+        return $this->hasMany(RoofComponentGenericMedia::class);
     }
 }

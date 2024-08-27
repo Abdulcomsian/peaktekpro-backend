@@ -11,8 +11,8 @@ class XactimateReport extends Model
 
     protected $guarded = [];
 
-    public function types()
+    public function pdfs()
     {
-        return $this->hasMany(XactimateReportType::class);
+        return $this->hasMany(XactimateReportMedia::class);
     }
 }

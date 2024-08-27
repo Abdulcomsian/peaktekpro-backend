@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('xactimate_report_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('type_id')->constrained('xactimate_report_types')->onDelete('cascade');
+            $table->foreignId('xactimate_report_id')->constrained('xactimate_reports')->onDelete('cascade');
             $table->string('pdf_url');
             $table->timestamps();
         });

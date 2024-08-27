@@ -110,7 +110,7 @@ class CarrierScopeController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'File Name Updated Successfully',
-                'data' => []
+                'data' => $check_carrier_scope
             ], 200);
 
         } catch (\Exception $e) {
@@ -145,7 +145,7 @@ class CarrierScopeController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Media Deleted Successfully',
-                'data' => []
+                'data' => $check_media
             ], 200);
 
         } catch (\Exception $e) {

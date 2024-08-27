@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RoofComponentGeneric;
 use Illuminate\Support\Facades\Storage;
-use App\Models\RoofComponentGenericType;
 use App\Models\RoofComponentGenericMedia;
 
 class RoofComponentController extends Controller
@@ -40,28 +39,13 @@ class RoofComponentController extends Controller
                 'company_job_id' => $job->id,
             ],[
                 'company_job_id' => $job->id,
-                'acknowledge' => $request->acknowledge
-            ]);
-
-            //Save Payment Schedule Type
-            $component_type = RoofComponentGenericType::updateOrCreate([
-                'roof_component_generic_id' => $component->id,
-                'title' => $request->title,
-            ],[
-                'roof_component_generic_id' => $component->id,
+                'acknowledge' => $request->acknowledge,
                 'title' => $request->title,
                 'content' => $request->content
             ]);
 
             //Save Payment Schedule Media
             if ($request->hasFile('pdfs')) {
-                // Remove old PDFs
-                $oldAttachments = RoofComponentGenericMedia::where('type_id', $component_type->id)->get();
-                foreach ($oldAttachments as $oldAttachment) {
-                    $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                    Storage::delete($oldFilePath);
-                    $oldAttachment->delete();
-                }
 
                 //Add New
                 foreach ($request->file('pdfs') as $file) {
@@ -70,7 +54,7 @@ class RoofComponentController extends Controller
 
                     // Store Path
                     $media = new RoofComponentGenericMedia();
-                    $media->type_id = $component_type->id;
+                    $media->type_id = $component->id;
                     $media->pdf_url = Storage::url($filePath);
                     $media->save();
                 }
@@ -102,13 +86,12 @@ class RoofComponentController extends Controller
                 ], 422);
             }
 
-            $get_roof_component = RoofComponentGeneric::where('company_job_id', $jobId)->with('types.pdfs')->first();
+            $get_roof_component = RoofComponentGeneric::where('company_job_id', $jobId)->with('pdfs')->first();
             if(!$get_roof_component) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 422,
                     'message' => 'Roof Component Not Yet Created',
-                    'data' => (object) []
-                ], 200);
+                ], 422);
             }
 
             return response()->json([
@@ -116,6 +99,73 @@ class RoofComponentController extends Controller
                 'message' => 'Roof Component Found Successfully',
                 'data' => $get_roof_component
             ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function changeRoofComponentFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Roof Component
+            $check_roof_component = RoofComponentGenericMedia::find($id);
+            if(!$check_roof_component) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Roof Component Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_roof_component->file_name = $request->file_name;
+            $check_roof_component->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function deleteRoofComponentMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'media_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Roof Component
+            $check_roof_component = RoofComponentGenericMedia::find($id);
+            if(!$check_roof_component) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Roof Component Not Found'
+                ], 422);
+            }
+
+            //Delete Media
+            $oldImagePath = str_replace('/storage', 'public', $check_roof_component->pdf_url);
+            Storage::delete($oldImagePath);
+            $check_roof_component->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => $check_roof_component
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

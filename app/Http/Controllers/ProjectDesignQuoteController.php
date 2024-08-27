@@ -69,7 +69,7 @@ class ProjectDesignQuoteController extends Controller
                             if(isset($item['id'])) {
                                 //Update Existing Item
                                 $update_item = Item::find($item['id']);
-                                $update_item->section_id = $add_section->id;
+                                $update_item->section_id = $update_section->id;
                                 $update_item->item = $item['item'];
                                 $update_item->quantity = $item['quantity'];
                                 $update_item->price = $item['price'];
@@ -78,7 +78,7 @@ class ProjectDesignQuoteController extends Controller
                             } else {
                                 //Add New Item
                                 $add_item = new Item;
-                                $add_item->section_id = $add_section->id;
+                                $add_item->section_id = $update_section->id;
                                 $add_item->item = $item['item'];
                                 $add_item->quantity = $item['quantity'];
                                 $add_item->price = $item['price'];
@@ -138,10 +138,9 @@ class ProjectDesignQuoteController extends Controller
             $get_quote = ProjectDesignQuote::where('company_job_id', $jobId)->with('sections.items')->first();
             if(!$get_quote) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 422,
                     'message' => 'Quote Details Not Yet Created',
-                    'data' => (object) []
-                ], 200);
+                ], 422);
             }
 
             return response()->json([
@@ -203,6 +202,120 @@ class ProjectDesignQuoteController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function deleteSection(Request $request, $jobId)
+    {
+        $this->validate($request, [
+            'section_id' => 'required|integer'
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            //Check Quote
+            $check_quote = ProjectDesignQuote::where('company_job_id', $jobId)->first();
+            if(!$check_quote) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Quote Detail Not Found'
+                ], 422);
+            }
+            
+            //Check Section
+            $section = Section::where('id', $request->section_id)->where('quote_id', $check_quote->id)->with('items')->first();
+            if(!$section) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Section Not Found'
+                ], 422);   
+            }
+            
+            //Delete Section
+            $section->items()->delete();
+            $section->delete();
+            
+            $get_quote = ProjectDesignQuote::where('company_job_id', $jobId)->with('sections.items')->first();
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Section Deleted Successfully',
+                'data' => $get_quote
+            ], 200);
+            
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function deleteItem(Request $request, $jobId)
+    {
+        $this->validate($request, [
+            'section_id' => 'required|integer',
+            'item_id' => 'required|integer'
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            //Check Quote
+            $check_quote = ProjectDesignQuote::where('company_job_id', $jobId)->first();
+            if(!$check_quote) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Quote Detail Not Found'
+                ], 422);
+            }
+            
+            //Check Section
+            $section = Section::where('id', $request->section_id)->where('quote_id', $check_quote->id)->first();
+            if(!$section) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Section Not Found'
+                ], 422);   
+            }
+            
+            //Check Item
+            $item = Item::where('id', $request->item_id)->where('section_id', $request->section_id)->first();
+            if(!$item) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Section Item Not Found'
+                ], 422);   
+            }
+            
+            //Delete Item
+            $item->delete();
+            
+            $get_quote = ProjectDesignQuote::where('company_job_id', $jobId)->with('sections.items')->first();
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Item Deleted Successfully',
+                'data' => $get_quote
+            ], 200);
+            
+        } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }

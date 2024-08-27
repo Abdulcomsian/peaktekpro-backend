@@ -18,7 +18,7 @@ class ProjectDesignAuthorizationController extends Controller
             'disclaimer' => 'required',
             'signer_first_name' => 'required|string',
             'signer_last_name' => 'required|string',
-            'signer_email' => 'required|email|unique:project_design_authorizations,signer_email',
+            'signer_email' => 'required|email',
             'footer_notes' => 'required',
             'item1' => 'required|string',
             'item2' => 'required|string',
@@ -69,22 +69,57 @@ class ProjectDesignAuthorizationController extends Controller
             foreach($request->sections as $section)
             {
                 //Store Section
-                $add_section = new AuthorizationSection;
-                $add_section->authorization_id = $authorization->id;
-                $add_section->title = $section['title'];
-                $add_section->section_total = $section['section_total'];
-                $add_section->save();
-
-                //Store Items
-                foreach($section['items']  as $item)
-                {
-                    $add_item = new AuthorizationItem;
-                    $add_item->authorization_section_id = $add_section->id;
-                    $add_item->item = $item['item'];
-                    $add_item->quantity = $item['quantity'];
-                    $add_item->price = $item['price'];
-                    $add_item->line_total = $item['line_total'];
-                    $add_item->save();
+                if(isset($section['id'])) {
+                    $update_section = AuthorizationSection::find($section['id']);
+                    if($update_section) {
+                        $update_section->authorization_id = $authorization->id;
+                        $update_section->title = $section['title'];
+                        $update_section->section_total = $section['section_total'];
+                        $update_section->save();
+                        
+                        //Store Items
+                        foreach($section['items']  as $item)
+                        {
+                            if(isset($item['id'])) {
+                                $update_item = AuthorizationItem::find($item['id']);
+                                if($update_item) {
+                                    $update_item->authorization_section_id = $update_section->id;
+                                    $update_item->item = $item['item'];
+                                    $update_item->quantity = $item['quantity'];
+                                    $update_item->price = $item['price'];
+                                    $update_item->line_total = $item['line_total'];
+                                    $update_item->save();    
+                                }
+                            } else {
+                                $add_item = new AuthorizationItem;
+                                $add_item->authorization_section_id = $update_section->id;
+                                $add_item->item = $item['item'];
+                                $add_item->quantity = $item['quantity'];
+                                $add_item->price = $item['price'];
+                                $add_item->line_total = $item['line_total'];
+                                $add_item->save();   
+                            }
+                        }
+                    }
+                    
+                } else {
+                    $add_section = new AuthorizationSection;
+                    $add_section->authorization_id = $authorization->id;
+                    $add_section->title = $section['title'];
+                    $add_section->section_total = $section['section_total'];
+                    $add_section->save();
+    
+                    //Store Items
+                    foreach($section['items']  as $item)
+                    {
+                        $add_item = new AuthorizationItem;
+                        $add_item->authorization_section_id = $add_section->id;
+                        $add_item->item = $item['item'];
+                        $add_item->quantity = $item['quantity'];
+                        $add_item->price = $item['price'];
+                        $add_item->line_total = $item['line_total'];
+                        $add_item->save();
+                    }   
                 }
             }
 
@@ -116,10 +151,9 @@ class ProjectDesignAuthorizationController extends Controller
             $get_authorization = ProjectDesignAuthorization::where('company_job_id', $jobId)->with('sections.items')->first();
             if(!$get_authorization) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 422,
                     'message' => 'Authorization Not Yet Created',
-                    'data' => (object) []
-                ], 200);
+                ], 422);
             }
 
             return response()->json([
@@ -128,6 +162,120 @@ class ProjectDesignAuthorizationController extends Controller
                 'data' => $get_authorization
             ], 200);
 
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function deleteAuthorizationSection(Request $request, $jobId)
+    {
+        $this->validate($request, [
+            'section_id' => 'required|integer'
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            //Check Quote
+            $check_authorization = ProjectDesignAuthorization::where('company_job_id', $jobId)->first();
+            if(!$check_authorization) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Authorization Not Found'
+                ], 422);
+            }
+            
+            //Check Section
+            $section = AuthorizationSection::where('id', $request->section_id)->where('authorization_id', $check_authorization->id)->with('items')->first();
+            if(!$section) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Section Not Found'
+                ], 422);   
+            }
+            
+            //Delete Section
+            $section->items()->delete();
+            $section->delete();
+            
+            $get_authorization = ProjectDesignAuthorization::where('company_job_id', $jobId)->with('sections.items')->first();
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Section Deleted Successfully',
+                'data' => $get_authorization
+            ], 200);
+            
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function deleteAuthorizationItem(Request $request, $jobId)
+    {
+        $this->validate($request, [
+            'section_id' => 'required|integer',
+            'item_id' => 'required|integer'
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            //Check Quote
+            $check_authorization = ProjectDesignAuthorization::where('company_job_id', $jobId)->first();
+            if(!$check_authorization) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Authorization Not Found'
+                ], 422);
+            }
+            
+            //Check Section
+            $section = AuthorizationSection::where('id', $request->section_id)->where('authorization_id', $check_authorization->id)->first();
+            if(!$section) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Section Not Found'
+                ], 422);   
+            }
+            
+            //Check Item
+            $item = AuthorizationItem::where('id', $request->item_id)->where('authorization_section_id', $request->section_id)->first();
+            if(!$item) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Section Item Not Found'
+                ], 422);   
+            }
+            
+            //Delete Item
+            $item->delete();
+            
+            $get_authorization = ProjectDesignAuthorization::where('company_job_id', $jobId)->with('sections.items')->first();
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Item Deleted Successfully',
+                'data' => $get_authorization
+            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }

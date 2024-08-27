@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\ProjectDesignIntroduction;
 use App\Models\ProjectDesignInspectionMedia;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+
 class ProjectDesignController extends Controller
 {
     public function updateProjectDesignPageStatus(Request $request, $jobId)
@@ -109,7 +111,7 @@ class ProjectDesignController extends Controller
 
                 // Save the image path in the database
                 $title->primary_image = Storage::url($primary_image_path);
-                $title->primary_image_file_name = $primary_image_filename;
+                // $title->primary_image_file_name = $primary_image_filename;
                 $title->save();
             }
 
@@ -128,7 +130,7 @@ class ProjectDesignController extends Controller
 
                 // Save the image path in the database
                 $title->secondary_image = Storage::url($secondary_image_path);
-                $title->secondary_image_file_name = $secondary_image_filename;
+                // $title->secondary_image_file_name = $secondary_image_filename;
                 $title->save();
             }
 
@@ -173,6 +175,7 @@ class ProjectDesignController extends Controller
                 $primary_object->id = $get_title->id;
                 $primary_object->image_url = $get_title->primary_image;
                 $primary_object->type = 'primary_image_file_name';
+                $primary_object->file_name = $get_title->primary_image_file_name;
 
                 $primary_image[] = $primary_object;
 
@@ -183,8 +186,9 @@ class ProjectDesignController extends Controller
             if(!is_null($get_title->secondary_image)) {
                 $secondary_object = new \stdClass();
                 $secondary_object->id = $get_title->id;
-                $secondary_object->image_url = $get_title->primary_image;
+                $secondary_object->image_url = $get_title->secondary_image;
                 $secondary_object->type = 'secondary_image_file_name';
+                $secondary_object->file_name = $get_title->secondary_image_file_name;
 
                 $secondary_image[] = $secondary_object;
 
@@ -206,7 +210,7 @@ class ProjectDesignController extends Controller
         //Validate Request
         $this->validate($request, [
             'file_name' => 'required|string',
-            'type' => 'required|string|in:primary_image,secondary_image'
+            'type' => 'required|string|in:primary_image_file_name,secondary_image_file_name'
         ]);
 
         try {
@@ -220,11 +224,8 @@ class ProjectDesignController extends Controller
                 ], 422);
             }
 
-            // Determine the file name column based on the type
-            $fileColumn = $request->type . '_file_name';
-
             //Update File Name
-            $check_pd_title->{$fileColumn} = $request->file_name;
+            $check_pd_title->{$request->type} = $request->file_name;
             $check_pd_title->save();
 
             return response()->json([
@@ -243,30 +244,37 @@ class ProjectDesignController extends Controller
         //Validate Request
         $this->validate($request, [
             'image_url' => 'required|string',
-            'type' => 'required|string|in:primary_image,secondary_image'
+            'type' => 'required|string|in:primary_image_file_name,secondary_image_file_name'
         ]);
 
         try {
 
-            //Check PD Title
+            // Check PD Title
             $check_pd_title = ProjectDesignTitle::find($id);
-            if(!$check_pd_title) {
+            if (!$check_pd_title) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Project Design Title Not Found'
                 ], 422);
             }
-
-            //Delete Media
-            $oldImagePath = str_replace('/storage', 'public', $check_pd_title->{$request->type});
+            
+            // Format the type
+            $formatted = str_replace('_file_name', '', $request->type);
+            
+            // Handle the primary_image and secondary_image cases
+            if ($formatted === 'primary_image') {
+                $formatted = 'primary_image';
+            } elseif ($formatted === 'secondary_image') {
+                $formatted = 'secondary_image';
+            }
+            
+            // Delete Media
+            $oldImagePath = str_replace('/storage', 'public', $check_pd_title->{$formatted});
             Storage::delete($oldImagePath);
-
-            // Determine the file name column based on the type
-            $fileColumn = $request->type . '_file_name';
-
-            //Update File Name
+            
+            // Update File Name
+            $check_pd_title->{$formatted} = null;
             $check_pd_title->{$request->type} = null;
-            $check_pd_title->{$fileColumn} = null;
             $check_pd_title->save();
 
             return response()->json([
@@ -368,7 +376,7 @@ class ProjectDesignController extends Controller
 
             //Store Project Design Inspection
             $inspections = $request->input('data');
-            foreach($inspections as $inspection) {
+            foreach($inspections as $key => $inspection) {
                 if(isset($inspection['id'])) {
                     $get_inspection = ProjectDesignInspection::find($inspection['id']);
                     if($get_inspection) {
@@ -380,13 +388,13 @@ class ProjectDesignController extends Controller
                         // Handle attachments
                         if (isset($inspection['attachment']) && !is_null($inspection['attachment']) && $inspection['attachment'] != 'null') {
                             // Remove old attachments
-                            $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $get_inspection->id)->get();
-                            foreach($oldAttachments as $oldAttachment)
-                            if ($oldAttachment) {
-                                $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                                Storage::delete($oldFilePath);
-                                $oldAttachment->delete();
-                            }
+                            // $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $get_inspection->id)->get();
+                            // foreach($oldAttachments as $oldAttachment)
+                            // if ($oldAttachment) {
+                            //     $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
+                            //     Storage::delete($oldFilePath);
+                            //     $oldAttachment->delete();
+                            // }
 
                             // Store new attachments
                             foreach($inspection['attachment'] as $attachment)
@@ -411,15 +419,15 @@ class ProjectDesignController extends Controller
                     $create_inspection->save();
 
                     // Handle attachments
-                    if (isset($inspection['attachment']) && !is_null($inspection['attachment']) && $inspection['attachment'] != 'null') {
+                    if (isset($inspection['attachment']) && count($inspection['attachment']) > 0) {
                         // Remove old attachments
-                        $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $create_inspection->id)->get();
-                        foreach($oldAttachments as $oldAttachment)
-                        if ($oldAttachment) {
-                            $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                            Storage::delete($oldFilePath);
-                            $oldAttachment->delete();
-                        }
+                        // $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $create_inspection->id)->get();
+                        // foreach($oldAttachments as $oldAttachment)
+                        // if ($oldAttachment) {
+                        //     $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
+                        //     Storage::delete($oldFilePath);
+                        //     $oldAttachment->delete();
+                        // }
 
                         // Store new attachments
                         foreach($inspection['attachment'] as $attachment)

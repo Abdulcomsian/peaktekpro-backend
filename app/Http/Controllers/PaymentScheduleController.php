@@ -18,8 +18,8 @@ class PaymentScheduleController extends Controller
             'acknowledge' => 'nullable|in:0,1',
             'title' => 'required|string|in:My PDFs,Shared PDFs,Single Use PDFs,Text Page',
             'content' => $request->input('title') === 'Text Page' ? 'required' : 'nullable',
-            'pdfs' => 'required|array|min:1',
-            'pdfs.*' => 'required|mimes:pdf|max:2048',
+            'pdfs' => 'nullable|array|min:1',
+            'pdfs.*' => 'nullable|mimes:pdf|max:2048',
         ]);
 
         DB::beginTransaction();
@@ -118,6 +118,73 @@ class PaymentScheduleController extends Controller
                 'data' => $get_payment_schedule
             ]);
 
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function changePaymentScheduleFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+        
+        try {
+            
+            //Check Payment Schedule
+            $check_payment_schedule = PaymentScheduleMedia::find($id);
+            if(!$check_payment_schedule) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Payment Schedule Media Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_payment_schedule->file_name = $request->file_name;
+            $check_payment_schedule->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function deletePaymentScheduleMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'media_url' => 'required|string'
+        ]);
+        
+        try {
+            
+            //Check Payment Schedule
+            $check_payment_schedule = PaymentScheduleMedia::find($id);
+            if(!$check_payment_schedule) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Payment Schedule Media Not Found'
+                ], 422);
+            }
+
+            //Delete Media
+            $oldImagePath = str_replace('/storage', 'public', $check_payment_schedule->pdf_url);
+            Storage::delete($oldImagePath);
+            $check_payment_schedule->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => $check_payment_schedule
+            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
