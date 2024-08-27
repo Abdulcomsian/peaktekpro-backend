@@ -54,7 +54,7 @@ class RoofComponentController extends Controller
 
                     // Store Path
                     $media = new RoofComponentGenericMedia();
-                    $media->type_id = $component->id;
+                    $media->roof_component_generic_id = $component->id;
                     $media->pdf_url = Storage::url($filePath);
                     $media->save();
                 }
