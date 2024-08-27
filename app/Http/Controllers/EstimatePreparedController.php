@@ -90,4 +90,72 @@ class EstimatePreparedController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function changeEstimatePreparedFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Estimate Prepared Media
+            $check_media = EstimatePreparedMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Estimate Prepared Media Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_media->file_name = $request->file_name;
+            $check_media->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => $check_media
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function deleteEstimatePreparedMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'image_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check Estimate Prepared Media
+            $check_media = EstimatePreparedMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Estimate Prepared Media Not Found'
+                ], 422);
+            }
+
+            // Remove old images
+            $oldImage = EstimatePreparedMedia::find($id);
+            $oldImagePath = str_replace('/storage', 'public', $oldImage->media_url);
+            Storage::delete($oldImagePath);
+            $oldImage->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => $check_media
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }
