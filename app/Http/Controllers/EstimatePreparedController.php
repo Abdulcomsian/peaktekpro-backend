@@ -14,7 +14,7 @@ class EstimatePreparedController extends Controller
     {
         $this->validate($request, [
             'prepared_by' => 'required|string',
-            'complete_box' => 'required|in:0,1',
+            'complete_box' => 'required|in:true,false',
             'date' => 'nullable|date_format:d/m/Y',
             'images' => 'required|array'
         ]);
@@ -35,7 +35,7 @@ class EstimatePreparedController extends Controller
             ],[
                 'company_job_id' => $jobId,
                 'prepared_by' => $request->prepared_by,
-                'complete_box' => $request->complete_box,
+                'complete_box' => $request->complete_box == 'true' ? true : false,
                 'date' => $request->date,
             ]);
 
