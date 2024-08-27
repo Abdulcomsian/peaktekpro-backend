@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('payment_schedule_media', function (Blueprint $table) {
             $table->id();
             $table->foreignId('payment_schedule_id')->constrained('payment_schedules')->onDelete('cascade');
+            $table->string('file_name')->nullable();
             $table->string('pdf_url');
             $table->timestamps();
         });
