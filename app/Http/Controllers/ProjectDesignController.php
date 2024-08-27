@@ -337,10 +337,9 @@ class ProjectDesignController extends Controller
             $get_introduction = ProjectDesignIntroduction::where('company_job_id', $jobId)->first();
             if(!$get_introduction) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 422,
                     'message' => 'Project Design Introduction Not Yet Created',
-                    'data' => (object) []
-                ], 200);
+                ], 422);
             }
 
             return response()->json([
@@ -472,9 +471,9 @@ class ProjectDesignController extends Controller
             $get_inspection = ProjectDesignInspection::where('company_job_id', $jobId)->with('attachment')->get();
             if(count($get_inspection) == 0) {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 422,
                     'message' => 'Project Design Inspection Not Yet Created',
-                ], 404);
+                ], 422);
             }
 
             return response()->json([
