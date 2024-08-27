@@ -18,8 +18,8 @@ class RoofComponentController extends Controller
             'acknowledge' => 'nullable|in:0,1',
             'title' => 'required|string|in:My PDFs,Shared PDFs,Single Use PDFs,Text Page',
             'content' => $request->input('title') === 'Text Page' ? 'required' : 'nullable',
-            'pdfs' => 'required|array|min:1',
-            'pdfs.*' => 'required|mimes:pdf|max:2048',
+            'pdfs' => 'nullable|array|min:1',
+            'pdfs.*' => 'nullable|mimes:pdf|max:2048',
         ]);
 
         DB::beginTransaction();
@@ -45,7 +45,7 @@ class RoofComponentController extends Controller
             ]);
 
             //Save Payment Schedule Media
-            if ($request->hasFile('pdfs')) {
+            if (isset($request->pdfs) && count($request->pdfs) > 0 && $request->hasFile('pdfs')) {
 
                 //Add New
                 foreach ($request->file('pdfs') as $file) {
