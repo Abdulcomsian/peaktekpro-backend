@@ -163,10 +163,9 @@ class ProjectDesignController extends Controller
             $get_title = ProjectDesignTitle::where('company_job_id', $jobId)->first();
             if(!$get_title) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 422,
                     'message' => 'Project Design Title Not Yet Created',
-                    'data' => (object) []
-                ], 200);
+                ], 422);
             }
 
             //Creating Array for Primary Image
