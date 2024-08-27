@@ -73,6 +73,12 @@ class CarrierScopeController extends Controller
             }
 
             $get_carrier_scope = CarrierScope::where('company_job_id', $jobId)->get();
+            if(!$get_carrier_scope) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Carrier Scope Not Found'
+                ], 422);
+            }
 
             return response()->json([
                 'status' => 200,
