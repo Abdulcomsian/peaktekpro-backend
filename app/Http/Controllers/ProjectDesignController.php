@@ -356,9 +356,9 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'data' => 'required|array',
-            'data.*.inspection' => 'required',
-            'data.*.attachment' => 'nullable|array',
+            'inspectionData' => 'required|array',
+            'inspectionData.*.inspection' => 'required',
+            'inspectionData.*.attachment' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
@@ -373,7 +373,7 @@ class ProjectDesignController extends Controller
             }
 
             //Store Project Design Inspection
-            $inspections = $request->input('data');
+            $inspections = $request->inspectionData;
             foreach($inspections as $key => $inspection) {
                 if(isset($inspection['id'])) {
                     $get_inspection = ProjectDesignInspection::find($inspection['id']);
