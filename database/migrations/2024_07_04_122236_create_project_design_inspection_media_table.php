@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('project_design_inspection_media', function (Blueprint $table) {
             $table->id();
             $table->foreignId('inspection_id')->constrained('project_design_inspections')->onDelete('cascade');
+            $table->string('file_name')->nullable();
             $table->string('url');
             $table->timestamps();
         });

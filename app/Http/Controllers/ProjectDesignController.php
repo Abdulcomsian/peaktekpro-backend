@@ -385,14 +385,6 @@ class ProjectDesignController extends Controller
 
                         // Handle attachments
                         if (isset($inspection['attachment']) && !is_null($inspection['attachment']) && $inspection['attachment'] != 'null') {
-                            // Remove old attachments
-                            // $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $get_inspection->id)->get();
-                            // foreach($oldAttachments as $oldAttachment)
-                            // if ($oldAttachment) {
-                            //     $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                            //     Storage::delete($oldFilePath);
-                            //     $oldAttachment->delete();
-                            // }
 
                             // Store new attachments
                             foreach($inspection['attachment'] as $attachment)
@@ -418,14 +410,6 @@ class ProjectDesignController extends Controller
 
                     // Handle attachments
                     if (isset($inspection['attachment']) && count($inspection['attachment']) > 0) {
-                        // Remove old attachments
-                        // $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $create_inspection->id)->get();
-                        // foreach($oldAttachments as $oldAttachment)
-                        // if ($oldAttachment) {
-                        //     $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                        //     Storage::delete($oldFilePath);
-                        //     $oldAttachment->delete();
-                        // }
 
                         // Store new attachments
                         foreach($inspection['attachment'] as $attachment)
@@ -533,6 +517,73 @@ class ProjectDesignController extends Controller
                 'data' => $get_inspection
             ], 200);
 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function changeProjectDesignInspectionFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+
+        try {
+
+            //Check QC Inspection
+            $check_media = ProjectDesignInspectionMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'PD Inspection Media Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $check_media->file_name = $request->file_name;
+            $check_media->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function deleteProjectDesignInspectionMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'image_url' => 'required|string'
+        ]);
+
+        try {
+
+            //Check QC Inspection
+            $check_media = ProjectDesignInspectionMedia::find($id);
+            if(!$check_media) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'PD Inspection Media Not Found'
+                ], 422);
+            }
+
+            // Remove old attachments
+            $oldFilePath = str_replace('/storage', 'public', $check_media->url);
+            Storage::delete($oldFilePath);
+            $check_media->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => $check_media
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
