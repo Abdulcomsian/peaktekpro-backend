@@ -489,7 +489,7 @@ class ProjectDesignController extends Controller
             }
 
             //Check Inspection
-            $get_inspection = ProjectDesignInspection::where('id', $id)->where('company_job_id', $jobId)->first();
+            $get_inspection = ProjectDesignInspection::where('id', $request->inspection_id)->where('company_job_id', $jobId)->first();
             if(!$get_inspection) {
                 return response()->json([
                     'status' => 200,
