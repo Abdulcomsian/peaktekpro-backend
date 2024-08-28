@@ -31,6 +31,8 @@ return new class extends Migration
             $table->string('customer_signature')->nullable();
             $table->string('customer_printed_name')->nullable();
             $table->string('customer_date')->nullable();
+            $table->string('customer_name')->nullable();
+            $table->string('agreement_date')->nullable();
             $table->timestamps();
         });
     }

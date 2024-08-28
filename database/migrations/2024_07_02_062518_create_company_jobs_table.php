@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('address');
             $table->string('latitude');
             $table->string('longitude');
-            $table->string('email')->unique()->nullable();
+            $table->string('email');
             $table->string('phone')->nullable();
             $table->timestamps();
         });

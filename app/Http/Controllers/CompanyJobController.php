@@ -26,7 +26,7 @@ class CompanyJobController extends Controller
             'latitude' => 'required',
             'longitude' => 'required',
             'name' => 'required',
-            'email' => 'required|unique:company_jobs,email',
+            'email' => 'required|email',
             'phone' => 'required'
         ]);
 

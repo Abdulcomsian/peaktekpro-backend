@@ -35,6 +35,8 @@ class CustomerAgreementController extends Controller
                 'customer_signature' => 'nullable',
                 'customer_printed_name' => 'nullable',
                 'customer_date' => 'nullable|date_format:d/m/Y',
+                'agreement_date' => 'nullable|date_format:d/m/Y',
+                'customer_name' => 'required|string'
             ]);
 
             //Check Job
@@ -64,6 +66,8 @@ class CustomerAgreementController extends Controller
                 'customer_signature' => $request->customer_signature,
                 'customer_printed_name' => $request->customer_printed_name,
                 'customer_date' => $request->customer_date,
+                'agreement_date' => $request->agreement_date,
+                'customer_name' => $request->customer_name,
             ]);
 
             return response()->json([
