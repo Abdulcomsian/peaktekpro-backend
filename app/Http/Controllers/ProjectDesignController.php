@@ -486,12 +486,26 @@ class ProjectDesignController extends Controller
         }
     }
 
-    public function deleteProjectDesignInspection($id)
+    public function deleteProjectDesignInspection(Request $request, $jobId)
     {
+        //Validate Request
+        $this->validate($request, [
+            'inspection_id' => 'required|integer'
+        ]);
+
         try {
 
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
             //Check Inspection
-            $get_inspection = ProjectDesignInspection::find($id);
+            $get_inspection = ProjectDesignInspection::where('id', $id)->where('company_job_id', $jobId)->first();
             if(!$get_inspection) {
                 return response()->json([
                     'status' => 200,
@@ -501,11 +515,13 @@ class ProjectDesignController extends Controller
             }
 
             // Remove old attachments
-            $oldAttachment = ProjectDesignInspectionMedia::where('inspection_id', $id)->first();
-            if ($oldAttachment) {
-                $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                Storage::delete($oldFilePath);
-                $oldAttachment->delete();
+            $oldAttachments = ProjectDesignInspectionMedia::where('inspection_id', $get_inspection->id)->get();
+            if (count($oldAttachments) > 0) {
+                foreach($oldAttachments as $oldAttachment) {
+                    $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
+                    Storage::delete($oldFilePath);
+                    $oldAttachment->delete();
+                }
             }
 
             //Remove Inspection
@@ -514,7 +530,7 @@ class ProjectDesignController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Inspection Item Deleted Successfully',
-                'data' => []
+                'data' => $get_inspection
             ], 200);
 
 
