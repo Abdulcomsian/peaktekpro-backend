@@ -534,7 +534,7 @@ class MeetingController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'media_url' => 'required|string'
+            'image_url' => 'required|string'
         ]);
 
         try {
