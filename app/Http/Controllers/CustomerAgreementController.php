@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class CustomerAgreementController extends Controller
 {
@@ -31,12 +32,13 @@ class CustomerAgreementController extends Controller
                 'policy_number' => 'nullable',
                 'company_signature' => 'nullable',
                 'company_printed_name' => 'nullable',
-                'company_date' => 'nullable|date_format:d/m/Y',
+                'company_date' => 'nullable|date_format:m/d/Y',
                 'customer_signature' => 'nullable',
                 'customer_printed_name' => 'nullable',
-                'customer_date' => 'nullable|date_format:d/m/Y',
-                'agreement_date' => 'nullable|date_format:d/m/Y',
-                'customer_name' => 'required|string'
+                'customer_date' => 'nullable|date_format:m/d/Y',
+                'agreement_date' => 'nullable|date_format:m/d/Y',
+                'customer_name' => 'required|string',
+                'status' => 'nullable'
             ]);
 
             //Check Job
@@ -68,7 +70,15 @@ class CustomerAgreementController extends Controller
                 'customer_date' => $request->customer_date,
                 'agreement_date' => $request->agreement_date,
                 'customer_name' => $request->customer_name,
+                'status' => $request->status,
             ]);
+            
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();    
+            }
 
             return response()->json([
                 'status' => 200,
@@ -176,6 +186,7 @@ class CustomerAgreementController extends Controller
             //Update Job Status
             $job = CompanyJob::find($agreement->company_job_id);
             $job->status_id = 2;
+            $job->date = Carbon::now()->format('Y-m-d');
             $job->save();
 
             //Fire an Event
@@ -247,6 +258,7 @@ class CustomerAgreementController extends Controller
                 $job_info->name = $job->name;
                 $job_info->email = $job->email;
                 $job_info->phone = $job->phone;
+                $job->is_complete = false;
                 
                 return response()->json([
                     'status' => 200,

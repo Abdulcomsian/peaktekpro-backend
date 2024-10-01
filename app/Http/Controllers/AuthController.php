@@ -30,6 +30,7 @@ class AuthController extends Controller
             // Create a new user
             $user = User::create([
                 'role_id' => 5,
+                'company_id' => 1,
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -76,7 +77,7 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5) {
+            if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5 || $userExists->role_id == 7) {
 
                 if (Auth::attempt($request->only('email', 'password'))) {
                     $user = Auth::user();

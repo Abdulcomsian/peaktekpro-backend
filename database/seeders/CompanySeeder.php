@@ -25,10 +25,12 @@ class CompanySeeder extends Seeder
 
         $user = new User;
         $user->role_id = 1;
-        $user->name = 'Peak Tek';
+        $user->company_id = $company->id;
+        $user->name = 'Peak Tek Admin';
         $user->email = 'peaktek@gmail.com';
         $user->password = Hash::make('Abc@123!');
-        $user->created_by = 0;
+        $user->created_by = 1;
+        $user->status = "active";
         $user->save();
 
         $user_role = new UserRole;
@@ -41,10 +43,12 @@ class CompanySeeder extends Seeder
         // Create Manager
         $manager = new User;
         $manager->role_id = 2;
-        $manager->name = 'Peak Tek';
+        $manager->company_id = $company->id;
+        $manager->name = 'Peak Tek Manager';
         $manager->email = 'peaktekmanager@gmail.com';
         $manager->password = Hash::make('Abc@123!');
-        $manager->created_by = 1;
+        $manager->created_by = 2;
+        $manager->status = "active";
         $manager->save();
 
         $user_role = new UserRole;

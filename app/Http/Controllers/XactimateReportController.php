@@ -54,7 +54,7 @@ class XactimateReportController extends Controller
 
                     // Store Path
                     $media = new XactimateReportMedia();
-                    $media->type_id = $report->id;
+                    $media->xactimate_report_id = $report->id;
                     $media->pdf_url = Storage::url($filePath);
                     $media->save();
                 }

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\EstimatePrepared;
 use App\Models\EstimatePreparedMedia;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class EstimatePreparedController extends Controller
 {
@@ -15,7 +16,7 @@ class EstimatePreparedController extends Controller
         $this->validate($request, [
             'prepared_by' => 'required|string',
             'complete_box' => 'required|in:true,false',
-            'date' => 'nullable|date_format:d/m/Y',
+            'date' => 'nullable|date_format:m/d/Y',
             'images' => 'required|array'
         ]);
 

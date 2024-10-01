@@ -16,3 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/test', function(){
+    $job = \App\Models\CompanyJob::find(4);
+    $quotes = \App\Models\ProjectDesignQuote::where('company_job_id', $job->id)->with('sections','sections.items')->first();
+   return view('pdf.design-meeting', ['job' => $job, 'quotes' => $quotes]); 
+});

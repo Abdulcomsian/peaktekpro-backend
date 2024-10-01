@@ -56,13 +56,6 @@ class PaymentScheduleController extends Controller
 
             //Save Payment Schedule Media
             if ($request->hasFile('pdfs')) {
-                // Remove old PDFs
-                $oldAttachments = PaymentScheduleMedia::where('payment_schedule_id', $schedule->id)->get();
-                foreach ($oldAttachments as $oldAttachment) {
-                    $oldFilePath = str_replace('/storage', 'public', $oldAttachment->url);
-                    Storage::delete($oldFilePath);
-                    $oldAttachment->delete();
-                }
 
                 //Add New
                 foreach ($request->file('pdfs') as $file) {

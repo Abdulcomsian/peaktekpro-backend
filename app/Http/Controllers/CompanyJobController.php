@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
+use App\Models\CompanyJobUser;
+use Carbon\Carbon;
 
 class CompanyJobController extends Controller
 {
@@ -63,6 +65,9 @@ class CompanyJobController extends Controller
 
             //Fire an Event
             event(new JobStatusUpdateEvent('Refresh Pgae'));
+            
+            //Assign Job
+            $job->users()->attach($user->id);
 
             return response()->json([
                 'status' => 201,
@@ -158,8 +163,15 @@ class CompanyJobController extends Controller
             'upgrades' => 'nullable',
             'upgrades_cheque_number' => 'nullable',
             'balance' => 'nullable',
-            'user_ids' => 'nullable|array',
-            'user_ids.*' => 'integer|exists:users,id'
+            // 'invoice_number' => 'nullable',
+            // 'market' => 'nullable|in:Nashville,Chattanooga',
+            // 'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+            // 'insurance' => 'nullable',
+            // 'policy_number' => 'nullable',
+            // 'email' => 'nullable|email',
+            // 'insurance_representative' => 'nullable',
+            // 'user_ids' => 'nullable|array',
+            // 'user_ids.*' => 'integer|exists:users,id'
         ]);
 
         try {
@@ -174,7 +186,7 @@ class CompanyJobController extends Controller
             }
 
             //Update Job Summary
-            CompanyJobSummary::updateOrCreate([
+            $job_summary = CompanyJobSummary::updateOrCreate([
                 'company_job_id' => $id,
             ],[
                 'company_job_id' => $id,
@@ -187,18 +199,25 @@ class CompanyJobController extends Controller
                 'upgrades_cheque_number' => $request->upgrades_cheque_number,
                 'final_payment' => $request->final_payment,
                 'final_payment_cheque_number' => $request->final_payment_cheque_number,
-                'balance' => $request->balance
+                'balance' => $request->balance,
+                // 'invoice_number' => $request->invoice_number,
+                // 'market' => $request->market,
+                // 'lead_source' => $request->lead_source,
+                // 'insurance' => $request->insurance,
+                // 'policy_number' => $request->policy_number,
+                // 'email' => $request->email,
+                // 'insurance_representative' => $request->insurance_representative
             ]);
 
             // Assign Job To Users
-            if(isset($request->user_ids) && count($request->user_ids) > 0) {
-                $job->users()->sync($request->user_ids);
-            }
+            // if(isset($request->user_ids) && count($request->user_ids) > 0) {
+            //     $job->users()->sync($request->user_ids);
+            // }
 
             return response()->json([
                 'status' => 200,
                 'message' => 'Job Summary Updated Successfully',
-                'job' => $job
+                'job' => $job_summary
             ], 200); 
 
         } catch (\Exception $e) {
@@ -221,11 +240,20 @@ class CompanyJobController extends Controller
 
             $job_summary = CompanyJobSummary::where('company_job_id', $job->id)->first();
             if(!$job_summary) {
+                
+                //Create Object
+                $object = new \StdClass;
+                $object->address = $job->address;
+                
                 return response()->json([
-                    'status' => 422,
-                    'message' => 'Job Summary Not Found'
-                ], 422);
+                    'status' => 200,
+                    'message' => 'Job Summary Not Yet Created',
+                    'job' => $object
+                ], 200);
             }
+            
+            $job_summary->user_ids = $job->users()->pluck('user_id')->toArray();
+            $job_summary->address = $job->address;
 
             return response()->json([
                 'status' => 200,
@@ -233,6 +261,179 @@ class CompanyJobController extends Controller
                 'job' => $job_summary
             ], 200); 
 
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function updateJobSummaryInsuranceInformation(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'insurance' => 'nullable',
+            'policy_number' => 'nullable',
+            'email' => 'nullable|email',
+            'insurance_representative' => 'nullable',
+            'claim_number' => 'nullable',
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            //Update Job Summary
+            $job_summary = CompanyJobSummary::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'insurance' => $request->insurance,
+                'policy_number' => $request->policy_number,
+                'email' => $request->email,
+                'insurance_representative' => $request->insurance_representative,
+                'claim_number' => $request->claim_number
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Summary Updated Successfully',
+                'job' => $job_summary
+            ], 200); 
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function getJobSummaryInsuranceInformation($id)
+    {
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $job_summary = CompanyJobSummary::select('id','insurance','policy_number','email','insurance_representative','claim_number')
+            ->where('company_job_id', $job->id)->first();
+            if(!$job_summary) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Job Summary Not Yet Created',
+                    'job' => $object
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Summary Found Successfully',
+                'job' => $job_summary
+            ], 200); 
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function updateJobSummaryInitialInformation(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'invoice_number' => 'nullable',
+            'market' => 'nullable|in:Nashville,Chattanooga',
+            'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+            'user_ids' => 'nullable|array',
+            'user_ids.*' => 'integer|exists:users,id'
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            //Update Job Summary
+            $job_summary = CompanyJobSummary::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'invoice_number' => $request->invoice_number,
+                'market' => $request->market,
+                'lead_source' => $request->lead_source,
+            ]);
+            
+            // Assign Job To Users
+            if(isset($request->user_ids) && count($request->user_ids) > 0) {
+                $job->users()->sync($request->user_ids);
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Summary Updated Successfully',
+                'job' => $job_summary
+            ], 200); 
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function getJobSummaryInitialInformation($id)
+    {
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source')
+            ->where('company_job_id', $job->id)->first();
+            if(!$job_summary) {
+                
+                //Create Object
+                $object = new \StdClass;
+                $object->address = $job->address;
+                $object->email = $job->email;
+                $object->phone = $job->phone;
+                
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Job Summary Not Yet Created',
+                    'job' => $object
+                ], 200);
+            }
+            
+            $job_summary->user_ids = $job->users()->pluck('user_id')->toArray();
+            $job_summary->address = $job->address;
+            $job_summary->email = $job->email;
+            $job_summary->phone = $job->phone;
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Summary Found Successfully',
+                'job' => $job_summary
+            ], 200); 
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
@@ -419,6 +620,511 @@ class CompanyJobController extends Controller
                 'message' => 'Job Status Updated Successfully',
                 'job' => $job
             ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function getTaskWithJobCount()
+    {
+        try {
+            
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+            if($user->role_id == 1 || $user->role_id == 2) {
+                $tasks = Status::withCount([
+                    'jobs' => function ($query) use ($created_by) {
+                        $query->where('created_by', $created_by);
+                    }
+                ])->get();
+
+            } else {
+                $tasks = Status::withCount([
+                    'jobs' => function ($query) use ($user,$assigned_jobs) {
+                        $query->where('user_id', $user->id);
+                        $query->orWhereIn('id', $assigned_jobs);
+                    }
+                ])->get();
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Tasks Found Successfully',
+                'data' => $tasks
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function getJobWithStatus($statusId)
+    {
+        try {
+            
+            // Check Status
+            $task = Status::find($statusId);
+            if(!$task) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Task Not Found'
+                ], 422);
+            }
+            
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+            
+            if($user->role_id == 1 || $user->role_id == 2) {
+                $jobs = CompanyJob::where('created_by', $created_by)
+                ->where('status_id', $statusId)
+                ->with('summary:company_job_id,balance') // Load only necessary fields from the summary
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($job) {
+                    // Assign amount based on the summary balance or set it to 0 if summary is null
+                    $job->amount = $job->summary->balance ?? 0;
+                    return $job;
+                });
+                
+                
+            } else {
+                $jobs = CompanyJob::whereIn('id', $assigned_jobs)->where('status_id', $statusId)
+                ->with('summary:company_job_id,balance') // Load only necessary fields from the summary
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($job) {
+                    // Assign amount based on the summary balance or set it to 0 if summary is null
+                    $job->amount = $job->summary->balance ?? 0;
+                    return $job;
+                });
+                
+            }
+            
+            $task->jobs = $jobs;
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'data' => $task
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function dashboardStats()
+    {
+        try {
+            
+            $data = [];
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+            
+            // Define start and end of the current week (Sunday to Saturday)
+            $weekStart = Carbon::now()->startOfWeek(Carbon::SUNDAY);
+            $weekEnd = Carbon::now()->endOfWeek(Carbon::SATURDAY);
+            
+            // Define start and end of the current month
+            $monthStart = Carbon::now()->startOfMonth();
+            $monthEnd = Carbon::now()->endOfMonth();
+            
+            // Get the start and end of the current year
+            $yearStart = Carbon::now()->startOfYear();
+            $yearEnd = Carbon::now()->endOfYear();
+            
+            // Get the date 6 days ago
+            $sixDaysAgo = Carbon::now()->subDays(6);
+            
+            if($user->role_id == 1 || $user->role_id == 2) {
+                
+                //Weekly Main Query
+                $weekly_tasks = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
+                ->whereBetween('created_at', [$weekStart, $weekEnd]);
+                
+                //Monthly Main Query
+                $monthly_tasks = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
+                ->whereBetween('created_at', [$monthStart, $monthEnd]);
+                
+                // Yearly Query
+                $yearly_tasks = CompanyJob::select('id', 'name', 'address', 'status_id')->where('created_by', $created_by)
+                ->whereBetween('created_at', [$yearStart, $yearEnd]);
+                
+                
+                //New Leads Count
+                $weekly_new_leads = $weekly_tasks->count();
+                $monthly_new_leads = $monthly_tasks->count();
+                
+                //Won & Closed Count
+                $weekly_won_closed = $weekly_tasks->whereHas('adjustorMeeting')->count();
+                $monthly_won_closed = $monthly_tasks->whereHas('adjustorMeeting')->count();
+                $yearly_won_closed = $yearly_tasks->whereHas('adjustorMeeting')->count();
+                
+                //Won & Closed Values
+                //Weekly
+                $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                ->get();
+                
+                $weekly_balances = $weekly_won_closed_values->pluck('summary.balance');
+                $weekly_total_balance = $weekly_balances->sum();
+                
+                //Monthly
+                $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                ->get();
+                
+                $monthly_balances = $monthly_won_closed_values->pluck('summary.balance');
+                $monthly_total_balance = $monthly_balances->sum();
+                
+                //Current Year
+                $yearly_won_closed_values = $yearly_tasks
+                    ->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
+                
+                $yearly_balances = $yearly_won_closed_values->pluck('summary.balance');
+                $yearly_total_balance = $yearly_balances->sum();
+                
+                //Customers
+                $jobs = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by);
+                
+                //Deals Won & Closed
+                $deals = $jobs->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                ->get();
+                
+                $balances = $deals->pluck('summary.balance');
+                $total_balance = $balances->sum();
+                
+                //New Leads
+                $new_leads = CompanyJob::where('created_by', $created_by)->where('status_id', 1)->count();
+                //InProgress
+                $in_progress = CompanyJob::where('created_by', $created_by)->where('status_id', 10)->count();
+                
+                //Needs Attention
+                $stale_jobs = CompanyJob::with('status')->where('created_by', $created_by)->where('date', '<', $sixDaysAgo)->get();
+                
+                // Prepare response data
+                $data = [
+                    'weekly' => [
+                        'new_leads' => $weekly_new_leads,
+                        'won_closed' => $weekly_won_closed,
+                        'won_closed_values' => $weekly_total_balance,
+                    ],
+                    'monthly' => [
+                        'new_leads' => $monthly_new_leads,
+                        'won_closed' => $monthly_won_closed,
+                        'won_closed_values' => $monthly_total_balance,
+                    ],
+                    'current_jobs' => [
+                        'new_leads' => $new_leads,
+                        'in_progress' => $in_progress
+                    ],
+                    'current_year' => [
+                      'total_revenue_generated' => $yearly_total_balance,
+                      'won_closed' => $yearly_won_closed
+                    ],
+                    'customers' => $jobs->count(),
+                    'deals_won_closed' => $total_balance,
+                    'needs_attention' => $stale_jobs
+                ];
+                
+            } else {
+                //Weekly Main Query
+                $weekly_tasks = CompanyJob::select('id','name','address','status_id')->where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })
+                ->whereBetween('created_at', [$weekStart, $weekEnd]);
+                
+                //Monthly Main Query
+                $monthly_tasks = CompanyJob::select('id','name','address','status_id')->where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })
+                ->whereBetween('created_at', [$monthStart, $monthEnd]);
+                
+                // Yearly Query
+                $yearly_tasks = CompanyJob::select('id', 'name', 'address', 'status_id')->where(function ($query) use ($user, $assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })
+                ->whereBetween('created_at', [$yearStart, $yearEnd]);
+                
+                
+                //New Leads Count
+                $weekly_new_leads = $weekly_tasks->count();
+                $monthly_new_leads = $monthly_tasks->count();
+                
+                //Won & Closed Count
+                $weekly_won_closed = $weekly_tasks->whereHas('adjustorMeeting')->count();
+                $monthly_won_closed = $monthly_tasks->whereHas('adjustorMeeting')->count();
+                $yearly_won_closed = $yearly_tasks->whereHas('adjustorMeeting')->count();
+                
+                //Won & Closed Values
+                //Weekly
+                $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                ->get();
+                
+                $weekly_balances = $weekly_won_closed_values->pluck('summary.balance');
+                $weekly_total_balance = $weekly_balances->sum();
+                
+                //Monthly
+                $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                ->get();
+                
+                $monthly_balances = $monthly_won_closed_values->pluck('summary.balance');
+                $monthly_total_balance = $monthly_balances->sum();
+                
+                //Current Year
+                $yearly_won_closed_values = $yearly_tasks
+                    ->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
+                
+                $yearly_balances = $yearly_won_closed_values->pluck('summary.balance');
+                $yearly_total_balance = $yearly_balances->sum();
+                
+                //Customers
+                $jobs = CompanyJob::select('id','name','address','status_id')->where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                });
+                
+                //Deals Won & Closed
+                $deals = $jobs->whereHas('adjustorMeeting')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                ->get();
+                
+                $balances = $deals->pluck('summary.balance');
+                $total_balance = $balances->sum();
+                
+                //New Leads
+                $new_leads = CompanyJob::where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })->where('status_id', 1)->count();
+                //InProgress
+                $in_progress = CompanyJob::where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })->where('status_id', 10)->count();
+                
+                //Needs Attention
+                $stale_jobs = CompanyJob::with('status')->where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })
+                ->where('date', '<', $sixDaysAgo)->get();
+                
+                // Prepare response data
+                $data = [
+                    'weekly' => [
+                        'new_leads' => $weekly_new_leads,
+                        'won_closed' => $weekly_won_closed,
+                        'won_closed_values' => $weekly_total_balance,
+                    ],
+                    'monthly' => [
+                        'new_leads' => $monthly_new_leads,
+                        'won_closed' => $monthly_won_closed,
+                        'won_closed_values' => $monthly_total_balance,
+                    ],
+                    'current_jobs' => [
+                        'new_leads' => $new_leads,
+                        'in_progress' => $in_progress
+                    ],
+                    'current_year' => [
+                      'total_revenue_generated' => $yearly_total_balance,
+                      'won_closed' => $yearly_won_closed
+                    ],
+                    'customers' => $jobs->count(),
+                    'deals_won_closed' => $total_balance,
+                    'needs_attention' => $stale_jobs
+                ];
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Weekly Stats',
+                'data' => $data
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function dashboardStatsDetail(Request $request)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'type' => 'required|in:weekly,monthly',
+            'box' => 'required|in:new_leads,won_closed,won_closed_values'
+        ]);
+        
+        try {
+            
+            $data = [];
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+            
+            // Define start and end of the current week (Sunday to Saturday)
+            $weekStart = Carbon::now()->startOfWeek(Carbon::SUNDAY);
+            $weekEnd = Carbon::now()->endOfWeek(Carbon::SATURDAY);
+            
+            // Define start and end of the current month
+            $monthStart = Carbon::now()->startOfMonth();
+            $monthEnd = Carbon::now()->endOfMonth();
+            
+            if($user->role_id == 1 || $user->role_id == 2) {
+                //Weekly Main Query
+                $weekly_tasks = CompanyJob::where('created_by', $created_by)
+                ->whereBetween('created_at', [$weekStart, $weekEnd])
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc');
+                
+                //Monthly Main Query
+                $monthly_tasks = CompanyJob::where('created_by', $created_by)
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc');
+                
+                if($request->type == 'weekly' && $request->box == 'new_leads') {
+                    //New Leads
+                    $data = $weekly_tasks->get();
+                } else if($request->type == 'weekly' && $request->box == 'won_closed') {
+                    //Won & Closed
+                    $data = $weekly_tasks->whereHas('adjustorMeeting')->get();
+                } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
+                    //Won & Closed Values
+                    $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                        ->whereHas('summary')
+                        ->with(['summary' => function ($query) {
+                            $query->select('company_job_id', 'balance');
+                        }])
+                    ->get();
+                    
+                    $weekly_balances = $weekly_won_closed_values->pluck('summary.balance');
+                    $weekly_total_balance = $weekly_balances->sum();
+                    $data = $weekly_won_closed_values;
+                } else if($request->type == 'monthly' && $request->box == 'new_leads') {
+                    //New Leads
+                    $data = $monthly_tasks->get();
+                } else if($request->type == 'monthly' && $request->box == 'won_closed') {
+                    //Won & Closed
+                    $data = $monthly_tasks->whereHas('adjustorMeeting')->get();
+                } else if($request->type == 'monthly' && $request->box == 'won_closed_values') {
+                    //Won & Closed Values
+                    $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                        ->whereHas('summary')
+                        ->with(['summary' => function ($query) {
+                            $query->select('company_job_id', 'balance');
+                        }])
+                    ->get();
+                    
+                    $monthly_balances = $monthly_won_closed_values->pluck('summary.balance');
+                    $monthly_total_balance = $monthly_balances->sum();
+                    $data = $monthly_won_closed_values;
+                }
+
+            } else {
+                //Weekly Main Query
+                $weekly_tasks = CompanyJob::where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })
+                ->whereBetween('created_at', [$weekStart, $weekEnd])
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc');
+                
+                //Monthly Main Query
+                $monthly_tasks = CompanyJob::where(function($query) use ($user,$assigned_jobs) {
+                    $query->orWhere('user_id', $user->id);
+                    $query->orWhereIn('id', $assigned_jobs);
+                })
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc');
+                
+                if($request->type == 'weekly' && $request->box == 'new_leads') {
+                    //New Leads
+                    $data = $weekly_tasks->get();
+                } else if($request->type == 'weekly' && $request->box == 'won_closed') {
+                    //Won & Closed
+                    $data = $weekly_tasks->whereHas('adjustorMeeting')->get();
+                } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
+                    //Won & Closed Values
+                    $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                        ->whereHas('summary')
+                        ->with(['summary' => function ($query) {
+                            $query->select('company_job_id', 'balance');
+                        }])
+                    ->get();
+                    
+                    $weekly_balances = $weekly_won_closed_values->pluck('summary.balance');
+                    $weekly_total_balance = $weekly_balances->sum();
+                    $data = $weekly_won_closed_values;
+                } else if($request->type == 'monthly' && $request->box == 'new_leads') {
+                    //New Leads
+                    $data = $monthly_tasks->get();
+                } else if($request->type == 'monthly' && $request->box == 'won_closed') {
+                    //Won & Closed
+                    $data = $monthly_tasks->whereHas('adjustorMeeting')->get();
+                } else if($request->type == 'monthly' && $request->box == 'won_closed_values') {
+                    //Won & Closed Values
+                    $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                        ->whereHas('summary')
+                        ->with(['summary' => function ($query) {
+                            $query->select('company_job_id', 'balance');
+                        }])
+                    ->get();
+                    
+                    $monthly_balances = $monthly_won_closed_values->pluck('summary.balance');
+                    $monthly_total_balance = $monthly_balances->sum();
+                    $data = $monthly_won_closed_values;
+                }
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'message' => $request->type . ' detail for ' . $request->box . ' found successfully',
+                'data' => $data
+            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }

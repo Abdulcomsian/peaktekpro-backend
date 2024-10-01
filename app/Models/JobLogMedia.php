@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class JobLogItem extends Model
+class JobLogMedia extends Model
 {
     use HasFactory;
-
+    
     protected $guarded = [];
 }

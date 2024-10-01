@@ -24,6 +24,8 @@ class User extends Authenticatable
         'role_id',
         'created_by',
         'profile',
+        'status',
+        'company_id'
     ];
 
     /**

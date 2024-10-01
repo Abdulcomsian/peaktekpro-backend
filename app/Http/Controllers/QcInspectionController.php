@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\QcInspectionMedia;
 use App\Models\QcInspectionMaterials;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class QcInspectionController extends Controller
 {
@@ -28,10 +29,10 @@ class QcInspectionController extends Controller
             'policy_number' => 'required',
             'company_signature' => 'required',
             'company_printed_name' => 'required',
-            'company_date' => 'required|date_format:d/m/Y',
+            'company_date' => 'required|date_format:m/d/Y',
             'customer_signature' => 'required',
             'customer_printed_name' => 'required',
-            'customer_date' => 'required|date_format:d/m/Y',
+            'customer_date' => 'required|date_format:m/d/Y',
             'materials' => 'required|array',
             'materials.*.material' => 'required|string',
             'materials.*.damaged' => 'nullable|boolean',

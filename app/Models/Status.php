@@ -10,4 +10,9 @@ class Status extends Model
     use HasFactory;
 
     protected $guarded = [];
+    
+    public function jobs()
+    {
+        return $this->hasMany(CompanyJob::class);
+    }
 }

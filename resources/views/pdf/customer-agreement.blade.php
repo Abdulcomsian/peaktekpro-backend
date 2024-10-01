@@ -598,7 +598,6 @@
           >
           <span
             style="
-              border: 1px solid rgb(0, 0, 0);
               width: 250px;
               display: inline-block;
             "

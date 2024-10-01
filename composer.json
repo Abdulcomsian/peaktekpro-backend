@@ -8,6 +8,9 @@
         "php": "^8.0.2",
         "barryvdh/laravel-snappy": "^1.0",
         "guzzlehttp/guzzle": "^7.2",
+        "h4cc/wkhtmltoimage-i386": "^0.12.4",
+        "h4cc/wkhtmltopdf-amd64": "^0.12.4",
+        "h4cc/wkhtmltopdf-i386": "^0.12.4",
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.7"

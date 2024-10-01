@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('company_job_content', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->text('notes')->nullable();
+            $table->longText('notes')->nullable();
             $table->timestamps();
         });
     }

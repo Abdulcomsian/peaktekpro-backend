@@ -13,6 +13,11 @@ use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
 use App\Models\MaterialOrderDeliveryInformation;
 use PDF;
+use Carbon\Carbon;
+use App\Models\BuildDetail;
+use App\Models\MaterialOrderConfirmation;
+use App\Jobs\ConfirmationJob;
+use App\Jobs\MaterialOrderConfirmationJob;
 
 class MaterialOrderController extends Controller
 {
@@ -28,14 +33,15 @@ class MaterialOrderController extends Controller
             'insurance' => 'required',
             'claim_number' => 'required',
             'policy_number' => 'required',
-            'date_needed' => 'required|date_format:d/m/Y',
+            'date_needed' => 'required|date_format:m/d/Y',
             'square_count' => 'required',
             'total_perimeter' => 'required',
             'ridge_lf' => 'required',
-            'build_date' => 'required|date_format:d/m/Y',
+            'build_date' => 'required|date_format:m/d/Y',
             'valley_sf' => 'required',
             'hip_and_ridge_lf' => 'required',
             'drip_edge_lf' => 'required',
+            'status' => 'nullable|in:0,1',
             'materials' => 'required|array',
             'materials.*.material' => 'required|string',
             'materials.*.quantity' => 'nullable',
@@ -120,6 +126,13 @@ class MaterialOrderController extends Controller
                     $add_material->save();
                 }
             }
+            
+            //Update Status
+            if(isset($request->status)) {
+                $job->status_id = 10;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
 
             DB::commit();
             return response()->json([
@@ -144,6 +157,11 @@ class MaterialOrderController extends Controller
                     'status' => 422,
                     'message' => 'Material Order Not Found'
                 ], 422);
+            }
+            
+            $build_detail = BuildDetail::where('company_job_id', $material_order->company_job_id)->first();
+            if($build_detail) {
+                $material_order->build_detail = $build_detail;
             }
 
             return response()->json([
@@ -389,6 +407,151 @@ class MaterialOrderController extends Controller
                 'data' => []
             ], 200);
 
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function updateBuildDetail(Request $request, $jobId)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'homeowner' => 'nullable|string',
+            'homeowner_email' => 'nullable|email',
+            'contractor' => 'nullable|string',
+            'contractor_email' => 'nullable|email',
+            'supplier' => 'nullable|string',
+            'supplier_email' => 'nullable|email',
+            'build_time' => 'nullable|date_format:h:i A',
+            'build_date' => 'nullable|date_format:m/d/Y',
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            //Update Build Detail
+            $build_detail = BuildDetail::updateOrCreate([
+                'company_job_id' => $jobId
+            ],[
+                'company_job_id' => $jobId,
+                'build_date' => $request->build_date,
+                'build_time' => $request->build_time,
+                'homeowner' => $request->homeowner,
+                'homeowner_email' => $request->homeowner_email,
+                'contractor' => $request->contractor,
+                'contractor_email' => $request->contractor_email,
+                'supplier' => $request->supplier,
+                'supplier_email' => $request->supplier_email,
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Build Detail Updated Successfully',
+                'data' => $build_detail
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function confirmationEmail(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'send_to' => 'required|array',
+            'send_to.*' => 'required|email',
+            'subject' => 'required|string',
+            'email_body' => 'required|string',
+        ]);
+        
+        try {
+            
+            //Check Material Order
+            $material_order = MaterialOrder::where('id', $id)->first();
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 422);
+            }
+            
+            //Send Emails
+            foreach($request->send_to as $email)
+            {
+                dispatch(new ConfirmationJob($email,$request->subject,$request->email_body));
+            }
+            
+            //Update Material Order
+            MaterialOrderConfirmation::updateOrCreate([
+                'material_order_id' => $id
+            ],[
+                'material_order_id' => $id,
+                'confirmation_email' => $request->confirmation_email
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Sent successfully',
+                'data' => []
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function materialOrderconfirmationEmail(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'send_to' => 'required|email',
+            'subject' => 'required|string',
+            'email_body' => 'required',
+            'attachments' => 'nullable|array',
+        ]);
+        
+        try {
+            
+            //Check Material Order
+            $material_order = MaterialOrder::where('id', $id)->first();
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 422);
+            }
+            
+            //Send Email
+            if(isset($request->attachments)) {
+                $attachments = $request->file('attachments');
+            } else {
+                $attachments = [];
+            }
+            dispatch(new MaterialOrderConfirmationJob($request->send_to,$request->subject,$request->email_body,$attachments));
+            
+            //Update Material Order
+            MaterialOrderConfirmation::updateOrCreate([
+                'material_order_id' => $id
+            ],[
+                'material_order_id' => $id,
+                'material_order_confirmation_email' => $request->material_order_confirmation_email
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Sent successfully',
+                'data' => []
+            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }

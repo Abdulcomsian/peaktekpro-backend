@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\CompanyJob;
 use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ReadyToBuildController extends Controller
 {
@@ -15,9 +16,10 @@ class ReadyToBuildController extends Controller
         $this->validate($request, [
             'recipient' => 'required|string|max:255',
             'time' => 'required|date_format:h:i A', // 12-hour format
-            'date' => 'required|date_format:d/m/Y',
+            'date' => 'required|date_format:m/d/Y',
             'text' => 'required',
-            'sub_contractor_id' => 'required|integer'
+            'sub_contractor_id' => 'required|integer',
+            'completed' => 'nullable|in:1,0'
         ]);
 
         try {
@@ -51,6 +53,13 @@ class ReadyToBuildController extends Controller
                 'time' => $request->time,
                 'text' => $request->text,
             ]);
+            
+            //Update Status
+            if(isset($request->completed) && $request->completed == true) {
+                $job->status_id = 9;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
 
             return response()->json([
                 'status' => 200,

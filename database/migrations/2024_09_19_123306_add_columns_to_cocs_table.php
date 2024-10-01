@@ -13,13 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('job_log_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('job_log_id')->constrained('job_logs')->onDelete('cascade');
-            $table->string('item');
-            $table->text('description')->nullable();
-            $table->string('cost');
-            $table->timestamps();
+        Schema::table('cocs', function (Blueprint $table) {
+            $table->string('conclusion')->nullable()->after('released_to');
+            $table->string('sincerely')->nullable()->after('conclusion');
         });
     }
 
@@ -30,6 +26,9 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('job_log_items');
+        Schema::table('cocs', function (Blueprint $table) {
+            $table->dropColumn('conclusion');
+            $table->dropColumn('sincerely');
+        });
     }
 };

@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class JobLog extends Model
 {
     use HasFactory;
-
+    
     protected $guarded = [];
-
-    public function items()
+    
+    public function attachments()
     {
-        return $this->hasMany(JobLogItem::class);
+        return $this->hasMany(JobLogMedia::class);
     }
 }

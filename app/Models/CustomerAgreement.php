@@ -27,4 +27,9 @@ class CustomerAgreement extends Model
             return false;
         }
     }
+    
+    public function getStatusAttribute($value)
+    {
+        return $value == 0 ? false : true;
+    }
 }

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('time')->nullable();
             $table->string('date')->nullable();
-            $table->text('notes')->nullable();
+            $table->longText('notes')->nullable();
             $table->string('status')->default('pending');
             $table->timestamps();
         });

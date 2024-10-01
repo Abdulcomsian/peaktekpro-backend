@@ -23,8 +23,9 @@ return new class extends Migration
             $table->string('city');
             $table->string('state');
             $table->string('zip_code');
-            $table->string('insurance');
+            $table->string('insurance')->nullable();
             $table->string('claim_number')->nullable();
+            $table->boolean('status')->default(false);
             $table->string('policy_number')->nullable();
             $table->string('company_representative')->nullable();
             $table->string('company_printed_name')->nullable();
@@ -37,6 +38,7 @@ return new class extends Migration
             $table->text('supplemental_items')->nullable();
             $table->string('awarded_to')->nullable();
             $table->string('released_to')->nullable();
+            $table->boolean('coc_insurance_email_sent')->default(false);
             $table->timestamps();
         });
     }

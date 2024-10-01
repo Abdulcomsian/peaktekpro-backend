@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Coc;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+use App\Jobs\CocInsuranceJob;
+use PDF;
+use Illuminate\Support\Facades\Storage;
 
 class CocController extends Controller
 {
     public function storeCoc(Request $request, $jobId)
     {
         //Validate Rules
-        $rules = [
+        $this->validate($request, [
             'name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'required|string|max:25',
@@ -19,12 +23,12 @@ class CocController extends Controller
             'city' => 'required|string',
             'state' => 'required|string',
             'zip_code' => 'required',
-            'insurance' => 'required',
-            'claim_number' => 'required',
-            'policy_number' => 'required',
+            'insurance' => 'nullable',
+            'claim_number' => 'nullable',
+            'policy_number' => 'nullable',
             'company_representative' => 'required',
             'company_printed_name' => 'required',
-            'company_signed_date' => 'required|date_format:d/m/Y',
+            'company_signed_date' => 'required|date_format:m/d/Y',
             'job_total' => 'required',
             'customer_paid_upgrades' => 'required',
             'deductible' => 'required',
@@ -32,24 +36,16 @@ class CocController extends Controller
             'rcv_check' => 'required',
             'supplemental_items' => 'required',
             'awarded_to' => 'required|string',
-            'released_to' => 'required|string'
-        ];
-
-        // If updating an existing record, ignore the current record's email for uniqueness check
-        $check_coc = Coc::where('company_job_id', $jobId)->first();
-        if($check_coc) {
-            $rules['email'] .= '|unique:cocs,email,' . $check_coc->id;
-        } else {
-            $rules['email'] .= '|unique:cocs,email';
-        }
-
-        // Validate the request
-        $validatedData = $request->validate($rules, []);
+            'released_to' => 'required|string',
+            'conclusion' => 'required|string',
+            'sincerely' => 'required|string',
+            'status' => 'nullable'
+        ]);
 
         try {
 
             //Check Job
-            $job = CompanyJob::find($jobId);
+            $job = CompanyJob::whereId($jobId)->with('summary')->first();
             if(!$job) {
                 return response()->json([
                     'status' => 422,
@@ -83,7 +79,35 @@ class CocController extends Controller
                 'supplemental_items' => $request->supplemental_items,
                 'awarded_to' => $request->awarded_to,
                 'released_to' => $request->released_to,
+                'conclusion' => $request->conclusion,
+                'sincerely' => $request->sincerely,
+                'status' => $request->status
             ]);
+            
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 13;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+                
+                //Generate PDF
+                $pdf = PDF::loadView('pdf.coc', ['coc' => $coc, 'job' => $job]);
+                $pdf_fileName = time() . '.pdf';
+                $pdf_filePath = 'coc_pdf/' . $pdf_fileName;
+                // Check if the old PDF exists and delete it
+                if ($coc->pdf_url) {
+                    $oldPdfPath = public_path($coc->pdf_url);
+                    if (file_exists($oldPdfPath)) {
+                        unlink($oldPdfPath);
+                    }
+                }
+                // Save the new PDF
+                Storage::put('public/' . $pdf_filePath, $pdf->output());
+    
+                //Save PDF Path
+                $coc->pdf_url = '/storage/' . $pdf_filePath;
+                $coc->save();
+            }
 
             return response()->json([
                 'status' => 200,
@@ -101,7 +125,7 @@ class CocController extends Controller
         try {
 
             //Check Job
-            $job = CompanyJob::find($jobId);
+            $job = CompanyJob::whereId($jobId)->with('summary')->first();
             if(!$job) {
                 return response()->json([
                     'status' => 422,
@@ -114,9 +138,13 @@ class CocController extends Controller
 
                 // Create a new stdClass object
                 $coc = new \stdClass();
-                $coc->name = $job->name;
-                $coc->email = $job->email;
-                $coc->phone = $job->phone;
+                $coc->homeowner_name = $job->name;
+                $coc->homeowner_email = $job->email;
+                $coc->homeowner_address = $job->address;
+                $coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
+                $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
+                $coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
+                $coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
 
                 return response()->json([
                     'status' => 200,
@@ -124,6 +152,15 @@ class CocController extends Controller
                     'data' => $coc
                 ], 200);
             }
+            
+            //Update COC
+            $get_coc->homeowner_name = $job->name;
+            $get_coc->homeowner_email = $job->email;
+            $get_coc->homeowner_address = $job->address;
+            $get_coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
+            $get_coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
+            $get_coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
+            $get_coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
 
             return response()->json([
                 'status' => 200,
@@ -131,6 +168,50 @@ class CocController extends Controller
                 'data' => $get_coc
             ], 200);
 
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function CocInsuranceEmail(Request $request, $id)
+    {
+        $this->validate($request, [
+            'coc_insurance_email_sent' => 'nullable',
+            'send_to' => 'required|email',
+            'subject' => 'required|string',
+            'email_body' => 'required|string',
+            'attachments' => 'nullable|array',
+        ]);
+        
+        try {
+            
+            //Check COC
+            $coc = Coc::where('id', $id)->first();
+            if(!$coc) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'COC Not Found'
+                ], 422);
+            }
+            
+            //Send Email
+            if(isset($request->attachments)) {
+                $attachments = $request->file('attachments');
+            } else {
+                $attachments = [];
+            }
+            
+            dispatch(new CocInsuranceJob($request->send_to,$request->subject,$request->email_body,$attachments));
+            
+            //Update COC
+            $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
+            $coc->save();
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Sent successfully',
+                'data' => []
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }

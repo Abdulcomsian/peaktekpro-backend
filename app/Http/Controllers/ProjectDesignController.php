@@ -13,6 +13,9 @@ use App\Models\ProjectDesignIntroduction;
 use App\Models\ProjectDesignInspectionMedia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
+use PDF;
+use App\Models\ProjectDesign;
 
 class ProjectDesignController extends Controller
 {
@@ -65,7 +68,7 @@ class ProjectDesignController extends Controller
             'state' => 'required|string',
             'zip' => 'required',
             'report_type' => 'required',
-            'date' => 'required|date_format:d/m/Y',
+            'date' => 'required|date_format:m/d/Y',
             'primary_image' => 'nullable',
             'secondary_image' => 'nullable',
         ]);
@@ -585,6 +588,54 @@ class ProjectDesignController extends Controller
                 'data' => $check_media
             ], 200);
 
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+    
+    public function generatePDF($jobId)
+    {
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            $project_design = ProjectDesign::where('company_job_id', $jobId)->first();
+            
+            //Generate PDF
+            $pdf = PDF::loadView('pdf.design-meeting', ['job' => $job]);
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'design_meeting_pdf/' . $pdf_fileName;
+            // Check if the old PDF exists and delete it
+            if (!is_null($project_design)) {
+                $oldPdfPath = public_path($project_design->pdf_url);
+                if (file_exists($oldPdfPath)) {
+                    unlink($oldPdfPath);
+                }
+            }
+            // Save the new PDF
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+
+            //Save PDF Path
+            $pdf = ProjectDesign::updateOrCreate([
+                'company_job_id' => $jobId 
+            ],[
+                'company_job_id' => $jobId,
+                'pdf_url' => '/storage/' . $pdf_filePath
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'PDF Generated Successfully',
+                'data' => $pdf
+            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }

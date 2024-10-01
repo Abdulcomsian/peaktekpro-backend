@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('adjustor_id')->constrained('adjustor_meetings')->onDelete('cascade');
             $table->string('media_type');
             $table->string('media_url');
+            $table->string('file_name')->nullable();
             $table->timestamps();
         });
     }
