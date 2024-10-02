@@ -476,13 +476,13 @@ class MaterialOrderController extends Controller
         try {
             
             //Check Material Order
-            $material_order = MaterialOrder::where('id', $id)->first();
-            if(!$material_order) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Material Order Not Found'
-                ], 422);
-            }
+            // $material_order = MaterialOrder::where('id', $id)->first();
+            // if(!$material_order) {
+            //     return response()->json([
+            //         'status' => 422,
+            //         'message' => 'Material Order Not Found'
+            //     ], 422);
+            // }
             
             //Send Emails
             foreach($request->send_to as $email)
@@ -492,9 +492,9 @@ class MaterialOrderController extends Controller
             
             //Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
-                'material_order_id' => $id
+                // 'material_order_id' => $id
             ],[
-                'material_order_id' => $id,
+                // 'material_order_id' => $id,
                 'confirmation_email' => $request->confirmation_email
             ]);
             
