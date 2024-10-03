@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('date')->nullable();
             $table->string('notes')->nullable();
             $table->string('attachements')->nullable();
+            $table->string('status')->default('false');
             $table->timestamps();
         });
     }
