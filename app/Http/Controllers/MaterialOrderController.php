@@ -451,7 +451,6 @@ class MaterialOrderController extends Controller
                 'supplier' => $request->supplier,
                 'supplier_email' => $request->supplier_email,
             ]);
-            
             return response()->json([
                 'status' => 200,
                 'message' => 'Build Detail Updated Successfully',

@@ -12,16 +12,15 @@ class ReadyToBuildController extends Controller
 {
     public function storeReadyToBuild(Request $request, $jobId)
     {
+        // dd($request->all());
         //Validation Request
         $this->validate($request, [
-            'recipient' => 'required|string|max:255',
-            'time' => 'required|date_format:h:i A', // 12-hour format
-            'date' => 'required|date_format:m/d/Y',
-            'text' => 'required',
-            'sub_contractor_id' => 'required|integer',
-            'completed' => 'nullable|in:1,0'
+            'home_owner' => 'nullable|string|max:255',
+            'home_owner_email' => 'nullable|email',
+            'date' => 'nullable|date_format:m/d/Y',
+            'notes' => 'nullable|string',
+            'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
         ]);
-
         try {
 
             //Check Job
@@ -42,16 +41,23 @@ class ReadyToBuildController extends Controller
                 ], 422);
             }
 
+             // Handle attachments
+            $attachmentPaths = [];
+            if ($request->hasFile('attachements')) {
+                foreach ($request->file('attachements') as $attachment) {
+                    $attachmentPaths[] = $attachment->store('ready_to_build', 'public');
+                }
+            }
             //Update Ready To Build
             $ready_to_build = ReadyToBuild::updateOrCreate([
                 'company_job_id' => $jobId,
             ],[
                 'company_job_id' => $jobId,
-                'sub_contractor_id' => $request->sub_contractor_id,
-                'recipient' => $request->recipient,
+                'home_owner' => $request->home_owner,
+                'home_owner_email' => $request->home_owner_email,
                 'date' => $request->date,
-                'time' => $request->time,
-                'text' => $request->text,
+                'notes' => $request->notes,
+                'attachements' => json_encode($attachmentPaths),
             ]);
             
             //Update Status
@@ -104,4 +110,66 @@ class ReadyToBuildController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    // public function storeReadyToBuild(Request $request, $jobId)
+    // {
+    //     //Validation Request
+    //     $this->validate($request, [
+    //         'recipient' => 'required|string|max:255',
+    //         'time' => 'required|date_format:h:i A', // 12-hour format
+    //         'date' => 'required|date_format:m/d/Y',
+    //         'text' => 'required',
+    //         'sub_contractor_id' => 'required|integer',
+    //         'completed' => 'nullable|in:1,0'
+    //     ]);
+
+    //     try {
+
+    //         //Check Job
+    //         $job = CompanyJob::find($jobId);
+    //         if(!$job) {
+    //             return response()->json([
+    //                 'status' => 422,
+    //                 'message' => 'Job not found'
+    //             ], 422);
+    //         }
+
+    //         //Check Sub Contractor
+    //         $sub_contractor = User::whereId($request->sub_contractor_id)->where('role_id', 3)->first();
+    //         if(!$sub_contractor) {
+    //             return response()->json([
+    //                 'status' => 422,
+    //                 'message' => 'Sub Contractor not found'
+    //             ], 422);
+    //         }
+
+    //         //Update Ready To Build
+    //         $ready_to_build = ReadyToBuild::updateOrCreate([
+    //             'company_job_id' => $jobId,
+    //         ],[
+    //             'company_job_id' => $jobId,
+    //             'sub_contractor_id' => $request->sub_contractor_id,
+    //             'recipient' => $request->recipient,
+    //             'date' => $request->date,
+    //             'time' => $request->time,
+    //             'text' => $request->text,
+    //         ]);
+            
+    //         //Update Status
+    //         if(isset($request->completed) && $request->completed == true) {
+    //             $job->status_id = 9;
+    //             $job->date = Carbon::now()->format('Y-m-d');
+    //             $job->save();
+    //         }
+
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Ready To Build Added Successfully',
+    //             'data' => $ready_to_build
+    //         ], 200);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+    //     }
+    // }
 }
