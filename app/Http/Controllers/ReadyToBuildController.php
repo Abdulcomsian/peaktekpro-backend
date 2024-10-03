@@ -19,6 +19,8 @@ class ReadyToBuildController extends Controller
             'date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable|string',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
+             'completed' => 'nullable|in:1,0'
+
         ]);
         try {
 
@@ -35,6 +37,8 @@ class ReadyToBuildController extends Controller
             $attachmentPaths = [];
             if ($request->hasFile('attachements')) {
                 foreach ($request->file('attachements') as $attachment) {
+                    \Log::info($request->file('attachements'));
+
                     $attachmentPaths[] = $attachment->store('ready_to_build', 'public');
                 }
             }
@@ -71,7 +75,6 @@ class ReadyToBuildController extends Controller
     public function getReadyToBuild($jobId)
     {
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -81,7 +84,7 @@ class ReadyToBuildController extends Controller
                 ], 422);
             }
 
-            $get_ready_to_build = ReadyToBuild::where('company_job_id', $jobId)->with('subContractor')->first();
+            $get_ready_to_build = ReadyToBuild::where('company_job_id', $jobId)->first();
             if(!$get_ready_to_build) {
                 return response()->json([
                     'status' => 200,
@@ -100,6 +103,39 @@ class ReadyToBuildController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    // public function getReadyToBuild($jobId)
+    // {
+    //     try {
+
+    //         //Check Job
+    //         $job = CompanyJob::find($jobId);
+    //         if(!$job) {
+    //             return response()->json([
+    //                 'status' => 422,
+    //                 'message' => 'Job not found'
+    //             ], 422);
+    //         }
+
+    //         $get_ready_to_build = ReadyToBuild::where('company_job_id', $jobId)->with('subContractor')->first();
+    //         if(!$get_ready_to_build) {
+    //             return response()->json([
+    //                 'status' => 200,
+    //                 'message' => 'Ready To Build Not Yet Created',
+    //                 'data' => []
+    //             ], 200);
+    //         }
+
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Ready To Build Found Successfully',
+    //             'data' => $get_ready_to_build
+    //         ], 200);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+    //     }
+    // }
 
     // public function storeReadyToBuild(Request $request, $jobId)
     // {
