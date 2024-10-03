@@ -58,7 +58,9 @@ class ReadyToBuildController extends Controller
                 'date' => $request->date,
                 'notes' => $request->notes,
                 'attachements' => json_encode($attachmentPaths),
-                'status' => $request->status,
+                // 'status' => $request->status,
+                'status' => (bool)$request->status, // Convert to boolean
+
             ]);
             
             //Update Status
@@ -116,7 +118,8 @@ class ReadyToBuildController extends Controller
                     'date' => $readyToBuild->date,
                     'notes' => $readyToBuild->notes,
                     'attachements' => json_decode($readyToBuild->attachements),
-                    'status' => $readyToBuild->status,
+                    // 'status' => $readyToBuild->status,
+                    'status' => (bool)$readyToBuild->status, // Cast to boolean
                     'created_at' => $readyToBuild->created_at,
                     'updated_at' => $readyToBuild->updated_at,
                     'completed' => $readyToBuild->companyJob->status->name, 
