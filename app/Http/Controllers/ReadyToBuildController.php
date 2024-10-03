@@ -12,7 +12,6 @@ class ReadyToBuildController extends Controller
 {
     public function storeReadyToBuild(Request $request, $jobId)
     {
-        // dd($request->all());
         //Validation Request
         $this->validate($request, [
             'home_owner' => 'nullable|string|max:255',
@@ -20,7 +19,6 @@ class ReadyToBuildController extends Controller
             'date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable|string',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
-            'sub_contractor_id' => 'required|integer',
         ]);
         try {
 
@@ -30,15 +28,6 @@ class ReadyToBuildController extends Controller
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job not found'
-                ], 422);
-            }
-
-            //Check Sub Contractor
-            $sub_contractor = User::whereId($request->sub_contractor_id)->where('role_id', 3)->first();
-            if(!$sub_contractor) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Sub Contractor not found'
                 ], 422);
             }
 

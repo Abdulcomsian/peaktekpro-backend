@@ -16,11 +16,11 @@ return new class extends Migration
         Schema::create('ready_to_builds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('home_owner');
-            $table->string('home_owner_email');
-            $table->string('date');
-            $table->string('notes');
-            $table->string('attachements');
+            $table->string('home_owner')->nullable();
+            $table->string('home_owner_email')->nullable();
+            $table->string('date')->nullable();
+            $table->string('notes')->nullable();
+            $table->string('attachements')->nullable();
             $table->timestamps();
         });
     }
