@@ -20,6 +20,7 @@ class ReadyToBuildController extends Controller
             'date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable|string',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
+            'sub_contractor_id' => 'required|integer',
         ]);
         try {
 
