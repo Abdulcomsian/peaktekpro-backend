@@ -32,8 +32,6 @@ class ReadyToBuildController extends Controller
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job not found',
-                    'data' => (object)[] 
-
                 ], 422);
             }
 
@@ -99,7 +97,9 @@ class ReadyToBuildController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message' => 'Ready To Build Not Yet Created',
-                    'data' => []
+                    'data' => (object)[] 
+
+                    // 'data' => []
                 ], 200);
             }
 
