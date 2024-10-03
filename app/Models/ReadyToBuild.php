@@ -15,4 +15,11 @@ class ReadyToBuild extends Model
     {
         return $this->belongsTo(User::class, 'sub_contractor_id', 'id');
     }
+
+    public function companyJob()
+    {
+        return $this->belongsTo(CompanyJob::class);
+    }
+
+
 }

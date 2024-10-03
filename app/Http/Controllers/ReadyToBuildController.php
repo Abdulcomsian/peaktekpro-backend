@@ -19,7 +19,7 @@ class ReadyToBuildController extends Controller
             'date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable|string',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
-             'completed' => 'nullable|in:1,0'
+             'completed' => 'nullable|in:true,false'
 
         ]);
         try {
@@ -56,7 +56,7 @@ class ReadyToBuildController extends Controller
             
             //Update Status
             if(isset($request->completed) && $request->completed == true) {
-                $job->status_id = 9;
+                $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
             }
@@ -75,17 +75,19 @@ class ReadyToBuildController extends Controller
     public function getReadyToBuild($jobId)
     {
         try {
-            //Check Job
+            // Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job not found'
                 ], 422);
             }
 
-            $get_ready_to_build = ReadyToBuild::where('company_job_id', $jobId)->first();
-            if(!$get_ready_to_build) {
+            // Retrieve Ready To Build
+            $readyToBuild = ReadyToBuild::with('companyJob.status')->where('company_job_id', $jobId)->first();
+            
+            if (!$readyToBuild) {
                 return response()->json([
                     'status' => 200,
                     'message' => 'Ready To Build Not Yet Created',
@@ -93,16 +95,29 @@ class ReadyToBuildController extends Controller
                 ], 200);
             }
 
+            // Return response with Ready To Build details
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Found Successfully',
-                'data' => $get_ready_to_build
+                'data' => [
+                    'id' => $readyToBuild->id,
+                    'company_job_id' => $readyToBuild->company_job_id,
+                    'home_owner' => $readyToBuild->home_owner,
+                    'home_owner_email' => $readyToBuild->home_owner_email,
+                    'date' => $readyToBuild->date,
+                    'notes' => $readyToBuild->notes,
+                    'attachements' => json_decode($readyToBuild->attachements),
+                    'created_at' => $readyToBuild->created_at,
+                    'updated_at' => $readyToBuild->updated_at,
+                    'status' => $readyToBuild->companyJob->status->name, 
+                ],
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
 
     // public function getReadyToBuild($jobId)
     // {
