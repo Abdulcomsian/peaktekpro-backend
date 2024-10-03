@@ -12,6 +12,7 @@ class ReadyToBuildController extends Controller
 {
     public function storeReadyToBuild(Request $request, $jobId)
     {
+        // dd($request->all());
         //Validation Request
         $this->validate($request, [
             'home_owner' => 'nullable|string|max:255',
@@ -30,7 +31,9 @@ class ReadyToBuildController extends Controller
             if(!$job) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Job not found'
+                    'message' => 'Job not found',
+                    'data' => (object)[] 
+
                 ], 422);
             }
 
@@ -39,10 +42,13 @@ class ReadyToBuildController extends Controller
             if ($request->hasFile('attachements')) {
                 foreach ($request->file('attachements') as $attachment) {
                     \Log::info($request->file('attachements'));
+                    \Log::info('Processing attachment: ' . $attachment->getClientOriginalName());
 
                     $attachmentPaths[] = $attachment->store('ready_to_build', 'public');
                 }
             }
+            \Log::info('Attachment paths: ', $attachmentPaths);
+
             //Update Ready To Build
             $ready_to_build = ReadyToBuild::updateOrCreate([
                 'company_job_id' => $jobId,
