@@ -135,6 +135,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('material-order/email/{jobId}', [MaterialOrderController::class, 'MaterialOrderEmail']);
     Route::get('send/email/{jobId}', [MaterialOrderController::class, 'EmailToSupplier']);
     Route::post('update/build-detail/{jobId}', [MaterialOrderController::class, 'updateBuildDetail']);
+    Route::get('get/build-detail/{jobId}', [MaterialOrderController::class, 'getBuildDetail']);
     Route::post('confirmation-email/{id}', [MaterialOrderController::class, 'confirmationEmail']);
     Route::post('material-order/confirmation-email/{id}', [MaterialOrderController::class, 'materialOrderconfirmationEmail']);
     //Project Design Api's

@@ -20,10 +20,9 @@ class ReadyToBuildController extends Controller
             'date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable|string',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
-            // 'status' => 'nullable|in:true,false',
-            'status' => 'nullable|boolean',
+            'status' => 'nullable|in:true,false',
+            // 'status' => 'nullable|boolean',
              'completed' => 'nullable|in:true,false'
-
         ]);
         try {
 
@@ -58,8 +57,8 @@ class ReadyToBuildController extends Controller
                 'date' => $request->date,
                 'notes' => $request->notes,
                 'attachements' => json_encode($attachmentPaths),
-                // 'status' => $request->status,
-                'status' => (bool)$request->status, // Convert to boolean
+                'status' => $request->status,
+                // 'status' => (bool)$request->status, // Convert to boolean
 
             ]);
             
@@ -118,8 +117,8 @@ class ReadyToBuildController extends Controller
                     'date' => $readyToBuild->date,
                     'notes' => $readyToBuild->notes,
                     'attachements' => json_decode($readyToBuild->attachements),
-                    // 'status' => $readyToBuild->status,
-                    'status' => (bool)$readyToBuild->status, // Cast to boolean
+                    'status' => $readyToBuild->status,
+                    // 'status' => (bool)$readyToBuild->status, // Cast to boolean
                     'created_at' => $readyToBuild->created_at,
                     'updated_at' => $readyToBuild->updated_at,
                     'completed' => $readyToBuild->companyJob->status->name, 

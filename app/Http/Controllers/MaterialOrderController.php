@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\MaterialOrder;
+use App\Models\ReadyToBuild;
 use App\Jobs\MaterialOrderJob;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -459,6 +460,53 @@ class MaterialOrderController extends Controller
             
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function getBuildDetail($jobId)
+    {
+        try{
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+             //get Build Detail
+             $build_detail = BuildDetail::where('company_job_id',$jobId)->first();
+             dd();
+             $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+
+             if (!$readyBuild) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Build Details Not Yet Created',
+                    'data' => [
+                        'home_owner' => $readyBuild->home_owner ?? '',
+                        'home_owner_email' => $readyBuild->home_owner_email ?? '',
+                    ]
+                ], 200);
+            }
+            // Return response with Ready To Build details
+            return response()->json([
+                'status' => 200,
+                'message' => 'Build Details Found Successfully',
+                'data' =>
+                [
+                    'home_owner' => $readyBuild->home_owner ?? '',
+                    'home_owner_email' => $readyBuild->home_owner_email ?? '',
+                    'buildDetails' => $build_detail,
+                    
+                ]
+            ], 200);
+            
+
+        }catch(Exception $e){
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+
         }
     }
     
