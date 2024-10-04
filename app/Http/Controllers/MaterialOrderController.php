@@ -437,7 +437,8 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            
+            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
                 'company_job_id' => $jobId
@@ -445,8 +446,8 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'build_time' => $request->build_time,
-                'homeowner' => $request->homeowner,
-                'homeowner_email' => $request->homeowner_email,
+                'homeowner' => $readyBuild->home_owner ?? '',
+                'homeowner_email' => $readyBuild->home_owner_email ?? '',
                 'contractor' => $request->contractor,
                 'contractor_email' => $request->contractor_email,
                 'supplier' => $request->supplier,
@@ -465,65 +466,55 @@ class MaterialOrderController extends Controller
 
     public function getBuildDetail($jobId)
     {
-        try {
-            // Check Job
+        try{
+            //Check Job
             $job = CompanyJob::find($jobId);
-            if (!$job) {
+            if(!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
                 ], 422);
             }
 
-            // Get Build Detail
-            $buildDetail = BuildDetail::where('company_job_id', $jobId)->first();
+             //get Build Detail
+             $build_detail = BuildDetail::where('company_job_id',$jobId)->first();
+             //get Ready to Build
+             $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
-            // Get Ready to Build
-            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
-
-            if (!$readyBuild && !$buildDetail) {
+             if (!$readyBuild) {
                 return response()->json([
                     'status' => 200,
                     'message' => 'Build Details Not Yet Created',
                     'data' => []
                 ], 200);
             }
-
-            // Prepare response data
-            $data = [
-                'home_owner' => $readyBuild->home_owner ?? '',
-                'home_owner_email' => $readyBuild->home_owner_email ?? '',
-            ];
-
-            // Include Build Detail information if available
-            if ($buildDetail) {
-                $data = array_merge($data, [
-                    'id' => $buildDetail->id,
-                    'company_job_id' => $buildDetail->company_job_id,
-                    'build_date' => $buildDetail->build_date,
-                    'build_time' => $buildDetail->build_time,
-                    'home_owner' => $buildDetail->homeowner,
-                    'home_owner_email' => $buildDetail->homeowner_email,
-                    'contractor' => $buildDetail->contractor,
-                    'contractor_email' => $buildDetail->contractor_email,
-                    'supplier' => $buildDetail->supplier,
-                    'supplier_email' => $buildDetail->supplier_email,
-                    'created_at' => $buildDetail->created_at,
-                    'updated_at' => $buildDetail->updated_at,
-                ]);
-            }
-
-            // Return response with build details and homeowner info
+            // Return response with Ready To Build details
             return response()->json([
                 'status' => 200,
                 'message' => 'Build Details Found Successfully',
-                'data' => $data,
+                'data' =>
+                [
+                        'ready_build_home_owner' => $readyBuild->home_owner ?? '',
+                        'ready_build_home_owner_email' => $readyBuild->home_owner_email ?? '',
+                        'id' => $build_detail->id ?? '',
+                        'company_job_id' => $build_detail->company_job_id ?? '',
+                        'build_date' => $build_detail->build_date ?? '',
+                        'build_time' => $build_detail->build_time ?? '',
+                        // 'home_owner' => $build_detail->homeowner,
+                        // 'home_owner_email' => $build_detail->homeowner_email,
+                        'contractor' => $build_detail->contractor ?? '',
+                        'contractor_email' => $build_detail->contractor_email ?? '',
+                        'supplier' => $build_detail->supplier ?? '',
+                        'supplier_email' => $build_detail->supplier_email ?? '',
+                        'created_at' => $build_detail->created_at ?? '',
+                        'updated_at' => $build_detail->updated_at ?? '',                    
+                ]
             ], 200);
+            
 
-        } catch (Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
-            ], 500);
+        }catch(Exception $e){
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+
         }
     }
     
