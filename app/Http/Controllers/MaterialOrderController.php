@@ -494,8 +494,8 @@ class MaterialOrderController extends Controller
                 'message' => 'Build Details Found Successfully',
                 'data' =>
                 [
-                        'ready_build_home_owner' => $readyBuild->home_owner ?? '',
-                        'ready_build_home_owner_email' => $readyBuild->home_owner_email ?? '',
+                        'homeowner' => $readyBuild->home_owner ?? '',
+                        'homeowner_email' => $readyBuild->home_owner_email ?? '',
                         'id' => $build_detail->id ?? '',
                         'company_job_id' => $build_detail->company_job_id ?? '',
                         'build_date' => $build_detail->build_date ?? '',
