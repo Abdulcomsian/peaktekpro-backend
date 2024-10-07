@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
             $table->integer('type')->default(1);
-            $table->boolean('confirmation_email_sent')->default(0)->nullable();
-            $table->boolean('material_confirmation_email_sent')->default(0)->nullable();
+            $table->string('confirmation_email_sent')->default('false');
+            $table->string('material_confirmation_email_sent')->default('false');
             $table->timestamps();
         });
     }
