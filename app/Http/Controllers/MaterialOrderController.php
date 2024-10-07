@@ -147,6 +147,52 @@ class MaterialOrderController extends Controller
         }
     }
 
+    public function generatePdf($jobId)
+    {
+        try {
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            //here we will create a pdf 
+            $material_order = MaterialOrder::where('company_job_id',$jobId)->first();
+
+            //Generate PDF
+            $pdf = PDF::loadView('pdf.material-order', ['job' => $job]);
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'design_meeting_pdf/' . $pdf_fileName;
+            // Check if the old PDF exists and delete it
+            if (!is_null($material_order)) {
+                $oldPdfPath = public_path($material_order->sign_pdf_url);
+                if (file_exists($oldPdfPath)) {
+                    unlink($oldPdfPath);
+                }
+            }  
+            // Save the new PDF
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+
+            //Save PDF Path
+            $pdf = MaterialOrder::updateOrCreate([
+                'company_job_id' => $jobId 
+            ],[
+                'company_job_id' => $jobId,
+                'pdf_url' => '/storage/' . $pdf_filePath
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'PDF Generated Successfully',
+                'data' => $pdf
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function getMaterialOrder($id)
     {
         try {
@@ -465,7 +511,22 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Build Detail Updated Successfully',
-                'data' => $build_detail
+                'data' => 
+                [
+                    'id'=>$build_detail->id,
+                    'company_job_id' => $build_detail->company_job_id,
+                    'build_date' => $build_detail->build_date,
+                    'build_time' => $build_detail->build_time,
+                    'homeowner' => $build_detail->homeowner,
+                    'homeowner_email' => $build_detail->homeowner_email,
+                    'contractor' => $build_detail->contractor,
+                    'contractor_email' => $build_detail->contractor_email,
+                    'supplier' => $build_detail->supplier,
+                    'supplier_email' => $build_detail->supplier_email,
+                    'confirmed' => $request->confirmed,
+                    'created_at' => $build_detail->created_at,
+                    'updated_at' => $build_detail->updated_at,
+                ]
             ], 200);
             
         } catch (\Exception $e) {
