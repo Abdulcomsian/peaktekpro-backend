@@ -22,7 +22,7 @@ class ReadyToBuildController extends Controller
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
             'status' => 'nullable|in:true,false',
             // 'status' => 'nullable|boolean',
-             'completed' => 'nullable|in:true,false'
+            //  'completed' => 'nullable|in:true,false'
         ]);
         try {
 
@@ -63,7 +63,7 @@ class ReadyToBuildController extends Controller
             ]);
             
             //Update Status
-            if(isset($request->completed) && $request->completed == true) {
+            if(isset($request->status) && $request->status == 'true') {
                 $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();

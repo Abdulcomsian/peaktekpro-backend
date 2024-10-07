@@ -26,7 +26,7 @@ class MaterialOrderController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'supplier_id' => 'required|integer',
+            // 'supplier_id' => 'required|integer',
             'street' => 'required',
             'city' => 'required',
             'state' => 'required',
@@ -63,13 +63,13 @@ class MaterialOrderController extends Controller
             }
 
             //Check Supplier
-            $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
-            if(!$supplier) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Supplier Not Found'
-                ], 422);
-            }
+            // $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
+            // if(!$supplier) {
+            //     return response()->json([
+            //         'status' => 422,
+            //         'message' => 'Supplier Not Found'
+            //     ], 422);
+            // }
 
             //Store Material Order
             $material_order = MaterialOrder::updateOrCreate([
@@ -425,6 +425,7 @@ class MaterialOrderController extends Controller
             'supplier_email' => 'nullable|email',
             'build_time' => 'nullable|date_format:h:i A',
             'build_date' => 'nullable|date_format:m/d/Y',
+            'confirmed' => 'nullable|in:true,false',
         ]);
         
         try {
@@ -453,6 +454,14 @@ class MaterialOrderController extends Controller
                 'supplier' => $request->supplier,
                 'supplier_email' => $request->supplier_email,
             ]);
+
+            //Update Status
+            if(isset($request->confirmed) && $request->confirmed == 'true') {
+                $job->status_id = 10;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Build Detail Updated Successfully',
