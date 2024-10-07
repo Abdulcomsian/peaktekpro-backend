@@ -84,7 +84,7 @@
             <input
               style="width: 100%"
               type="text"
-              value="{{$data->job->name}}"
+              value="{{$data->company_job_id}}"
             />
           </td>
           <td>
@@ -258,7 +258,7 @@
             <input
               style="width: 100%"
               type="text"
-              value="{{$material->material}}"
+              value="{{$data->materials->material}}"
             />
           </td>
           <td>

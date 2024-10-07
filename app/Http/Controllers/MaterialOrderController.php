@@ -159,10 +159,11 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
             //here we will create a pdf 
-            $material_order = MaterialOrder::where('company_job_id',$jobId)->first();
+            $material_order = MaterialOrder::with('materials')->where('company_job_id',$jobId)->first();
+            // return response()->json($material_order);
 
             //Generate PDF
-            $pdf = PDF::loadView('pdf.material-order', ['job' => $job]);
+            $pdf = PDF::loadView('pdf.material-order', ['data' => $material_order]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'design_meeting_pdf/' . $pdf_fileName;
             // Check if the old PDF exists and delete it
@@ -567,11 +568,8 @@ class MaterialOrderController extends Controller
                         'updated_at' => $build_detail->updated_at ?? '',                    
                 ]
             ], 200);
-            
-
         }catch(Exception $e){
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-
         }
     }
     
