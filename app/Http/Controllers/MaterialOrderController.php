@@ -522,10 +522,10 @@ class MaterialOrderController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'send_to' => 'required|array',
-            'send_to.*' => 'required|email',
+            'send_to' => 'required|string',
             'subject' => 'required|string',
             'email_body' => 'required|string',
+            'status' => 'nullable|in:true,false',
         ]);
         
         try {
@@ -538,12 +538,14 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
 
+            //here Seprate the emails
+            $sendToEmails = array_map('trim', explode(',', $request->send_to));
             //Send Emails
-            foreach($request->send_to as $email)
+            foreach($sendToEmails as $email)
             {
                 dispatch(new ConfirmationJob($email,$request->subject,$request->email_body));
             }
-            
+
             //Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
                 'company_job_id' => $jobId
@@ -563,42 +565,56 @@ class MaterialOrderController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-    
+
     public function materialOrderconfirmationEmail(Request $request, $jobId)
     {
-        //Validate Request
+        // Validate Request
         $this->validate($request, [
-            'send_to' => 'required|email',
+            'send_to' => 'required|string',
             'subject' => 'required|string',
             'email_body' => 'required',
             'attachments' => 'nullable|array',
+            'status' => 'required|in:true,false',
         ]);
         
         try {
-            
-            //Check Material Order
+            // Convert comma-separated string to array
+            $sendToEmails = array_map('trim', explode(',', $request->send_to));
+
+            // Validate each email in the array
+            foreach ($sendToEmails as $email) {
+                $this->validate($request, [
+                    'send_to.*' => 'email', // Validate each email
+                ]);
+            }
+
+            // Check Material Order
             $material_order = MaterialOrderConfirmation::where('company_job_id', $jobId)->first();
-            if(!$material_order) {
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Material Order Not Found'
                 ], 422);
             }
             
-            //Send Email
-            if(isset($request->attachments)) {
-                $attachments = $request->file('attachments');
-            } else {
-                $attachments = [];
+            // Handle Attachments
+            $attachmentPaths = [];
+            if (isset($request->attachments)) {
+                foreach ($request->file('attachments') as $attachment) {
+                    // Store each attachment and get its path
+                    $attachmentPaths[] = $attachment->store('attachments'); // Adjust the path as needed
+                }
             }
-            dispatch(new MaterialOrderConfirmationJob($request->send_to,$request->subject,$request->email_body,$attachments));
             
-            //Update Material Order
+            // Dispatch the job with attachment paths
+            dispatch(new MaterialOrderConfirmationJob($sendToEmails, $request->subject, $request->email_body, $attachmentPaths));
+            
+            // Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
                 'company_job_id' => $jobId
-            ],[
+            ], [
                 'company_job_id' => $jobId,
-                'type'=>2,
+                'type' => 2,
                 'material_confirmation_email_sent' => $request->status
             ]);
             
@@ -609,9 +625,11 @@ class MaterialOrderController extends Controller
             ], 200);
             
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+
+
 
     // public function confirmationEmail(Request $request, $id)
     // {
