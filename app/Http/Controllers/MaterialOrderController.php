@@ -499,6 +499,7 @@ class MaterialOrderController extends Controller
                 'contractor_email' => $request->contractor_email,
                 'supplier' => $request->supplier,
                 'supplier_email' => $request->supplier_email,
+                'confirmed' => $request->confirmed,
             ]);
 
             //Update Status
@@ -511,22 +512,7 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Build Detail Updated Successfully',
-                'data' => 
-                [
-                    'id'=>$build_detail->id,
-                    'company_job_id' => $build_detail->company_job_id,
-                    'build_date' => $build_detail->build_date,
-                    'build_time' => $build_detail->build_time,
-                    'homeowner' => $build_detail->homeowner,
-                    'homeowner_email' => $build_detail->homeowner_email,
-                    'contractor' => $build_detail->contractor,
-                    'contractor_email' => $build_detail->contractor_email,
-                    'supplier' => $build_detail->supplier,
-                    'supplier_email' => $build_detail->supplier_email,
-                    'confirmed' => $request->confirmed,
-                    'created_at' => $build_detail->created_at,
-                    'updated_at' => $build_detail->updated_at,
-                ]
+                'data' => $build_detail
             ], 200);
             
         } catch (\Exception $e) {
@@ -576,6 +562,7 @@ class MaterialOrderController extends Controller
                         'contractor_email' => $build_detail->contractor_email ?? '',
                         'supplier' => $build_detail->supplier ?? '',
                         'supplier_email' => $build_detail->supplier_email ?? '',
+                        'confirmed' => $build_detail->confirmed ?? '',
                         'created_at' => $build_detail->created_at ?? '',
                         'updated_at' => $build_detail->updated_at ?? '',                    
                 ]
