@@ -518,7 +518,7 @@ class MaterialOrderController extends Controller
         }
     }
     
-    public function confirmationEmail(Request $request, $id)
+    public function confirmationEmail(Request $request, $jobId)
     {
         //Validate Request
         $this->validate($request, [
@@ -529,16 +529,15 @@ class MaterialOrderController extends Controller
         ]);
         
         try {
-            
-            //Check Material Order
-            $material_order = MaterialOrder::where('id', $id)->first();
+            //Check job exist or not
+            $material_order = CompanyJob::where('id', $jobId)->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Please create Material Order.'
+                    'message' => 'Company Job Not Created.'
                 ], 422);
             }
-            
+
             //Send Emails
             foreach($request->send_to as $email)
             {
@@ -547,10 +546,10 @@ class MaterialOrderController extends Controller
             
             //Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
-                'material_order_id' => $id
+                'company_job_id' => $jobId
             ],[
-                'material_order_id' => $id,
-                'confirmation_email' => $request->confirmation_email
+                'company_job_id' => $jobId,
+                'confirmation_email_sent'=>$request->status,
             ]);
             
             return response()->json([
@@ -564,7 +563,7 @@ class MaterialOrderController extends Controller
         }
     }
     
-    public function materialOrderconfirmationEmail(Request $request, $id)
+    public function materialOrderconfirmationEmail(Request $request, $jobId)
     {
         //Validate Request
         $this->validate($request, [
@@ -577,7 +576,7 @@ class MaterialOrderController extends Controller
         try {
             
             //Check Material Order
-            $material_order = MaterialOrder::where('id', $id)->first();
+            $material_order = MaterialOrderConfirmation::where('company_job_id', $jobId)->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
@@ -595,10 +594,11 @@ class MaterialOrderController extends Controller
             
             //Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
-                'material_order_id' => $id
+                'company_job_id' => $jobId
             ],[
-                'material_order_id' => $id,
-                'material_order_confirmation_email' => $request->material_order_confirmation_email
+                'company_job_id' => $jobId,
+                'type'=>2,
+                'material_confirmation_email_sent' => $request->status
             ]);
             
             return response()->json([
@@ -611,4 +611,97 @@ class MaterialOrderController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    // public function confirmationEmail(Request $request, $id)
+    // {
+    //     //Validate Request
+    //     $this->validate($request, [
+    //         'send_to' => 'required|array',
+    //         'send_to.*' => 'required|email',
+    //         'subject' => 'required|string',
+    //         'email_body' => 'required|string',
+    //     ]);
+        
+    //     try {
+            
+    //         //Check Material Order
+    //         $material_order = MaterialOrder::where('id', $id)->first();
+    //         if(!$material_order) {
+    //             return response()->json([
+    //                 'status' => 422,
+    //                 'message' => 'Please create Material Order.'
+    //             ], 422);
+    //         }
+            
+    //         //Send Emails
+    //         foreach($request->send_to as $email)
+    //         {
+    //             dispatch(new ConfirmationJob($email,$request->subject,$request->email_body));
+    //         }
+            
+    //         //Update Material Order
+    //         MaterialOrderConfirmation::updateOrCreate([
+    //             'material_order_id' => $id
+    //         ],[
+    //             'material_order_id' => $id,
+    //             'confirmation_email' => $request->confirmation_email
+    //         ]);
+            
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Email Sent successfully',
+    //             'data' => []
+    //         ], 200);
+            
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+    //     }
+    // }
+    // public function materialOrderconfirmationEmail(Request $request, $id)
+    // {
+    //     //Validate Request
+    //     $this->validate($request, [
+    //         'send_to' => 'required|email',
+    //         'subject' => 'required|string',
+    //         'email_body' => 'required',
+    //         'attachments' => 'nullable|array',
+    //     ]);
+        
+    //     try {
+            
+    //         //Check Material Order
+    //         $material_order = MaterialOrder::where('id', $id)->first();
+    //         if(!$material_order) {
+    //             return response()->json([
+    //                 'status' => 422,
+    //                 'message' => 'Material Order Not Found'
+    //             ], 422);
+    //         }
+            
+    //         //Send Email
+    //         if(isset($request->attachments)) {
+    //             $attachments = $request->file('attachments');
+    //         } else {
+    //             $attachments = [];
+    //         }
+    //         dispatch(new MaterialOrderConfirmationJob($request->send_to,$request->subject,$request->email_body,$attachments));
+            
+    //         //Update Material Order
+    //         MaterialOrderConfirmation::updateOrCreate([
+    //             'material_order_id' => $id
+    //         ],[
+    //             'material_order_id' => $id,
+    //             'material_order_confirmation_email' => $request->material_order_confirmation_email
+    //         ]);
+            
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Email Sent successfully',
+    //             'data' => []
+    //         ], 200);
+            
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+    //     }
+    // }
 }
