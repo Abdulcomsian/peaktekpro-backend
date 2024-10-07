@@ -549,6 +549,7 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $jobId
             ],[
                 'company_job_id' => $jobId,
+                'type'=>1,
                 'confirmation_email_sent'=>$request->status,
             ]);
             
