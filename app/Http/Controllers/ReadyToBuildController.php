@@ -12,58 +12,53 @@ class ReadyToBuildController extends Controller
 {
     public function storeReadyToBuild(Request $request, $jobId)
     {
-        // dd($request->all());
-        //Validation Request
+        // Validation Request
         $this->validate($request, [
             'home_owner' => 'nullable|string|max:255',
             'home_owner_email' => 'nullable|email',
             'date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable|string',
-            'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',	
+            'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'status' => 'nullable|in:true,false',
-            // 'status' => 'nullable|boolean',
-            //  'completed' => 'nullable|in:true,false'
         ]);
+        
         try {
-
-            //Check Job
+            // Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job not found',
                 ], 422);
             }
 
-             // Handle attachments
+            // Handle attachments
             $attachmentPaths = [];
             if ($request->hasFile('attachements')) {
                 foreach ($request->file('attachements') as $attachment) {
-                    \Log::info($request->file('attachements'));
-                    \Log::info('Processing attachment: ' . $attachment->getClientOriginalName());
-
-                    $attachmentPaths[] = $attachment->store('ready_to_build', 'public');
+                    // Store the file in the public disk
+                    $path = $attachment->store('ready_to_build', 'public');
+                    
+                    // Prepend the base storage path
+                    $fullPath = 'storage/app/public/' . $path;
+                    $attachmentPaths[] = $fullPath; // Store the full URL
                 }
             }
-            \Log::info('Attachment paths: ', $attachmentPaths);
-
-            //Update Ready To Build
+            // Update Ready To Build
             $ready_to_build = ReadyToBuild::updateOrCreate([
                 'company_job_id' => $jobId,
-            ],[
+            ], [
                 'company_job_id' => $jobId,
                 'home_owner' => $request->home_owner,
                 'home_owner_email' => $request->home_owner_email,
                 'date' => $request->date,
                 'notes' => $request->notes,
-                'attachements' => json_encode($attachmentPaths),
+                'attachements' => json_encode($attachmentPaths), // Store as JSON
                 'status' => $request->status,
-                // 'status' => (bool)$request->status, // Convert to boolean
-
             ]);
             
-            //Update Status
-            if(isset($request->status) && $request->status == 'true') {
+            // Update Status
+            if (isset($request->status) && $request->status == 'true') {
                 $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
@@ -72,11 +67,11 @@ class ReadyToBuildController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Added Successfully',
-                'data' => $ready_to_build
+                'data' => $ready_to_build,
             ], 200);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 

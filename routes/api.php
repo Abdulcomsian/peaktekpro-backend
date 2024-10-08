@@ -130,6 +130,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
     Route::post('generate-pdf/{jobId}', [MaterialOrderController::class, 'generatePdf']);
+    Route::get('view-pdf', [MaterialOrderController::class, 'viewPdf']);
     Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);
     Route::post('update/material-order/{id}', [MaterialOrderController::class, 'updateMaterialOrder']);
     Route::get('check/material-order/{jobId}', [MaterialOrderController::class, 'checkMaterialOrder']);

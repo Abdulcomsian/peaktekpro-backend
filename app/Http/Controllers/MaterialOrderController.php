@@ -160,19 +160,27 @@ class MaterialOrderController extends Controller
             }
             //here we will create a pdf 
             $material_order = MaterialOrder::with('materials')->where('company_job_id',$jobId)->first();
+            if (!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 404);
+            }
             // return response()->json($material_order);
 
             //Generate PDF
             $pdf = PDF::loadView('pdf.material-order', ['data' => $material_order]);
             $pdf_fileName = time() . '.pdf';
-            $pdf_filePath = 'design_meeting_pdf/' . $pdf_fileName;
-            // Check if the old PDF exists and delete it
-            if (!is_null($material_order)) {
+            $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
+            
+           // Check if the old PDF exists and delete it
+            if (!is_null($material_order->sign_pdf_url)) {
                 $oldPdfPath = public_path($material_order->sign_pdf_url);
-                if (file_exists($oldPdfPath)) {
+                if (file_exists($oldPdfPath) && is_file($oldPdfPath)) {
                     unlink($oldPdfPath);
                 }
-            }  
+            }
+ 
             // Save the new PDF
             Storage::put('public/' . $pdf_filePath, $pdf->output());
 
@@ -181,7 +189,7 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $jobId 
             ],[
                 'company_job_id' => $jobId,
-                'pdf_url' => '/storage/' . $pdf_filePath
+                'sign_pdf_url' => '/storage/' . $pdf_filePath
             ]);
 
             return response()->json([
@@ -193,6 +201,37 @@ class MaterialOrderController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function viewPdf()
+    {
+        $directory = storage_path('app/public/material_order_pdf');
+
+        // Get all PDF files in the directory
+        $files = glob($directory . '/*.pdf');
+
+        if (empty($files)) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'No PDFs found'
+            ], 404);
+        }
+
+        usort($files, function ($a, $b) {
+            return filemtime($b) - filemtime($a);
+        });
+
+        $latestPdfPath = $files[0]; 
+
+        if (!file_exists($latestPdfPath)) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Latest PDF not found'
+            ], 404);
+        }
+
+        return response()->file($latestPdfPath);
+    }
+
 
     public function getMaterialOrder($id)
     {
