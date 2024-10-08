@@ -189,7 +189,7 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $jobId 
             ],[
                 'company_job_id' => $jobId,
-                'sign_pdf_url' => '/storage/' . $pdf_filePath
+                'sign_pdf_url' => '/storage/' . $pdf_filePath  //here saved the pdf file path
             ]);
 
             return response()->json([
