@@ -21,12 +21,12 @@ class MeetingController extends Controller
         //Validate Rules
         $rules = [
             'email' => 'nullable|email',
-            'time' => 'nullable|date_format:h:i A', // 12-hour format
+            // 'time' => 'nullable|date_format:h:i A', // 12-hour format
             'date' => 'nullable|date_format:m/d/Y',
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable',
-            'completed' => 'nullable',
-            'status' => 'nullable',
+            'sent' => 'nullable',
+            'status' => 'nullable|in:approved,overturn,appraisal',
             'attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'images.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
             'notes' => 'nullable'
@@ -61,12 +61,12 @@ class MeetingController extends Controller
                 'company_job_id' => $jobId,
                 'email' => $request->email,
                 'date' => $request->date,
-                'time' => $request->time,
+                // 'time' => $request->time,
                 'name' => $request->name,
                 'phone' => $request->phone,
                 'notes' => $request->notes,
                 'status' => isset($request->status) ? $request->status : 'pending',
-                'completed' => $request->completed
+                'sent' => $request->sent
             ]);
             
             //Store Meeting Attachments
@@ -117,8 +117,14 @@ class MeetingController extends Controller
                 }
             } 
             
-            //Update Status
-            if(isset($request->completed) && $request->completed == 1 && isset($request->status) && $request->status == 'Approved') {
+            //Update Status when select approved and nothing happen upon apprisal and overturn
+            // if(isset($request->completed) && $request->completed == 1 && isset($request->status) && $request->status == 'Approved') {
+            //     $job->status_id = 8;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();   
+            // }
+
+            if(isset($request->status) && $request->status == 'approved') {
                 $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
