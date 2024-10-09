@@ -20,7 +20,7 @@ class ReadyToBuild extends Model
     {
         return $this->belongsTo(CompanyJob::class);
     }
-    public function attachments()
+    public function attachements()
     {
         return $this->hasMany(ReadyToBuildMedia::class, 'ready_build_id', 'id');
     }
