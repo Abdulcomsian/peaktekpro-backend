@@ -92,7 +92,7 @@ class ReadyToBuildController extends Controller
             }
 
             // Retrieve Ready To Build
-            $readyToBuild = ReadyToBuild::with('attachments')->where('company_job_id', $jobId)->first();
+            $readyToBuild = ReadyToBuild::with('attachements')->where('company_job_id', $jobId)->first();
             
             if (!$readyToBuild) {
                 return response()->json([
