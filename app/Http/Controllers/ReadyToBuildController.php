@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\CompanyJob;
 use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use App\Models\ReadyToBuildMedia;
+use Illuminate\Support\Facades\Storage;
 
 class ReadyToBuildController extends Controller
 {
@@ -32,18 +34,6 @@ class ReadyToBuildController extends Controller
                 ], 422);
             }
 
-            // Handle attachments
-            $attachmentPaths = [];
-            if ($request->hasFile('attachements')) {
-                foreach ($request->file('attachements') as $attachment) {
-                    // Store the file in the public disk
-                    $path = $attachment->store('ready_to_build', 'public');
-                    
-                    // Prepend the base storage path
-                    $fullPath = 'storage/app/public/' . $path;
-                    $attachmentPaths[] = $fullPath; // Store the full URL
-                }
-            }
             // Update Ready To Build
             $ready_to_build = ReadyToBuild::updateOrCreate([
                 'company_job_id' => $jobId,
@@ -53,9 +43,23 @@ class ReadyToBuildController extends Controller
                 'home_owner_email' => $request->home_owner_email,
                 'date' => $request->date,
                 'notes' => $request->notes,
-                'attachements' => json_encode($attachmentPaths), // Store as JSON
                 'status' => $request->status,
             ]);
+
+            //store attachements here
+            if(isset($request->attachements) && count($request->attachements) > 0) {
+                foreach($request->attachements as $documents)
+                {
+                    $fileName = time() . '_' . $documents->getClientOriginalName();
+                    $filePath = $documents->storeAs('ready_to_build', $fileName);
+                    // Store Path
+                    $media = new ReadyToBuildMedia();
+                    $media->ready_build_id = $ready_to_build->id;
+                    $media->media_url = Storage::url($filePath);
+                    $media->file_name = $request->filename;
+                    $media->save();
+                }
+            }
             
             // Update Status
             if (isset($request->status) && $request->status == 'true') {
@@ -88,7 +92,7 @@ class ReadyToBuildController extends Controller
             }
 
             // Retrieve Ready To Build
-            $readyToBuild = ReadyToBuild::with('companyJob.status')->where('company_job_id', $jobId)->first();
+            $readyToBuild = ReadyToBuild::with('attachments')->where('company_job_id', $jobId)->first();
             
             if (!$readyToBuild) {
                 return response()->json([
@@ -104,20 +108,7 @@ class ReadyToBuildController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Found Successfully',
-                'data' => [
-                    'id' => $readyToBuild->id,
-                    'company_job_id' => $readyToBuild->company_job_id,
-                    'home_owner' => $readyToBuild->home_owner,
-                    'home_owner_email' => $readyToBuild->home_owner_email,
-                    'date' => $readyToBuild->date,
-                    'notes' => $readyToBuild->notes,
-                    'attachements' => json_decode($readyToBuild->attachements),
-                    'status' => $readyToBuild->status,
-                    // 'status' => (bool)$readyToBuild->status, // Cast to boolean
-                    'created_at' => $readyToBuild->created_at,
-                    'updated_at' => $readyToBuild->updated_at,
-                    'completed' => $readyToBuild->companyJob->status->name, 
-                ],
+                'data' => $readyToBuild,
             ], 200);
 
         } catch (\Exception $e) {
