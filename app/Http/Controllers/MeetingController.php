@@ -27,8 +27,8 @@ class MeetingController extends Controller
             'phone' => 'nullable',
             'sent' => 'nullable',
             'status' => 'nullable|in:approved,overturn,appraisal',
-            'attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
-            'images.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
+            'documents.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+            'image_file .*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
             'notes' => 'nullable'
         ];
 
@@ -70,7 +70,7 @@ class MeetingController extends Controller
             ]);
             
             //Store Meeting Attachments
-            if(isset($request->attachments) && count($request->attachments) > 0) {
+            if(isset($request->documents) && count($request->documents) > 0) {
                 // Remove old attachments
                 // $oldAttachments = AdjustorMeetingMedia::where('adjustor_id', $adjustor_meeting->id)->where('media_type', 'Document')->get();
                 // foreach ($oldAttachments as $oldAttachment) {
@@ -80,9 +80,9 @@ class MeetingController extends Controller
                 // }
 
                 //Store New Attachments
-                foreach($request->attachments as $attachment) {
-                    $fileName = time() . '_' . $attachment->getClientOriginalName();
-                    $filePath = $attachment->storeAs('public/adjustor_meeting_attachments', $fileName);
+                foreach($request->documents as $documents) {
+                    $fileName = time() . '_' . $documents->getClientOriginalName();
+                    $filePath = $documents->storeAs('public/adjustor_meeting_attachments', $fileName);
 
                     // Store Path
                     $media = new AdjustorMeetingMedia();
@@ -94,7 +94,7 @@ class MeetingController extends Controller
             } 
 
             //Store Meeting Images
-            if(isset($request->images) && count($request->images) > 0) {
+            if(isset($request->image_file) && count($request->image_file) > 0) {
                 // Remove old attachments
                 // $oldImages = AdjustorMeetingMedia::where('adjustor_id', $adjustor_meeting->id)->where('media_type', 'image')->get();
                 // foreach ($oldImages as $oldImage) {
@@ -104,7 +104,7 @@ class MeetingController extends Controller
                 // }
 
                 //Store New Images
-                foreach($request->images as $image) {
+                foreach($request->image_file as $image) {
                     $image_fileName = time() . '_' . $image->getClientOriginalName();
                     $image_filePath = $image->storeAs('public/adjustor_meeting_images', $image_fileName);
 
@@ -145,8 +145,8 @@ class MeetingController extends Controller
     {
         //Validate Rules
         $this->validate($request, [
-            'attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
-            'images.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
+            'documents .*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+            'image_file.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
             'manufacturer_attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'notes' => 'nullable'
         ]);
@@ -172,7 +172,7 @@ class MeetingController extends Controller
             ]);
 
             //Store Meeting Attachments
-            if(isset($request->attachments) && count($request->attachments) > 0) {
+            if(isset($request->documents) && count($request->documents) > 0) {
                 // Remove old attachments
                 $oldAttachments = AdjustorMeetingMedia::where('adjustor_id', $adjustor_meeting->id)->where('media_type', 'Document')->get();
                 foreach ($oldAttachments as $oldAttachment) {
@@ -182,9 +182,9 @@ class MeetingController extends Controller
                 }
 
                 //Store New Attachments
-                foreach($request->attachments as $attachment) {
-                    $fileName = time() . '_' . $attachment->getClientOriginalName();
-                    $filePath = $attachment->storeAs('public/adjustor_meeting_attachments', $fileName);
+                foreach($request->documents as $documents) {
+                    $fileName = time() . '_' . $documents->getClientOriginalName();
+                    $filePath = $documents->storeAs('public/adjustor_meeting_attachments', $fileName);
 
                     // Store Path
                     $media = new AdjustorMeetingMedia();
@@ -196,7 +196,7 @@ class MeetingController extends Controller
             } 
 
             //Store Meeting Images
-            if(isset($request->images) && count($request->images) > 0) {
+            if(isset($request->image_file) && count($request->image_file) > 0) {
                 // Remove old attachments
                 $oldImages = AdjustorMeetingMedia::where('adjustor_id', $adjustor_meeting->id)->where('media_type', 'image')->get();
                 foreach ($oldImages as $oldImage) {
@@ -206,7 +206,7 @@ class MeetingController extends Controller
                 }
 
                 //Store New Images
-                foreach($request->images as $image) {
+                foreach($request->image_file as $image) {
                     $image_fileName = time() . '_' . $image->getClientOriginalName();
                     $image_filePath = $image->storeAs('public/adjustor_meeting_images', $image_fileName);
 
@@ -329,12 +329,36 @@ class MeetingController extends Controller
 
             $adjustor_meeting = AdjustorMeeting::where('company_job_id', $jobId)->with('images','attachments')->first();
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Adjustor Meeting Found Successfully',
-                'data' => $adjustor_meeting
-            ], 200);
+            // Transform the response
+            if ($adjustor_meeting) {
+                $data = [
+                    'id' => $adjustor_meeting->id,
+                    'company_job_id' => $adjustor_meeting->company_job_id,
+                    'name' => $adjustor_meeting->name,
+                    'phone' => $adjustor_meeting->phone,
+                    'email' => $adjustor_meeting->email,
+                    'time' => $adjustor_meeting->time,
+                    'date' => $adjustor_meeting->date,
+                    'notes' => $adjustor_meeting->notes,
+                    'status' => $adjustor_meeting->status,
+                    'sent' => $adjustor_meeting->sent,
+                    'created_at' => $adjustor_meeting->created_at,
+                    'updated_at' => $adjustor_meeting->updated_at,
+                    'image_url' => $adjustor_meeting->images->pluck('media_url'),
+                    'documents' => $adjustor_meeting->attachments->pluck('media_url'),
+                ];
 
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Adjustor Meeting Found Successfully',
+                    'data' => $data,
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Adjustor Meeting Not Found',
+                ]);
+            }
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
