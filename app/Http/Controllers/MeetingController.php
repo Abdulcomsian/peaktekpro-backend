@@ -331,23 +331,14 @@ class MeetingController extends Controller
 
             // Transform the response
             if ($adjustor_meeting) {
-                $data = [
-                    'id' => $adjustor_meeting->id,
-                    'company_job_id' => $adjustor_meeting->company_job_id,
-                    'name' => $adjustor_meeting->name,
-                    'phone' => $adjustor_meeting->phone,
-                    'email' => $adjustor_meeting->email,
-                    'time' => $adjustor_meeting->time,
-                    'date' => $adjustor_meeting->date,
-                    'notes' => $adjustor_meeting->notes,
-                    'status' => $adjustor_meeting->status,
-                    'sent' => $adjustor_meeting->sent,
-                    'created_at' => $adjustor_meeting->created_at,
-                    'updated_at' => $adjustor_meeting->updated_at,
-                    'image_url' => $adjustor_meeting->images->pluck('media_url'),
-                    'documents' => $adjustor_meeting->attachments->pluck('media_url'),
-                ];
-
+                $data = $adjustor_meeting->toArray(); // Convert the model to an array
+                // Rename the keys
+                $data['image_url'] = $data['images'];
+                unset($data['images']); // Remove the old key
+            
+                $data['documents'] = $data['attachments'];
+                unset($data['attachments']); // Remove the old key
+            
                 return response()->json([
                     'status' => 200,
                     'message' => 'Adjustor Meeting Found Successfully',
@@ -359,6 +350,7 @@ class MeetingController extends Controller
                     'message' => 'Adjustor Meeting Not Found',
                 ]);
             }
+        
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
