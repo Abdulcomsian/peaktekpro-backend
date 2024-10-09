@@ -639,6 +639,7 @@ class MaterialOrderController extends Controller
             {
                 dispatch(new ConfirmationJob($email,$request->subject,$request->email_body));
             }
+            $confirmationEmailSent = $request->input('status', 'false');
 
             //Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
@@ -646,7 +647,8 @@ class MaterialOrderController extends Controller
             ],[
                 'company_job_id' => $jobId,
                 'type'=>1,
-                'confirmation_email_sent'=>$request->status,
+                'confirmation_email_sent' => $confirmationEmailSent,
+
             ]);
             
             return response()->json([
@@ -668,7 +670,7 @@ class MaterialOrderController extends Controller
             'subject' => 'required|string',
             'email_body' => 'required',
             'attachments' => 'nullable|array',
-            'status' => 'required|in:true,false',
+            'status' => 'nullable|in:true,false',
         ]);
         
         try {
@@ -703,13 +705,15 @@ class MaterialOrderController extends Controller
             // Dispatch the job with attachment paths
             dispatch(new MaterialOrderConfirmationJob($sendToEmails, $request->subject, $request->email_body, $attachmentPaths));
             
+            $confirmationEmailSent = $request->input('status', 'false');
+
             // Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
                 'company_job_id' => $jobId
             ], [
                 'company_job_id' => $jobId,
                 'type' => 2,
-                'material_confirmation_email_sent' => $request->status
+                'material_confirmation_email_sent' => $confirmationEmailSent
             ]);
             
             return response()->json([
