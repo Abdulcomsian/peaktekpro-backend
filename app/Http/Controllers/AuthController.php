@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Mail;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Jobs\CreateUserJob;
 use Illuminate\Support\Str;
+use App\Mail\CreateUserMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use App\Mail\CreateUserMail;
 
 class AuthController extends Controller
 {
@@ -241,7 +242,7 @@ class AuthController extends Controller
 
                 //Send Email
                 // dispatch(new CreateUserJob($user,$password));
-                \Mail::to($user->email)->send(new CreateUserMail($user, $password));
+                Mail::to($user->email)->send(new CreateUserMail($user, $password));
 
                 return response()->json([
                     'status' => 200,

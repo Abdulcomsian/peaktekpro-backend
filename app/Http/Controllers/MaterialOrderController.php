@@ -662,6 +662,45 @@ class MaterialOrderController extends Controller
         }
     }
 
+    public function confirmationEmailStatus(Request $request, $jobId)
+    {
+         //Validate Request
+         $this->validate($request, [
+            'status' => 'nullable|in:true,false',
+        ]);
+
+        try{
+            //Check job exist or not
+            $material_order = CompanyJob::where('id', $jobId)->first();
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Company Job Not Created.'
+                ], 422);
+            }
+
+            $confirmationEmailSent = $request->input('status', 'false');
+            //Update Material Order
+            MaterialOrderConfirmation::updateOrCreate([
+                'company_job_id' => $jobId
+            ],[
+                'company_job_id' => $jobId,
+                'type'=>1,
+                'confirmation_email_sent' => $confirmationEmailSent,
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Staus Updated successfully',
+                'data' => []
+            ], 200);
+
+        }catch(\Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function materialOrderconfirmationEmail(Request $request, $jobId)
     {
         // Validate Request
@@ -719,6 +758,44 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Email Sent successfully',
+                'data' => []
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    public function materialOrderconfirmationEmailStatus(Request $request, $jobId)
+    {
+        // Validate Request
+        $this->validate($request, [
+            'status' => 'nullable|in:true,false',
+        ]);
+        
+        try {
+            // Check Material Order
+            $material_order = MaterialOrderConfirmation::where('company_job_id', $jobId)->first();
+            if (!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 422);
+            }            
+            $confirmationEmailSent = $request->input('status', 'false');
+
+            // Update Material Order
+            MaterialOrderConfirmation::updateOrCreate([
+                'company_job_id' => $jobId
+            ], [
+                'company_job_id' => $jobId,
+                'type' => 2,
+                'material_confirmation_email_sent' => $confirmationEmailSent
+            ]);
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Status Updated successfully',
                 'data' => []
             ], 200);
             

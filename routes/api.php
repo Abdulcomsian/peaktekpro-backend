@@ -4,19 +4,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CocController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobLogController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\WonClosedController;
 use App\Http\Controllers\CompanyJobController;
+use App\Http\Controllers\InprogressController;
 use App\Http\Controllers\CarrierScopeController;
+use App\Http\Controllers\FinalPaymentController;
 use App\Http\Controllers\QcInspectionController;
 use App\Http\Controllers\ReadyToBuildController;
+use App\Http\Controllers\ReadyToCloseController;
+use App\Http\Controllers\BuildCompleteController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\RoofComponentController;
 use App\Http\Controllers\SubContractorController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
 use App\Http\Controllers\EstimatePreparedController;
@@ -24,12 +31,6 @@ use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
-use App\Http\Controllers\InprogressController;
-use App\Http\Controllers\BuildCompleteController;
-use App\Http\Controllers\FinalPaymentController;
-use App\Http\Controllers\ReadyToCloseController;
-use App\Http\Controllers\WonClosedController;
-use App\Http\Controllers\UserManagementController;
 
 
 /*
@@ -64,6 +65,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('dashboard-stats/detail', [CompanyJobController::class, 'dashboardStatsDetail']);
     //Api for creating different users
     Route::post('create/user', [AuthController::class, 'createUser']);
+
+    //Api for creating Users rr
+    Route::post('add/user', [UserController::class, 'addUser']);
+
     //Company Api's
     Route::post('create/company', [CompanyController::class, 'createCompany']);
     Route::get('get/company/{id}', [CompanyController::class, 'getCompany']);
@@ -139,7 +144,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/build-detail/{jobId}', [MaterialOrderController::class, 'updateBuildDetail']);
     Route::get('get/build-detail/{jobId}', [MaterialOrderController::class, 'getBuildDetail']);
     Route::post('confirmation-email/{jobId}', [MaterialOrderController::class, 'confirmationEmail']);
+    Route::post('confirmation-email-status/{jobId}', [MaterialOrderController::class, 'confirmationEmailStatus']);
     Route::post('material-order/confirmation-email/{jobId}', [MaterialOrderController::class, 'materialOrderconfirmationEmail']);
+    Route::post('material-order/confirmation-email-status/{jobId}', [MaterialOrderController::class, 'materialOrderconfirmationEmailStatus']);
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
     //Project Design Title
@@ -196,6 +203,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('coc/insurance-email/{id}', [CocController::class, 'CocInsuranceEmail']);
     //Ready To Build Api's
     Route::post('store/ready-to-build/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuild']);
+    Route::post('change/ready-to-build/file-name/{id}', [ReadyToBuildController::class, 'changeReadyToBuildFileName']);
+    Route::post('delete/ready-to-build/media/{id}', [ReadyToBuildController::class, 'deleteReadyToBuildMedia']);
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
     //Supplier Api's
     Route::post('store/supplier/{jobId}', [SupplierController::class, 'storeSupplier']);

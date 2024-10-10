@@ -116,6 +116,77 @@ class ReadyToBuildController extends Controller
         }
     }
 
+    //file name saved
+    public function changeReadyToBuildFileName(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'file_name' => 'required|string'
+        ]);
+        
+        try {
+            
+            //Check Adjustor Meeting Media
+            $ready_to_build = ReadyToBuildMedia::find($id);
+            if(!$ready_to_build) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Ready To Build Media Not Found'
+                ], 422);
+            }
+
+            //Update File Name
+            $ready_to_build->file_name = $request->file_name;
+            $ready_to_build->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'File Name Updated Successfully',
+                'data' => []
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    //delete file name
+    public function deleteReadyToBuildMedia(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'media_url' => 'required|string'
+        ]);
+        
+        try {
+            
+            //Check Ready to build Media
+            $check_ready_to_build = ReadyToBuildMedia::find($id);
+            if(!$check_ready_to_build) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Ready To Build Media Not Found'
+                ], 422);
+            }
+
+            //Delete Media
+            $oldImagePath = str_replace('/storage', 'public', $check_ready_to_build->media_url);
+            Storage::delete($oldImagePath);
+            $check_ready_to_build->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Media Deleted Successfully',
+                'data' => $check_ready_to_build
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+
+
 
     // public function getReadyToBuild($jobId)
     // {
