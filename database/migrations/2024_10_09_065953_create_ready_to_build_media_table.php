@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('ready_to_build_media', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ready_build_id')->constrained('ready_to_builds')->onDelete('cascade');
-            $table->string('media_url');
+            $table->string('image_url');
             $table->string('file_name')->nullable();
             $table->timestamps();
         });
