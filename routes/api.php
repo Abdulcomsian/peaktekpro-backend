@@ -111,7 +111,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/jobs-by-task/{statusId}', [CompanyJobController::class, 'getJobWithStatus']);
     //Inprogress Api's
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
-    Route::get('get/in-progress/{jobId}', [InprogressController::class, 'getInprogress']);
+    Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
+    Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
     Route::post('update/adjustor-meeting-media/{jobId}', [MeetingController::class, 'updateAdjustorMeetingMedia']);
