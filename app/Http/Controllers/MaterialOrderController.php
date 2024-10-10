@@ -813,13 +813,15 @@ class MaterialOrderController extends Controller
                     'message' => 'Material Order Not Found'
                 ], 422);
             }
-            
-            // Handle Attachments
-            $attachmentPaths = [];
-            if (isset($request->attachments)) {
+             // Prepare Attachments
+            $attachments = [];
+            if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $attachment) {
-                    // Store each attachment and get its path
-                    $attachmentPaths[] = $attachment->store('attachments'); // Adjust the path as needed
+                    // Check if the uploaded item is indeed a file
+                    if ($attachment instanceof \Illuminate\Http\UploadedFile) {
+                        // Add attachment to the array
+                        $attachmentPaths[] = $attachment->store('attachments/temp'); // Store in a temporary folder
+                    }
                 }
             }
             
