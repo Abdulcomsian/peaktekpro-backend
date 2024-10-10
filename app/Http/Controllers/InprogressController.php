@@ -13,8 +13,8 @@ class InprogressController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'build_start_date' => 'required|date_format:m/d/Y',
-            'build_end_date' => 'required|date_format:m/d/Y',
+            'build_start_date' => 'nullable|date_format:m/d/Y',
+            'build_end_date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable',
             'status' => 'nullable'
         ]);
