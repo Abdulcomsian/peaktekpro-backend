@@ -203,6 +203,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('coc/insurance-email/{id}', [CocController::class, 'CocInsuranceEmail']);
     //Ready To Build Api's
     Route::post('store/ready-to-build/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuild']);
+    Route::post('store/ready-to-build-status/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuildStatus']);
     Route::post('change/ready-to-build/file-name/{id}', [ReadyToBuildController::class, 'changeReadyToBuildFileName']);
     Route::post('delete/ready-to-build/media/{id}', [ReadyToBuildController::class, 'deleteReadyToBuildMedia']);
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);

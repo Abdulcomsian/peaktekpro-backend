@@ -51,7 +51,7 @@ class ReadyToBuildController extends Controller
                 foreach($request->attachements as $documents)
                 {
                     $fileName = time() . '_' . $documents->getClientOriginalName();
-                    $filePath = $documents->storeAs('ready_to_build', $fileName);
+                    $filePath = $documents->storeAs('public/ready_to_build', $fileName);
                     // Store Path
                     $media = new ReadyToBuildMedia();
                     $media->ready_build_id = $ready_to_build->id;
@@ -78,6 +78,42 @@ class ReadyToBuildController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+
+    public function storeReadyToBuildStatus(Request $request, $jobId)
+    {
+        // Validation Request
+        $this->validate($request, [
+            'status' => 'nullable|in:true,false',
+        ]);
+        
+        try {
+            // Check Job
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found',
+                ], 422);
+            }
+
+            // Update Ready To Build
+            $ready_to_build = ReadyToBuild::updateOrCreate([
+                'company_job_id' => $jobId,
+            ], [
+                'status' => $request->status,
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Ready To Build Status Updated Successfully',
+                'data' => [],
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
 
     public function getReadyToBuild($jobId)
     {
