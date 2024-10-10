@@ -560,6 +560,50 @@ class MaterialOrderController extends Controller
         }
     }
 
+    public function updateBuildDetailStatus(Request $request, $jobId)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'confirmed' => 'nullable|in:true,false',
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+
+            //Update Build Detail
+            $build_detail = BuildDetail::updateOrCreate([
+                'company_job_id' => $jobId
+            ],[
+                'confirmed' => $request->confirmed,
+            ]);
+
+            //Update Status
+            if(isset($request->confirmed) && $request->confirmed == 'true') {
+                $job->status_id = 10;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Build Details Status Updated Successfully',
+                'data' => [$build_detail]
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function getBuildDetail($jobId)
     {
         try{
