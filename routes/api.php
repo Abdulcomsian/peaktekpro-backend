@@ -203,6 +203,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('delete/qc-inspection/media/{id}', [QcInspectionController::class, 'deleteQcInspectionMedia']);
     //Certificate Of Completion Api's
     Route::post('store/coc/{jobId}', [CocController::class, 'storeCoc']);
+    Route::post('update/coc/status/{jobId}', [CocController::class, 'updateStatusCoc']);
     Route::get('get/coc/{jobId}', [CocController::class, 'getCoc']);
     Route::post('coc/insurance-email/{id}', [CocController::class, 'CocInsuranceEmail']);
     //Ready To Build Api's

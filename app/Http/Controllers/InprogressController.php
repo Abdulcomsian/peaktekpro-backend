@@ -90,7 +90,7 @@ class InprogressController extends Controller
             
             return response()->json([
                 'status' => 200,
-                'message' => 'Inprogress Build Updated Successfully',
+                'message' => 'Inprogress Build status Updated Successfully',
                 'data' => $in_progress
             ], 200);
             

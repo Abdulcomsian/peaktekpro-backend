@@ -120,6 +120,51 @@ class CocController extends Controller
         }
     }
 
+    public function updateStatusCoc(Request $request, $jobId)
+    {
+        //Validate Rules
+        $this->validate($request, [
+            'status' => 'nullable'
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::whereId($jobId)->with('summary')->first();
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Update QC Inspection
+            $coc = Coc::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'status' => $request->status
+            ]);
+            
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 13;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'COC Status Updated Successfully',
+                'data' => $coc
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+
     public function getCoc($jobId)
     {
         try {
