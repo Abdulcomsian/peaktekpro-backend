@@ -81,6 +81,49 @@ class ReadyToCloseController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function updateReadyToCloseStatus(Request $request, $jobId)
+    {
+        //Validate Request
+        $request->validate([
+            'status' => 'nullable',
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+            
+            $ready_to_close = ReadyToClose::updateOrCreate([
+                'company_job_id' => $jobId
+            ],[
+                'status' => (isset($request->status)) ? $request->status : false,
+            ]);
+            
+            //Update Job Status
+            if(isset($request->status) && $request->status == true)
+            {
+                $job->status_id = 15;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Ready To Close Status Updated Successfully',
+                'data' => $ready_to_close
+            ], 200); 
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
     
     public function getReadyToClose($jobId)
     {
