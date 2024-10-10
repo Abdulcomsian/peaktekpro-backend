@@ -745,6 +745,44 @@ class MaterialOrderController extends Controller
         }
     }
 
+    public function getConfirmationEmailStatus(Request $request, $jobId)
+    {
+        try{
+            //Check job exist or not
+            $material_order = CompanyJob::where('id', $jobId)->first();
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Company Job Not Created.'
+                ], 422);
+            }
+            $material_status = MaterialOrderConfirmation::select('id','company_job_id','confirmation_email_sent','created_at','updated_at')->where('company_job_id', $jobId)->first();
+
+            if ($material_status) {
+                $status = $material_status->toArray();
+                
+                // Change the key name from confirmation_email_sent to status
+                $status['status'] = $status['confirmation_email_sent'];
+                unset($status['confirmation_email_sent']); // Remove the old key
+            
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Status Updated successfully',
+                    'data' => $status, // Return the updated data
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Material status not found',
+                ], 404);
+            }
+
+        }catch(\Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function materialOrderconfirmationEmail(Request $request, $jobId)
     {
         // Validate Request
