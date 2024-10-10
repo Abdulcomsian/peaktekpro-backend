@@ -55,7 +55,7 @@ class ReadyToBuildController extends Controller
                     // Store Path
                     $media = new ReadyToBuildMedia();
                     $media->ready_build_id = $ready_to_build->id;
-                    $media->media_url = Storage::url($filePath);
+                    $media->image_url = Storage::url($filePath);
                     $media->file_name = $request->filename;
                     $media->save();
                 }
