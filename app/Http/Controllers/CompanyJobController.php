@@ -820,6 +820,8 @@ class CompanyJobController extends Controller
                 
                 //New Leads
                 $new_leads = CompanyJob::where('created_by', $created_by)->where('status_id', 1)->count();
+                // return response()->json([$new_leads]);
+
                 //InProgress
                 $in_progress = CompanyJob::where('created_by', $created_by)->where('status_id', 10)->count();
                 
@@ -907,7 +909,7 @@ class CompanyJobController extends Controller
                 // return response()->json(['values'=>$weekly_total_balance]);
 
                 //Monthly
-                $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                $monthly_won_closed_values = $monthly_tasks->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
@@ -919,7 +921,7 @@ class CompanyJobController extends Controller
                 
                 //Current Year
                 $yearly_won_closed_values = $yearly_tasks
-                    ->whereHas('adjustorMeeting')
+                    ->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
@@ -936,7 +938,7 @@ class CompanyJobController extends Controller
                 });
                 
                 //Deals Won & Closed
-                $deals = $jobs->whereHas('adjustorMeeting')
+                $deals = $jobs->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
@@ -951,6 +953,9 @@ class CompanyJobController extends Controller
                     $query->orWhere('user_id', $user->id);
                     $query->orWhereIn('id', $assigned_jobs);
                 })->where('status_id', 1)->count();
+
+                // return response()->json($new_leads);
+                
                 //InProgress
                 $in_progress = CompanyJob::where(function($query) use ($user,$assigned_jobs) {
                     $query->orWhere('user_id', $user->id);
