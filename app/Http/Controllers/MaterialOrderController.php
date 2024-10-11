@@ -621,7 +621,7 @@ class MaterialOrderController extends Controller
              //get Ready to Build
              $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
-             if (!$readyBuild) {
+             if (!$build_detail) {
                 return response()->json([
                     'status' => 200,
                     'message' => 'Build Details Not Yet Created',
