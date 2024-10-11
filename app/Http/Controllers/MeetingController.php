@@ -140,6 +140,47 @@ class MeetingController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function AdjustorMeetingStatus(Request $request, $jobId)
+    {
+        //Validate Rules
+        $rules = [
+            'sent' => 'nullable',
+        ];
+        try {
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Create Adjustor Meeting
+            $adjustor_meeting = AdjustorMeeting::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'sent' => $request->sent
+            ]);
+
+            if(isset($request->status) && $request->status == 'approved') {
+                $job->status_id = 8;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Meeting Status Updated Successfully',
+                'data' => []
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     
     public function updateAdjustorMeetingMedia(Request $request, $jobId)
     {

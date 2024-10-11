@@ -747,10 +747,13 @@ class CompanyJobController extends Controller
                 //Weekly Main Query
                 $weekly_tasks = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
                 ->whereBetween('created_at', [$weekStart, $weekEnd]);
-                
+                return response()->json([$weekly_tasks]);
+
                 //Monthly Main Query
                 $monthly_tasks = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
                 ->whereBetween('created_at', [$monthStart, $monthEnd]);
+
+                // return response()->json([$monthly_tasks]);
                 
                 // Yearly Query
                 $yearly_tasks = CompanyJob::select('id', 'name', 'address', 'status_id')->where('created_by', $created_by)
@@ -952,17 +955,17 @@ class CompanyJobController extends Controller
             ->get();
 
         // Process each job to assign a status
-        // foreach ($stale_jobs as $job) {
-        //     $daysSinceCreated = now()->diffInDays($job->date);
+        foreach ($stale_jobs as $job) {
+            $daysSinceCreated = now()->diffInDays($job->date);
 
-        //     if ($daysSinceCreated <= 6) {
-        //         $job->statusCircle = 'Green'; // 0-6 days
-        //     } elseif ($daysSinceCreated <= 14) {
-        //         $job->statusCircle = 'Yellow'; // 7-14 days
-        //     } else {
-        //         $job->statusCircle = 'Red'; // 17+ days
-        //     }
-        // }
+            if ($daysSinceCreated <= 6) {
+                $job->statusCircle = 'Green'; // 0-6 days
+            } elseif ($daysSinceCreated <= 14) {
+                $job->statusCircle = 'Yellow'; // 7-14 days
+            } else {
+                $job->statusCircle = 'Red'; // 17+ days
+            }
+        }
 
         // Now you can use $stale_jobs with their statuses assigned
 

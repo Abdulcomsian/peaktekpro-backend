@@ -119,6 +119,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
     Route::post('update/adjustor-meeting-media/{jobId}', [MeetingController::class, 'updateAdjustorMeetingMedia']);
     Route::post('update-status/adjustor-meeting/{id}', [MeetingController::class, 'updateAdjustorMeetingStatus']);
+    Route::post('add/adjustor-meeting-status/{id}', [MeetingController::class, 'AdjustorMeetingStatus']);
     Route::get('get/adjustor-meeting/{jobId}', [MeetingController::class, 'getAdjustorMeeting']);
     Route::post('change/adjustor-meeting/file-name/{id}', [MeetingController::class, 'changeAdjustorMeetingFileName']);
     Route::post('delete/adjustor-meeting/media/{id}', [MeetingController::class, 'deleteAdjustorMeetingMedia']);
