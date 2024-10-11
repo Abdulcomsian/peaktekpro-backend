@@ -858,7 +858,7 @@ class CompanyJobController extends Controller
                     $query->orWhereIn('id', $assigned_jobs);
                 })
                 ->whereBetween('created_at', [$weekStart, $weekEnd]);
-                return response()->json(['weekly'=>$weekly_tasks->get()]);
+                // return response()->json(['weekly'=>$weekly_tasks->get()]);
                 // dd($weekly_tasks);
                 
                 //Monthly Main Query
