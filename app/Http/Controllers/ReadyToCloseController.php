@@ -103,7 +103,8 @@ class ReadyToCloseController extends Controller
             $ready_to_close = ReadyToClose::updateOrCreate([
                 'company_job_id' => $jobId
             ],[
-                'status' => (isset($request->status)) ? $request->status : false,
+                'company_job_id' => $jobId,
+                'status' => (isset($request->status)) ? $request->status : 'false',
             ]);
             
             //Update Job Status
@@ -117,7 +118,7 @@ class ReadyToCloseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Close Status Updated Successfully',
-                'data' => $ready_to_close
+                'data' => []
             ], 200); 
             
         } catch (\Exception $e) {
