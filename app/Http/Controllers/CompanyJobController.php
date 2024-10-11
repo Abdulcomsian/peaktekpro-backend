@@ -725,6 +725,7 @@ class CompanyJobController extends Controller
             $data = [];
             $user = Auth::user();
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            // dd($assigned_jobs);
             $created_by = $user->created_by == 0 ? 1 : $user->created_by;
             
             // Define start and end of the current week (Sunday to Saturday)
@@ -857,6 +858,8 @@ class CompanyJobController extends Controller
                     $query->orWhereIn('id', $assigned_jobs);
                 })
                 ->whereBetween('created_at', [$weekStart, $weekEnd]);
+                return response()->json(['weekly'=>$weekly_tasks->get()]);
+                // dd($weekly_tasks);
                 
                 //Monthly Main Query
                 $monthly_tasks = CompanyJob::select('id','name','address','status_id')->where(function($query) use ($user,$assigned_jobs) {
@@ -864,7 +867,7 @@ class CompanyJobController extends Controller
                     $query->orWhereIn('id', $assigned_jobs);
                 })
                 ->whereBetween('created_at', [$monthStart, $monthEnd]);
-                
+
                 // Yearly Query
                 $yearly_tasks = CompanyJob::select('id', 'name', 'address', 'status_id')->where(function ($query) use ($user, $assigned_jobs) {
                     $query->orWhere('user_id', $user->id);

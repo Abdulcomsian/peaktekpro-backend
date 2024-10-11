@@ -238,11 +238,11 @@ class MaterialOrderController extends Controller
         try {
 
             //Check Material Order
-            $material_order = MaterialOrder::where('id', $id)->with('materials','supplier')->first();
+            $material_order = MaterialOrder::where('company_job_id', $id)->with('materials','supplier')->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Material Order Not Found'
+                    'message' => 'Material Order Not Found for this Job'
                 ], 422);
             }
             
