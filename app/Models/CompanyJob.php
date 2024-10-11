@@ -40,6 +40,11 @@ class CompanyJob extends Model
     {
         return $this->hasOne(AdjustorMeeting::class)->where('status', 'Approved');
     }
+
+    public function wonAndClosed()
+    {
+        return $this->hasOne(ReadyToClose::class)->where('status', 'true');
+    }
     
     public function title()
     {

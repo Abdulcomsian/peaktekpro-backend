@@ -765,13 +765,13 @@ class CompanyJobController extends Controller
                 $monthly_new_leads = $monthly_tasks->count();
                 
                 //Won & Closed Count
-                $weekly_won_closed = $weekly_tasks->whereHas('adjustorMeeting')->count();
-                $monthly_won_closed = $monthly_tasks->whereHas('adjustorMeeting')->count();
-                $yearly_won_closed = $yearly_tasks->whereHas('adjustorMeeting')->count();
+                $weekly_won_closed = $weekly_tasks->whereHas('wonAndClosed')->count();
+                $monthly_won_closed = $monthly_tasks->whereHas('wonAndClosed')->count();
+                $yearly_won_closed = $yearly_tasks->whereHas('wonAndClosed')->count();
                 
                 //Won & Closed Values
                 //Weekly
-                $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
@@ -782,7 +782,7 @@ class CompanyJobController extends Controller
                 $weekly_total_balance = $weekly_balances->sum();
                 
                 //Monthly
-                $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                $monthly_won_closed_values = $monthly_tasks->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
@@ -794,7 +794,7 @@ class CompanyJobController extends Controller
                 
                 //Current Year
                 $yearly_won_closed_values = $yearly_tasks
-                    ->whereHas('adjustorMeeting')
+                    ->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
@@ -808,7 +808,7 @@ class CompanyJobController extends Controller
                 $jobs = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by);
                 
                 //Deals Won & Closed
-                $deals = $jobs->whereHas('adjustorMeeting')
+                $deals = $jobs->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
@@ -867,6 +867,7 @@ class CompanyJobController extends Controller
                     $query->orWhereIn('id', $assigned_jobs);
                 })
                 ->whereBetween('created_at', [$monthStart, $monthEnd]);
+                // return response()->json(['monthly'=>$monthly_tasks->get()]);
 
                 // Yearly Query
                 $yearly_tasks = CompanyJob::select('id', 'name', 'address', 'status_id')->where(function ($query) use ($user, $assigned_jobs) {
@@ -878,25 +879,33 @@ class CompanyJobController extends Controller
                 
                 //New Leads Count
                 $weekly_new_leads = $weekly_tasks->count();
+                // return response()->json(['weekly'=>$weekly_new_leads]);
                 $monthly_new_leads = $monthly_tasks->count();
-                
-                //Won & Closed Count
-                $weekly_won_closed = $weekly_tasks->whereHas('adjustorMeeting')->count();
-                $monthly_won_closed = $monthly_tasks->whereHas('adjustorMeeting')->count();
-                $yearly_won_closed = $yearly_tasks->whereHas('adjustorMeeting')->count();
+                // return response()->json(['monthly'=>$monthly_new_leads]);
+
+                //Won & Closed Count  wonAndClosed
+                // $weekly_won_closed = $weekly_tasks->whereHas('adjustorMeeting')->count();
+                $weekly_won_closed = $weekly_tasks->whereHas('wonAndClosed')->count();
+                $monthly_won_closed = $monthly_tasks->whereHas('wonAndClosed')->count();
+                $yearly_won_closed = $yearly_tasks->whereHas('wonAndClosed')->count();
                 
                 //Won & Closed Values
                 //Weekly
-                $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
                     ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
                     }])
                 ->get();
+
+                //  return response()->json(['values'=>$weekly_won_closed_values]);
                 
                 $weekly_balances = $weekly_won_closed_values->pluck('summary.balance');
+                // return response()->json(['values'=>$weekly_balances]);
+
                 $weekly_total_balance = $weekly_balances->sum();
-                
+                // return response()->json(['values'=>$weekly_total_balance]);
+
                 //Monthly
                 $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
                     ->whereHas('summary')
