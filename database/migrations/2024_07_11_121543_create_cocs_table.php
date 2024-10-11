@@ -16,16 +16,16 @@ return new class extends Migration
         Schema::create('cocs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone');
-            $table->string('street');
-            $table->string('city');
-            $table->string('state');
-            $table->string('zip_code');
+            $table->string('name')->nullable();
+            $table->string('email')->unique()->nullable();
+            $table->string('phone')->nullable();
+            $table->string('street')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('zip_code')->nullable();
             $table->string('insurance')->nullable();
             $table->string('claim_number')->nullable();
-            $table->boolean('status')->default(false);
+            $table->string('status')->default('false');
             $table->string('policy_number')->nullable();
             $table->string('company_representative')->nullable();
             $table->string('company_printed_name')->nullable();

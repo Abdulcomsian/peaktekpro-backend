@@ -156,7 +156,7 @@ class CocController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'COC Status Updated Successfully',
-                'data' => $coc
+                'data' => []
             ], 200);
 
         } catch (\Exception $e) {
