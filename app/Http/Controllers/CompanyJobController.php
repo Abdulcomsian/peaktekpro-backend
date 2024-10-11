@@ -944,11 +944,28 @@ class CompanyJobController extends Controller
                 })->where('status_id', 10)->count();
                 
                 //Needs Attention
-                $stale_jobs = CompanyJob::with('status')->where(function($query) use ($user,$assigned_jobs) {
-                    $query->orWhere('user_id', $user->id);
-                    $query->orWhereIn('id', $assigned_jobs);
-                })
-                ->where('date', '<', $sixDaysAgo)->get();
+                $stale_jobs = CompanyJob::with('status')->where(function($query) use ($user, $assigned_jobs) {
+                $query->orWhere('user_id', $user->id)
+                    ->orWhereIn('id', $assigned_jobs);
+            })
+            // ->where('date', '<', $sixDaysAgo)
+            ->get();
+
+        // Process each job to assign a status
+        // foreach ($stale_jobs as $job) {
+        //     $daysSinceCreated = now()->diffInDays($job->date);
+
+        //     if ($daysSinceCreated <= 6) {
+        //         $job->statusCircle = 'Green'; // 0-6 days
+        //     } elseif ($daysSinceCreated <= 14) {
+        //         $job->statusCircle = 'Yellow'; // 7-14 days
+        //     } else {
+        //         $job->statusCircle = 'Red'; // 17+ days
+        //     }
+        // }
+
+        // Now you can use $stale_jobs with their statuses assigned
+
                 
                 // Prepare response data
                 $data = [

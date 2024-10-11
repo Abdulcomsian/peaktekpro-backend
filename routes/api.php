@@ -113,6 +113,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
     Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
     Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
+    Route::get('get/in-progress/{jobId}', [InprogressController::class, 'getInprogress']);
+
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
     Route::post('update/adjustor-meeting-media/{jobId}', [MeetingController::class, 'updateAdjustorMeetingMedia']);
