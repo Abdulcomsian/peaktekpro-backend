@@ -17,10 +17,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->integer('company_id')->nullable();
-            $table->string('name');
+            $table->string('name')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->string('status')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

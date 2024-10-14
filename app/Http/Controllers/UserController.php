@@ -24,7 +24,7 @@ class UserController extends Controller
             $user->last_name = $request->last_name;
             $user->email = $request->email;
             $user->company_id = $request->company_id;
-            $user->permission_level_id = $request->permission_level_id;
+            $user->role_id = $request->permission_level_id;
             $user->status = $request->status;
             $user->save();
 
