@@ -826,8 +826,22 @@ class CompanyJobController extends Controller
                 $in_progress = CompanyJob::where('created_by', $created_by)->where('status_id', 10)->count();
                 
                 //Needs Attention
-                $stale_jobs = CompanyJob::with('status')->where('created_by', $created_by)->where('date', '<', $sixDaysAgo)->get();
+                $stale_jobs = CompanyJob::with('status')->where('created_by', $created_by)
+                // ->where('date', '<', $sixDaysAgo)
+                ->get();
                 
+                // Process each job to assign a status
+                foreach ($stale_jobs as $job) {
+                    $daysSinceCreated = now()->diffInDays($job->date);
+
+                    if ($daysSinceCreated <= 6) {
+                        $job->statusCircle = 'Green'; // 0-6 days
+                    } elseif ($daysSinceCreated <= 14) {
+                        $job->statusCircle = 'Yellow'; // 7-14 days
+                    } else {
+                        $job->statusCircle = 'Red'; // 17+ days
+                    }
+                }
                 // Prepare response data
                 $data = [
                     'weekly' => [
@@ -970,8 +984,6 @@ class CompanyJobController extends Controller
             // ->where('date', '<', $sixDaysAgo)
             ->get();
 
-            // dd($stale_jobs);
-
                 // Process each job to assign a status
                 foreach ($stale_jobs as $job) {
                     $daysSinceCreated = now()->diffInDays($job->date);
@@ -1063,7 +1075,12 @@ class CompanyJobController extends Controller
                 
                 if($request->type == 'weekly' && $request->box == 'new_leads') {
                     //New Leads
-                    $data = $weekly_tasks->get();
+                    $data = $weekly_tasks
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed') {
                     //Won & Closed
                     $data = $weekly_tasks->whereHas('wonAndClosed')->get();
