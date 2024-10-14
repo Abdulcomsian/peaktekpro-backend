@@ -1076,45 +1076,82 @@ class CompanyJobController extends Controller
                 if($request->type == 'weekly' && $request->box == 'new_leads') {
                     //New Leads
                     $data = $weekly_tasks
-                    ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
                     }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        // If there's no summary, set it to an empty array
+                        $job->summary = $job->summary ?? []; 
+                        return $job;
+                    });
+
                 } else if($request->type == 'weekly' && $request->box == 'won_closed') {
                     //Won & Closed
                     $data = $weekly_tasks->whereHas('wonAndClosed')
-                    ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
                     }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        // If there's no summary, set it to an empty array
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
                 } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
                     $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
-                        ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
                         }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        // If there's no summary, set it to an empty array
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
                     
                     $weekly_balances = $weekly_won_closed_values->pluck('summary.balance');
                     $weekly_total_balance = $weekly_balances->sum();
                     $data = $weekly_won_closed_values;
                 } else if($request->type == 'monthly' && $request->box == 'new_leads') {
                     //New Leads
-                    $data = $monthly_tasks->get();
+                    // $data = $monthly_tasks->get();
+                    $data = $monthly_tasks
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
+
                 } else if($request->type == 'monthly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $monthly_tasks->whereHas('wonAndClosed')->get();
+                    // $data = $monthly_tasks->whereHas('wonAndClosed')->get();
+
+                    $data = $monthly_tasks->whereHas('wonAndClosed')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; 
+                        return $job;
+                    });
+
                 } else if($request->type == 'monthly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
                     $monthly_won_closed_values = $monthly_tasks->whereHas('wonAndClosed')
-                        ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
                         }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
                     
                     $monthly_balances = $monthly_won_closed_values->pluck('summary.balance');
                     $monthly_total_balance = $monthly_balances->sum();
@@ -1146,28 +1183,37 @@ class CompanyJobController extends Controller
                 if($request->type == 'weekly' && $request->box == 'new_leads') {
                     //New Leads
                     $data = $weekly_tasks
-                    ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
                     }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
 
                 } else if($request->type == 'weekly' && $request->box == 'won_closed') {
                     //Won & Closed
                     $data = $weekly_tasks->whereHas('wonAndClosed')
-                    ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
                     }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
                 } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
                     $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
-                        ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
                         }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
                     
                     $weekly_balances = $weekly_won_closed_values->pluck('summary.balance');
                     $weekly_total_balance = $weekly_balances->sum();
@@ -1176,28 +1222,37 @@ class CompanyJobController extends Controller
                     //New Leads
                     // $data = $monthly_tasks->get();
                     $data = $monthly_tasks
-                    ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
                     }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
                 } else if($request->type == 'monthly' && $request->box == 'won_closed') {
                     //Won & Closed
                     // $data = $monthly_tasks->whereHas('wonAndClosed')->get();
                     $data = $monthly_tasks->whereHas('wonAndClosed')
-                    ->whereHas('summary')
                     ->with(['summary' => function ($query) {
                         $query->select('company_job_id', 'balance');
                     }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; 
+                        return $job;
+                    });
                 } else if($request->type == 'monthly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
                     $monthly_won_closed_values = $monthly_tasks->whereHas('wonAndClosed')
-                        ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
                         }])
-                    ->get();
+                    ->get()
+                    ->map(function ($job) {
+                        $job->summary = $job->summary ?? []; // Use null coalescing operator
+                        return $job;
+                    });
                     
                     $monthly_balances = $monthly_won_closed_values->pluck('summary.balance');
                     $monthly_total_balance = $monthly_balances->sum();
