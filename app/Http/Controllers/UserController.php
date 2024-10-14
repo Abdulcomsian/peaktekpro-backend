@@ -9,13 +9,14 @@ class UserController extends Controller
 {
     public function addUser(Request $request)
     {
+        dd($request->all());
         $this->validate($request, [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'email' => 'required|string',
-            'company_id' => 'required|exists:companies,id',
-            'permission_level_id' => 'required:roles,id',
-            'status' => 'nullable|in:true,false',
+            'first_name' => 'nullable|string',
+            'last_name' => 'nullable|string',
+            'email' => 'nullable|string',
+            'company_id' => 'nullable|exists:companies,id',
+            'permission_level_id' => 'nullable:roles,id',
+            'status' => 'nullable|in:active,inactive',
         ]);
 
         try{
