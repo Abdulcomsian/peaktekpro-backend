@@ -1066,10 +1066,10 @@ class CompanyJobController extends Controller
                     $data = $weekly_tasks->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $weekly_tasks->whereHas('adjustorMeeting')->get();
+                    $data = $weekly_tasks->whereHas('wonAndClosed')->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
-                    $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                    $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
                         ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
@@ -1084,10 +1084,10 @@ class CompanyJobController extends Controller
                     $data = $monthly_tasks->get();
                 } else if($request->type == 'monthly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $monthly_tasks->whereHas('adjustorMeeting')->get();
+                    $data = $monthly_tasks->whereHas('wonAndClosed')->get();
                 } else if($request->type == 'monthly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
-                    $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                    $monthly_won_closed_values = $monthly_tasks->whereHas('wonAndClosed')
                         ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
@@ -1108,6 +1108,9 @@ class CompanyJobController extends Controller
                 ->whereBetween('created_at', [$weekStart, $weekEnd])
                 ->orderBy('status_id', 'asc')
                 ->orderBy('id', 'desc');
+
+                // return response()->json($weekly_tasks->get());
+
                 
                 //Monthly Main Query
                 $monthly_tasks = CompanyJob::where(function($query) use ($user,$assigned_jobs) {
@@ -1123,10 +1126,10 @@ class CompanyJobController extends Controller
                     $data = $weekly_tasks->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $weekly_tasks->whereHas('adjustorMeeting')->get();
+                    $data = $weekly_tasks->whereHas('wonAndClosed')->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
-                    $weekly_won_closed_values = $weekly_tasks->whereHas('adjustorMeeting')
+                    $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
                         ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
@@ -1141,10 +1144,10 @@ class CompanyJobController extends Controller
                     $data = $monthly_tasks->get();
                 } else if($request->type == 'monthly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $monthly_tasks->whereHas('adjustorMeeting')->get();
+                    $data = $monthly_tasks->whereHas('wonAndClosed')->get();
                 } else if($request->type == 'monthly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
-                    $monthly_won_closed_values = $monthly_tasks->whereHas('adjustorMeeting')
+                    $monthly_won_closed_values = $monthly_tasks->whereHas('wonAndClosed')
                         ->whereHas('summary')
                         ->with(['summary' => function ($query) {
                             $query->select('company_job_id', 'balance');
