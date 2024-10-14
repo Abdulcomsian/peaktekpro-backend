@@ -1083,7 +1083,12 @@ class CompanyJobController extends Controller
                     ->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $weekly_tasks->whereHas('wonAndClosed')->get();
+                    $data = $weekly_tasks->whereHas('wonAndClosed')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
                     $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
@@ -1140,10 +1145,21 @@ class CompanyJobController extends Controller
                 
                 if($request->type == 'weekly' && $request->box == 'new_leads') {
                     //New Leads
-                    $data = $weekly_tasks->get();
+                    $data = $weekly_tasks
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
+
                 } else if($request->type == 'weekly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $weekly_tasks->whereHas('wonAndClosed')->get();
+                    $data = $weekly_tasks->whereHas('wonAndClosed')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
                 } else if($request->type == 'weekly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
                     $weekly_won_closed_values = $weekly_tasks->whereHas('wonAndClosed')
@@ -1158,10 +1174,22 @@ class CompanyJobController extends Controller
                     $data = $weekly_won_closed_values;
                 } else if($request->type == 'monthly' && $request->box == 'new_leads') {
                     //New Leads
-                    $data = $monthly_tasks->get();
+                    // $data = $monthly_tasks->get();
+                    $data = $monthly_tasks
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
                 } else if($request->type == 'monthly' && $request->box == 'won_closed') {
                     //Won & Closed
-                    $data = $monthly_tasks->whereHas('wonAndClosed')->get();
+                    // $data = $monthly_tasks->whereHas('wonAndClosed')->get();
+                    $data = $monthly_tasks->whereHas('wonAndClosed')
+                    ->whereHas('summary')
+                    ->with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'balance');
+                    }])
+                    ->get();
                 } else if($request->type == 'monthly' && $request->box == 'won_closed_values') {
                     //Won & Closed Values
                     $monthly_won_closed_values = $monthly_tasks->whereHas('wonAndClosed')
