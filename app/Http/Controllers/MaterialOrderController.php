@@ -787,9 +787,9 @@ class MaterialOrderController extends Controller
     {
         // Validate Request
         $this->validate($request, [
-            'send_to' => 'required|string',
-            'subject' => 'required|string',
-            'email_body' => 'required',
+            'send_to' => 'nullable|string',
+            'subject' => 'nullable|string',
+            'email_body' => 'nullable',
             'attachments' => 'nullable|array',
             'status' => 'nullable|in:true,false',
         ]);
