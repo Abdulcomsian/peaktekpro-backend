@@ -10,6 +10,8 @@ use App\Models\Company;
 use App\Models\UserRole;
 use Illuminate\Validation\Rule;
 use App\Enums\PermissionLevel;
+use Mail;
+use App\Mail\UserPasswordMail;
 
 class CompanyController extends Controller
 {
@@ -56,6 +58,10 @@ class CompanyController extends Controller
                     'user_id' => $create_user->id,
                     'company_id' => $company->id
                 ]);
+
+                 // Send the password email
+            // \Mail::to($request->site_admin_email)->send(new UserPasswordMail($request->site_admin_email, $password));
+            
                 
                 return response()->json([
                     'status' => 201,
@@ -158,6 +164,48 @@ class CompanyController extends Controller
                 'status' => 422,
                 'message' => 'Permission Denied!',
             ], 422);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function getCompanies($id)
+    {
+        try {
+            
+            $user = Auth::user();
+            if($user->role_id == 7)
+            {
+                $companies = Company::get();
+                if(!$companies) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'No Company Found Yet',
+                    ], 422);
+                }
+                
+                return response()->json([
+                    'status' => 201,
+                    'message' => 'Companies Found Successfully',
+                    'data' => $companies,
+                ], 200);
+            }elseif($user->role_id == 2)
+            {
+                $companies = Company::where('id',$user->company_id)->get();
+                return response()->json([
+                    'status' => 201,
+                    'message' => 'Companies Found Successfully',
+                    'data' => $companies,
+                ], 200);
+            }else{
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Permission Denied!',
+                ], 422);
+            }
+            
+            
             
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

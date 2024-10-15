@@ -32,6 +32,7 @@ class UserController extends Controller
                 $add_user->first_name = $request->first_name;
                 $add_user->last_name = $request->last_name;
                 $add_user->email = $request->email;
+                // $add_user->company_id = $user->company_id; //logged in user company
                 $add_user->company_id = $request->company_id;
                 $add_user->role_id = $request->permission_level_id;
                 $add_user->status = $request->status;
@@ -61,16 +62,27 @@ class UserController extends Controller
         {
             try {
                 $user = Auth::user();
+            
                 if($user->role_id == 2)
                 {
-                    $getusers = User::whereIn('role_id', [1, 2, 5, 8])->get();
+                    $getusers = User::where('company_id',$user->company_id)
+                    ->get();
             
                     return response()->json([
                         'status_code' => 200,
                         'status' => true,
                         'data' => $getusers,
                     ]);
-                }else{
+                }elseif($user->role_id == 7)
+                {
+                    $getusers =User::get();
+                    return response()->json([
+                        'status_code' => 200,
+                        'status' => true,
+                        'data' => $getusers,
+                    ]);
+                }
+                else{
                     return response()->json([
                         'status_code' => 200,
                         'status' => true,

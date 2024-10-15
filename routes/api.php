@@ -76,6 +76,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Company Api's
     Route::post('create/company', [CompanyController::class, 'createCompany']);
     Route::get('get/company/{id}', [CompanyController::class, 'getCompany']);
+    Route::get('get/companies', [CompanyController::class, 'getCompanies']);
     Route::post('update/company/{id}', [CompanyController::class, 'updateCompany']);
     Route::get('get/company-users', [CompanyController::class, 'getCompanyUsers']);
     Route::get('get/company-sub-contractors', [CompanyController::class, 'getCompanySubContractors']);

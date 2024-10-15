@@ -18,8 +18,6 @@ enum PermissionLevel: int
             self::USER => 'User',
             self::BASIC => 'Basic',
             self::JOBADMIN => 'Job Admin',
-
-
         };
     }
 }
