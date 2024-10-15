@@ -90,6 +90,48 @@ class CustomerAgreementController extends Controller
         }
     }
 
+    public function customerAgreementStatus(Request $request, $id)
+    {
+        try {
+            //Validate Request
+            $this->validate($request, [
+                'status' => 'nullable'
+            ]);
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Update Agreement
+            $agreement = CustomerAgreement::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'status' => $request->status,
+            ]);
+            
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();    
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Agreement Status Updated Successfully',
+                'agreement' => $agreement
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function getCustomerAgreement($id)
     {
         try {

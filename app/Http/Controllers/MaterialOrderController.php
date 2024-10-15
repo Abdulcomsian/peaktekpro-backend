@@ -813,9 +813,8 @@ class MaterialOrderController extends Controller
                     'message' => 'Material Order Not Found'
                 ], 422);
             }
-
-            // Prepare Attachments
-            $attachmentPaths = []; // Initialize the correct variable
+             // Prepare Attachments
+            $attachments = [];
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $attachment) {
                     // Check if the uploaded item is indeed a file
@@ -850,73 +849,6 @@ class MaterialOrderController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
-
-    // public function materialOrderconfirmationEmail11(Request $request, $jobId)
-    // {
-    //     // Validate Request
-    //     $this->validate($request, [
-    //         'send_to' => 'nullable|string',
-    //         'subject' => 'nullable|string',
-    //         'email_body' => 'nullable',
-    //         'attachments' => 'nullable|array',
-    //         'status' => 'nullable|in:true,false',
-    //     ]);
-        
-    //     try {
-    //         // Convert comma-separated string to array
-    //         $sendToEmails = array_map('trim', explode(',', $request->send_to));
-
-    //         // Validate each email in the array
-    //         foreach ($sendToEmails as $email) {
-    //             $this->validate($request, [
-    //                 'send_to.*' => 'email', // Validate each email
-    //             ]);
-    //         }
-
-    //         // Check Material Order
-    //         $material_order = MaterialOrderConfirmation::where('company_job_id', $jobId)->first();
-    //         if (!$material_order) {
-    //             return response()->json([
-    //                 'status' => 422,
-    //                 'message' => 'Material Order Not Found'
-    //             ], 422);
-    //         }
-    //          // Prepare Attachments
-    //         $attachments = [];
-    //         if ($request->hasFile('attachments')) {
-    //             foreach ($request->file('attachments') as $attachment) {
-    //                 // Check if the uploaded item is indeed a file
-    //                 if ($attachment instanceof \Illuminate\Http\UploadedFile) {
-    //                     // Add attachment to the array
-    //                     $attachmentPaths[] = $attachment->store('attachments/temp'); // Store in a temporary folder
-    //                 }
-    //             }
-    //         }
-            
-    //         // Dispatch the job with attachment paths
-    //         dispatch(new MaterialOrderConfirmationJob($sendToEmails, $request->subject, $request->email_body, $attachmentPaths));
-            
-    //         $confirmationEmailSent = $request->input('status', 'false');
-
-    //         // Update Material Order
-    //         MaterialOrderConfirmation::updateOrCreate([
-    //             'company_job_id' => $jobId
-    //         ], [
-    //             'company_job_id' => $jobId,
-    //             'type' => 2,
-    //             'material_confirmation_email_sent' => $confirmationEmailSent
-    //         ]);
-            
-    //         return response()->json([
-    //             'status' => 200,
-    //             'message' => 'Email Sent successfully',
-    //             'data' => []
-    //         ], 200);
-            
-    //     } catch (\Exception $e) {
-    //         return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
-    //     }
-    // }
 
     public function materialOrderconfirmationEmailStatus(Request $request, $jobId)
     {
