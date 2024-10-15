@@ -67,7 +67,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('create/user', [AuthController::class, 'createUser']);
 
     //Api for creating Users rr
-    Route::post('add/user', [UserController::class, 'addUser']);
+    Route::post('createUser', [UserController::class, 'addUser']);
+    Route::get('getUser', [UserController::class, 'getUser']);
+    Route::post('updateUser/{id}', [UserController::class, 'updateUser']);
+    Route::post('users/filter', [UserController::class, 'filterUsersByPermission']);
+    Route::post('users/search', [UserController::class, 'searchUsers']);
 
     //Company Api's
     Route::post('create/company', [CompanyController::class, 'createCompany']);
@@ -78,6 +82,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/company-suppliers', [CompanyController::class, 'getCompanySuppliers']);
     Route::get('get/company-adjustors', [CompanyController::class, 'getCompanyAdjustors']);
     
+    //hackathon
+    Route::post('hackWhat',[UserController::class,'whatHack']);
     //User Management Api's
     Route::post('add/user', [UserManagementController::class, 'addUser']);
     Route::get('get/user/{id}', [UserManagementController::class, 'getUser']);

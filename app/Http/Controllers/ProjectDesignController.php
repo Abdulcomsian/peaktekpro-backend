@@ -359,8 +359,8 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'inspectionData' => 'required|array',
-            'inspectionData.*.inspection' => 'required',
+            'inspectionData' => 'nullable|array',
+            'inspectionData.*.inspection' => 'nullable',
             'inspectionData.*.attachment' => 'nullable|array',
         ]);
 

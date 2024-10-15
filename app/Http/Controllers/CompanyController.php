@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Company;
 use App\Models\UserRole;
 use Illuminate\Validation\Rule;
+use App\Enums\PermissionLevel;
 
 class CompanyController extends Controller
 {
@@ -20,13 +21,14 @@ class CompanyController extends Controller
             'website' => 'required|string',
             'site_admin_name' => 'required|string',
             'site_admin_email' => 'required|email|unique:users,email',
+            'permission_level' => 'nullable|integer|in:' . implode(',', array_column(PermissionLevel::cases(), 'value')),
             'status' => 'required|string|in:active,inactive'
         ]);
         
         try {
-            
+
             $user = Auth::user();
-            if($user->role_id == 7)
+            if($user->role_id == 7 || $user->role_id == 2 )
             {
                 // Create Company
                 $company = new Company;
@@ -36,11 +38,12 @@ class CompanyController extends Controller
         
                 // Create a new user
                 $create_user = User::create([
-                    'role_id' => 1,
+                    // 'role_id' => 1,
                     'company_id' => $company->id,
                     'name' => $request->site_admin_name,
                     'email' => $request->site_admin_email,
                     'password' => Hash::make('Abc@123!'),
+                    'role_id'=>$request->permission_level,
                     'created_by' => $company->id,
                     'status' => $request->status
                 ]);
@@ -70,6 +73,64 @@ class CompanyController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+    // public function createCompany1(Request $request)
+    // {
+    //     //Validate Request
+    //     $this->validate($request, [
+    //         'name' => 'required|string',
+    //         'website' => 'required|string',
+    //         'site_admin_name' => 'required|string',
+    //         'site_admin_email' => 'required|email|unique:users,email',
+    //         'status' => 'required|string|in:active,inactive'
+    //     ]);
+        
+    //     try {
+            
+    //         $user = Auth::user();
+    //         if($user->role_id == 7)
+    //         {
+    //             // Create Company
+    //             $company = new Company;
+    //             $company->name = $request->name;
+    //             $company->website = $request->website;
+    //             $company->save();
+        
+    //             // Create a new user
+    //             $create_user = User::create([
+    //                 'role_id' => 1,
+    //                 'company_id' => $company->id,
+    //                 'name' => $request->site_admin_name,
+    //                 'email' => $request->site_admin_email,
+    //                 'password' => Hash::make('Abc@123!'),
+    //                 'created_by' => $company->id,
+    //                 'status' => $request->status
+    //             ]);
+    
+    //             //Assign Role
+    //             $user_role = UserRole::updateOrCreate([
+    //                 'user_id' => $create_user->id,
+    //                 'company_id' => $company->id
+    //             ],[
+    //                 'user_id' => $create_user->id,
+    //                 'company_id' => $company->id
+    //             ]);
+                
+    //             return response()->json([
+    //                 'status' => 201,
+    //                 'message' => 'Company Created Successfully',
+    //                 'data' => $company,
+    //             ], 201);
+    //         }
+            
+    //         return response()->json([
+    //             'status' => 422,
+    //             'message' => 'Permission Denied!',
+    //         ], 422);
+            
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+    //     }
+    // }
     
     public function getCompany($id)
     {

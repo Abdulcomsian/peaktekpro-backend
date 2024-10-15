@@ -23,6 +23,10 @@ class RoleSeeder extends Seeder
             ['name' => 'User'],  //Like Employee
             ['name' => 'Adjustor'],
             ['name' => 'Super Admin'],
+            ['name' => 'Basic'],
+            ['name' => 'Job Admin'],
+
+
         ];
 
         foreach($roles as $role)
