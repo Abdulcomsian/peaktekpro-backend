@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobLogController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\WonClosedController;
 use App\Http\Controllers\CompanyJobController;
@@ -72,6 +73,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('updateUser/{id}', [UserController::class, 'updateUser']);
     Route::post('users/filter', [UserController::class, 'filterUsersByPermission']);
     Route::post('users/search', [UserController::class, 'searchUsers']);
+
+    //setting apis
+    Route::post('updateProfile/{id}', [ProfileController::class, 'updateProfile']);
+    Route::post('changePassword', [ProfileController::class, 'changePassword']);
+
 
     //Company Api's
     Route::post('create/company', [CompanyController::class, 'createCompany']);
