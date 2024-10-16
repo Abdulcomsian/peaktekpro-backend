@@ -30,7 +30,7 @@ class CompanyController extends Controller
         try {
 
             $user = Auth::user();
-            if($user->role_id == 7 || $user->role_id == 2 )
+            if($user->role_id == 7 )
             {
                 // Create Company
                 $company = new Company;
@@ -198,14 +198,21 @@ class CompanyController extends Controller
                     'message' => 'Companies Found Successfully',
                     'data' => $companies,
                 ], 200);
-            }else{
+            }elseif($user->role_id == 1)
+            {
+                $companies = Company::where('id',$user->company_id)->get();
+                return response()->json([
+                    'status' => 201,
+                    'message' => 'Companies Found Successfully',
+                    'data' => $companies,
+                ], 200);
+            }
+            else{
                 return response()->json([
                     'status' => 422,
                     'message' => 'Permission Denied!',
                 ], 422);
             }
-            
-            
             
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
@@ -214,7 +221,6 @@ class CompanyController extends Controller
     
     public function updateCompany(Request $request, $id)
     {
-        
         try {
             
             $user = Auth::user();

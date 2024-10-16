@@ -26,7 +26,7 @@ class UserController extends Controller
 
         try{
             $user = Auth::user();
-            if($user->role_id == 2)
+            if($user->role_id == 2 || $user->role_id == 1)
             {
                 $add_user = new User;
                 $add_user->first_name = $request->first_name;
@@ -63,7 +63,7 @@ class UserController extends Controller
             try {
                 $user = Auth::user();
             
-                if($user->role_id == 2)
+                if($user->role_id == 2 || $user->role_id == 9 )
                 {
                     $getusers = User::where('company_id',$user->company_id)
                     ->get();
@@ -164,18 +164,33 @@ class UserController extends Controller
 
         try {
             $user= Auth::user();
-            if($user->role_id == 2)
+            if($user->role_id == 2 || $user->role_id == 9)
             {
                 $permissionLevel = $request->input('permission_level');
                 // Filter users by the specified permission level
-                $users = User::where('role_id', $permissionLevel)->get();
+                $users = User::where('role_id', $permissionLevel)
+                ->where('company_id',$user->company_id)
+                ->get();
     
                 return response()->json([
                     'status_code' => 200,
                     'status' => true,
                     'data' => $users,
                 ]);
-            }else{
+            }elseif($user->role_id == 7)
+            {
+                $permissionLevel = $request->input('permission_level');
+                // Filter users by the specified permission level
+                $users = User::where('role_id', $permissionLevel)
+                ->get();
+    
+                return response()->json([
+                    'status_code' => 200,
+                    'status' => true,
+                    'data' => $users,
+                ]);
+            }
+            else{
                 return response()->json([
                     'status_code' => 422,
                     'status' => true,
@@ -195,16 +210,13 @@ class UserController extends Controller
 
     public function searchUsers(Request $request)
     {
-        // Validate the incoming request for search criteria
         $this->validate($request, [
             'search_term' => 'required|string|max:255',
         ]);
 
         try {
-            // Get the search term
             $searchTerm = $request->input('search_term');
 
-            // Build the query
             $users = User::where(function($query) use ($searchTerm) {
                 $query->where('first_name', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
