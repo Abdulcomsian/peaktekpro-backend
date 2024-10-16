@@ -65,7 +65,8 @@ class UserController extends Controller
             
                 if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1)
                 {
-                    $getusers = User::where('company_id',$user->company_id)
+                    $getusers = User::with('company')
+                    ->where('company_id',$user->company_id)
                     ->get();
             
                     return response()->json([
@@ -75,7 +76,8 @@ class UserController extends Controller
                     ]);
                 }elseif($user->role_id == 7)
                 {
-                    $getusers =User::get();
+                    $getusers =User::with('company')
+                    ->get();
                     return response()->json([
                         'status_code' => 200,
                         'status' => true,
