@@ -63,7 +63,7 @@ class UserController extends Controller
             try {
                 $user = Auth::user();
             
-                if($user->role_id == 2 || $user->role_id == 9 )
+                if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1)
                 {
                     $getusers = User::where('company_id',$user->company_id)
                     ->get();
@@ -112,7 +112,7 @@ class UserController extends Controller
 
         try {
             $user = Auth::user();
-            if($user->role_id == 2)
+            if($user->role_id == 2 || $user->role_id == 1)
             {
                 $update_user = User::findOrFail($id);
 
@@ -164,7 +164,7 @@ class UserController extends Controller
 
         try {
             $user= Auth::user();
-            if($user->role_id == 2 || $user->role_id == 9)
+            if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1)
             {
                 $permissionLevel = $request->input('permission_level');
                 // Filter users by the specified permission level
