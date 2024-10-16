@@ -57,48 +57,48 @@ class UserController extends Controller
                 return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-
-        public function getUser()
-        {
-            try {
-                $user = Auth::user();
-            
-                if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1)
-                {
-                    $getusers = User::with('company')
-                    ->where('company_id',$user->company_id)
-                    ->get();
-            
-                    return response()->json([
-                        'status_code' => 200,
-                        'status' => true,
-                        'data' => $getusers,
-                    ]);
-                }elseif($user->role_id == 7)
-                {
-                    $getusers =User::with('company')
-                    ->get();
-                    return response()->json([
-                        'status_code' => 200,
-                        'status' => true,
-                        'data' => $getusers,
-                    ]);
-                }
-                else{
-                    return response()->json([
-                        'status_code' => 200,
-                        'status' => true,
-                        'message' => 'Not Allowed',
-                    ]);
-                }
-            } catch (Exception $e) {
+    
+    public function getUser()
+    {
+        try {
+            $user = Auth::user();
+        
+            if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1)
+            {
+                $getusers = User::with('company')
+                ->where('company_id',$user->company_id)
+                ->get();
+        
                 return response()->json([
-                    'status_code' => 500,
-                    'status' => false,
-                    'error' => $e->getMessage(),
-                ], 500);
+                    'status_code' => 200,
+                    'status' => true,
+                    'data' => $getusers,
+                ]);
+            }elseif($user->role_id == 7)
+            {
+                $getusers =User::with('company')
+                ->get();
+                return response()->json([
+                    'status_code' => 200,
+                    'status' => true,
+                    'data' => $getusers,
+                ]);
             }
+            else{
+                return response()->json([
+                    'status_code' => 200,
+                    'status' => true,
+                    'message' => 'Not Allowed',
+                ]);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'error' => $e->getMessage(),
+            ], 500);
         }
+    }
 
     public function updateUser(Request $request, $id)
     {

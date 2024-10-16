@@ -36,6 +36,8 @@ class CompanyController extends Controller
                 $company = new Company;
                 $company->name = $request->name;
                 $company->website = $request->website;
+                $company->status  = $request->status;
+
                 $company->save();
         
                 // Create a new user
@@ -47,7 +49,8 @@ class CompanyController extends Controller
                     'password' => Hash::make('Abc@123!'),
                     'role_id'=>$request->permission_level,
                     'created_by' => $company->id,
-                    'status' => $request->status
+                    'status' => $request->status,
+
                 ]);
     
                 //Assign Role
@@ -170,44 +173,61 @@ class CompanyController extends Controller
         }
     }
 
-    public function getCompanies($id)
+    public function getCompanies()
     {
         try {
-            
             $user = Auth::user();
-            if($user->role_id == 7)
-            {
-                $companies = Company::get();
-                if(!$companies) {
+            $companies = [];
+
+            if ($user->role_id == 7) { // Super Admin
+                // Fetch companies with site admins and user counts
+                $companies = Company::with('siteAdmin') // Eager load site admins
+                    ->withCount('users') // Count users for each company
+                    ->get();
+
+                if ($companies->isEmpty()) {
                     return response()->json([
                         'status' => 422,
                         'message' => 'No Company Found Yet',
                     ], 422);
                 }
+
+                // Format the response to include the full company object
+                $formattedCompanies = $companies->map(function ($company) {
+                    $company->users_count = $company->users_count;
+                    return [
+                        'company' => $company, // Full company object
+                        // 'site_admin' => $company->siteAdmin, // Site admin details
+                        // 'users_count' => $company->users_count, // Count of users
+                    ];
+                });
                 
                 return response()->json([
                     'status' => 201,
                     'message' => 'Companies Found Successfully',
-                    'data' => $companies,
+                    'data' => $formattedCompanies,
                 ], 200);
-            }elseif($user->role_id == 2)
-            {
-                $companies = Company::where('id',$user->company_id)->get();
+            } elseif ($user->role_id == 2 || $user->role_id == 1) { // Site Admin or Company Admin
+                // Fetch specific company for the logged-in user
+                $companies = Company::with('siteAdmin') // Eager load site admin
+                    ->withCount('users') // Count users for this specific company
+                    ->where('id', $user->company_id)
+                    ->get();
+
+                // Format the response similarly
+                $formattedCompanies = $companies->map(function ($company) {
+                    $company->users_count = $company->users_count;
+                    return [
+                        'company' => $company, // Full company object
+                    ];
+                });
+
                 return response()->json([
                     'status' => 201,
-                    'message' => 'Companies Found Successfully',
-                    'data' => $companies,
+                    'message'=> 'Companies Found Successfully',
+                    'data' => $formattedCompanies,
                 ], 200);
-            }elseif($user->role_id == 1)
-            {
-                $companies = Company::where('id',$user->company_id)->get();
-                return response()->json([
-                    'status' => 201,
-                    'message' => 'Companies Found Successfully',
-                    'data' => $companies,
-                ], 200);
-            }
-            else{
+            } else {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Permission Denied!',
@@ -215,16 +235,17 @@ class CompanyController extends Controller
             }
             
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+
     
     public function updateCompany(Request $request, $id)
     {
         try {
             
             $user = Auth::user();
-            if($user->role_id == 7)
+            if($user->role_id == 7 || $user->company_id == $id)
             {
                 // Check Company
                 $company = Company::find($id);
@@ -248,6 +269,8 @@ class CompanyController extends Controller
                 // Update Company
                 $company->name = $request->name;
                 $company->website = $request->website;
+                $company->status = $request->status;
+
                 $company->save();
         
                 // Update user
@@ -413,6 +436,85 @@ class CompanyController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function filterCompanyByStatus(Request $request)
+    {
+        $this->validate($request, [
+            'status' => 'nullable'
+        ]);
+
+        try {
+            $user= Auth::user();
+            if($user->role_id == 7)
+            {
+                $status = $request->input('status');
+                // Filter users by the active
+                $companies = Company::where('status', $status)
+                ->get();
+    
+                return response()->json([
+                    'status_code' => 200,
+                    'status' => true,
+                    'data' => $companies,
+                ]);
+            }elseif($user->role_id == 2)
+            {
+                $status = $request->input('status');
+                // Filter users by the specified permission level
+                $companies = Company::where('status', $status)
+                ->get();
+    
+                return response()->json([
+                    'status_code' => 200,
+                    'status' => true,
+                    'data' => $companies,
+                ]);
+            }
+            else{
+                return response()->json([
+                    'status_code' => 422,
+                    'status' => true,
+                    'message' => 'Not allowed',
+                ]);
+            }
+           
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function searchCompany(Request $request)
+    {
+        $this->validate($request, [
+            'search_term' => 'required|string|max:255',
+        ]);
+
+        try {
+            $searchTerm = $request->input('search_term');
+
+                $company = Company::where(function($query) use ($searchTerm) {
+                    $query->where('name', 'LIKE', "%{$searchTerm}%");
+                })->get();
+
+            return response()->json([
+                'status_code' => 200,
+                'status' => true,
+                'data' => $company,
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }
