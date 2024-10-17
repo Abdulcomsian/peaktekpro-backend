@@ -814,7 +814,7 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
              // Prepare Attachments
-            $attachments = [];
+            $attachmentPaths = [];
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $attachment) {
                     // Check if the uploaded item is indeed a file

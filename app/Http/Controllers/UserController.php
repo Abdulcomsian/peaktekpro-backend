@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Auth;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Auth;
 use App\Enums\PermissionLevel;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends Controller
 {
@@ -88,6 +89,8 @@ class UserController extends Controller
                 $add_user->company_id = $request->company_id;
                 $add_user->role_id = $request->permission_level_id;
                 $add_user->status = $request->status;
+                $add_user->password =  Hash::make('12345678');
+
                 $add_user->save();
 
                 return response()->json([
