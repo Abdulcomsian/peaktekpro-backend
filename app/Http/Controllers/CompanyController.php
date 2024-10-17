@@ -42,6 +42,7 @@ class CompanyController extends Controller
 
                 $company->save();
         
+                $password= "12345678";
                 // Create a new user
                 $create_user = User::create([
                     // 'role_id' => 1,
@@ -55,6 +56,9 @@ class CompanyController extends Controller
 
                 ]);
     
+                   // Send the password email
+                // Mail::to($request->site_admin_email)->send(new UserPasswordMail($request->site_admin_email, $password));
+            
                 //Assign Role
                 $user_role = UserRole::updateOrCreate([
                     'user_id' => $create_user->id,
@@ -63,10 +67,6 @@ class CompanyController extends Controller
                     'user_id' => $create_user->id,
                     'company_id' => $company->id
                 ]);
-
-                 // Send the password email
-            // \Mail::to($request->site_admin_email)->send(new UserPasswordMail($request->site_admin_email, $password));
-            
                 
                 return response()->json([
                     'status' => 201,

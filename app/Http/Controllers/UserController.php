@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Auth;
+use Mail;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use App\Enums\PermissionLevel;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Mail\UserPasswordMail;
 
 class UserController extends Controller
 {
@@ -93,6 +95,9 @@ class UserController extends Controller
 
                 $add_user->save();
 
+                // Send the password email
+                // Mail::to($request->email)->send(new UserPasswordMail($request->email, $add_user->password));
+            
                 return response()->json([
                     'status_code'=> 200,
                     'status' => true,
