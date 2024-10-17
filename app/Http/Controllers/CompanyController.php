@@ -480,13 +480,9 @@ class CompanyController extends Controller
                 ]);
             }
            
-            
         } catch (\Exception $e) {
-            return response()->json([
-                'status_code' => 500,
-                'status' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+                return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+
         }
     }
 
@@ -510,11 +506,35 @@ class CompanyController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            return response()->json([
-                'status_code' => 500,
-                'status' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+
         }
+    }
+
+    public function viewCompany($id)
+    {
+        try{
+            $user =  Auth::user();
+            // if($user->role_id == 7)
+            $company = Company::find($id);
+            if(!$company)
+            {
+                return response()->json([
+                    'status_code' => 404,
+                    'status' => true,
+                    'message' => 'Company Not Exist',
+                ]);
+            }
+            return response()->json([
+                'status_code' => 200,
+                'status' => true,
+                'data' => $company,
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json(['error'=> $e->getMessage(). 'on Line' . $e->getLine(). 'in file'. $e->getFile()]);
+        }
+       
+
     }
 }
