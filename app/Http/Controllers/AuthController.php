@@ -78,7 +78,7 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5 || $userExists->role_id == 7) {
+            if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5 || $userExists->role_id == 7 || $userExists->role_id == 8 || $userExists->role_id == 9) {
 
                 if (Auth::attempt($request->only('email', 'password'))) {
                     $user = Auth::user();
