@@ -71,8 +71,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('createUser', [UserController::class, 'addUser']);
     Route::get('getUser', [UserController::class, 'getUser']);
     Route::post('updateUser/{id}', [UserController::class, 'updateUser']);
-    Route::post('users/filter', [UserController::class, 'filterUsersByPermission']);
-    Route::post('users/search', [UserController::class, 'searchUsers']);
+    Route::get('users/filter', [UserController::class, 'filterUsersByPermission']);
+    Route::get('users/search', [UserController::class, 'searchUsers']);
 
     //setting apis
     Route::post('updateProfile/{id}', [ProfileController::class, 'updateProfile']);

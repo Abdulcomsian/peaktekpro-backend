@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use Mail;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Company;
 use App\Models\UserRole;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
 use App\Enums\PermissionLevel;
-use Mail;
 use App\Mail\UserPasswordMail;
+use Exception;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CompanyController extends Controller
 {
@@ -82,64 +84,6 @@ class CompanyController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-    // public function createCompany1(Request $request)
-    // {
-    //     //Validate Request
-    //     $this->validate($request, [
-    //         'name' => 'required|string',
-    //         'website' => 'required|string',
-    //         'site_admin_name' => 'required|string',
-    //         'site_admin_email' => 'required|email|unique:users,email',
-    //         'status' => 'required|string|in:active,inactive'
-    //     ]);
-        
-    //     try {
-            
-    //         $user = Auth::user();
-    //         if($user->role_id == 7)
-    //         {
-    //             // Create Company
-    //             $company = new Company;
-    //             $company->name = $request->name;
-    //             $company->website = $request->website;
-    //             $company->save();
-        
-    //             // Create a new user
-    //             $create_user = User::create([
-    //                 'role_id' => 1,
-    //                 'company_id' => $company->id,
-    //                 'name' => $request->site_admin_name,
-    //                 'email' => $request->site_admin_email,
-    //                 'password' => Hash::make('Abc@123!'),
-    //                 'created_by' => $company->id,
-    //                 'status' => $request->status
-    //             ]);
-    
-    //             //Assign Role
-    //             $user_role = UserRole::updateOrCreate([
-    //                 'user_id' => $create_user->id,
-    //                 'company_id' => $company->id
-    //             ],[
-    //                 'user_id' => $create_user->id,
-    //                 'company_id' => $company->id
-    //             ]);
-                
-    //             return response()->json([
-    //                 'status' => 201,
-    //                 'message' => 'Company Created Successfully',
-    //                 'data' => $company,
-    //             ], 201);
-    //         }
-            
-    //         return response()->json([
-    //             'status' => 422,
-    //             'message' => 'Permission Denied!',
-    //         ], 422);
-            
-    //     } catch (\Exception $e) {
-    //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-    //     }
-    // }
     
     public function getCompany($id)
     {
@@ -534,7 +478,32 @@ class CompanyController extends Controller
         }catch(\Exception $e){
             return response()->json(['error'=> $e->getMessage(). 'on Line' . $e->getLine(). 'in file'. $e->getFile()]);
         }
-       
+    }
+
+    public function editCompany($id)
+    {
+        try{
+            $company = Company::with('siteAdmin')->findOrFail($id);
+            return response()->json([
+                'status_code' => 200,
+                'status' => true,
+                'data'=> $company,
+            ]);
+
+        }catch(ModelNotFoundException $e){
+            return response()->json([
+                'status_code' => 404,
+                'status' => false,
+                'message' => 'Company not found',
+            ], 404);
+
+        }catch(Exception $e){
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
 
     }
 }
