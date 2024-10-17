@@ -186,7 +186,7 @@ class UserController extends Controller
             {
                 $permissionLevel = $request->input('permission_level');
                 // Filter users by the specified permission level
-                $users = User::where('role_id', $permissionLevel)
+                $users = User::with('company')->where('role_id', $permissionLevel)
                 ->where('company_id',$user->company_id)
                 ->get();
     
@@ -199,7 +199,7 @@ class UserController extends Controller
             {
                 $permissionLevel = $request->input('permission_level');
                 // Filter users by the specified permission level
-                $users = User::where('role_id', $permissionLevel)
+                $users = User::with('company')->where('role_id', $permissionLevel)
                 ->get();
     
                 return response()->json([
@@ -241,7 +241,7 @@ class UserController extends Controller
         try {
             $searchTerm = $request->input('search_term');
 
-            $users = User::where(function($query) use ($searchTerm) {
+            $users = User::with('company')->where(function($query) use ($searchTerm) {
                 $query->where('first_name', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('email', 'LIKE', "%{$searchTerm}%");
