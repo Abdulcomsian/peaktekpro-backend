@@ -21,7 +21,7 @@ class UserController extends Controller
             {
                 $getusers = User::with('company')
                 ->where('company_id',$user->company_id)
-                ->whereNotIn('role_id',[7,2])
+                ->whereNotIn('role_id',[7,2,1])
                 ->get();
         
                 return response()->json([
@@ -234,6 +234,7 @@ class UserController extends Controller
         }
     }
 
+
     public function searchUsers(Request $request)
     {
         $this->validate($request, [
@@ -242,13 +243,22 @@ class UserController extends Controller
 
         try {
             $searchTerm = $request->input('search_term');
-
-            $users = User::with('company')->where(function($query) use ($searchTerm) {
+            $user = Auth::user();
+            
+            $usersQuery = User::with('company')->where(function($query) use ($searchTerm) {
                 $query->where('first_name', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('email', 'LIKE', "%{$searchTerm}%");
-            })->get();
+            });
 
+            if (in_array($user->role_id, [1, 2])) {
+                $users = $usersQuery->whereNotIn('role_id', [2, 7, 1])->get();
+            } elseif ($user->role_id == 7) {
+                $users = $usersQuery->whereNotIn('role_id', [7])->get();
+            } else {
+                $users = collect(); // Return an empty collection if no roles match
+            }
+            
             return response()->json([
                 'status_code' => 200,
                 'status' => true,
@@ -263,5 +273,6 @@ class UserController extends Controller
             ], 500);
         }
     }
+
     
 }
