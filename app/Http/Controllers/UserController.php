@@ -176,11 +176,11 @@ class UserController extends Controller
 
     public function filterUsersByPermission(Request $request)
     {
-        $this->validate($request, [
-            'permission_level' => 'required|integer|in:' . implode(',', array_column(PermissionLevel::cases(), 'value')),
-        ]);
+        try{
+            $this->validate($request, [
+                'permission_level' => 'required|integer|in:' . implode(',', array_column(PermissionLevel::cases(), 'value')),
+            ]);
 
-        try {
             $user= Auth::user();
             if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1)
             {
@@ -216,11 +216,18 @@ class UserController extends Controller
                 ]);
             }   
             
-        } catch (Exception $e) {
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status_code' => 422,
+                'status' => false,
+                'message' => $e->validator->errors(),
+            ], 422);
+        }
+        catch (Exception $e) {
             return response()->json([
                 'status_code' => 500,
                 'status' => false,
-                'error' => $e->getMessage(),
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
