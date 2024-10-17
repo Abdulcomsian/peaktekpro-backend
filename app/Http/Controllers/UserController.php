@@ -21,6 +21,7 @@ class UserController extends Controller
             {
                 $getusers = User::with('company')
                 ->where('company_id',$user->company_id)
+                ->whereNotIn('role_id',[7,2])
                 ->get();
         
                 return response()->json([
@@ -31,6 +32,7 @@ class UserController extends Controller
             }elseif($user->role_id == 7)
             {
                 $getusers =User::with('company')
+                ->whereNotIn('role_id',[7])
                 ->get();
                 return response()->json([
                     'status_code' => 200,

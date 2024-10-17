@@ -13,7 +13,7 @@ class Company extends Model
 
     public function siteAdmin()
     {
-        return $this->hasOne(User::class, 'company_id', 'id')->where('role_id', 2);
+        return $this->hasOne(User::class, 'company_id', 'id')->where('role_id', [1,2]);
     }
 
     public function users()

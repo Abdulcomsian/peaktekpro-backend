@@ -140,7 +140,7 @@ class CompanyController extends Controller
                 $formattedCompanies = $companies->map(function ($company) {
                     $company->users_count = $company->users_count;
                     return [
-                        'company' => $company, // Full company object
+                         $company, // Full company object
                         // 'site_admin' => $company->siteAdmin, // Site admin details
                         // 'users_count' => $company->users_count, // Count of users
                     ];
@@ -184,7 +184,7 @@ class CompanyController extends Controller
     }
 
     
-    public function updateCompany(Request $request, $id)
+    public function updateCompany11(Request $request, $id)
     {
         try {
             
@@ -241,6 +241,68 @@ class CompanyController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function updateCompany(Request $request, $id)
+    {
+        try {
+            $user = Auth::user();
+            // Check user permissions
+            if ($user->role_id != 7 ) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Permission Denied!',
+                ], 422);
+            }
+
+            // Check Company
+            $company = Company::find($id);
+            if (!$company) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Company Not Found',
+                ], 422);
+            }
+
+            $update_user = User::where('company_id', $id)->first();
+
+            // Validate incoming request
+            $this->validate($request, [
+                'name' => 'nullable|string',
+                'website' => 'nullable|string',
+                'site_admin_name' => 'nullable|string',
+                'site_admin_email' => 'nullable|email|unique:users,email,' . ($update_user ? $update_user->id : ''),
+                'status' => 'nullable|string|in:active,inactive',
+            ]);
+
+            // Update Company
+            $company->name = $request->input('name', $company->name);
+            $company->website = $request->input('website', $company->website);
+            $company->status = $request->input('status', $company->status);
+            $company->save();
+
+            // Update User
+            if ($update_user) {
+                $update_user->name = $request->input('site_admin_name', $update_user->name);
+                $update_user->email = $request->input('site_admin_email', $update_user->email);
+                $update_user->status = $request->input('status', $update_user->status);
+                $update_user->save();
+            }
+
+            // $data=$company->with('siteAdmin');
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Company Updated Successfully',
+                'data' => ['company'=>$company, 'user'=>$update_user],
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
+            ], 500);
+        }
+    }
+
     
     public function getCompanyUsers(Request $request)
     {
@@ -395,7 +457,9 @@ class CompanyController extends Controller
             {
                 $status = $request->input('status');
                 // Filter users by the active
-                $companies = Company::where('status', $status)
+                $companies = Company::with('siteAdmin')
+                ->withCount('users')
+                ->where('status', $status)
                 ->get();
     
                 return response()->json([
@@ -433,13 +497,15 @@ class CompanyController extends Controller
     public function searchCompany(Request $request)
     {
         $this->validate($request, [
-            'search_term' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
         ]);
 
         try {
-            $searchTerm = $request->input('search_term');
+            $searchTerm = $request->input('name');
 
-                $company = Company::where(function($query) use ($searchTerm) {
+                $company = Company::with('siteAdmin')
+                ->withCount('users')
+                ->where(function($query) use ($searchTerm) {
                     $query->where('name', 'LIKE', "%{$searchTerm}%");
                 })->get();
 
@@ -460,7 +526,7 @@ class CompanyController extends Controller
         try{
             $user =  Auth::user();
             // if($user->role_id == 7)
-            $company = Company::find($id);
+            $company = Company::with('siteAdmin')->find($id);
             if(!$company)
             {
                 return response()->json([

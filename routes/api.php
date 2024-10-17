@@ -83,12 +83,12 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('create/company', [CompanyController::class, 'createCompany']);
     Route::get('get/company/{id}', [CompanyController::class, 'getCompany']);
     Route::get('getCompanies', [CompanyController::class, 'getCompanies']);
-    Route::post('company/filter', [CompanyController::class, 'filterCompanyByStatus']);
-    Route::post('company/search', [CompanyController::class, 'searchCompany']);
+    Route::get('company/filter', [CompanyController::class, 'filterCompanyByStatus']);
+    Route::get('company/search', [CompanyController::class, 'searchCompany']);
     Route::get('company/view/{id}', [CompanyController::class, 'viewCompany']);
     Route::get('company/edit/{id}', [CompanyController::class, 'editCompany']);
-
     Route::post('update/company/{id}', [CompanyController::class, 'updateCompany']);
+    
     Route::get('get/company-users', [CompanyController::class, 'getCompanyUsers']);
     Route::get('get/company-sub-contractors', [CompanyController::class, 'getCompanySubContractors']);
     Route::get('get/company-suppliers', [CompanyController::class, 'getCompanySuppliers']);
