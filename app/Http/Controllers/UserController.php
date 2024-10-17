@@ -102,6 +102,7 @@ class UserController extends Controller
 
     public function updateUser(Request $request, $id)
     {
+        // dd($request->all());
         // Validate the incoming request
         $this->validate($request, [
             'first_name' => 'nullable|string',
@@ -116,8 +117,9 @@ class UserController extends Controller
             $user = Auth::user();
             if($user->role_id == 2 || $user->role_id == 1)
             {
+                // dd("123");
                 $update_user = User::findOrFail($id);
-
+                // dd($update_user);
                 // Update user
                 $update_user->first_name = $request->first_name ?? $update_user->first_name;
                 $update_user->last_name = $request->last_name ?? $update_user->last_name;
@@ -127,13 +129,13 @@ class UserController extends Controller
                 $update_user->status = $request->status ?? $update_user->status;
 
                 // Save changes
-                $user->save();
+                $update_user->save();
 
                 return response()->json([
                     'status_code' => 200,
                     'status' => true,
                     'message' => 'User updated successfully',
-                    'data' => $user,
+                    'data' => $update_user,
                 ]);
             }else{
                 return response()->json([
