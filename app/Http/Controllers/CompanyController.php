@@ -125,7 +125,7 @@ class CompanyController extends Controller
 
             if ($user->role_id == 7) { // Super Admin
                 // Fetch companies with site admins and user counts
-                $companies = Company::with('siteAdmin') // Eager load site admins
+                $companies = Company::with('siteAdmins') // Eager load site admins
                     ->withCount('users') // Count users for each company
                     ->get();
 
@@ -154,7 +154,7 @@ class CompanyController extends Controller
                 ], 200);
             } elseif ($user->role_id == 2 || $user->role_id == 1) { // Site Admin or Company Admin
                 // Fetch specific company for the logged-in user
-                $companies = Company::with('siteAdmin') // Eager load site admin
+                $companies = Company::with('siteAdmins') // Eager load site admin
                     ->withCount('users') // Count users for this specific company
                     ->where('id', $user->company_id)
                     ->get();

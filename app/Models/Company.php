@@ -16,6 +16,12 @@ class Company extends Model
         return $this->hasOne(User::class, 'company_id', 'id')->where('role_id', [1,2]);
     }
 
+    public function siteAdmins() 
+    {
+        return $this->hasMany(User::class, 'company_id', 'id')->whereIn('role_id', [1, 2]);
+    }
+
+
     public function users()
     {
         return $this->hasMany(User::class, 'company_id', 'id'); 
