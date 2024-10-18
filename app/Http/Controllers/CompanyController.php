@@ -147,7 +147,7 @@ class CompanyController extends Controller
                 });
                 
                 return response()->json([
-                    'status' => 201,
+                    'status' => 200,
                     'message' => 'Companies Found Successfully',
                     'data' => $formattedCompanies,
                 ], 200);
