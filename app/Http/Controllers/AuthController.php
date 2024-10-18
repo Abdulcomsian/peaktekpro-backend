@@ -20,7 +20,9 @@ class AuthController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'name' => 'required|string',
+            // 'name' => 'required|string',
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
@@ -32,7 +34,9 @@ class AuthController extends Controller
             $user = User::create([
                 'role_id' => 5,
                 'company_id' => 1,
-                'name' => $request->name,
+                'name' => $request->first_name. $request->last_name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
