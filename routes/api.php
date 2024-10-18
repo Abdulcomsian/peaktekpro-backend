@@ -251,6 +251,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/term-and-condition/{jobId}', [TermAndConditionController::class, 'getTermAndConditions']);
     //Estimate Prepared Api's
     Route::post('store/estimate-prepared/{jobId}', [EstimatePreparedController::class, 'storeEstimatePrepared']);
+    Route::post('estimate-prepared-status/{jobId}', [EstimatePreparedController::class, 'EstimatePreparedStatus']);
     Route::get('get/estimate-prepared/{jobId}', [EstimatePreparedController::class, 'getEstimatePrepared']);
     Route::post('change/estimate-prepared/file-name/{id}', [EstimatePreparedController::class, 'changeEstimatePreparedFileName']);
     Route::post('delete/estimate-prepared/media/{id}', [EstimatePreparedController::class, 'deleteEstimatePreparedMedia']);

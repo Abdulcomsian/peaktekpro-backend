@@ -16,9 +16,10 @@ return new class extends Migration
         Schema::create('estimate_prepareds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('prepared_by');
-            $table->string('date');
-            $table->boolean('complete_box')->default(0);
+            $table->string('prepared_by')->nullable();
+            $table->string('date')->nullable();
+            $table->string('status')->nullable();
+            $table->boolean('complete_box')->default(0)->nullable();
             $table->timestamps();
         });
     }

@@ -52,7 +52,7 @@ class AuthController extends Controller
 
             DB::commit();
             return response()->json([
-                'status' => 201,
+                'status' => 200,
                 'message' => 'User Registered Successfully',
                 'user' => $user,
                 'token' => $token

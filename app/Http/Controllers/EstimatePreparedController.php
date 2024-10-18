@@ -66,6 +66,42 @@ class EstimatePreparedController extends Controller
         }
     }
 
+    public function EstimatePreparedStatus(Request $request, $jobId)
+    {
+        $this->validate($request, [
+            'status' => 'nullable|string',
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $estimate = EstimatePrepared::updateOrCreate([
+                'company_job_id' => $jobId
+            ],[
+                'company_job_id' => $jobId,
+                'status' => $request->status,
+            ]);
+
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Estimate Prepared Status Updated Successfully',
+                'data' => $estimate
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function getEstimatePrepared($jobId)
     {
         try {
