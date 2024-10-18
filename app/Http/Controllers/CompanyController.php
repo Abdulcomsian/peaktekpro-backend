@@ -140,7 +140,8 @@ class CompanyController extends Controller
                 $formattedCompanies = $companies->map(function ($company) {
                     $company->users_count = $company->users_count;
                     return [
-                         $company, // Full company object
+                        'company' => $company,
+                        //  $company, // Full company object
                         // 'site_admin' => $company->siteAdmin, // Site admin details
                         // 'users_count' => $company->users_count, // Count of users
                     ];

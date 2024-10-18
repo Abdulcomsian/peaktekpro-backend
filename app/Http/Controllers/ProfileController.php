@@ -44,27 +44,6 @@ class ProfileController extends Controller
         }
     }
 
-    public function changePasswor11d(Request $request)
-{
-    // Validate the request data
-    $validatedData = $request->validate([
-        'current_password' => 'required|string',
-        'new_password' => 'required|string|min:8|confirmed', // 'confirmed' checks for matching passwords
-    ]);
-
-    // Check if the current password is correct
-    if (!Hash::check($validatedData['current_password'], Auth::user()->password)) {
-        return response()->json(['error' => 'The provided password does not match our records.'], 403);
-    }
-
-    // Update the password
-    $user = Auth::user();
-    $user->password = Hash::make($validatedData['new_password']);
-    $user->save();
-
-    return response()->json(['message' => 'Password changed successfully.']);
-}
-
 
     public function changePassword(Request $request)
     {
