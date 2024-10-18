@@ -24,12 +24,12 @@ class ProfileController extends Controller
 
         try { 
             $user= User::find($id);
-            $user->first_name=$request->first_name;
-            $user->last_name=$request->last_name;
-            $user->email=$request->email;
-            $user->phone=$request->phone;
-            $user->job_title=$request->job_title;
-            $user->market_segment=$request->market_segment;
+            $user->first_name=$request->first_name ?? $user->first_name;
+            $user->last_name=$request->last_name ?? $user->last_name;
+            $user->email=$request->email ?? $user->email;
+            $user->phone=$request->phone ?? $user->phone;
+            $user->job_title=$request->job_title ?? $user->job_title;
+            $user->market_segment=$request->market_segment ?? $user->market_segment;
 
             $user->save();
 
