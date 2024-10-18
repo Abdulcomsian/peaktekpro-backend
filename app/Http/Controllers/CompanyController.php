@@ -184,7 +184,7 @@ class CompanyController extends Controller
     }
 
     
-    public function updateCompany11(Request $request, $id)
+    public function updateCompany1(Request $request, $id)
     {
         try {
             
@@ -246,13 +246,10 @@ class CompanyController extends Controller
     {
         try {
             $user = Auth::user();
+            // dd($user);
             // Check user permissions
-            if ($user->role_id != 7 || $user->role_id != 1) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Permission Denied!',
-                ], 422);
-            }
+            if ($user->role_id == 7 || $user->role_id == 1) {
+              
 
             // Check Company
             $company = Company::find($id);
@@ -295,7 +292,15 @@ class CompanyController extends Controller
                 'message' => 'Company Updated Successfully',
                 'data' => ['company'=>$company, 'user'=>$update_user],
             ], 200);
-
+        }else{
+            return response()->json([
+                'status_code' =>false,
+                'status' => 422,
+                'message' => 'Permission Denied!',
+            ], 422);
+        }
+           
+        
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
