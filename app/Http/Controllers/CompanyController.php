@@ -247,7 +247,7 @@ class CompanyController extends Controller
         try {
             $user = Auth::user();
             // Check user permissions
-            if ($user->role_id != 7 ) {
+            if ($user->role_id != 7 || $user->role_id != 1) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Permission Denied!',
