@@ -37,7 +37,7 @@ class CustomerAgreementController extends Controller
                 'customer_printed_name' => 'nullable',
                 'customer_date' => 'nullable|date_format:m/d/Y',
                 'agreement_date' => 'nullable|date_format:m/d/Y',
-                'customer_name' => 'required|string',
+                'customer_name' => 'nullable|string',
                 'status' => 'nullable'
             ]);
 
@@ -172,7 +172,7 @@ class CustomerAgreementController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'sign_image' => 'required',
+            'sign_image' => 'nullable',
         ]);
         try {
 
@@ -249,7 +249,7 @@ class CustomerAgreementController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'url' => 'required',
+            'url' => 'nullable',
         ]);
 
         try {
@@ -360,7 +360,7 @@ class CustomerAgreementController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'sign_image' => 'required',
+            'sign_image' => 'nullable',
         ]);
 
         try {
