@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use PDF;
+use Carbon\Carbon;
 use App\Jobs\SignEmailJob;
 use App\Models\CompanyJob;
 use App\Mail\SignEmailMail;
 use Illuminate\Http\Request;
+use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class CustomerAgreementController extends Controller
 {
@@ -281,7 +282,6 @@ class CustomerAgreementController extends Controller
     public function checkCustomerAgreement($jobId)
     {
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -293,6 +293,18 @@ class CustomerAgreementController extends Controller
 
             //Check Agreement
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
+
+            ////
+            $job_summary = CompanyJobSummary::select('id','insurance','policy_number','email','insurance_representative','claim_number')
+            ->where('company_job_id', $job->id)->first();
+            if(!$job_summary) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Job Summary Not Yet Created',
+                ], 200);
+            }
+
+            ///
             if(!$agreement) {
 
                 //Job Information
@@ -305,7 +317,11 @@ class CustomerAgreementController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message' => 'Customer Agreement Not Found',
-                    'agreement' => $job_info
+                    'data' => [
+                        'agreement' => $job_info,
+                        'jobsummary' =>  $job_summary
+                    ]
+                    
                 ], 200);
             }
 
@@ -322,7 +338,11 @@ class CustomerAgreementController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Customer Agreement Found Successfully',
-                'agreement' => $agreement
+                'data' => [
+                    'agreement' => $agreement,
+                    'jobsummary' => $job_summary,
+                ]
+                
             ], 200);
 
         } catch (\Exception $e) {
