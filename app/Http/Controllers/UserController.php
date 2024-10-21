@@ -24,7 +24,7 @@ class UserController extends Controller
             {
                 $getusers = User::with('company')
                 ->where('company_id',$user->company_id)
-                ->whereNotIn('role_id',[7,2,1])
+                // ->whereNotIn('role_id',[7,2,1])
                 ->get();
         
                 return response()->json([
