@@ -14,10 +14,10 @@ class EstimatePreparedController extends Controller
     public function storeEstimatePrepared(Request $request, $jobId)
     {
         $this->validate($request, [
-            'prepared_by' => 'required|string',
-            'complete_box' => 'required|in:true,false',
+            'prepared_by' => 'nullable|string',
+            'complete_box' => 'nullable|in:true,false',
             'date' => 'nullable|date_format:m/d/Y',
-            'images' => 'required|array'
+            'images' => 'nullable|array'
         ]);
 
         try {
@@ -68,6 +68,7 @@ class EstimatePreparedController extends Controller
 
     public function EstimatePreparedStatus(Request $request, $jobId)
     {
+        // dd("123");
         $this->validate($request, [
             'status' => 'nullable|string',
         ]);

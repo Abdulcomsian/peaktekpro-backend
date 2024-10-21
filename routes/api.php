@@ -94,8 +94,6 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/company-suppliers', [CompanyController::class, 'getCompanySuppliers']);
     Route::get('get/company-adjustors', [CompanyController::class, 'getCompanyAdjustors']);
     
-    //hackathon
-    Route::post('hackWhat',[UserController::class,'whatHack']);
     //User Management Api's
     Route::post('add/user', [UserManagementController::class, 'addUser']);
     Route::get('get/user/{id}', [UserManagementController::class, 'getUser']);
