@@ -292,12 +292,11 @@ class CustomerAgreementController extends Controller
             }
 
             //Check Agreement
-            $agreement = CustomerAgreement::with('jobSummary')
-            ->where('company_job_id', $jobId)->first();
+            $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
 
             ////
-            // $job_summary = CompanyJobSummary::select('id','insurance','policy_number','email','insurance_representative','claim_number')
-            // ->where('company_job_id', $job->id)->first();
+            $job_summary = CompanyJobSummary::select('id','insurance','policy_number','email','insurance_representative','claim_number')
+            ->where('company_job_id', $job->id)->first();
             // if(!$job_summary) {
             //     return response()->json([
             //         'status' => 200,
@@ -320,7 +319,7 @@ class CustomerAgreementController extends Controller
                     'message' => 'Customer Agreement Not Found',
                     'data' => [
                         'agreement' => $job_info,
-                        // 'jobsummary' =>  $job_summary
+                        'jobsummary' =>  $job_summary
                     ]
                     
                 ], 200);
@@ -339,8 +338,9 @@ class CustomerAgreementController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Customer Agreement Found Successfully',
-                'data' => [ $agreement,
-                    // 'jobsummary' => $job_summary,
+                'data' => [ 
+                   'agreement' => $agreement,
+                'jobsummary' => $job_summary,
                 ]
                 
             ], 200);
