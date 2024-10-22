@@ -173,7 +173,7 @@ class MeetingController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Adjustor Meeting Status Updated Successfully',
-                'data' => []
+                'data' => $adjustor_meeting,
             ], 200); 
 
         } catch (\Exception $e) {
