@@ -106,7 +106,7 @@ class ReadyToBuildController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Status Updated Successfully',
-                'data' => [],
+                'data' => $ready_to_build,
             ], 200);
 
         } catch (\Exception $e) {

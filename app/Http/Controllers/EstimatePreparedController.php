@@ -133,7 +133,7 @@ class EstimatePreparedController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'file_name' => 'required|string'
+            'file_name' => 'nullable|string'
         ]);
 
         try {
@@ -166,7 +166,7 @@ class EstimatePreparedController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'image_url' => 'required|string'
+            'image_url' => 'nullable|string'
         ]);
 
         try {
