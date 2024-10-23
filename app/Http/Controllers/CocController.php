@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use PDF;
+use Carbon\Carbon;
 use App\Models\Coc;
+// use App\Notifications\CustomNotifiable;
+use App\CustomNotifiable;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 use App\Jobs\CocInsuranceJob;
-use PDF;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\CocInsuranceNotification;
 
 class CocController extends Controller
 {
@@ -264,7 +269,6 @@ class CocController extends Controller
 
     public function CocInsuranceEmail(Request $request, $id)
     {
-        // dd($request->all());
         $this->validate($request, [
             'coc_insurance_email_sent' => 'nullable',
             'send_to' => 'nullable|email',
@@ -272,7 +276,7 @@ class CocController extends Controller
             'email_body' => 'nullable|string',
             'attachments' => 'nullable|array',
         ]);
-        
+    
         try {
             // Check COC
             $coc = Coc::where('id', $id)->first();
@@ -282,23 +286,34 @@ class CocController extends Controller
                     'message' => 'COC Not Found'
                 ], 422);
             }
-            // dd($coc);
-            
+    
             // Prepare attachments
             $attachments = [];
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    // Store the file and get the path
-                    $attachments[] = $file->store('temp'); // Adjust as needed for your storage
+                    $path = $file->store('temp'); // Store the file temporarily
+                    $attachments[] = $path; // Store only the path
                 }
             }
-            
-            // Dispatch the job
-            dispatch(new CocInsuranceJob($request->send_to, $request->subject, $request->email_body, $attachments));
+    
+            // Create an instance of the custom notifiable
+            $notifiable = new \App\CustomNotifiable($request->send_to);
+    
+            // Create the notification
+            $notification = new CocInsuranceNotification($request->subject, $request->email_body, $attachments);
+    
+            // Send the notification
+            Notification::send($notifiable, $notification);
+    
             // Update COC
             $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
             $coc->save();
-            
+    
+            // Clean up temporary files
+            foreach ($attachments as $filePath) {
+                Storage::delete($filePath); // Delete the temporary file
+            }
+    
             return response()->json([
                 'status' => 200,
                 'message' => 'Email Sent successfully',
@@ -308,5 +323,8 @@ class CocController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+    
+
+
 
 }
