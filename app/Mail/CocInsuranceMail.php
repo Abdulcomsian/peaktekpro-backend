@@ -60,7 +60,7 @@ class CocInsuranceMail extends Mailable
     public function attachments()
     {
         $email = $this->subject($this->subject)
-                      ->view('emails.material-order-confirmation-email')
+                      ->view('emails.coc-insurance-email')
                       ->with('body', $this->body);
     
         // Check if $this->attachments is a valid array and has items

@@ -292,8 +292,21 @@ class CocController extends Controller
             }
             
             // Dispatch the job
-            dispatch(new CocInsuranceJob($request->send_to, $request->subject, $request->email_body, $attachments));
-            
+            // dispatch(new CocInsuranceJob($request->send_to, $request->subject, $request->email_body, $attachments));
+            // Ensure send_to and other fields are valid before sending
+        if ($request->send_to) {
+            dispatch(new CocInsuranceJob(
+                $request->send_to, 
+                $request->subject ?? 'Default Subject', // Fallback to default if null
+                $request->email_body ?? 'No body provided.', // Fallback to default if null
+                $attachments
+            ));
+        } else {
+            return response()->json([
+                'status' => 422,
+                'message' => 'No valid email recipient provided.'
+            ], 422);
+        }
             // Update COC
             $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
             $coc->save();
