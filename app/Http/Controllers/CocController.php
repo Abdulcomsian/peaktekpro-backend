@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\CocInsuranceNotification;
+use Exception;
 
 class CocController extends Controller
 {
@@ -276,6 +277,29 @@ class CocController extends Controller
                 'data' => []
             ], 200);
         } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    public function getCocInsuranceEmail($id)
+    {
+        try{
+            // dd("123");
+             // Check COC
+             $coc = Coc::where('id', $id)->first();
+             if (!$coc) {
+                 return response()->json([
+                     'status' => 422,
+                     'message' => 'COC Not Found'
+                 ], 422);
+             }
+             return response()->json([
+                'status' => 200,
+                'message' => 'Coc Insurance Email Found successfully',
+                'data' => $coc
+            ], 200);
+
+        }catch(Exception $e){
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }

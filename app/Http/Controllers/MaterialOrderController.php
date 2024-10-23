@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use PDF;
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\CompanyJob;
-use Illuminate\Http\Request;
-use App\Models\MaterialOrder;
+use App\Models\BuildDetail;
 use App\Models\ReadyToBuild;
+use Illuminate\Http\Request;
+use App\Jobs\ConfirmationJob;
+use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
-use App\Models\MaterialOrderDeliveryInformation;
-use PDF;
-use Carbon\Carbon;
-use App\Models\BuildDetail;
 use App\Models\MaterialOrderConfirmation;
-use App\Jobs\ConfirmationJob;
 use App\Jobs\MaterialOrderConfirmationJob;
+use App\Models\MaterialOrderDeliveryInformation;
+use App\Notifications\MaterialOrderConfirmationNotification;
 
 class MaterialOrderController extends Controller
 {
@@ -814,19 +815,33 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
              // Prepare Attachments
-            $attachmentPaths = [];
+            // $attachmentPaths = [];
+            // if ($request->hasFile('attachments')) {
+            //     foreach ($request->file('attachments') as $attachment) {
+            //         // Check if the uploaded item is indeed a file
+            //         if ($attachment instanceof \Illuminate\Http\UploadedFile) {
+            //             // Add attachment to the array
+            //             $attachmentPaths[] = $attachment->store('attachments/temp'); // Store in a temporary folder
+            //         }
+            //     }
+            // }
+
+            $attachments = [];
             if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $attachment) {
-                    // Check if the uploaded item is indeed a file
-                    if ($attachment instanceof \Illuminate\Http\UploadedFile) {
-                        // Add attachment to the array
-                        $attachmentPaths[] = $attachment->store('attachments/temp'); // Store in a temporary folder
-                    }
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('temp'); 
+                    $attachments[] = $path; 
                 }
             }
+    
+            // Create an instance of the custom notifiable
+            $notifiable = new \App\CustomNotifiable($request->send_to);
+    
+            // Create the notification
+            $notification = new MaterialOrderConfirmationNotification($request->subject, $request->email_body, $attachments);
             
             // Dispatch the job with attachment paths
-            dispatch(new MaterialOrderConfirmationJob($sendToEmails, $request->subject, $request->email_body, $attachmentPaths));
+            // dispatch(new MaterialOrderConfirmationJob($sendToEmails, $request->subject, $request->email_body, $attachmentPaths));
             
             $confirmationEmailSent = $request->input('status', 'false');
 
