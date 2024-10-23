@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use App\Jobs\ConfirmationJob;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
+use App\Models\CustomerAgreement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MaterialOrderMaterial;
@@ -246,7 +247,13 @@ class MaterialOrderController extends Controller
                     'message' => 'Material Order Not Found for this Job'
                 ], 422);
             }
-            
+
+            // Get Customer Agreement using the company_id from MaterialOrder
+            $customer_agreement = CustomerAgreement::where('company_job_id', $material_order->company_job_id)->first();
+
+            // Optionally attach the Customer Agreement to the Material Order response
+            $material_order->customer_agreement = $customer_agreement;
+                
             $build_detail = BuildDetail::where('company_job_id', $material_order->company_job_id)->first();
             if($build_detail) {
                 $material_order->build_detail = $build_detail;

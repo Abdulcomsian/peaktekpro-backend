@@ -25,10 +25,20 @@ class CompanyJob extends Model
     {
         return $this->hasOne(CompanyJobSummary::class);
     }
+
+    public function aggrement()
+    {
+        return $this->hasOne(CustomerAgreement::class);
+    }
     
     public function materialOrder()
     {
         return $this->hasOne(MaterialOrder::class);
+    }
+
+    public function readyBuild()
+    {
+        return $this->hasOne(ReadyToBuild::class);
     }
 
     public function users()

@@ -162,7 +162,7 @@ class CocController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'COC Status Updated Successfully',
-                'data' => []
+                'data' => $coc,
             ], 200);
 
         } catch (\Exception $e) {
@@ -176,7 +176,7 @@ class CocController extends Controller
         try {
 
             //Check Job
-            $job = CompanyJob::whereId($jobId)->with('summary')->first();
+            $job = CompanyJob::whereId($jobId)->with('summary','aggrement','readyBuild')->first();
             if(!$job) {
                 return response()->json([
                     'status' => 422,
@@ -186,20 +186,32 @@ class CocController extends Controller
 
             $get_coc = Coc::where('company_job_id', $jobId)->first();
             if(is_null($get_coc)) {
-
                 // Create a new stdClass object
                 $coc = new \stdClass();
-                $coc->homeowner_name = $job->name;
-                $coc->homeowner_email = $job->email;
+                $coc->homeowner_name = $job->readyBuild->home_owner;
+                $coc->homeowner_email = $job->readyBuild->home_owner_email;
                 $coc->homeowner_address = $job->address;
                 $coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
                 $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
                 $coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
                 $coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
+            // Check if aggrement is not null before accessing its properties
+                $coc->street = !is_null($job->aggrement) && !is_null($job->aggrement->street) 
+                ? $job->aggrement->street 
+                : '';
+                $coc->city = !is_null($job->aggrement) && !is_null($job->aggrement->city) 
+                ? $job->aggrement->city 
+                : '';
+                $coc->state = !is_null($job->aggrement) && !is_null($job->aggrement->state) 
+                ? $job->aggrement->state 
+                : '';
+                $coc->zip_code = !is_null($job->aggrement) && !is_null($job->aggrement->zip_code) 
+                ? $job->aggrement->zip_code 
+                : '';
 
                 return response()->json([
                     'status' => 200,
-                    'message' => 'COC Not Found',
+                    'message' => 'COC Not Found11',
                     'data' => $coc
                 ], 200);
             }

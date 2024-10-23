@@ -25,4 +25,10 @@ class MaterialOrder extends Model
     {
         return $this->belongsTo(User::class, 'supplier_id', 'id');
     }
+
+    public function customerAggrement()
+    {
+        return $this->belongsTo(CustomerAgreement::class, 'company_id');
+    }
+
 }
