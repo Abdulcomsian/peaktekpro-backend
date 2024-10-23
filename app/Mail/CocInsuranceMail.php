@@ -26,6 +26,7 @@ class CocInsuranceMail extends Mailable
         $this->subject = $subject;
         $this->body = $body;
         $this->attachments = is_array($attachments) ? $attachments : [];
+        dd($this->subject,$this->body,$this->attachments);
     }
 
     /**
