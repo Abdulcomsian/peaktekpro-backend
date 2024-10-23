@@ -264,6 +264,7 @@ class CocController extends Controller
 
     public function CocInsuranceEmail(Request $request, $id)
     {
+        dd($request->all());
         $this->validate($request, [
             'coc_insurance_email_sent' => 'nullable',
             'send_to' => 'nullable|email',
@@ -281,6 +282,7 @@ class CocController extends Controller
                     'message' => 'COC Not Found'
                 ], 422);
             }
+            // dd($coc);
             
             // Prepare attachments
             $attachments = [];

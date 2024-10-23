@@ -12,32 +12,71 @@ use Illuminate\Queue\SerializesModels;
 class CocInsuranceMail extends Mailable
 {
     use Queueable, SerializesModels;
-
     public $subject;
     public $body;
     public $attachments;
 
-    public function __construct($subject, $body, $attachments)
+    /**
+     * Create a new message instance.
+     *
+     * @return void
+     */
+    public function __construct($subject,$body,$attachments)
     {
         $this->subject = $subject;
         $this->body = $body;
         $this->attachments = is_array($attachments) ? $attachments : [];
     }
 
-    public function build()
+    /**
+     * Get the message envelope.
+     *
+     * @return \Illuminate\Mail\Mailables\Envelope
+     */
+    public function envelope()
     {
-        $email = $this->view('emails.coc-insurance-email')
-                      ->subject($this->subject)
-                      ->with(['body' => $this->body]);
 
-        // Attach files
-        foreach ($this->attachments as $file) {
-            if (is_string($file)) { // Ensure it's a valid file path
-                $email->attach($file);
+        return new Envelope(
+            subject: $this->subject
+        );
+    }
+
+    /**
+     * Get the message content definition.
+     *
+     * @return \Illuminate\Mail\Mailables\Content
+     */
+    public function content()
+    {
+        return new Content(
+            view: 'emails.coc-insurance-email',
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array
+     */
+    public function attachments()
+    {
+        $email = $this->subject($this->subject)
+                      ->view('emails.coc-insurance-email')
+                      ->with('body', $this->body);
+    
+        // Check if $this->attachments is a valid array and has items
+        if (count($this->attachments) > 0) {
+            foreach ($this->attachments as $file) {
+                // Check if $file is a valid uploaded file instance
+                if ($file instanceof \Illuminate\Http\UploadedFile) {
+                    $email->attach($file->getRealPath(), [
+                        'as' => $file->getClientOriginalName(),
+                        'mime' => $file->getMimeType(),
+                    ]);
+                }
             }
         }
-
+    
         return $email;
     }
 }
-
