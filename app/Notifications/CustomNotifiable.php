@@ -27,6 +27,6 @@ class CustomNotifiable extends Notification
 
     public function routeNotificationForMail()
     {
-        return $this->email; // Specify the email for the notification
+        return $this->email; 
     }
 }

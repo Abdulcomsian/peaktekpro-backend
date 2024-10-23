@@ -222,50 +222,6 @@ class CocController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-    
-    public function CocInsuranceEmail1(Request $request, $id)
-    {
-        $this->validate($request, [
-            'coc_insurance_email_sent' => 'nullable',
-            'send_to' => 'nullable|email',
-            'subject' => 'nullable|string',
-            'email_body' => 'nullable|string',
-            'attachments' => 'nullable|array',
-        ]);
-        
-        try {
-            
-            //Check COC
-            $coc = Coc::where('id', $id)->first();
-            if(!$coc) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'COC Not Found'
-                ], 422);
-            }
-            
-            //Send Email
-            if(isset($request->attachments)) {
-                $attachments = $request->file('attachments');
-            } else {
-                $attachments = [];
-            }
-            
-            dispatch(new CocInsuranceJob($request->send_to,$request->subject,$request->email_body,$attachments));
-            
-            //Update COC
-            $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
-            $coc->save();
-            
-            return response()->json([
-                'status' => 200,
-                'message' => 'Email Sent successfully',
-                'data' => []
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-    }
 
     public function CocInsuranceEmail(Request $request, $id)
     {
@@ -291,8 +247,8 @@ class CocController extends Controller
             $attachments = [];
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('temp'); // Store the file temporarily
-                    $attachments[] = $path; // Store only the path
+                    $path = $file->store('temp'); 
+                    $attachments[] = $path; 
                 }
             }
     
@@ -311,7 +267,7 @@ class CocController extends Controller
     
             // Clean up temporary files
             foreach ($attachments as $filePath) {
-                Storage::delete($filePath); // Delete the temporary file
+                Storage::delete($filePath); 
             }
     
             return response()->json([
@@ -323,8 +279,5 @@ class CocController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
-    
-
-
 
 }
