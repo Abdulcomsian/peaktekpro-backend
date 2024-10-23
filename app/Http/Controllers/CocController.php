@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use PDF;
-use Notification;
-use Carbon\Carbon;
 use App\Models\Coc;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Jobs\CocInsuranceJob;
-use App\Notifications\CocInsuranceNotification;
+use PDF;
 use Illuminate\Support\Facades\Storage;
 
 class CocController extends Controller
@@ -266,56 +264,6 @@ class CocController extends Controller
 
     public function CocInsuranceEmail(Request $request, $id)
     {
-        $this->validate($request, [
-            'coc_insurance_email_sent' => 'nullable',
-            'send_to' => 'nullable|email',
-            'subject' => 'nullable|string',
-            'email_body' => 'nullable|string',
-            'attachments' => 'nullable|array',
-        ]);
-
-        try {
-            // Check COC
-            $coc = Coc::where('id', $id)->first();
-            if (!$coc) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'COC Not Found'
-                ], 422);
-            }
-
-            // Prepare attachments
-            $attachments = [];
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('temp'); // Store the file temporarily
-                    $attachments[] = $path; // Store only the path
-                }
-            }
-
-            // Retrieve the user by email
-        // Create the notification
-            $notification = new CocInsuranceNotification($request->subject, $request->email_body, $attachments);
-
-            // Send the notification to the specified email address
-            Notification::send(new \App\Models\User(['email' => $request->send_to]), $notification);
-
-            // Update COC
-            $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
-            $coc->save();
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Email Sent successfully',
-                'data' => []
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
-        }
-    }
-
-    public function CocInsuranceEmail11(Request $request, $id)
-    {
         // dd($request->all());
         $this->validate($request, [
             'coc_insurance_email_sent' => 'nullable',
@@ -336,39 +284,17 @@ class CocController extends Controller
             }
             // dd($coc);
             
-
-            ////notification
-              // Prepare attachments
-        $attachments = [];
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                // Store the file temporarily and get the path
-                $path = $file->store('temp'); // Adjust as needed
-                $attachments[] = $path; // Store only the path
-            }
-        }
-
-        // Send the notification
-        $notifiableUser = $request->send_to;
-        if ($notifiableUser) {
-            $notifiableUser->notify(new CocInsuranceNotification($request->subject, $request->email_body, $attachments));
-        }
             // Prepare attachments
-            // $attachments = [];
-            // if ($request->hasFile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         // Store the file and get the path
-            //         // $attachments[] = $file->store('temp'); // Adjust as needed for your storage
-            //         // $attachments[] = $file; // This holds UploadedFile instances directly
-            //         $path = $file->store('temp'); // Adjust as needed
-            //         $attachments[] = $path; // Store only the path
-
-
-            //     }
-            // }
-            // dd('heelo');
+            $attachments = [];
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    // Store the file and get the path
+                    $attachments[] = $file->store('temp'); // Adjust as needed for your storage
+                }
+            }
+            
             // Dispatch the job
-            // dispatch(new CocInsuranceJob($request->send_to, $request->subject, $request->email_body, $attachments));
+            dispatch(new CocInsuranceJob($request->send_to, $request->subject, $request->email_body, $attachments));
             // Update COC
             $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
             $coc->save();
