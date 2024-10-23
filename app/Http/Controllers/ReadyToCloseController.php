@@ -104,7 +104,7 @@ class ReadyToCloseController extends Controller
                 'company_job_id' => $jobId
             ],[
                 'company_job_id' => $jobId,
-                'status' => (isset($request->status)) ? $request->status : 'false',
+                'status' =>  $request->status,
             ]);
             
             //Update Job Status
