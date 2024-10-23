@@ -218,13 +218,13 @@ class CocController extends Controller
         }
     }
     
-    public function CocInsuranceEmail(Request $request, $id)
+    public function CocInsuranceEmail1(Request $request, $id)
     {
         $this->validate($request, [
             'coc_insurance_email_sent' => 'nullable',
-            'send_to' => 'required|email',
-            'subject' => 'required|string',
-            'email_body' => 'required|string',
+            'send_to' => 'nullable|email',
+            'subject' => 'nullable|string',
+            'email_body' => 'nullable|string',
             'attachments' => 'nullable|array',
         ]);
         
@@ -261,4 +261,51 @@ class CocController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function CocInsuranceEmail(Request $request, $id)
+    {
+        $this->validate($request, [
+            'coc_insurance_email_sent' => 'nullable',
+            'send_to' => 'nullable|email',
+            'subject' => 'nullable|string',
+            'email_body' => 'nullable|string',
+            'attachments' => 'nullable|array',
+        ]);
+        
+        try {
+            // Check COC
+            $coc = Coc::where('id', $id)->first();
+            if (!$coc) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'COC Not Found'
+                ], 422);
+            }
+            
+            // Prepare attachments
+            $attachments = [];
+            if (isset($request->attachments)) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('temp'); // Store temporarily
+                    $attachments[] = $path; // Store the path
+                }
+            }
+            
+            // Dispatch the job
+            dispatch(new CocInsuranceJob($request->send_to, $request->subject, $request->email_body, $attachments));
+            
+            // Update COC
+            $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
+            $coc->save();
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Sent successfully',
+                'data' => []
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
 }

@@ -84,6 +84,7 @@ class ReadyToCloseController extends Controller
 
     public function updateReadyToCloseStatus(Request $request, $jobId)
     {
+        // dd($request->all());
         //Validate Request
         $request->validate([
             'status' => 'nullable',
