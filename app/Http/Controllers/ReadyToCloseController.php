@@ -118,7 +118,7 @@ class ReadyToCloseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Close Status Updated Successfully',
-                'data' => []
+                'data' => $ready_to_close,
             ], 200); 
             
         } catch (\Exception $e) {
