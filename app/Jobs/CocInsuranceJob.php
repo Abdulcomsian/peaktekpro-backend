@@ -40,7 +40,7 @@ class CocInsuranceJob implements ShouldQueue
      */
     public function handle()
     {
-        // dd("123");
+        dd("8767");
         Mail::to($this->email)->send(new CocInsuranceMail($this->subject, $this->body, $this->attachments));
     }
 }

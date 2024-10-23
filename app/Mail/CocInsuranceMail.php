@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 
 class CocInsuranceMail extends Mailable
 {
@@ -60,25 +61,55 @@ class CocInsuranceMail extends Mailable
      *
      * @return array
      */
-    public function attachments()
-    {
-        $email = $this->subject($this->subject)
-                      ->view('emails.coc-insurance-email')
-                      ->with('body', $this->body);
+    // public function attachments()
+    // {
+    //     $email = $this->subject($this->subject)
+    //                   ->view('emails.coc-insurance-email')
+    //                   ->with('body', $this->body);
     
-        // Check if $this->attachments is a valid array and has items
-        if (count($this->attachments) > 0) {
-            foreach ($this->attachments as $file) {
-                // Check if $file is a valid uploaded file instance
-                if ($file instanceof \Illuminate\Http\UploadedFile) {
-                    $email->attach($file->getRealPath(), [
-                        'as' => $file->getClientOriginalName(),
-                        'mime' => $file->getMimeType(),
-                    ]);
-                }
+    //     // Check if $this->attachments is a valid array and has items
+    //     if (count($this->attachments) > 0) {
+    //         foreach ($this->attachments as $file) {
+    //             $originalFile = Storage::get($file);
+    //             if ($originalFile instanceof \Illuminate\Http\UploadedFile) {
+    //                 $email->attach($file->getRealPath(), [
+    //                     'as' => $file->getClientOriginalName(),
+    //                     'mime' => $file->getMimeType(),
+    //                 ]);
+    //             }
+    //         }
+    //     }
+    
+    //     return $email;
+    // }
+
+    public function attachments()
+{
+    $email = $this->subject($this->subject)
+                  ->view('emails.coc-insurance-email')
+                  ->with('body', $this->body);
+
+    if (is_array($this->attachments) && count($this->attachments) > 0) {
+        foreach ($this->attachments as $filePath) {
+            // Get the full path to the file
+            $fullPath = storage_path("app/$filePath");
+            if (file_exists($fullPath)) {
+                $email->attach($fullPath, [
+                    'as' => basename($fullPath),
+                    'mime' => mime_content_type($fullPath),
+                ]);
+            } else {
+                \Log::warning('File does not exist for attachment', ['file' => $fullPath]);
             }
         }
-    
-        return $email;
     }
+
+    return $email;
+}
+
+
+
+
+ 
+
 }
