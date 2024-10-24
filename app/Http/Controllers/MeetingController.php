@@ -181,6 +181,50 @@ class MeetingController extends Controller
         }
     }
 
+    public function updateAdjustorMeetingStatus(Request $request, $jobId)
+    {
+        //Validate Rules
+        $rules = [
+            'status' => 'nullable|in:approved,overturn,appraisal',
+        ];
+        try {
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            // dd($job);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $status = $request->input('status');
+
+            //Create Adjustor Meeting
+            $adjustor_meeting = AdjustorMeeting::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'status' => $status
+            ]);
+
+            if($request->status=== 'approved' && $adjustor_meeting->sent === 'true') {
+                $job->status_id = 8;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Meeting Status Updated Successfully',
+                'data' => $adjustor_meeting,
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     
     public function updateAdjustorMeetingMedia(Request $request, $jobId)
     {
@@ -297,7 +341,7 @@ class MeetingController extends Controller
         }
     }
 
-    public function updateAdjustorMeetingStatus(Request $request, $id)
+    public function updateAdjustorMeetingStatus11(Request $request, $id)
     {
         //Validate Request
         $this->validate($request, [
