@@ -234,6 +234,27 @@ class MaterialOrderController extends Controller
         return response()->file($latestPdfPath);
     }
 
+    public function deleteMaterialOrderMaterial($id)
+    {
+        try{
+            $material=MaterialOrderMaterial::find($id);
+            if (empty($material)) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'No Material Order Material found'
+                ], 404);
+            }
+            $material->delete();
+            return response()->json([
+                'status' => 200,
+                'message' => 'Material Order Deleted Successfully',
+                'data' => $material,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+
+    }
     public function getMaterialOrder($id)
     {
         try {
