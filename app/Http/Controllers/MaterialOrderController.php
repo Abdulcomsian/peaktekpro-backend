@@ -237,33 +237,35 @@ class MaterialOrderController extends Controller
     public function getMaterialOrder($id)
     {
         try {
-            // Get Customer Agreement using the company_id from MaterialOrder
             $customer_agreement = CustomerAgreement::where('company_job_id', $id)->first();
+            $job = CompanyJob::select('name', 'email', 'phone')->find($id);
 
-            // Check Material Order
             $material_order = MaterialOrder::where('company_job_id', $id)->with('materials', 'supplier')->first();
 
             // Prepare the response data
             $response_data = [];
 
-            // If a material order exists, add its properties to the response
+            // Always include job data in the response at the same level
+            if ($job) {
+                $response_data['name'] = $job->name;
+                $response_data['email'] = $job->email;
+                $response_data['phone'] = $job->phone;
+            }
+
             if ($material_order) {
                 $response_data = array_merge($response_data, $material_order->toArray());
                 $response_message = 'Material Order Found successfully';
             } 
             
-            // If no material order, include the customer agreement if it exists
             if (!$material_order && $customer_agreement) {
                 $response_data = array_merge($response_data, $customer_agreement->toArray());
                 $response_message = 'No Material Order found, Customer Agreement returned';
             } 
             
-            // If neither is found, prepare the message accordingly
             if (!$material_order && !$customer_agreement) {
                 $response_message = 'No Material Order or Customer Agreement found for this Job';
             }
 
-            // Use 200 status code if there's any content in the response
             $status_code = ($material_order || $customer_agreement) ? 200 : 422;
 
             return response()->json([
@@ -275,10 +277,6 @@ class MaterialOrderController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
-
-
-
-
 
     public function updateMaterialOrder(Request $request, $id)
     {
