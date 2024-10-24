@@ -238,36 +238,40 @@ class MaterialOrderController extends Controller
     public function getMaterialOrder($id)
     {
         try {
-
-            //Check Material Order
-            $material_order = MaterialOrder::where('company_job_id', $id)->with('materials','supplier')->first();
-            if(!$material_order) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Material Order Not Found for this Job'
-                ], 422);
-            }
-
             // Get Customer Agreement using the company_id from MaterialOrder
-            $customer_agreement = CustomerAgreement::where('company_job_id', $material_order->company_job_id)->first();
+            $customer_agreement = CustomerAgreement::where('company_job_id', $id)->first();
 
-            // Optionally attach the Customer Agreement to the Material Order response
-            $material_order->customer_agreement = $customer_agreement;
-                
-            $build_detail = BuildDetail::where('company_job_id', $material_order->company_job_id)->first();
-            if($build_detail) {
-                $material_order->build_detail = $build_detail;
+            // Get Build Detail
+            $ready_to_build = ReadyToBuild::where('company_job_id', $id)->first();
+
+            // Check Material Order
+            $material_order = MaterialOrder::where('company_job_id', $id)->with('materials', 'supplier')->first();
+
+            // Prepare the response data
+            $response_data = [
+                'customer_agreement' => $customer_agreement,
+                'build_detail' => $ready_to_build ,
+            ];
+
+            if ($material_order) {
+                $response_data['material_order'] = $material_order;
+                $response_message = 'Material Order Found successfully';
+                $status_code = 200;
+            } else {
+                $response_message = 'Material Order Not Found for this Job';
+                $status_code = 422;
             }
 
             return response()->json([
-                'status' => 200,
-                'message' => 'Material Order Found successfully',
-                'material_order' => $material_order
-            ], 200);
+                'status' => $status_code,
+                'message' => $response_message,
+                'data' => $response_data,
+            ], $status_code);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+
 
     public function updateMaterialOrder(Request $request, $id)
     {
@@ -629,13 +633,13 @@ class MaterialOrderController extends Controller
              //get Ready to Build
              $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
-             if (!$build_detail) {
-                return response()->json([
-                    'status' => 200,
-                    'message' => 'Build Details Not Yet Created',
-                    'data' => []
-                ], 200);
-            }
+            //  if (!$build_detail) {
+            //     return response()->json([
+            //         'status' => 200,
+            //         'message' => 'Build Details Not Yet Created',
+            //         'data' => []
+            //     ], 200);
+            // }
             // Return response with Ready To Build details
             return response()->json([
                 'status' => 200,
@@ -901,8 +905,8 @@ class MaterialOrderController extends Controller
             
             return response()->json([
                 'status' => 200,
-                'message' => 'Status Updated successfully',
-                'data' => []
+                'message' => 'Email Sent Successfully',
+                'data' => $material_order
             ], 200);
             
         } catch (\Exception $e) {
