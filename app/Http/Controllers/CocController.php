@@ -188,8 +188,8 @@ class CocController extends Controller
             if(is_null($get_coc)) {
                 // Create a new stdClass object
                 $coc = new \stdClass();
-                $coc->homeowner_name = $job->readyBuild->home_owner;
-                $coc->homeowner_email = $job->readyBuild->home_owner_email;
+                $coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
+                $coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
                 $coc->homeowner_address = $job->address;
                 $coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
                 $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
@@ -217,8 +217,8 @@ class CocController extends Controller
             }
             
             //Update COC
-            $get_coc->homeowner_name = $job->name;
-            $get_coc->homeowner_email = $job->email;
+            $get_coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
+            $get_coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
             $get_coc->homeowner_address = $job->address;
             $get_coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
             $get_coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
