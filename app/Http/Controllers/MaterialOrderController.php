@@ -234,33 +234,37 @@ class MaterialOrderController extends Controller
         return response()->file($latestPdfPath);
     }
 
-
     public function getMaterialOrder($id)
     {
         try {
             // Get Customer Agreement using the company_id from MaterialOrder
             $customer_agreement = CustomerAgreement::where('company_job_id', $id)->first();
 
-            // Get Build Detail
-            $ready_to_build = ReadyToBuild::where('company_job_id', $id)->first();
-
             // Check Material Order
             $material_order = MaterialOrder::where('company_job_id', $id)->with('materials', 'supplier')->first();
 
             // Prepare the response data
-            $response_data = [
-                'customer_agreement' => $customer_agreement,
-                'build_detail' => $ready_to_build ,
-            ];
+            $response_data = [];
 
+            // If a material order exists, add its properties to the response
             if ($material_order) {
-                $response_data['material_order'] = $material_order;
+                $response_data = array_merge($response_data, $material_order->toArray());
                 $response_message = 'Material Order Found successfully';
-                $status_code = 200;
-            } else {
-                $response_message = 'Material Order Not Found for this Job';
-                $status_code = 422;
+            } 
+            
+            // If no material order, include the customer agreement if it exists
+            if (!$material_order && $customer_agreement) {
+                $response_data = array_merge($response_data, $customer_agreement->toArray());
+                $response_message = 'No Material Order found, Customer Agreement returned';
+            } 
+            
+            // If neither is found, prepare the message accordingly
+            if (!$material_order && !$customer_agreement) {
+                $response_message = 'No Material Order or Customer Agreement found for this Job';
             }
+
+            // Use 200 status code if there's any content in the response
+            $status_code = ($material_order || $customer_agreement) ? 200 : 422;
 
             return response()->json([
                 'status' => $status_code,
@@ -271,6 +275,9 @@ class MaterialOrderController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+
+
+
 
 
     public function updateMaterialOrder(Request $request, $id)
