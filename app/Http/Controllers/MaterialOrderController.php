@@ -266,7 +266,7 @@ class MaterialOrderController extends Controller
                 $response_message = 'No Material Order or Customer Agreement found for this Job';
             }
 
-            $status_code = ($material_order || $customer_agreement) ? 200 : 422;
+            $status_code = ($material_order || $customer_agreement) ? 200 : 200;
 
             return response()->json([
                 'status' => $status_code,
