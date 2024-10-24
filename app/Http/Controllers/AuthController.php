@@ -82,6 +82,15 @@ class AuthController extends Controller
                 ], 422);
             }
 
+            $userActive = User::where('email',$request->email)->where('status','active')->first();
+            if(!$userActive)
+            {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'User is Not Active'
+                ], 422);
+            }
+
             if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5 || $userExists->role_id == 7 || $userExists->role_id == 8 || $userExists->role_id == 9) {
 
                 if (Auth::attempt($request->only('email', 'password'))) {
