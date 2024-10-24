@@ -29,24 +29,24 @@ class MaterialOrderController extends Controller
         //Validate Request
         $this->validate($request, [
             // 'supplier_id' => 'required|integer',
-            'street' => 'required',
-            'city' => 'required',
-            'state' => 'required',
-            'zip_code' => 'required',
-            'insurance' => 'required',
-            'claim_number' => 'required',
-            'policy_number' => 'required',
-            'date_needed' => 'required|date_format:m/d/Y',
-            'square_count' => 'required',
-            'total_perimeter' => 'required',
-            'ridge_lf' => 'required',
-            'build_date' => 'required|date_format:m/d/Y',
-            'valley_sf' => 'required',
-            'hip_and_ridge_lf' => 'required',
-            'drip_edge_lf' => 'required',
+            'street' => 'nullable',
+            'city' => 'nullable',
+            'state' => 'nullable',
+            'zip_code' => 'nullable',
+            'insurance' => 'nullable',
+            'claim_number' => 'nullable',
+            'policy_number' => 'nullable',
+            'date_needed' => 'nullable|date_format:m/d/Y',
+            'square_count' => 'nullable',
+            'total_perimeter' => 'nullable',
+            'ridge_lf' => 'nullable',
+            'build_date' => 'nullable|date_format:m/d/Y',
+            'valley_sf' => 'nullable',
+            'hip_and_ridge_lf' => 'nullable',
+            'drip_edge_lf' => 'nullable',
             'status' => 'nullable|in:0,1',
-            'materials' => 'required|array',
-            'materials.*.material' => 'required|string',
+            'materials' => 'nullable|array',
+            'materials.*.material' => 'nullable|string',
             'materials.*.quantity' => 'nullable',
             'materials.*.color' => 'nullable',
             'materials.*.order_key' => 'nullable',
@@ -282,7 +282,7 @@ class MaterialOrderController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'sign_image' => 'required',
+            'sign_image' => 'nullable',
         ]);
 
         try {
@@ -383,9 +383,9 @@ class MaterialOrderController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'supplier_id' => 'required|integer',
-            'sub_contractor_id' => 'required|integer',
-            'material_order_id' => 'required|integer',
+            'supplier_id' => 'nullable|integer',
+            'sub_contractor_id' => 'nullable|integer',
+            'material_order_id' => 'nullable|integer',
         ]);
 
         DB::beginTransaction();
@@ -677,9 +677,9 @@ class MaterialOrderController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'send_to' => 'required|string',
-            'subject' => 'required|string',
-            'email_body' => 'required|string',
+            'send_to' => 'nullable|string',
+            'subject' => 'nullable|string',
+            'email_body' => 'nullable|string',
             'status' => 'nullable|in:true,false',
         ]);
         
