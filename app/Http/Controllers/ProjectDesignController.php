@@ -598,7 +598,7 @@ class ProjectDesignController extends Controller
         try {
             
             //Check Job
-            $job = CompanyJob::find($jobId);
+            $job = CompanyJob::with('users')->find($jobId);
             if(!$job) {
                 return response()->json([
                     'status' => 422,

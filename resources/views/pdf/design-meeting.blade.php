@@ -94,11 +94,11 @@
         <tr>
           <td>
             <span class="label">First Name:</span>
-            <span class="value">{{ $job?->title?->first_name ?? '' }}</span>
+            <span class="value">{{ $job?->user?->first_name ?? '' }}</span>
           </td>
           <td>
             <span class="label">Last Name:</span>
-            <span class="value">{{ $job?->title?->last_name ?? '' }}</span>
+            <span class="value">{{ $job?->user?->last_name ?? '' }}</span>
           </td>
           <td>
             <span class="label">Company Name:</span>
