@@ -169,6 +169,7 @@ class CustomerAgreementController extends Controller
         }
     }
 
+    //when the user sign then the pdf generate
     public function updateCustomerAgreement(Request $request, $id)
     {
         //Validate Request
