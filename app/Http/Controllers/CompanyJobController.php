@@ -634,14 +634,19 @@ class CompanyJobController extends Controller
             
             $created_by = $user->created_by == 0 ? 1 : $user->created_by;
             if($user->role_id == 1 || $user->role_id == 2) {
-                $tasks = Status::withCount([
+                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Completed'];
+
+                $tasks = Status::whereIn('name', $specificStatuses)
+                ->withCount([
                     'jobs' => function ($query) use ($created_by) {
                         $query->where('created_by', $created_by);
                     }
                 ])->get();
 
             } else {
-                $tasks = Status::withCount([
+                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Completed'];
+                $tasks = Status::whereIn('name',$specificStatuses)
+                ->withCount([
                     'jobs' => function ($query) use ($user,$assigned_jobs) {
                         $query->where('user_id', $user->id);
                         $query->orWhereIn('id', $assigned_jobs);
