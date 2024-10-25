@@ -634,7 +634,7 @@ class CompanyJobController extends Controller
             
             $created_by = $user->created_by == 0 ? 1 : $user->created_by;
             if($user->role_id == 1 || $user->role_id == 2) {
-                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Completed'];
+                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Won and Closed'];
 
                 $tasks = Status::whereIn('name', $specificStatuses)
                 ->withCount([
@@ -644,7 +644,7 @@ class CompanyJobController extends Controller
                 ])->get();
 
             } else {
-                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Completed'];
+                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Won and Closed'];
                 $tasks = Status::whereIn('name',$specificStatuses)
                 ->withCount([
                     'jobs' => function ($query) use ($user,$assigned_jobs) {
