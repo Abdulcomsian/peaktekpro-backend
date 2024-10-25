@@ -184,6 +184,74 @@ class CompanyController extends Controller
         }
     }
 
+    public function filterCompanyByStatus(Request $request)
+    {
+        $this->validate($request, [
+            'status' => 'nullable'
+        ]);
+
+        try {
+            $user= Auth::user();
+            if($user->role_id == 7)
+            {
+                $status = $request->input('status');
+                // Filter users by the active
+                $companies = Company::with('siteAdmin')
+                ->withCount('users')
+                ->where('status', $status)
+                ->get();
+
+                // Format the response similarly
+                $formattedCompanies = $companies->map(function ($company) {
+                    $company->users_count = $company->users_count;
+                    return [
+                        'company' => $company, // Full company object
+                    ];
+                });
+    
+                return response()->json([
+                    'status_code' => 200,
+                    'status' => true,
+                    'data' => $formattedCompanies,
+                ]);
+            }elseif($user->role_id == 1 || $user->role_id == 2)
+            {
+                $status = $request->input('status');
+                // Filter users by the specified permission level
+                $companies = Company::with('siteAdmin')
+                ->withCount('users')
+                ->where('status', $status)->where('id',$user->company_id)
+                ->get();
+
+                 // Format the response similarly
+                 $formattedCompanies = $companies->map(function ($company) {
+                    $company->users_count = $company->users_count;
+                    return [
+                        'company' => $company, // Full company object
+                    ];
+                });
+    
+    
+                return response()->json([
+                    'status_code' => 200,
+                    'status' => true,
+                    'data' => $formattedCompanies,
+                ]);
+            }
+            else{
+                return response()->json([
+                    'status_code' => 422,
+                    'status' => true,
+                    'message' => 'Not allowed',
+                ]);
+            }
+           
+        } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+
+        }
+    }
+
     
     public function updateCompany1(Request $request, $id)
     {
@@ -451,54 +519,7 @@ class CompanyController extends Controller
         }
     }
 
-    public function filterCompanyByStatus(Request $request)
-    {
-        $this->validate($request, [
-            'status' => 'nullable'
-        ]);
-
-        try {
-            $user= Auth::user();
-            if($user->role_id == 7)
-            {
-                $status = $request->input('status');
-                // Filter users by the active
-                $companies = Company::with('siteAdmin')
-                ->withCount('users')
-                ->where('status', $status)
-                ->get();
-    
-                return response()->json([
-                    'status_code' => 200,
-                    'status' => true,
-                    'data' => $companies,
-                ]);
-            }elseif($user->role_id == 2)
-            {
-                $status = $request->input('status');
-                // Filter users by the specified permission level
-                $companies = Company::where('status', $status)
-                ->get();
-    
-                return response()->json([
-                    'status_code' => 200,
-                    'status' => true,
-                    'data' => $companies,
-                ]);
-            }
-            else{
-                return response()->json([
-                    'status_code' => 422,
-                    'status' => true,
-                    'message' => 'Not allowed',
-                ]);
-            }
-           
-        } catch (\Exception $e) {
-                return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-
-        }
-    }
+   
 
     public function searchCompany(Request $request)
     {
