@@ -20,11 +20,11 @@ class UserController extends Controller
         try {
             $user = Auth::user();
         
-            if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1)
+            if($user->role_id == 2 || $user->role_id == 9 || $user->role_id == 1 || $user->role_id == 8)
             {
                 $getusers = User::with('company')
                 ->where('company_id',$user->company_id)
-                ->where('role_id',[2,8,9])
+                ->whereIn('role_id',[2,8,9])
                 // ->whereNotIn('role_id',[7,2,1])
                 ->get();
         
@@ -262,7 +262,7 @@ class UserController extends Controller
             });
 
             if (in_array($user->role_id, [1, 2])) {
-                $users = $usersQuery->whereNotIn('role_id', [2, 7, 1])->get();
+                $users = $usersQuery->whereNotIn('role_id', [7, 1])->get();
             } elseif ($user->role_id == 7) {
                 $users = $usersQuery->whereNotIn('role_id', [7])->get();
             } else {

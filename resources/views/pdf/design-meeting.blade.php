@@ -94,11 +94,11 @@
         <tr>
           <td>
             <span class="label">First Name:</span>
-            <span class="value">{{ $job?->user?->first_name ?? '' }}</span>
+            <span class="value">{{ $job?->title?->first_name ?? '' }}</span>
           </td>
           <td>
             <span class="label">Last Name:</span>
-            <span class="value">{{ $job?->user?->last_name ?? '' }}</span>
+            <span class="value">{{ $job?->title?->last_name ?? '' }}</span>
           </td>
           <td>
             <span class="label">Company Name:</span>
@@ -391,7 +391,7 @@
       <thead>
         <tr>
           <th>
-            <h2 style="text-align: left">Payment Schedule</h2>
+            <h2 style="text-align: left">Proof of Payment</h2>
           </th>
         </tr>
       </thead>
@@ -461,7 +461,7 @@
       <thead>
         <tr>
           <th>
-            <h2 style="text-align: left">Xactimate Report</h2>
+            <h2 style="text-align: left">Measurement Report</h2>
           </th>
         </tr>
       </thead>
