@@ -76,7 +76,9 @@ class CustomerAgreementController extends Controller
             ]);
 
             // Store values in project_design_titles because it will used in design meeting pdf making
-        $projectDesignTitle = new ProjectDesignTitle([
+            $projectDesignTitle = ProjectDesignTitle::updateOrCreate(
+                ['company_job_id' => $id],
+                [
             'company_job_id' => $id,
             'first_name' => explode(' ', $request->customer_name)[0],
             'last_name' => explode(' ', $request->customer_name)[1] ?? '',
