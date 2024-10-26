@@ -10,6 +10,7 @@ use App\Mail\SignEmailMail;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
+use App\Models\ProjectDesignTitle;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -73,6 +74,22 @@ class CustomerAgreementController extends Controller
                 'customer_name' => $request->customer_name,
                 'status' => $request->status,
             ]);
+
+            // Store values in project_design_titles because it will used in design meeting pdf making
+        $projectDesignTitle = new ProjectDesignTitle([
+            'company_job_id' => $id,
+            'first_name' => explode(' ', $request->customer_name)[0],
+            'last_name' => explode(' ', $request->customer_name)[1] ?? '',
+            'company_name' => $job->name,
+            'address' => $request->street,
+            'city' => $request->city,
+            'state' => $request->state,
+            'zip' => $request->zip_code,
+            'report_type' => 'Design Meeting', 
+            'date' => now()->format('Y-m-d'),
+        ]);
+
+        $projectDesignTitle->save();
             
             //Update Status
             if(isset($request->status) && $request->status == true) {
