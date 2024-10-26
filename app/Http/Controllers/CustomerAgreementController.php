@@ -82,7 +82,7 @@ class CustomerAgreementController extends Controller
             'company_job_id' => $id,
             'first_name' => explode(' ', $request->customer_name)[0],
             'last_name' => explode(' ', $request->customer_name)[1] ?? '',
-            'company_name' => $job->name,
+            'company_name' => $request->company_printed_name,
             'address' => $request->street,
             'city' => $request->city,
             'state' => $request->state,
