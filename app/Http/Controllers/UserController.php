@@ -36,7 +36,7 @@ class UserController extends Controller
             }elseif($user->role_id == 7)
             {
                 $getusers =User::with('company')
-                ->where('role_id',[2,8,9])
+                ->whereIn('role_id',[2,8,9])
                 // ->whereNotIn('role_id',[7])
                 ->get();
                 return response()->json([
