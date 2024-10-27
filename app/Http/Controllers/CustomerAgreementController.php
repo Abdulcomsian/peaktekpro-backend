@@ -315,7 +315,7 @@ class CustomerAgreementController extends Controller
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
 
             ////
-            $job_summary = CompanyJobSummary::select('id','insurance','policy_number','email','insurance_representative','claim_number')
+            $job_summary = CompanyJobSummary::select('id','insurance','policy_number','insurance_representative','claim_number')
             ->where('company_job_id', $job->id)->first();
             // if(!$job_summary) {
             //     return response()->json([
