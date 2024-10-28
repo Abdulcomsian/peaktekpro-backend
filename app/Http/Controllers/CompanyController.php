@@ -44,10 +44,20 @@ class CompanyController extends Controller
         
                 $password= "12345678";
                 // Create a new user
+                // Split the full name from the request
+                $fullName = $request->site_admin_name;
+                $nameParts = explode(' ', $fullName);
+
+                // Assign the first and last names
+                $firstName = $nameParts[0];
+                $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : '';
+
                 $create_user = User::create([
                     // 'role_id' => 1,
                     'company_id' => $company->id,
                     'name' => $request->site_admin_name,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'email' => $request->site_admin_email,
                     'password' => Hash::make('12345678'),
                     'role_id'=>$request->permission_level,
