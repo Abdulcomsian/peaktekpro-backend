@@ -164,11 +164,11 @@ class MeetingController extends Controller
                 'sent' => $request->sent
             ]);
 
-            if(isset($request->status) && $request->status== 'true' && $adjustor_meeting->status === 'approved') {
+            if(isset($request->sent) && $request->sent== 'true' && $adjustor_meeting->status === 'approved') {
                 $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
-            }elseif(isset($request->status) && $request->status == "false"){
+            }elseif(isset($request->sent) && $request->sent == "false"){
                 $job->status_id = 4;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save(); 
