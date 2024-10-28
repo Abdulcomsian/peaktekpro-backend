@@ -752,13 +752,13 @@ class CompanyJobController extends Controller
                 //Weekly Main Query
                 $weekly_tasks = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
                 ->whereBetween('created_at', [$weekStart, $weekEnd]);
-                // return response()->json([$weekly_tasks]);
+                // return response()->json([$weekly_tasks->get()]);
 
                 //Monthly Main Query
                 $monthly_tasks = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
                 ->whereBetween('created_at', [$monthStart, $monthEnd]);
 
-                // return response()->json([$monthly_tasks]);
+                // return response()->json([$monthly_tasks->get()]);
                 
                 // Yearly Query
                 $yearly_tasks = CompanyJob::select('id', 'name', 'address', 'status_id')->where('created_by', $created_by)

@@ -53,7 +53,7 @@ class CompanyJob extends Model
 
     public function wonAndClosed()
     {
-        return $this->hasOne(ReadyToClose::class)->where('status', 'true');
+        return $this->hasOne(ReadyToClose::class)->where('status', true);
     }
     
     public function title()
