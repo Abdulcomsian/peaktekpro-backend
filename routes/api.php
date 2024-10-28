@@ -228,7 +228,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/coc/status/{jobId}', [CocController::class, 'updateStatusCoc']);
     Route::get('get/coc/{jobId}', [CocController::class, 'getCoc']);
     Route::post('coc/insurance-email/{id}', [CocController::class, 'CocInsuranceEmail']);
+    Route::post('coc/insurance-email/status/{id}', [CocController::class, 'CocInsuranceEmailStatus']);
+    Route::get('coc/insurance-email/status/{id}', [CocController::class, 'getCocInsuranceEmailStatus']);
     Route::get('get/coc/insurance-email/{id}', [CocController::class, 'getCocInsuranceEmail']);
+
 
     //Ready To Build Api's
     Route::post('store/ready-to-build/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuild']);

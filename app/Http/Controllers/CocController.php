@@ -316,4 +316,57 @@ class CocController extends Controller
         }
     }
 
+    public function CocInsuranceEmailStatus(Request $request, $id)
+    {
+        $this->validate($request, [
+            'status' => 'nullable',
+        ]);
+    
+        try {
+            // Check COC
+            $coc = Coc::where('id', $id)->first();
+            if (!$coc) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'COC Not Found'
+                ], 422);
+            }
+    
+            // Update COC
+            $coc->coc_insurance_email_sent = $request->status;
+            $coc->save();
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Status Updated successfully',
+                'data' => $coc
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    public function getCocInsuranceEmailStatus(Request $request, $id)
+    {
+    
+        try {
+            // Check COC
+            $coc = Coc::where('id', $id)->first();
+            if (!$coc) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'COC Not Found'
+                ], 422);
+            }
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Status Found successfully',
+                'data' => $coc
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
 }
