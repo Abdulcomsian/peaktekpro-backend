@@ -201,18 +201,18 @@ class CocController extends Controller
                 $coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
                 $coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
             // Check if aggrement is not null before accessing its properties
-                // $coc->street = !is_null($job->aggrement) && !is_null($job->aggrement->street) 
-                // ? $job->aggrement->street 
-                // : '';
-                // $coc->city = !is_null($job->aggrement) && !is_null($job->aggrement->city) 
-                // ? $job->aggrement->city 
-                // : '';
-                // $coc->state = !is_null($job->aggrement) && !is_null($job->aggrement->state) 
-                // ? $job->aggrement->state 
-                // : '';
-                // $coc->zip_code = !is_null($job->aggrement) && !is_null($job->aggrement->zip_code) 
-                // ? $job->aggrement->zip_code 
-                // : '';
+                $coc->street = !is_null($job->aggrement) && !is_null($job->aggrement->street) 
+                ? $job->aggrement->street 
+                : '';
+                $coc->city = !is_null($job->aggrement) && !is_null($job->aggrement->city) 
+                ? $job->aggrement->city 
+                : '';
+                $coc->state = !is_null($job->aggrement) && !is_null($job->aggrement->state) 
+                ? $job->aggrement->state 
+                : '';
+                $coc->zip_code = !is_null($job->aggrement) && !is_null($job->aggrement->zip_code) 
+                ? $job->aggrement->zip_code 
+                : '';
 
                 return response()->json([
                     'status' => 200,
