@@ -49,7 +49,7 @@ class CompanyController extends Controller
                     'company_id' => $company->id,
                     'name' => $request->site_admin_name,
                     'email' => $request->site_admin_email,
-                    'password' => Hash::make('Abc@123!'),
+                    'password' => Hash::make('12345678'),
                     'role_id'=>$request->permission_level,
                     'created_by' => $company->id,
                     'status' => $request->status,
@@ -317,9 +317,8 @@ class CompanyController extends Controller
             $user = Auth::user();
             // dd($user);
             // Check user permissions
-            if ($user->role_id == 7 || $user->role_id == 1) {
-              
-
+            // if ($user->role_id == 7 || $user->role_id == 1) {
+            if($user->role_id == 1 && $user->company_id == $id){
             // Check Company
             $company = Company::find($id);
             if (!$company) {
