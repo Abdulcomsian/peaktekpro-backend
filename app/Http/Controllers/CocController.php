@@ -175,7 +175,7 @@ class CocController extends Controller
     }
 
 
-    public function getCoc($jobId)
+    public function getCoc1($jobId) //currently not used alternate fun made
     {
         try {
 
@@ -216,7 +216,7 @@ class CocController extends Controller
 
                 return response()->json([
                     'status' => 200,
-                    'message' => 'COC Not Found11',
+                    'message' => 'COC Not Found',
                     'data' => $coc
                 ], 200);
             }
@@ -238,6 +238,80 @@ class CocController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function getCoc($jobId)
+    {
+        try {
+            // Check Job
+            $job = CompanyJob::whereId($jobId)->with('summary', 'aggrement', 'readyBuild')->first();
+
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $get_coc = Coc::where('company_job_id', $jobId)->first();
+            
+            // Create a new stdClass object to hold the data
+            $coc = new \stdClass();
+            $coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
+            $coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
+            $coc->homeowner_address = $job->address;
+            $coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
+            $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
+            $coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
+            $coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
+
+            // Check if aggrement is not null before accessing its properties
+            if (!is_null($job->aggrement)) {
+                $coc->street = !is_null($job->aggrement->street) ? $job->aggrement->street : '';
+                $coc->city = !is_null($job->aggrement->city) ? $job->aggrement->city : '';
+                $coc->state = !is_null($job->aggrement->state) ? $job->aggrement->state : '';
+                $coc->zip_code = !is_null($job->aggrement->zip_code) ? $job->aggrement->zip_code : '';
+            } else {
+                $coc->street = '';
+                $coc->city = '';
+                $coc->state = '';
+                $coc->zip_code = '';
+            }
+
+            if (is_null($get_coc)) {
+                // If COC doesn't exist, return new object
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'COC Not Found',
+                    'data' => $coc
+                ], 200);
+            }
+
+            // If COC exists, update its values
+            $get_coc->name = $coc->homeowner_name;
+            $get_coc->email = $coc->homeowner_email;
+            // $get_coc->homeowner_address = $coc->homeowner_address;
+            $get_coc->insurance = $coc->insurance;
+            // $get_coc->insurance_email = $coc->insurance_email;
+            $get_coc->policy_number = $coc->policy_number;
+            $get_coc->claim_number = $coc->claim_number;
+            $get_coc->street = $coc->street;
+            $get_coc->city = $coc->city;
+            $get_coc->state = $coc->state;
+            $get_coc->zip_code = $coc->zip_code;
+
+            // Save the updated COC
+            $get_coc->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'COC Found Successfully',
+                'data' => $get_coc
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
