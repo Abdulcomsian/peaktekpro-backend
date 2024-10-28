@@ -391,7 +391,7 @@
       <thead>
         <tr>
           <th>
-            <h2 style="text-align: left">Proof of Payment</h2>
+            <h2 style="text-align: left">Proof of Payments</h2>
           </th>
         </tr>
       </thead>
