@@ -92,10 +92,14 @@ class EstimatePreparedController extends Controller
             ]);
 
             //Update Status
-            if(isset($request->status) && $request->status == true) {
+            if(isset($request->status) && $request->status == 'true') {
                 $job->status_id = 4;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();    
+            }elseif(isset($request->status) && $request->status == 'false'){
+                $job->status_id = 3;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();  
             }
 
             return response()->json([
