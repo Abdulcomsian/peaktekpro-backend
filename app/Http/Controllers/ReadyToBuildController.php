@@ -103,6 +103,13 @@ class ReadyToBuildController extends Controller
                 'status' => $request->status,
             ]);
 
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 9;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();    
+            }
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Status Updated Successfully',
