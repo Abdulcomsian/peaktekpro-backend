@@ -134,6 +134,90 @@ class CompanyController extends Controller
             $companies = [];
 
             if ($user->role_id == 7) { // Super Admin
+                $companies = Company::with('companyAdmin')
+                    ->withCount('users')
+                    ->get();
+
+                if ($companies->isEmpty()) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'No Company Found Yet',
+                    ], 422);
+                }
+
+                // Format the response to include company details inside 'company' object
+                $formattedCompanies = $companies->map(function ($company) {
+                    return [
+                        'company' => [
+                            'id' => $company->id,
+                            'name' => $company->name,
+                            'website' => $company->website,
+                            'status' => $company->status,
+                            'created_at' => $company->created_at,
+                            'updated_at' => $company->updated_at,
+                            'users_count' => $company->users_count,
+                            'admin_name' => $company->companyAdmin->name ?? null,
+                            'admin_email' => $company->companyAdmin->email ?? null,
+                            'admin_role_id' => $company->companyAdmin->role_id ?? null,
+                        ],
+                    ];
+                });
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Companies Found Successfully',
+                    'data' => $formattedCompanies,
+                ], 200);
+
+            } elseif ($user->role_id == 2 || $user->role_id == 1) { // Site Admin or Company Admin
+                $companies = Company::with('companyAdmin')
+                    ->withCount('users')
+                    ->where('id', $user->company_id)
+                    ->get();
+
+                // Format the response similarly for Site Admin or Company Admin
+                $formattedCompanies = $companies->map(function ($company) {
+                    return [
+                        'company' => [
+                            'id' => $company->id,
+                            'name' => $company->name,
+                            'website' => $company->website,
+                            'status' => $company->status,
+                            'created_at' => $company->created_at,
+                            'updated_at' => $company->updated_at,
+                            'users_count' => $company->users_count,
+                            'admin_name' => $company->companyAdmin->name ?? null,
+                            'admin_email' => $company->companyAdmin->email ?? null,
+                            'admin_role_id' => $company->companyAdmin->role_id ?? null,
+                        ],
+                    ];
+                });
+
+                return response()->json([
+                    'status' => 200,
+                    'message'=> 'Companies Found Successfully',
+                    'data' => $formattedCompanies,
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Permission Denied!',
+                ], 422);
+            }
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+
+    public function getCompanies12()
+    {
+        try {
+            $user = Auth::user();
+            $companies = [];
+
+            if ($user->role_id == 7) { // Super Admin
                 // Fetch companies with site admins and user counts
                 $companies = Company::with('siteAdmins') // Eager load site admins
                     ->withCount('users') // Count users for each company
