@@ -412,7 +412,7 @@ class CompanyController extends Controller
             // dd($user);
             // Check user permissions
             // if ($user->role_id == 7 || $user->role_id == 1) {
-            if($user->role_id == 1 && $user->company_id == $id){
+            if($user->role_id == 7 || ($user->role_id == 1 && $user->company_id == $id)){
             // Check Company
             $company = Company::find($id);
             if (!$company) {
