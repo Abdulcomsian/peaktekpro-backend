@@ -20,6 +20,10 @@ class Company extends Model
     {
         return $this->hasMany(User::class, 'company_id', 'id')->whereIn('role_id', [1, 2]);
     }
+    public function companyAdmin() 
+    {
+        return $this->hasOne(User::class, 'company_id', 'id')->whereIn('role_id',[1]);
+    }
 
 
     public function users()

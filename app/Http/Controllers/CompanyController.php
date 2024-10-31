@@ -585,11 +585,30 @@ class CompanyController extends Controller
     public function editCompany($id)
     {
         try{
-            $company = Company::with('siteAdmin')->findOrFail($id);
+            $company = Company::with('companyAdmin')->findOrFail($id);
+            // return response()->json([
+            //     'status_code' => 200,
+            //     'status' => true,
+            //     'data'=> $company,
+            // ]);
+            // Check if company admin exists and retrieve the name and email
+            $companyAdmin = $company->companyAdmin;
+            $companyAdminName = $companyAdmin ? $companyAdmin->name : null;
+            $companyAdminEmail = $companyAdmin ? $companyAdmin->email : null;
+
             return response()->json([
                 'status_code' => 200,
                 'status' => true,
-                'data'=> $company,
+                'data' => [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                    'website' => $company->website,
+                    'status' => $company->status,
+                    'created_at' => $company->created_at,
+                    'updated_at' => $company->updated_at,
+                    'admin_name' => $companyAdminName,
+                    'admin_email' => $companyAdminEmail,
+                ],
             ]);
 
         }catch(ModelNotFoundException $e){
