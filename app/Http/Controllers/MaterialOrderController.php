@@ -44,7 +44,7 @@ class MaterialOrderController extends Controller
             'valley_sf' => 'nullable',
             'hip_and_ridge_lf' => 'nullable',
             'drip_edge_lf' => 'nullable',
-            'status' => 'nullable|in:0,1',
+            // 'status' => 'nullable|in:0,1',
             'materials' => 'nullable|array',
             'materials.*.material' => 'nullable|string',
             'materials.*.quantity' => 'nullable',
@@ -131,11 +131,11 @@ class MaterialOrderController extends Controller
             }
             
             //Update Status
-            if(isset($request->status)) {
-                $job->status_id = 10;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-            }
+            // if(isset($request->status)) {
+            //     $job->status_id = 10;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();
+            // }
 
             DB::commit();
             return response()->json([
