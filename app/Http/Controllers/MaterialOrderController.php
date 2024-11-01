@@ -258,7 +258,8 @@ class MaterialOrderController extends Controller
     public function getMaterialOrder($id)
     {
         try {
-            $customer_agreement = CustomerAgreement::where('company_job_id', $id)->first();
+            $customer_agreement = CustomerAgreement::select('street','city','state','zip_code','insurance','claim_number','policy_number')->where('company_job_id', $id)->first();
+            // return response($customer_agreement->toArray());
             $job = CompanyJob::select('name', 'email', 'phone')->find($id);
 
             $material_order = MaterialOrder::where('company_job_id', $id)->with('materials', 'supplier')->first();
