@@ -64,8 +64,8 @@ class CocController extends Controller
                 'company_job_id' => $jobId,
             ],[
                 'company_job_id' => $jobId,
-                // 'email' => $request->email,
-                // 'name' => $request->name,
+                'email' => $request->email,
+                'name' => $request->name,
                 'phone' => $request->phone,
                 'street' => $request->street,
                 'city' => $request->city,
