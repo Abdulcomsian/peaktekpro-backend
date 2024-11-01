@@ -154,7 +154,7 @@ class CocController extends Controller
             
             //Update Status
             if(isset($request->status) && $request->status == true) {
-                $job->status_id = 12;
+                $job->status_id = 13;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
             } elseif(isset($request->status) && $request->status == false) {
