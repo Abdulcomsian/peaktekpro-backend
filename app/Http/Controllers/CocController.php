@@ -130,7 +130,7 @@ class CocController extends Controller
     {
         //Validate Rules
         $this->validate($request, [
-            'status' => 'nullable'
+            'status' => 'nullable|boolean'
         ]);
 
         try {
