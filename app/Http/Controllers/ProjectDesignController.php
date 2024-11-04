@@ -448,7 +448,100 @@ class ProjectDesignController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+
     public function storeProjectDesignInspection(Request $request, $jobId)
+    {
+        // Validate Request
+        $this->validate($request, [
+            'inspectionData' => 'nullable|array',
+            'inspectionData.*.inspection' => 'nullable|string',
+            'inspectionData.*.attachment' => 'nullable|array',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Check Job
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            // Loop through inspections data
+            $inspections = $request->inspectionData;
+            foreach ($inspections as $index => $inspection) {
+                // Check if an inspection already exists for this job with the same index
+                $existingInspection = ProjectDesignInspection::where('company_job_id', $jobId)
+                                    ->where('inspection_index', $index)  // Assuming inspection_index is the index identifier
+                                    ->first();
+
+                if ($existingInspection) {
+                    // Update existing inspection
+                    $existingInspection->inspection = $inspection['inspection'];
+                    $existingInspection->save();
+                    
+                    // Handle attachments
+                    if (isset($inspection['attachment']) && count($inspection['attachment']) > 0) {
+                        foreach ($inspection['attachment'] as $attachment) {
+                            $fileName = time() . '_' . $attachment->getClientOriginalName();
+                            $filePath = $attachment->storeAs('public/project_design_inspection', $fileName);
+
+                            // Create or update media for existing inspection
+                            $existingMedia = ProjectDesignInspectionMedia::where('inspection_id', $existingInspection->id)
+                                            ->where('url', Storage::url($filePath))
+                                            ->first();
+
+                            if ($existingMedia) {
+                                // Update existing media entry
+                                $existingMedia->url = Storage::url($filePath);
+                                $existingMedia->save();
+                            } else {
+                                // Add new media if it doesn't already exist
+                                $media = new ProjectDesignInspectionMedia;
+                                $media->inspection_id = $existingInspection->id;
+                                $media->url = Storage::url($filePath);
+                                $media->save();
+                            }
+                        }
+                    }
+                } else {
+                    // Create a new inspection entry if it doesn't exist
+                    $newInspection = new ProjectDesignInspection;
+                    $newInspection->company_job_id = $jobId;
+                    $newInspection->inspection = $inspection['inspection'];
+                    $newInspection->inspection_index = $index; // Storing index as identifier
+                    $newInspection->save();
+
+                    // Handle attachments for new inspection
+                    if (isset($inspection['attachment']) && count($inspection['attachment']) > 0) {
+                        foreach ($inspection['attachment'] as $attachment) {
+                            $fileName = time() . '_' . $attachment->getClientOriginalName();
+                            $filePath = $attachment->storeAs('public/project_design_inspection', $fileName);
+
+                            $media = new ProjectDesignInspectionMedia;
+                            $media->inspection_id = $newInspection->id;
+                            $media->url = Storage::url($filePath);
+                            $media->save();
+                        }
+                    }
+                }
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inspection Added/Updated Successfully',
+                'data' => []
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    public function storeProjectDesignInspection12(Request $request, $jobId)
     {
         // Validate Request
         $this->validate($request, [
