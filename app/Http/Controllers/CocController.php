@@ -261,10 +261,10 @@ class CocController extends Controller
             $coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
             $coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
             $coc->homeowner_address = $job->address;
-            $coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
-            $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
-            $coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
-            $coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
+            $coc->insurance = !is_null($job->aggrement) ? $job->aggrement->insurance : '';
+            $coc->insurance_email = !is_null($job->aggrement) ? $job->aggrement->email : '';
+            $coc->policy_number = !is_null($job->aggrement) ? $job->aggrement->policy_number : '';
+            $coc->claim_number = !is_null($job->aggrement) ? $job->aggrement->claim_number : '';
 
             // Check if aggrement is not null before accessing its properties
             if (!is_null($job->aggrement)) {
