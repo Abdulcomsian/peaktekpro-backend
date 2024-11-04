@@ -216,6 +216,10 @@ class MeetingController extends Controller
                 $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
+            }elseif($request->status=== 'overturn' || $request->status=== 'appraisal') {
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
             }
 
             return response()->json([
