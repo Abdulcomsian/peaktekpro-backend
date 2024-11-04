@@ -315,7 +315,8 @@ class CocController extends Controller
                 'data' => [
                     'homeowner_name' => $get_coc->name,
                     'homeowner_email' => $get_coc->email,
-                    'homeowner_address' => $get_coc->homeowner_address, 
+                    // 'homeowner_address' => $get_coc->homeowner_address, 
+                    'homeowner_address' => $job->address,
                     'insurance' => $get_coc->insurance,
                     'insurance_email' => $get_coc->insurance_email, 
                     'policy_number' => $get_coc->policy_number,
