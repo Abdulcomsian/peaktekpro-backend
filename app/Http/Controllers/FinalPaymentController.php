@@ -81,11 +81,15 @@ class FinalPaymentController extends Controller
                 'company_job_id' => $jobId
             ],[
                 'company_job_id' => $jobId,
-                'status' => isset($request->status) ? $request->status : false,
+                'status' => isset($request->status),
             ]);
             
             if(isset($request->status) && $request->status == true) {
                 $job->status_id = 14;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }if(isset($request->status) && $request->status == false) {
+                $job->status_id = 13;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
             }
