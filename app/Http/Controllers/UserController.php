@@ -70,6 +70,8 @@ class UserController extends Controller
                     'email' => 'nullable|string|unique:users,email',
                     'company_id' => 'nullable|exists:companies,id',
                     // 'permission_level_id' => 'nullable|exists:roles,id',
+                    'password' => 'required|string', 
+                    'confirm_password' => 'required|string|same:password',
                     'permission_level_id' => 'nullable|integer|in:' . implode(',', array_column(PermissionLevel::cases(), 'value')),
                     'status' => 'nullable|in:active,inactive',
                 ]);
@@ -85,6 +87,7 @@ class UserController extends Controller
             $user = Auth::user();
             if($user->role_id == 2 || $user->role_id == 1)
             {
+                $password = $request->password;
                 $add_user = new User;
                 $add_user->first_name = $request->first_name;
                 $add_user->last_name = $request->last_name;
@@ -93,7 +96,7 @@ class UserController extends Controller
                 $add_user->company_id = $request->company_id;
                 $add_user->role_id = $request->permission_level_id;
                 $add_user->status = $request->status;
-                $add_user->password =  Hash::make('12345678');
+                $add_user->password =  Hash::make($password);
 
                 $add_user->save();
 
