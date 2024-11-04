@@ -304,11 +304,29 @@ class CocController extends Controller
             // Save the updated COC
             $get_coc->save();
 
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'COC Found Successfully',
+            //     'data' => $get_coc
+            // ], 200);
             return response()->json([
                 'status' => 200,
                 'message' => 'COC Found Successfully',
-                'data' => $get_coc
+                'data' => [
+                    'homeowner_name' => $get_coc->name,
+                    'homeowner_email' => $get_coc->email,
+                    'homeowner_address' => $get_coc->homeowner_address, 
+                    'insurance' => $get_coc->insurance,
+                    'insuranceemail' => $get_coc->insurance_email, 
+                    'policynumber' => $get_coc->policy_number,
+                    'claimnumber' => $get_coc->claim_number,
+                    'street' => $get_coc->street,
+                    'city' => $get_coc->city,
+                    'state' => $get_coc->state,
+                    'zipcode' => $get_coc->zip_code,
+                ]
             ], 200);
+            
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
