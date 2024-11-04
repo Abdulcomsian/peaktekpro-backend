@@ -262,7 +262,7 @@ class CocController extends Controller
             $coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
             $coc->homeowner_address = $job->address;
             $coc->insurance = !is_null($job->aggrement) ? $job->aggrement->insurance : '';
-            $coc->insurance_email = !is_null($job->aggrement) ? $job->aggrement->email : '';
+            $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
             $coc->policy_number = !is_null($job->aggrement) ? $job->aggrement->policy_number : '';
             $coc->claim_number = !is_null($job->aggrement) ? $job->aggrement->claim_number : '';
 
@@ -318,7 +318,7 @@ class CocController extends Controller
                     // 'homeowner_address' => $get_coc->homeowner_address, 
                     'homeowner_address' => $job->address,
                     'insurance' => $get_coc->insurance,
-                    'insurance_email' => $get_coc->insurance_email, 
+                    'insurance_email' =>  !is_null($job->summary) ? $job->summary->email : '', 
                     'policy_number' => $get_coc->policy_number,
                     'claim_number' => $get_coc->claim_number,
                     'street' => $get_coc->street,
