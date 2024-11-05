@@ -313,6 +313,7 @@ class CocController extends Controller
                 'status' => 200,
                 'message' => 'COC Found Successfully',
                 'data' => [
+                    'id' => $get_coc->id,
                     'homeowner_name' => $get_coc->name,
                     'homeowner_email' => $get_coc->email,
                     // 'homeowner_address' => $get_coc->homeowner_address, 
