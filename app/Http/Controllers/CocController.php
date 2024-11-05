@@ -324,7 +324,7 @@ class CocController extends Controller
                     'street' => $get_coc->street,
                     'city' => $get_coc->city,
                     'state' => $get_coc->state,
-                    'zipcode' => $get_coc->zip_code,
+                    'zip_code' => $get_coc->zip_code,
                     'status' => $get_coc->status,
                     'company_representative' => $get_coc->company_representative,
                     'company_printed_name' => $get_coc->company_printed_name,
