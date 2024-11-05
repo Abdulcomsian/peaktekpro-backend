@@ -125,6 +125,7 @@ class UserController extends Controller
     
     public function updateUser(Request $request, $id)
     {
+        // dd($id);
         // Validate the incoming request
         try {
             $this->validate($request, [
@@ -148,6 +149,7 @@ class UserController extends Controller
 
             if ($user->role_id == 2 || $user->role_id == 1) {
                 $update_user = User::findOrFail($id);
+                // dd($update_user);
 
                 // Update user details
                 $update_user->first_name = $request->first_name ?? $update_user->first_name;

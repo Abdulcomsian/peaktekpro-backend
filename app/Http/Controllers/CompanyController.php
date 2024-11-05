@@ -520,6 +520,7 @@ class CompanyController extends Controller
                 $update_user->name = $request->input('site_admin_name', $update_user->name);
                 $update_user->email = $request->input('site_admin_email', $update_user->email);
                 $update_user->status = $request->input('status', $update_user->status);
+                $update_user->role_id = 1;
                 $update_user->save();
             }
 
