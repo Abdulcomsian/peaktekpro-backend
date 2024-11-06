@@ -633,7 +633,7 @@ class CompanyJobController extends Controller
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
             
             $created_by = $user->created_by == 0 ? 1 : $user->created_by;
-            if($user->role_id == 1 || $user->role_id == 2) {
+            if($user->role_id == 1 || $user->role_id == 2 || $user->role_id == 7) {
                 $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Won and Closed'];
 
                 $tasks = Status::whereIn('name', $specificStatuses)
