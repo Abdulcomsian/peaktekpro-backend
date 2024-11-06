@@ -568,8 +568,10 @@ class CompanyController extends Controller
 
             if (isset($request->results) && isset($request->page)) {
                 $users = $usersQuery->skip($skipped)->take($results)->get();
+                dd($users);
             } else {
                 $users = $usersQuery->get();
+                dd($users);
             }
 
             return response()->json([
