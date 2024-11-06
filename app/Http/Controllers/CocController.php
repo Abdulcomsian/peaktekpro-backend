@@ -91,10 +91,10 @@ class CocController extends Controller
             ]);
             
             //Update Status
-            if(isset($request->status) && $request->status == true) {
-                $job->status_id = 13;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
+            // if(isset($request->status) && $request->status == true) {
+            //     $job->status_id = 13;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();
                 
                 //Generate PDF
                 $pdf = PDF::loadView('pdf.coc', ['coc' => $coc, 'job' => $job]);
@@ -113,7 +113,7 @@ class CocController extends Controller
                 //Save PDF Path
                 $coc->pdf_url = '/storage/' . $pdf_filePath;
                 $coc->save();
-            }
+            // }
 
             return response()->json([
                 'status' => 200,
