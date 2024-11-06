@@ -554,7 +554,8 @@ class CompanyController extends Controller
 
             $user = Auth::user();
             // Determine the company ID
-            $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
+            // $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
+            $companyId = $user->company_id;
 
             // Get pagination parameters
             $results = $request->input('results', 15);
