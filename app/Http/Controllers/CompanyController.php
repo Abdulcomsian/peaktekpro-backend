@@ -564,14 +564,14 @@ class CompanyController extends Controller
             $skipped = ($page - 1) * $results;
 
             $usersQuery = User::where('created_by', $companyId)
-                ->where('role_id', 5)->with('role');
+                ->whereIn('role_id', [2,8,9])->with('role');
 
             if (isset($request->results) && isset($request->page)) {
                 $users = $usersQuery->skip($skipped)->take($results)->get();
-                dd($users);
+                // dd($users);
             } else {
                 $users = $usersQuery->get();
-                dd($users);
+                // dd($users);
             }
 
             return response()->json([
