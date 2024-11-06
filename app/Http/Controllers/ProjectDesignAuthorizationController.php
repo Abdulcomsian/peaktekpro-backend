@@ -127,7 +127,7 @@ class ProjectDesignAuthorizationController extends Controller
             return response()->json([
                 'status' => 201,
                 'message' => 'Authorization Added Successfully',
-                'data' => []
+                'data' => $authorization
             ], 201);
 
         } catch (\Exception $e) {
