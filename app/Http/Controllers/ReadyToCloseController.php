@@ -138,6 +138,7 @@ class ReadyToCloseController extends Controller
             
             //Check Job
             $job = CompanyJob::whereId($jobId)->with('materialOrder')->first();
+            // dd($job);
             if(!$job) {
                 return response()->json([
                     'status' => 422,
