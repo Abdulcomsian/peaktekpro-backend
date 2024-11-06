@@ -26,6 +26,7 @@ class CocInsuranceJob implements ShouldQueue
      */
     public function __construct($email,$subject,$body,$attachments)
     {
+        // dd("123");
         $this->email = $email;
         $this->subject = $subject;
         $this->body = $body;
@@ -39,6 +40,7 @@ class CocInsuranceJob implements ShouldQueue
      */
     public function handle()
     {
+        // dd("123");
         Mail::to($this->email)->send(new CocInsuranceMail($this->subject, $this->body, $this->attachments));
     }
 }

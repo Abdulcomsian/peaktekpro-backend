@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
             $table->text('inspection');
+            $table->string('inspection_index');
             $table->timestamps();
         });
     }

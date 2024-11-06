@@ -556,40 +556,21 @@
     </table>
     <table style="width: 1200px; margin: auto">
       <tr>
-        <td>
-          <span
-            style="
-              border: 1px solid rgb(0, 0, 0);
-              width: 200px;
-              display: inline-block;
-              margin-top: 50px;
-            "
-          ></span
-          ><span>the undersigned, hereby cancel this transaction as of </span>
-          <span
-            style="
-              border: 1px solid rgb(0, 0, 0);
-              width: 50px;
-              display: inline-block;
-            "
-          ></span
-          ><span>/</span>
-          <span
-            style="
-              border: 1px solid rgb(0, 0, 0);
-              width: 50px;
-              display: inline-block;
-            "
-          ></span
-          ><span>/</span>
-          <span
-            style="
-              border: 1px solid rgb(0, 0, 0);
-              width: 80px;
-              display: inline-block;
-            "
-          ></span>
-        </td>
+      <td>
+  <span
+    style="
+      text-decoration: underline;
+      margin-top: 50px;
+    "
+  >{{ $data->customer_name }}</span>
+  <span> the undersigned, hereby cancel this transaction as of </span>
+  <span
+    style="
+      text-decoration: underline;
+    "
+  >{{ $data->agreement_date }}</span>
+</td>
+
       </tr>
       <tr>
         <td>

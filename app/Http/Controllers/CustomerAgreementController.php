@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use PDF;
+use Carbon\Carbon;
 use App\Jobs\SignEmailJob;
 use App\Models\CompanyJob;
 use App\Mail\SignEmailMail;
 use Illuminate\Http\Request;
+use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
+use App\Models\ProjectDesignTitle;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class CustomerAgreementController extends Controller
 {
@@ -37,7 +39,7 @@ class CustomerAgreementController extends Controller
                 'customer_printed_name' => 'nullable',
                 'customer_date' => 'nullable|date_format:m/d/Y',
                 'agreement_date' => 'nullable|date_format:m/d/Y',
-                'customer_name' => 'required|string',
+                'customer_name' => 'nullable|string',
                 'status' => 'nullable'
             ]);
 
@@ -72,6 +74,24 @@ class CustomerAgreementController extends Controller
                 'customer_name' => $request->customer_name,
                 'status' => $request->status,
             ]);
+
+            // Store values in project_design_titles because it will used in design meeting pdf making
+            $projectDesignTitle = ProjectDesignTitle::updateOrCreate(
+                ['company_job_id' => $id],
+                [
+            'company_job_id' => $id,
+            'first_name' => explode(' ', $request->customer_name)[0],
+            'last_name' => explode(' ', $request->customer_name)[1] ?? '',
+            'company_name' => $request->company_printed_name,
+            'address' => $request->street,
+            'city' => $request->city,
+            'state' => $request->state,
+            'zip' => $request->zip_code,
+            'report_type' => 'Design Meeting', 
+            'date' => now()->format('Y-m-d'),
+        ]);
+
+        $projectDesignTitle->save();
             
             //Update Status
             if(isset($request->status) && $request->status == true) {
@@ -83,6 +103,52 @@ class CustomerAgreementController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Created Successfully',
+                'agreement' => $agreement
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function customerAgreementStatus(Request $request, $id)
+    {
+        try {
+            //Validate Request
+            $this->validate($request, [
+                'status' => 'nullable'
+            ]);
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Update Agreement
+            $agreement = CustomerAgreement::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'status' => $request->status,
+            ]);
+            
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 3;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();    
+            } elseif(isset($request->status) && $request->status == false) {
+                $job->status_id = 2;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();    
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Agreement Status Updated Successfully',
                 'agreement' => $agreement
             ], 200);
         } catch (\Exception $e) {
@@ -126,11 +192,12 @@ class CustomerAgreementController extends Controller
         }
     }
 
+    //when the user sign then the pdf generate
     public function updateCustomerAgreement(Request $request, $id)
     {
         //Validate Request
         $this->validate($request, [
-            'sign_image' => 'required',
+            'sign_image' => 'nullable',
         ]);
         try {
 
@@ -207,7 +274,7 @@ class CustomerAgreementController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'url' => 'required',
+            'url' => 'nullable',
         ]);
 
         try {
@@ -239,7 +306,6 @@ class CustomerAgreementController extends Controller
     public function checkCustomerAgreement($jobId)
     {
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -251,6 +317,18 @@ class CustomerAgreementController extends Controller
 
             //Check Agreement
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
+
+            ////
+            $job_summary = CompanyJobSummary::select('id','insurance','policy_number','insurance_representative','claim_number')
+            ->where('company_job_id', $job->id)->first();
+            // if(!$job_summary) {
+            //     return response()->json([
+            //         'status' => 200,
+            //         'message' => 'Job Summary Not Yet Created',
+            //     ], 200);
+            // }
+
+            ///
             if(!$agreement) {
 
                 //Job Information
@@ -263,7 +341,11 @@ class CustomerAgreementController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message' => 'Customer Agreement Not Found',
-                    'agreement' => $job_info
+                    'data' => [
+                        'agreement' => $job_info,
+                        'jobsummary' =>  $job_summary
+                    ]
+                    
                 ], 200);
             }
 
@@ -280,7 +362,11 @@ class CustomerAgreementController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Customer Agreement Found Successfully',
-                'agreement' => $agreement
+                'data' => [ 
+                   'agreement' => $agreement,
+                'jobsummary' => $job_summary,
+                ]
+                
             ], 200);
 
         } catch (\Exception $e) {
@@ -318,7 +404,7 @@ class CustomerAgreementController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'sign_image' => 'required',
+            'sign_image' => 'nullable',
         ]);
 
         try {

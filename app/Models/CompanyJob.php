@@ -25,10 +25,20 @@ class CompanyJob extends Model
     {
         return $this->hasOne(CompanyJobSummary::class);
     }
+
+    public function aggrement()
+    {
+        return $this->hasOne(CustomerAgreement::class);
+    }
     
     public function materialOrder()
     {
         return $this->hasOne(MaterialOrder::class);
+    }
+
+    public function readyBuild()
+    {
+        return $this->hasOne(ReadyToBuild::class);
     }
 
     public function users()
@@ -39,6 +49,11 @@ class CompanyJob extends Model
     public function adjustorMeeting()
     {
         return $this->hasOne(AdjustorMeeting::class)->where('status', 'Approved');
+    }
+
+    public function wonAndClosed()
+    {
+        return $this->hasOne(ReadyToClose::class)->where('status', true);
     }
     
     public function title()

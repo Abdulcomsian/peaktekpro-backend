@@ -391,7 +391,7 @@
       <thead>
         <tr>
           <th>
-            <h2 style="text-align: left">Payment Schedule</h2>
+            <h2 style="text-align: left">Proof of Payments</h2>
           </th>
         </tr>
       </thead>
@@ -461,7 +461,7 @@
       <thead>
         <tr>
           <th>
-            <h2 style="text-align: left">Xactimate Report</h2>
+            <h2 style="text-align: left">Measurement Report</h2>
           </th>
         </tr>
       </thead>

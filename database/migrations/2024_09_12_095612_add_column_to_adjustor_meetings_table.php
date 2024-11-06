@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('adjustor_meetings', function (Blueprint $table) {
-            $table->boolean('completed')->default(false)->after('status');
+            $table->string('sent')->default('false')->after('status');
         });
     }
 
@@ -26,7 +26,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('adjustor_meetings', function (Blueprint $table) {
-            $table->dropColumn('completed');
+            $table->dropColumn('sent');
         });
     }
 };

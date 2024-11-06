@@ -15,10 +15,12 @@ return new class extends Migration
     {
         Schema::create('material_order_confirmations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('material_order_id')->constrained('material_orders')->onDelete('cascade');
-            $table->boolean('status')->default(0);
-            $table->boolean('confirmation_email')->default(0);
-            $table->boolean('material_order_confirmation_email')->default(0);
+            $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
+            $table->integer('type')->default(1);
+            // $table->string('confirmation_email_sent')->default('false');
+            $table->string('confirmation_email_sent')->nullable()->default('false');
+
+            $table->string('material_confirmation_email_sent')->default('false');
             $table->timestamps();
         });
     }

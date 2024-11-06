@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('website')->nullable();
+            $table->string('status')->default('inactive')->nullable();
+
             $table->timestamps();
         });
     }

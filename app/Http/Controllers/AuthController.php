@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Mail;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Jobs\CreateUserJob;
 use Illuminate\Support\Str;
+use App\Mail\CreateUserMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use App\Mail\CreateUserMail;
 
 class AuthController extends Controller
 {
@@ -19,7 +20,9 @@ class AuthController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'name' => 'required|string',
+            // 'name' => 'required|string',
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
@@ -31,7 +34,9 @@ class AuthController extends Controller
             $user = User::create([
                 'role_id' => 5,
                 'company_id' => 1,
-                'name' => $request->name,
+                'name' => $request->first_name. $request->last_name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
@@ -47,7 +52,7 @@ class AuthController extends Controller
 
             DB::commit();
             return response()->json([
-                'status' => 201,
+                'status' => 200,
                 'message' => 'User Registered Successfully',
                 'user' => $user,
                 'token' => $token
@@ -77,7 +82,16 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5 || $userExists->role_id == 7) {
+            $userActive = User::where('email',$request->email)->where('status','active')->first();
+            if(!$userActive)
+            {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'User is Not Active'
+                ], 422);
+            }
+
+            if($userExists->role_id == 1 || $userExists->role_id == 2 || $userExists->role_id == 5 || $userExists->role_id == 7 || $userExists->role_id == 8 || $userExists->role_id == 9) {
 
                 if (Auth::attempt($request->only('email', 'password'))) {
                     $user = Auth::user();
@@ -241,7 +255,7 @@ class AuthController extends Controller
 
                 //Send Email
                 // dispatch(new CreateUserJob($user,$password));
-                \Mail::to($user->email)->send(new CreateUserMail($user, $password));
+                Mail::to($user->email)->send(new CreateUserMail($user, $password));
 
                 return response()->json([
                     'status' => 200,

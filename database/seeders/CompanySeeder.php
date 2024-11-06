@@ -21,6 +21,10 @@ class CompanySeeder extends Seeder
         // Create Company
         $company = new Company;
         $company->name = 'Peak Tek';
+        $company->website = 'www.peaktk.com';
+        $company->status = 'active';
+
+
         $company->save();
 
         $user = new User;

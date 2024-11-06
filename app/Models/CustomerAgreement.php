@@ -32,4 +32,9 @@ class CustomerAgreement extends Model
     {
         return $value == 0 ? false : true;
     }
+
+    public function jobSummary()
+    {
+        return $this->belongsTo(CompanyJobSummary::class,'company_job_id', 'id');
+    }
 }

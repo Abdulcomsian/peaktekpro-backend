@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('xactimate_report_id')->constrained('xactimate_reports')->onDelete('cascade');
             $table->string('file_name')->nullable();
-            $table->string('pdf_url');
+            $table->string('pdf_url')->nullable();
             $table->timestamps();
         });
     }

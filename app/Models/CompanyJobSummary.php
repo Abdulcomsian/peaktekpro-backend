@@ -10,4 +10,9 @@ class CompanyJobSummary extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function customerAggrement()
+    {
+        return $this->hasMany(CustomerAgreement::class, 'company_job_id', 'id');
+    }
 }

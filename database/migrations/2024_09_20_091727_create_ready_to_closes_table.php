@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('labor_costs')->nullable();
             $table->string('costs_of_goods')->nullable();
             $table->string('market')->nullable();
-            $table->boolean('status')->default(0);
+            $table->string('status')->default('false');
             $table->timestamps();
         });
     }

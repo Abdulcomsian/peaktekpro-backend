@@ -16,10 +16,10 @@ class XactimateReportController extends Controller
         //Validate Request
         $this->validate($request, [
             'acknowledge' => 'nullable|in:0,1',
-            'title' => 'required|string|in:My PDFs,Shared PDFs,Single Use PDFs,Text Page',
+            'title' => 'nullable|string|in:My PDFs,Shared PDFs,Single Use PDFs,Text Page',
             'content' => $request->input('title') === 'Text Page' ? 'required' : 'nullable',
-            'pdfs' => 'required|array|min:1',
-            'pdfs.*' => 'required|mimes:pdf|max:2048',
+            'pdfs' => 'nullable|array|min:1',
+            'pdfs.*' => 'nullable|mimes:pdf|max:2048',
         ]);
 
         DB::beginTransaction();

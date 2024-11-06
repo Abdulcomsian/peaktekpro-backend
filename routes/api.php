@@ -4,19 +4,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CocController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobLogController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\WonClosedController;
 use App\Http\Controllers\CompanyJobController;
+use App\Http\Controllers\InprogressController;
 use App\Http\Controllers\CarrierScopeController;
+use App\Http\Controllers\FinalPaymentController;
 use App\Http\Controllers\QcInspectionController;
 use App\Http\Controllers\ReadyToBuildController;
+use App\Http\Controllers\ReadyToCloseController;
+use App\Http\Controllers\BuildCompleteController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\RoofComponentController;
 use App\Http\Controllers\SubContractorController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
 use App\Http\Controllers\EstimatePreparedController;
@@ -24,12 +32,6 @@ use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
-use App\Http\Controllers\InprogressController;
-use App\Http\Controllers\BuildCompleteController;
-use App\Http\Controllers\FinalPaymentController;
-use App\Http\Controllers\ReadyToCloseController;
-use App\Http\Controllers\WonClosedController;
-use App\Http\Controllers\UserManagementController;
 
 
 /*
@@ -64,10 +66,29 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('dashboard-stats/detail', [CompanyJobController::class, 'dashboardStatsDetail']);
     //Api for creating different users
     Route::post('create/user', [AuthController::class, 'createUser']);
+
+    //Api for creating Users rr
+    Route::post('createUser', [UserController::class, 'addUser']);
+    Route::get('getUser', [UserController::class, 'getUser']);
+    Route::post('updateUser/{id}', [UserController::class, 'updateUser']);
+    Route::get('users/filter', [UserController::class, 'filterUsersByPermission']);
+    Route::get('users/search', [UserController::class, 'searchUsers']);
+
+    //setting apis
+    Route::post('updateProfile/{id}', [ProfileController::class, 'updateProfile']);
+    Route::post('changePassword', [ProfileController::class, 'changePassword']);
+
+
     //Company Api's
     Route::post('create/company', [CompanyController::class, 'createCompany']);
     Route::get('get/company/{id}', [CompanyController::class, 'getCompany']);
+    Route::get('getCompanies', [CompanyController::class, 'getCompanies']);
+    Route::get('company/filter', [CompanyController::class, 'filterCompanyByStatus']);
+    Route::get('company/search', [CompanyController::class, 'searchCompany']);
+    Route::get('company/view/{id}', [CompanyController::class, 'viewCompany']);
+    Route::get('company/edit/{id}', [CompanyController::class, 'editCompany']);
     Route::post('update/company/{id}', [CompanyController::class, 'updateCompany']);
+    
     Route::get('get/company-users', [CompanyController::class, 'getCompanyUsers']);
     Route::get('get/company-sub-contractors', [CompanyController::class, 'getCompanySubContractors']);
     Route::get('get/company-suppliers', [CompanyController::class, 'getCompanySuppliers']);
@@ -106,11 +127,15 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/jobs-by-task/{statusId}', [CompanyJobController::class, 'getJobWithStatus']);
     //Inprogress Api's
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
+    Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
+    Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
     Route::get('get/in-progress/{jobId}', [InprogressController::class, 'getInprogress']);
+
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
     Route::post('update/adjustor-meeting-media/{jobId}', [MeetingController::class, 'updateAdjustorMeetingMedia']);
     Route::post('update-status/adjustor-meeting/{id}', [MeetingController::class, 'updateAdjustorMeetingStatus']);
+    Route::post('add/adjustor-meeting-status/{id}', [MeetingController::class, 'AdjustorMeetingStatus']);
     Route::get('get/adjustor-meeting/{jobId}', [MeetingController::class, 'getAdjustorMeeting']);
     Route::post('change/adjustor-meeting/file-name/{id}', [MeetingController::class, 'changeAdjustorMeetingFileName']);
     Route::post('delete/adjustor-meeting/media/{id}', [MeetingController::class, 'deleteAdjustorMeetingMedia']);
@@ -123,20 +148,31 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update-status/overturn-meeting/{id}', [MeetingController::class, 'updateOverturnMeetingStatus']);
     //Customer Agreements Api's
     Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
+    Route::post('customer-agreement-status/{jobId}', [CustomerAgreementController::class, 'customerAgreementStatus']);
+
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
     Route::post('sign-by-email/{id}', [CustomerAgreementController::class, 'signCustomerAgreementByEmail']);
     Route::get('check/customer-agreement/{jobId}', [CustomerAgreementController::class, 'checkCustomerAgreement']);
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
+    Route::post('generate-pdf/{jobId}', [MaterialOrderController::class, 'generatePdf']);
+    Route::get('view-pdf', [MaterialOrderController::class, 'viewPdf']);
+    Route::get('delete/material-order/material/{id}', [MaterialOrderController::class, 'deleteMaterialOrderMaterial']);
     Route::get('get/material-order/{id}', [MaterialOrderController::class, 'getMaterialOrder']);
     Route::post('update/material-order/{id}', [MaterialOrderController::class, 'updateMaterialOrder']);
     Route::get('check/material-order/{jobId}', [MaterialOrderController::class, 'checkMaterialOrder']);
     Route::post('material-order/email/{jobId}', [MaterialOrderController::class, 'MaterialOrderEmail']);
     Route::get('send/email/{jobId}', [MaterialOrderController::class, 'EmailToSupplier']);
     Route::post('update/build-detail/{jobId}', [MaterialOrderController::class, 'updateBuildDetail']);
-    Route::post('confirmation-email/{id}', [MaterialOrderController::class, 'confirmationEmail']);
-    Route::post('material-order/confirmation-email/{id}', [MaterialOrderController::class, 'materialOrderconfirmationEmail']);
+    Route::post('update/build-detail-status/{jobId}', [MaterialOrderController::class, 'updateBuildDetailStatus']);
+    Route::get('get/build-detail/{jobId}', [MaterialOrderController::class, 'getBuildDetail']);
+    Route::post('confirmation-email/{jobId}', [MaterialOrderController::class, 'confirmationEmail']);
+    Route::post('confirmation-email-status/{jobId}', [MaterialOrderController::class, 'confirmationEmailStatus']);
+    Route::get('get-confirmation-email-status/{jobId}', [MaterialOrderController::class, 'getConfirmationEmailStatus']);
+    Route::post('material-order/confirmation-email/{jobId}', [MaterialOrderController::class, 'materialOrderconfirmationEmail']);
+    Route::post('material-order/confirmation-email-status/{jobId}', [MaterialOrderController::class, 'materialOrderconfirmationEmailStatus']);
+    Route::get('get-material-order/confirmation-email-status/{jobId}', [MaterialOrderController::class, 'getMaterialOrderconfirmationEmailStatus']);
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
     //Project Design Title
@@ -189,10 +225,19 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('delete/qc-inspection/media/{id}', [QcInspectionController::class, 'deleteQcInspectionMedia']);
     //Certificate Of Completion Api's
     Route::post('store/coc/{jobId}', [CocController::class, 'storeCoc']);
+    Route::post('update/coc/status/{jobId}', [CocController::class, 'updateStatusCoc']);
     Route::get('get/coc/{jobId}', [CocController::class, 'getCoc']);
     Route::post('coc/insurance-email/{id}', [CocController::class, 'CocInsuranceEmail']);
+    Route::post('coc/insurance-email/status/{id}', [CocController::class, 'CocInsuranceEmailStatus']);
+    Route::get('coc/insurance-email/status/{id}', [CocController::class, 'getCocInsuranceEmailStatus']);
+    Route::get('get/coc/insurance-email/{id}', [CocController::class, 'getCocInsuranceEmail']);
+
+
     //Ready To Build Api's
     Route::post('store/ready-to-build/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuild']);
+    Route::post('store/ready-to-build-status/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuildStatus']);
+    Route::post('change/ready-to-build/file-name/{id}', [ReadyToBuildController::class, 'changeReadyToBuildFileName']);
+    Route::post('delete/ready-to-build/media/{id}', [ReadyToBuildController::class, 'deleteReadyToBuildMedia']);
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
     //Supplier Api's
     Route::post('store/supplier/{jobId}', [SupplierController::class, 'storeSupplier']);
@@ -210,6 +255,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/term-and-condition/{jobId}', [TermAndConditionController::class, 'getTermAndConditions']);
     //Estimate Prepared Api's
     Route::post('store/estimate-prepared/{jobId}', [EstimatePreparedController::class, 'storeEstimatePrepared']);
+    Route::post('estimate-prepared-status/{jobId}', [EstimatePreparedController::class, 'EstimatePreparedStatus']);
     Route::get('get/estimate-prepared/{jobId}', [EstimatePreparedController::class, 'getEstimatePrepared']);
     Route::post('change/estimate-prepared/file-name/{id}', [EstimatePreparedController::class, 'changeEstimatePreparedFileName']);
     Route::post('delete/estimate-prepared/media/{id}', [EstimatePreparedController::class, 'deleteEstimatePreparedMedia']);
@@ -224,11 +270,13 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/job-log/{buildCompleteId}', [BuildCompleteController::class, 'getJobLog']);
     //Final Payment Due Api's
     Route::post('update/final-payment-due/{jobId}', [FinalPaymentController::class, 'updateFinalPaymentDue']);
+    Route::post('update/final-payment-due-status/{jobId}', [FinalPaymentController::class, 'updateFinalPaymentDueStatus']);
     Route::get('get/final-payment-due/{jobId}', [FinalPaymentController::class, 'getFinalPaymentDue']);
     //Won Closed Api's
     Route::post('update/won-closed/{jobId}', [WonClosedController::class, 'updateWonClosed']);
     Route::get('get/won-closed/{jobId}', [WonClosedController::class, 'getWonClosed']);
     //Ready To Close Api's
     Route::post('update/ready-to-close/{jobId}', [ReadyToCloseController::class, 'updateReadyToClose']);
+    Route::post('update/ready-to-close-status/{jobId}', [ReadyToCloseController::class, 'updateReadyToCloseStatus']);
     Route::get('get/ready-to-close/{jobId}', [ReadyToCloseController::class, 'getReadyToClose']);
 });

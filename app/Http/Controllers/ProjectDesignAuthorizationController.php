@@ -15,25 +15,25 @@ class ProjectDesignAuthorizationController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'disclaimer' => 'required',
-            'signer_first_name' => 'required|string',
-            'signer_last_name' => 'required|string',
-            'signer_email' => 'required|email',
-            'footer_notes' => 'required',
-            'item1' => 'required|string',
-            'item2' => 'required|string',
-            'item3' => 'required|string',
-            'section1' => 'required|string',
-            'section2' => 'required|string',
-            'section3' => 'required|string',
-            'sections' => 'required|array',
-            'sections.*.title' => 'required|string',
-            'sections.*.section_total' => 'required',
-            'sections.*.items' => 'required|array',
-            'sections.*.items.*.item' => 'required|string',
-            'sections.*.items.*.quantity' => 'required',
-            'sections.*.items.*.price' => 'required',
-            'sections.*.items.*.line_total' => 'required',
+            'disclaimer' => 'nullable',
+            'signer_first_name' => 'nullable|string',
+            'signer_last_name' => 'nullable|string',
+            'signer_email' => 'nullable|email',
+            'footer_notes' => 'nullable',
+            'item1' => 'nullable|string',
+            'item2' => 'nullable|string',
+            'item3' => 'nullable|string',
+            'section1' => 'nullable|string',
+            'section2' => 'nullable|string',
+            'section3' => 'nullable|string',
+            'sections' => 'nullable|array',
+            'sections.*.title' => 'nullable|string',
+            'sections.*.section_total' => 'nullable',
+            'sections.*.items' => 'nullable|array',
+            'sections.*.items.*.item' => 'nullable|string',
+            'sections.*.items.*.quantity' => 'nullable',
+            'sections.*.items.*.price' => 'nullable',
+            'sections.*.items.*.line_total' => 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -124,10 +124,12 @@ class ProjectDesignAuthorizationController extends Controller
             }
 
             DB::commit();
+            $authorization->load('sections.items');
+
             return response()->json([
                 'status' => 201,
                 'message' => 'Authorization Added Successfully',
-                'data' => []
+                'data' => $authorization
             ], 201);
 
         } catch (\Exception $e) {

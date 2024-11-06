@@ -13,13 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('estimate_prepareds', function (Blueprint $table) {
+        Schema::create('ready_to_build_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->string('prepared_by')->nullable();
-            $table->string('date')->nullable();
-            $table->string('status')->nullable();
-            $table->boolean('complete_box')->default(0)->nullable();
+            $table->foreignId('ready_build_id')->constrained('ready_to_builds')->onDelete('cascade');
+            $table->string('image_url');
+            $table->string('file_name')->nullable();
             $table->timestamps();
         });
     }
@@ -31,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('estimate_prepareds');
+        Schema::dropIfExists('ready_to_build_media');
     }
 };

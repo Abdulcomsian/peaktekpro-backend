@@ -21,14 +21,14 @@ class MeetingController extends Controller
         //Validate Rules
         $rules = [
             'email' => 'nullable|email',
-            'time' => 'nullable|date_format:h:i A', // 12-hour format
+            // 'time' => 'nullable|date_format:h:i A', // 12-hour format
             'date' => 'nullable|date_format:m/d/Y',
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable',
-            'completed' => 'nullable',
-            'status' => 'nullable',
+            'sent' => 'nullable',
+            'status' => 'nullable|in:approved,overturn,appraisal',
             'attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
-            'images.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
+            'images .*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
             'notes' => 'nullable'
         ];
 
@@ -61,12 +61,12 @@ class MeetingController extends Controller
                 'company_job_id' => $jobId,
                 'email' => $request->email,
                 'date' => $request->date,
-                'time' => $request->time,
+                // 'time' => $request->time,
                 'name' => $request->name,
                 'phone' => $request->phone,
                 'notes' => $request->notes,
                 'status' => isset($request->status) ? $request->status : 'pending',
-                'completed' => $request->completed
+                'sent' => $request->sent
             ]);
             
             //Store Meeting Attachments
@@ -80,9 +80,9 @@ class MeetingController extends Controller
                 // }
 
                 //Store New Attachments
-                foreach($request->attachments as $attachment) {
-                    $fileName = time() . '_' . $attachment->getClientOriginalName();
-                    $filePath = $attachment->storeAs('public/adjustor_meeting_attachments', $fileName);
+                foreach($request->attachments as $documents) {
+                    $fileName = time() . '_' . $documents->getClientOriginalName();
+                    $filePath = $documents->storeAs('public/adjustor_meeting_attachments', $fileName);
 
                     // Store Path
                     $media = new AdjustorMeetingMedia();
@@ -117,8 +117,14 @@ class MeetingController extends Controller
                 }
             } 
             
-            //Update Status
-            if(isset($request->completed) && $request->completed == 1 && isset($request->status) && $request->status == 'Approved') {
+            //Update Status when select approved and nothing happen upon apprisal and overturn
+            // if(isset($request->completed) && $request->completed == 1 && isset($request->status) && $request->status == 'Approved') {
+            //     $job->status_id = 8;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();   
+            // }
+
+            if(isset($request->status) && $request->status == 'approved') {
                 $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
@@ -134,12 +140,105 @@ class MeetingController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function AdjustorMeetingStatus(Request $request, $jobId)
+    {
+        //Validate Rules
+        $rules = [
+            'sent' => 'nullable',
+        ];
+        try {
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Create Adjustor Meeting
+            $adjustor_meeting = AdjustorMeeting::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'sent' => $request->sent
+            ]);
+
+            if(isset($request->sent) && $request->sent== 'true' && $adjustor_meeting->status === 'approved') {
+                $job->status_id = 8;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }elseif(isset($request->sent) && $request->sent == "false"){
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save(); 
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Meeting Status Updated Successfully',
+                'data' => $adjustor_meeting,
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function updateAdjustorMeetingStatus(Request $request, $jobId)
+    {
+        //Validate Rules
+        $rules = [
+            'status' => 'nullable|in:approved,overturn,appraisal',
+        ];
+        try {
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            // dd($job);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $status = $request->input('status');
+
+            //Create Adjustor Meeting
+            $adjustor_meeting = AdjustorMeeting::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'status' => $status
+            ]);
+
+            if($request->status=== 'approved' && $adjustor_meeting->sent === 'true') {
+                $job->status_id = 8;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }elseif($request->status=== 'overturn' || $request->status=== 'appraisal') {
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Meeting Status Updated Successfully',
+                'data' => $adjustor_meeting,
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     
     public function updateAdjustorMeetingMedia(Request $request, $jobId)
     {
         //Validate Rules
         $this->validate($request, [
-            'attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+            'attachments .*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'images.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
             'manufacturer_attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'notes' => 'nullable'
@@ -176,9 +275,9 @@ class MeetingController extends Controller
                 }
 
                 //Store New Attachments
-                foreach($request->attachments as $attachment) {
-                    $fileName = time() . '_' . $attachment->getClientOriginalName();
-                    $filePath = $attachment->storeAs('public/adjustor_meeting_attachments', $fileName);
+                foreach($request->attachments as $documents) {
+                    $fileName = time() . '_' . $documents->getClientOriginalName();
+                    $filePath = $documents->storeAs('public/adjustor_meeting_attachments', $fileName);
 
                     // Store Path
                     $media = new AdjustorMeetingMedia();
@@ -250,7 +349,7 @@ class MeetingController extends Controller
         }
     }
 
-    public function updateAdjustorMeetingStatus(Request $request, $id)
+    public function updateAdjustorMeetingStatus11(Request $request, $id)
     {
         //Validate Request
         $this->validate($request, [
@@ -323,12 +422,28 @@ class MeetingController extends Controller
 
             $adjustor_meeting = AdjustorMeeting::where('company_job_id', $jobId)->with('images','attachments')->first();
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Adjustor Meeting Found Successfully',
-                'data' => $adjustor_meeting
-            ], 200);
-
+            // Transform the response
+            if ($adjustor_meeting) {
+                $data = $adjustor_meeting->toArray(); // Convert the model to an array
+                // Rename the keys
+                $data['image_url'] = $data['images'];
+                unset($data['images']); // Remove the old key
+            
+                $data['documents'] = $data['attachments'];
+                unset($data['attachments']); // Remove the old key
+            
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Adjustor Meeting Found Successfully',
+                    'data' => $data,
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Adjustor Meeting Not Found',
+                ]);
+            }
+        
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

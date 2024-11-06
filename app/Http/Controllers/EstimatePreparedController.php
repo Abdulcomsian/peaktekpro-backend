@@ -14,10 +14,10 @@ class EstimatePreparedController extends Controller
     public function storeEstimatePrepared(Request $request, $jobId)
     {
         $this->validate($request, [
-            'prepared_by' => 'required|string',
-            'complete_box' => 'required|in:true,false',
+            'prepared_by' => 'nullable|string',
+            'complete_box' => 'nullable|in:true,false',
             'date' => 'nullable|date_format:m/d/Y',
-            'images' => 'required|array'
+            'images' => 'nullable|array'
         ]);
 
         try {
@@ -66,6 +66,53 @@ class EstimatePreparedController extends Controller
         }
     }
 
+    public function EstimatePreparedStatus(Request $request, $jobId)
+    {
+        // dd("123");
+        $this->validate($request, [
+            'status' => 'nullable|string',
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            $estimate = EstimatePrepared::updateOrCreate([
+                'company_job_id' => $jobId
+            ],[
+                'company_job_id' => $jobId,
+                'status' => $request->status,
+            ]);
+
+            //Update Status
+            if(isset($request->status) && $request->status == 'true') {
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();    
+            }elseif(isset($request->status) && $request->status == 'false'){
+                $job->status_id = 3;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();  
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Estimate Prepared Status Updated Successfully',
+                'data' => $estimate
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function getEstimatePrepared($jobId)
     {
         try {
@@ -96,7 +143,7 @@ class EstimatePreparedController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'file_name' => 'required|string'
+            'file_name' => 'nullable|string'
         ]);
 
         try {
@@ -129,7 +176,7 @@ class EstimatePreparedController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'image_url' => 'required|string'
+            'image_url' => 'nullable|string'
         ]);
 
         try {

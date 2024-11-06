@@ -14,8 +14,8 @@ class CarrierScopeController extends Controller
     {
         //Validate Request
         $validatedData = $request->validate([
-            'images' => 'required|array',
-            'images.*' => 'required|image|max:10240|mimes:png,jpg,jpeg,gif',
+            'images' => 'nullable|array',
+            'images.*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
         ]);
 
         DB::beginTransaction();
