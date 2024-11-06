@@ -81,7 +81,7 @@ class FinalPaymentController extends Controller
                 'company_job_id' => $jobId
             ],[
                 'company_job_id' => $jobId,
-                'status' => isset($request->status),
+                'status' => $request->status,
             ]);
             
             if(isset($request->status) && $request->status == true) {
