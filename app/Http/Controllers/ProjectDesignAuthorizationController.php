@@ -124,6 +124,8 @@ class ProjectDesignAuthorizationController extends Controller
             }
 
             DB::commit();
+            $authorization->load('sections.items');
+
             return response()->json([
                 'status' => 201,
                 'message' => 'Authorization Added Successfully',
