@@ -454,8 +454,8 @@ class ProjectDesignController extends Controller
         // Validate Request
         $this->validate($request, [
             'inspectionData' => 'nullable|array',
-            // 'inspectionData.*.inspection' => 'nullable|string|',
-            'inspectionData.*.inspection' => 'nullable|file|image|max:30', // Allow image files with a max size of 30KB
+            'inspectionData.*.inspection' => 'nullable|string|',
+            // 'inspectionData.*.inspection' => 'nullable|file|image|max:30', // Allow image files with a max size of 30KB
             'inspectionData.*.attachment' => 'nullable|array',
         ]);
 
