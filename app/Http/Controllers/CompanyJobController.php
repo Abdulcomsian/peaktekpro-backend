@@ -67,7 +67,7 @@ class CompanyJobController extends Controller
             event(new JobStatusUpdateEvent('Refresh Pgae'));
             
             //Assign Job
-            $job->users()->attach($user->id);
+            // $job->users()->attach($user->id);
             //  i have comment this line because it auto add the value in company_job_user table and it will show the user in ready to close sales represntative
 
             return response()->json([
