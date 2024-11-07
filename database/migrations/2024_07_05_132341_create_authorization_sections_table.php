@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('authorization_sections', function (Blueprint $table) {
             $table->id();
             $table->foreignId('authorization_id')->constrained('project_design_authorizations')->onDelete('cascade');
-            $table->string('title');
-            $table->string('section_total')->nullable();
+            $table->text('title');
+            $table->text('section_total')->nullable();
             $table->timestamps();
         });
     }
