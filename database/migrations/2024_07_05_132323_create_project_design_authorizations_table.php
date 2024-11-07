@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('disclaimer')->nullable();
             $table->text('signer_first_name')->nullable();
             $table->text('signer_last_name')->nullable();
-            $table->text('signer_email')->unique()->nullable();
+            $table->string('signer_email')->unique()->nullable();
             $table->text('footer_notes')->nullable();
             $table->text('item1')->nullable();
             $table->text('item2')->nullable();
