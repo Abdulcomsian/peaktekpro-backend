@@ -31,6 +31,8 @@ class CompanySeeder extends Seeder
         $user->role_id = 1;
         $user->company_id = $company->id;
         $user->name = 'Peak Tek Admin';
+        $user->first_name = 'PeakTek';
+        $user->last_name = 'Admin';
         $user->email = 'peaktek@gmail.com';
         $user->password = Hash::make('Abc@123!');
         $user->created_by = 1;
