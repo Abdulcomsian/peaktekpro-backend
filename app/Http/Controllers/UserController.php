@@ -155,6 +155,7 @@ class UserController extends Controller
                 // Update user details
                 $update_user->first_name = $request->first_name ?? $update_user->first_name;
                 $update_user->last_name = $request->last_name ?? $update_user->last_name;
+                $update_user->name = trim(($request->first_name ?? $update_user->first_name) . ' ' . ($request->last_name ?? $update_user->last_name));
                 $update_user->email = $request->email ?? $update_user->email; // This line is fine
                 $update_user->company_id = $request->company_id ?? $update_user->company_id;
                 $update_user->role_id = $request->permission_level_id ?? $update_user->role_id;

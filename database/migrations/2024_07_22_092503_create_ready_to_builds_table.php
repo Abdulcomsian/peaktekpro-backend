@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('home_owner')->nullable();
             $table->string('home_owner_email')->nullable();
             $table->string('date')->nullable();
-            $table->string('notes')->nullable();
+            $table->mediumText('notes')->nullable();
             $table->string('status')->default('false');
             $table->timestamps();
         });

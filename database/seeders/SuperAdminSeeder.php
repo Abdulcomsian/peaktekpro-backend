@@ -20,6 +20,8 @@ class SuperAdminSeeder extends Seeder
         $user->role_id = 7;
         $user->company_id = 0;
         $user->name = 'Super Admin';
+        $user->first_name = 'Super';
+        $user->last_name = 'Admin';
         $user->email = 'superAdmin@gmail.com';
         $user->password = Hash::make('Abc@123!');
         $user->created_by = 0;

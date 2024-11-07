@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
             $table->string('build_start_date')->nullable();
             $table->string('build_end_date')->nullable();
-            $table->text('notes')->nullable();
+            $table->mediumText('notes')->nullable();
             $table->boolean('status')->default(0);
             $table->timestamps();
         });

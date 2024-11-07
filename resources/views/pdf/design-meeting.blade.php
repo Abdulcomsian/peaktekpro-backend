@@ -679,7 +679,10 @@
                   width: 250px;
                   display: inline-block;
                 "
-                ><img src="{{ public_path($job?->terms?->sign_image) }}"
+                 >
+                 <!-- <img src="{{ public_path($job?->terms?->sign_image) }}" -->
+                <img src="{{ $job?->terms?->sign_image ? public_path($job->terms->sign_image) : '' }}" alt="Signature Image" />
+
               /></span>
           </td>
         </tr>

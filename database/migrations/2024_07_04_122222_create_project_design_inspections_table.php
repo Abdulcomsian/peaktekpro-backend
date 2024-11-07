@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('project_design_inspections', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
-            $table->text('inspection');
-            $table->string('inspection_index');
+            $table->mediumText('inspection');
+            $table->text('inspection_index');
             $table->timestamps();
         });
     }

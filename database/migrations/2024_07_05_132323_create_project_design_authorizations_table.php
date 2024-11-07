@@ -17,9 +17,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_job_id')->constrained('company_jobs')->onDelete('cascade');
             $table->text('disclaimer')->nullable();
-            $table->string('signer_first_name');
-            $table->string('signer_last_name');
-            $table->string('signer_email')->unique();
+            $table->text('signer_first_name');
+            $table->text('signer_last_name');
+            $table->text('signer_email')->unique();
             $table->text('footer_notes')->nullable();
             $table->text('item1')->nullable();
             $table->text('item2')->nullable();
