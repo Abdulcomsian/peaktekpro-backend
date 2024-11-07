@@ -91,6 +91,7 @@ class UserController extends Controller
                 $add_user = new User;
                 $add_user->first_name = $request->first_name;
                 $add_user->last_name = $request->last_name;
+                $add_user->name = $request->first_name.' '.$request->last_name;
                 $add_user->email = $request->email;
                 // $add_user->company_id = $user->company_id; //logged in user company
                 $add_user->company_id = $request->company_id;

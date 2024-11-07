@@ -172,7 +172,7 @@ class ProjectDesignAuthorizationController extends Controller
     public function deleteAuthorizationSection(Request $request, $jobId)
     {
         $this->validate($request, [
-            'section_id' => 'required|integer'
+            'section_id' => 'nullable|integer'
         ]);
         
         try {
@@ -225,8 +225,8 @@ class ProjectDesignAuthorizationController extends Controller
     public function deleteAuthorizationItem(Request $request, $jobId)
     {
         $this->validate($request, [
-            'section_id' => 'required|integer',
-            'item_id' => 'required|integer'
+            'section_id' => 'nullable|integer',
+            'item_id' => 'nullable|integer'
         ]);
         
         try {

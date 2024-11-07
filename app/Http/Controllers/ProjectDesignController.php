@@ -23,8 +23,8 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'project_design_page_id' => 'required|integer',
-            'status' => 'required|in:0,1'
+            'project_design_page_id' => 'nullable|integer',
+            'status' => 'nullable|in:0,1'
         ]);
 
         try {
@@ -60,15 +60,15 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'company_name' => 'required|string',
-            'address' => 'required',
-            'city' => 'required|string',
-            'state' => 'required|string',
-            'zip' => 'required',
-            'report_type' => 'required',
-            'date' => 'required|date_format:m/d/Y',
+            'first_name' => 'nullable|string',
+            'last_name' => 'nullable|string',
+            'company_name' => 'nullable|string',
+            'address' => 'nullable',
+            'city' => 'nullable|string',
+            'state' => 'nullable|string',
+            'zip' => 'nullable',
+            'report_type' => 'nullable',
+            'date' => 'nullable|date_format:m/d/Y',
             'primary_image' => 'nullable',
             'secondary_image' => 'nullable',
         ]);
@@ -211,8 +211,8 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'file_name' => 'required|string',
-            'type' => 'required|string|in:primary_image_file_name,secondary_image_file_name'
+            'file_name' => 'nullable|string',
+            'type' => 'nullable|string|in:primary_image_file_name,secondary_image_file_name'
         ]);
 
         try {
@@ -245,8 +245,8 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'image_url' => 'required|string',
-            'type' => 'required|string|in:primary_image_file_name,secondary_image_file_name'
+            'image_url' => 'nullable|string',
+            'type' => 'nullable|string|in:primary_image_file_name,secondary_image_file_name'
         ]);
 
         try {
@@ -294,7 +294,7 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'introduction' => 'required'
+            'introduction' => 'nullable'
         ]);
 
         try {
@@ -632,7 +632,7 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'inspection_id' => 'required|integer'
+            'inspection_id' => 'nullable|integer'
         ]);
 
         try {
@@ -685,7 +685,7 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'file_name' => 'required|string'
+            'file_name' => 'nullable|string'
         ]);
 
         try {
@@ -718,7 +718,7 @@ class ProjectDesignController extends Controller
     {
         //Validate Request
         $this->validate($request, [
-            'image_url' => 'required|string'
+            'image_url' => 'nullable|string'
         ]);
 
         try {

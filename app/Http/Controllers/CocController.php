@@ -357,7 +357,8 @@ class CocController extends Controller
     {
         $this->validate($request, [
             'coc_insurance_email_sent' => 'nullable',
-            'send_to' => 'nullable|email',
+            'send_to' => 'nullable|array',
+            'send_to.*' => 'nullable|email',
             'subject' => 'nullable|string',
             'email_body' => 'nullable|string',
             'attachments' => 'nullable|array',
@@ -383,14 +384,22 @@ class CocController extends Controller
             }
     
             // Create an instance of the custom notifiable
-            $notifiable = new \App\CustomNotifiable($request->send_to);
+            // $notifiable = new \App\CustomNotifiable($request->send_to);
+            // // Create the notification
+            // $notification = new CocInsuranceNotification($request->subject, $request->email_body, $attachments);
+            // // Send the notification
+            // Notification::send($notifiable, $notification);
     
-            // Create the notification
-            $notification = new CocInsuranceNotification($request->subject, $request->email_body, $attachments);
+            foreach ($request->send_to as $recipient) {
+                // Create an instance of the custom notifiable for each recipient
+                $notifiable = new \App\CustomNotifiable($recipient);
     
-            // Send the notification
-            Notification::send($notifiable, $notification);
+                // Create the notification
+                $notification = new CocInsuranceNotification($request->subject, $request->email_body, $attachments);
     
+                // Send the notification
+                Notification::send($notifiable, $notification);
+            }
             // Update COC
             $coc->coc_insurance_email_sent = $request->coc_insurance_email_sent;
             $coc->save();
