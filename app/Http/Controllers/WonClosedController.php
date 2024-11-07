@@ -12,7 +12,7 @@ class WonClosedController extends Controller
     {
         //Validate Request
         $request->validate([
-            'closed_date' => 'required|date_format:m/d/Y',
+            'closed_date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable',    
         ]);
         
