@@ -41,7 +41,7 @@ class ReportController extends Controller
 
         // Retrieve users with the specified roles within the company
         $users = User::where('company_id', $company_id)
-                    ->whereIn('role_id', [2, 8, 9])
+                    ->whereIn('role_id', [1,2, 8, 9])
                     ->get();
 
         // Count all jobs created within the date range for the company
@@ -112,6 +112,13 @@ class ReportController extends Controller
 
         return response()->json($reports);
     }
+
+    public function getUserReports(Request $request)
+    {
+
+    }
+
+
 
 
 

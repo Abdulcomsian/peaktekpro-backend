@@ -283,7 +283,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/ready-to-close/{jobId}', [ReadyToCloseController::class, 'getReadyToClose']);
 
     //Report Apis
-    Route::post('user-reports', [ReportController::class, 'userReports']);
+    Route::post('user-reports', [ReportController::class, 'userReports']); //performance api
+    Route::post('get-user-reports', [ReportController::class, 'getUserReports']);  //pipeline api
+
 
 
 });
