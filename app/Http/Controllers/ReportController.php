@@ -2,28 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Resources\ReportResource;
-use Auth;
 use DB;
+use Auth;
+use App\Models\User;
+use App\Models\CompanyJob;
+use Illuminate\Http\Request;
+use App\Resources\ReportResource;
+
 class ReportController extends Controller
 {
-    public function userReport(Request $request)
-    {
-        $user = Auth::user();
-        $company_id = $user->company_id;
-
-        $startDate = $request->startDate ?? now()->startOfMonth()->toDateString();
-        $endDate = $request->endDate ?? now()->endOfMonth()->toDateString();
-
-        $report = User::where('company_id',$company_id)
-            ->whereIn('role_id',[2,8,9,1])
-            ->get();
-        return response($report->toArray());
-
-    }
-
     public function userReports(Request $request)
     {
         // Validate request parameters with specific date format (Y-m-d)
@@ -113,9 +100,69 @@ class ReportController extends Controller
         return response()->json($reports);
     }
 
-    public function getUserReports(Request $request)
-    {
 
+    public function getPipelineDate(Request $request)
+    {
+        // Validate request parameters (optional)
+        $request->validate([
+            'startDate' => 'nullable|date_format:Y-m-d',  // Date format validation
+            'endDate' => 'nullable|date_format:Y-m-d|after_or_equal:startDate',  // Ensure endDate is after or equal to startDate
+        ]);
+
+        $statusIds = [1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15];
+
+        $statusNames = [
+            1 => 'New Leads',
+            2 => 'Signed Deals',
+            3 => 'Estimate Prepared',
+            4 => 'Adjustor',
+            8 => 'Ready To Build',
+            9 => 'Build Scheduled',
+            10 => 'In Progress',
+            11 => 'Build Complete',
+            12 => 'COC Required',
+            13 => 'Final Payment Due',
+            14 => 'Ready to Close',
+            15 => 'Won and Closed'
+        ];
+
+        // Get the company_id from the authenticated user
+        $user = auth()->user();
+        $company_id = $user->company_id;
+
+        // $startDate = $request->startDate ?? now()->startOfMonth()->format('Y-m-d');
+        // $endDate = $request->endDate ?? now()->endOfMonth()->format('Y-m-d');
+
+        // Get jobs matching the status_id values in the specified date range
+        $jobSummary = CompanyJob::with('companyJobSummaries')
+            ->where('created_by', $company_id)
+            ->whereIn('status_id', $statusIds) 
+            // ->whereBetween('created_at', [$startDate, $endDate])  // Date range filter
+            ->get();
+        // Prepare response data
+        $jobCountsAndTotal = $jobSummary->map(function ($job) use ($statusNames) {
+            // Get the count of job summaries (company_job_summaries)
+            $jobCount = $job->companyJobSummaries->count();
+            // return response($jobCount->toArray());
+
+            // Get the sum of the job totals (amount)
+            $jobTotalAmount = $job->companyJobSummaries->sum('job_total');
+
+            // Get the status name using the status_id
+            $statusName = $statusNames[$job->status_id] ?? 'Unknown Status';  // Default to 'Unknown Status' if not found
+
+            return [
+                'status_id' => $job->status_id,
+                'status_name' => $statusName,
+                'job_count' => $jobCount,
+                'total_amount' => $jobTotalAmount,
+            ];
+        });
+
+        // Return the response as JSON
+        return response()->json([
+            'data' => $jobCountsAndTotal,
+        ]);
     }
 
 

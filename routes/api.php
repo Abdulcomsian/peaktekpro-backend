@@ -284,8 +284,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Report Apis
     Route::post('user-reports', [ReportController::class, 'userReports']); //performance api
-    Route::post('get-user-reports', [ReportController::class, 'getUserReports']);  //pipeline api
-
+    Route::post('get-pipeline-data', [ReportController::class, 'getPipelineDate']);  //pipeline api
 
 
 });
