@@ -32,6 +32,8 @@ use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
+use App\Http\Controllers\ReportController;
+
 
 
 /*
@@ -279,4 +281,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/ready-to-close/{jobId}', [ReadyToCloseController::class, 'updateReadyToClose']);
     Route::post('update/ready-to-close-status/{jobId}', [ReadyToCloseController::class, 'updateReadyToCloseStatus']);
     Route::get('get/ready-to-close/{jobId}', [ReadyToCloseController::class, 'getReadyToClose']);
+
+    //Report Apis
+    Route::post('user-reports', [ReportController::class, 'userReports']);
+
+
 });
