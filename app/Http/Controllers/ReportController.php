@@ -123,6 +123,58 @@ class ReportController extends Controller
         ]);
     }
 
+    public function getOwnPipelineData(Request $request)
+    {
+        $statusIds = [1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15];
+        $statusNames = [
+            1 => 'New Leads',
+            2 => 'Signed Deals',
+            3 => 'Estimate Prepared',
+            4 => 'Adjustor',
+            8 => 'Ready To Build',
+            9 => 'Build Scheduled',
+            10 => 'In Progress',1,
+            11 => 'Build Complete',
+            12 => 'COC Required',
+            13 => 'Final Payment Due',
+            14 => 'Ready to Close',
+            15 => 'Won and Closed'
+        ];
+
+        $user = auth()->user();
+        $user_id = $user->id;
+        $company_id = $user->company_id;
+        $role_id = $user->role_id;
+
+        $jobSummary = CompanyJob::with('companyJobSummaries')
+            ->whereIn('status_id', $statusIds)
+            ->where('user_id',$user_id)
+            ->get();
+
+        // Prepare response data with counts and sums for each status
+        $jobCountsAndTotal = collect($statusIds)->map(function ($statusId) use ($jobSummary, $statusNames) {
+            $jobsForStatus = $jobSummary->where('status_id', $statusId);
+            $jobCount = $jobsForStatus->count();
+            $jobTotalAmount = $jobsForStatus->sum(function ($job) {
+                return $job->companyJobSummaries->sum('job_total');
+            });
+
+            return [
+                'status_id' => $statusId,
+                'status_name' => $statusNames[$statusId] ?? 'Unknown Status',
+                'job_count' => $jobCount > 0 ? $jobCount : null,
+                'total_amount' => $jobTotalAmount > 0 ? $jobTotalAmount : null,
+            ];
+        });
+
+        return response()->json([
+            'status_code'=> 200,
+            'status' =>true,
+            'message' => 'Data fetched Successfully',
+            'data' => $jobCountsAndTotal,
+        ]);
+    }
+
 
 
 
