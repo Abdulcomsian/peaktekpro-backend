@@ -351,7 +351,8 @@ class CompanyJobController extends Controller
         //Validate Request
         $this->validate($request, [
             'invoice_number' => 'nullable',
-            'market' => 'nullable|in:Nashville,Chattanooga',
+            'market' => 'nullable|in:Nashville,Chattanooga,Knoxville',
+            'job_type' => 'nullable|in:Retail,Insurance',
             'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id'
@@ -376,6 +377,8 @@ class CompanyJobController extends Controller
                 'invoice_number' => $request->invoice_number,
                 'market' => $request->market,
                 'lead_source' => $request->lead_source,
+                'job_type' => $request->job_type,
+
             ]);
             
             // Assign Job To Users
