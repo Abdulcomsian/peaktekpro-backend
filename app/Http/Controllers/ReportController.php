@@ -54,11 +54,14 @@ class ReportController extends Controller
 
             $conversionRate = $newLeadsCount > 0 ? round(($jobWonCount / $newLeadsCount) * 100, 2) : 0;
 
+            $averageJobWonValue = $jobWonCount > 0 ? round($jobWonTotal / $jobWonCount, 2) : 0;
+
             return [
                 'user' => $user,
                 'new_leads' => $newLeadsCount,
                 'job_won' => $jobWonCount,
-                'value_job_won' => $jobWonTotal,
+                'value_jobs_won' => $jobWonTotal,
+                'average_value_job_won' => $averageJobWonValue,
                 'conversion_rate' => $conversionRate
             ];
         });
