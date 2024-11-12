@@ -120,6 +120,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/job-summary/initial-information/{id}', [CompanyJobController::class, 'updateJobSummaryInitialInformation']);
     Route::get('get/job-summary/initial-information/{id}', [CompanyJobController::class, 'getJobSummaryInitialInformation']);
     Route::get('get/job-summary/{id}', [CompanyJobController::class, 'getJobSummary']);
+    Route::get('filter/job/location', [CompanyJobController::class, 'filterJobByLocation']);
+
     //Job Content Api's
     Route::post('update/job-content/{id}', [CompanyJobController::class, 'updateJobContent']);
     Route::get('get/job-content/{id}', [CompanyJobController::class, 'getJobContent']);

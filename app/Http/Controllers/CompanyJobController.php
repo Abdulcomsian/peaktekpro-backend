@@ -410,7 +410,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source')
+            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type')
             ->where('company_job_id', $job->id)->first();
             if(!$job_summary) {
                 
@@ -1280,5 +1280,50 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+
+    public function filterJobByLocation(Request $request)
+    {
+        $request->validate([
+            'market' => 'nullable|string',
+        ]);
+
+        $query = CompanyJobSummary::with('job');
+
+        if($request->market)
+        {
+            $query->where('market',$request->market);
+        }
+
+        $query->get();
+
+        return response()->json([
+            'message' => 'Data Fetched Successfully',
+            'status_code' => 200,
+            'status' =>true,
+            'data' => $jobs
+            ]);
+    }
+
+    public function filterJobByLocations(Request $request)
+    {
+        $request->validate([
+            'location' => 'nullable|string',
+        ]);
+
+        $jobs = CompanyJobSummary::query()
+            ->where('market', $request->location)
+            ->join('company_jobs', 'company_job_summaries.company_job_id', '=', 'company_jobs.id')
+            ->select('company_jobs.*', 'company_job_summaries.market')
+            ->get();
+
+        return response()->json([
+            'message' => 'Data Fetched Successfully',
+            'status_code' => 200,
+            'status' =>true,
+            'data' => $jobs
+            ]);
+    }
+
 
 }
