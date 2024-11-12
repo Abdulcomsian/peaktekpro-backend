@@ -120,9 +120,13 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/job-summary/initial-information/{id}', [CompanyJobController::class, 'updateJobSummaryInitialInformation']);
     Route::get('get/job-summary/initial-information/{id}', [CompanyJobController::class, 'getJobSummaryInitialInformation']);
     Route::get('get/job-summary/{id}', [CompanyJobController::class, 'getJobSummary']);
+
+    ///////new Filter APIS for job count and job details
     Route::get('filter/jobs', [CompanyJobController::class, 'filterJobs']);
+    Route::get('filter/jobs-by-status/{statusId}', [CompanyJobController::class, 'FilterJobWithStatus']);
+
     Route::get('filter/job/location', [CompanyJobController::class, 'filterJobByLocation']);//not used
-    Route::get('filter/job/jobType', [CompanyJobController::class, 'filterJobsByJobType']); //not used
+    Route::get('filter/job/jobType/{statusId}', [CompanyJobController::class, 'filterJobsByJobType']); //not used
 
     //Job Content Api's
     Route::post('update/job-content/{id}', [CompanyJobController::class, 'updateJobContent']);
@@ -130,6 +134,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('change/job-content/file-name/{id}', [CompanyJobController::class, 'updateJobContentFileName']);
     Route::post('delete/job-content/media/{id}', [CompanyJobController::class, 'deleteJobContentMedia']);
     Route::get('get/task-with-jobs-count', [CompanyJobController::class, 'getTaskWithJobCount']);
+    ///count for grid
+    Route::get('get/v1/task-with-jobs-count', [CompanyJobController::class, 'getV1TaskWithJobCount']);
     Route::get('get/jobs-by-task/{statusId}', [CompanyJobController::class, 'getJobWithStatus']);
     //Inprogress Api's
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);

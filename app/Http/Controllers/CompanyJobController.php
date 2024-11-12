@@ -669,11 +669,80 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function getV1TaskWithJobCount(Request $request)
+    {
+        $request->validate([
+            'job_type' => 'nullable|string',
+            'location' => 'nullable|string',
+        ]);
+
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+            $statuses = Status::all();
+
+            // Initialize an array to store the data for each status
+            $data = $statuses->map(function ($status) use ($user, $assigned_jobs, $created_by, $request) {
+                // Base query for jobs associated with this status
+                if ($user->role_id == 1 || $user->role_id == 2) {
+                    $jobsQuery = CompanyJob::where('created_by', $created_by)
+                        ->where('status_id', $status->id);
+                } else {
+                    $jobsQuery = CompanyJob::whereIn('id', $assigned_jobs)
+                        ->where('status_id', $status->id);
+                }
+
+                if ($request->job_type) {
+                    $jobsQuery->whereHas('summary', function ($query) use ($request) {
+                        $query->where('job_type', $request->job_type);
+                    });
+                }
+                if ($request->location) {
+                    $jobsQuery->whereHas('summary', function ($query) use ($request) {
+                        $query->where('market', $request->location);
+                    });
+                }
+
+                // Count the jobs for this status
+                $jobCount = $jobsQuery->count();
+
+                // Fetch job details with the filtered query
+                $jobs = $jobsQuery
+                    ->with('summary:company_job_id,balance,job_type,market') // Load only necessary fields from the summary
+                    ->orderBy('status_id', 'asc')
+                    ->orderBy('id', 'desc')
+                    ->get()
+                    ->map(function ($job) {
+                        $job->amount = $job->summary->balance ?? 0;
+                        return $job;
+                    });
+
+                return [
+                    'status' => $status->name,
+                    'job_count' => $jobCount,
+                    'jobs' => $jobs,
+                ];
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'data' => $data
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+
     
     public function getJobWithStatus($statusId)
     {
         try {
-            
             // Check Status
             $task = Status::find($statusId);
             if(!$task) {
@@ -1284,6 +1353,139 @@ class CompanyJobController extends Controller
     public function filterJobs(Request $request)
     {
         $request->validate([
+            'job_type' => 'nullable|string',
+            'location' => 'nullable|string',
+        ]);
+
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by; 
+
+            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
+
+            if ($user->role_id == 1 || $user->role_id == 2 || $user->role_id == 7) {
+                $tasks = Status::whereIn('name', $specificStatuses)
+                    ->withCount([
+                        'jobs' => function ($query) use ($created_by, $request) {
+                            $query->where('created_by', $created_by);
+                            
+                            if ($request->job_type) {
+                                $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                    $q->where('job_type', $request->job_type);
+                                });
+                            }
+                            
+                            if ($request->location) {
+                                $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                    $q->where('market', $request->location);
+                                });
+                            }
+                        }
+                    ])->get();
+            } else {
+                $tasks = Status::whereIn('name', $specificStatuses)
+                    ->withCount([
+                        'jobs' => function ($query) use ($user, $assigned_jobs, $request) {
+                            $query->where('user_id', $user->id);
+                            $query->orWhereIn('id', $assigned_jobs);
+                            
+                            if ($request->job_type) {
+                                $query->whereHas('summaries', function ($q) use ($request) {
+                                    $q->where('job_type', $request->job_type);
+                                });
+                            }
+
+                            if ($request->location) {
+                                $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                    $q->where('market', $request->location);
+                                });
+                            }
+                        }
+                    ])->get();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data Fetched Successfully',
+                'data' => $tasks
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function FilterJobWithStatus(Request $request, $statusId)
+    {
+        $request->validate([
+            'job_type' => 'nullable|string',
+            'location' => 'nullable|string',
+        ]);
+
+        try {
+            // Check Status
+            $task = Status::find($statusId);
+            if (!$task) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Task Not Found'
+                ], 422);
+            }
+
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+            // Define the base query for jobs
+            if ($user->role_id == 1 || $user->role_id == 2) {
+                $jobsQuery = CompanyJob::where('created_by', $created_by)
+                    ->where('status_id', $statusId);
+            } else {
+                $jobsQuery = CompanyJob::whereIn('id', $assigned_jobs)
+                    ->where('status_id', $statusId);
+            }
+
+            // Apply job_type and location filters if provided
+            if ($request->job_type) {
+                $jobsQuery->whereHas('summary', function ($query) use ($request) {
+                    $query->where('job_type', $request->job_type);
+                });
+            }
+            if ($request->location) {
+                $jobsQuery->whereHas('summary', function ($query) use ($request) {
+                    $query->where('market', $request->location);
+                });
+            }
+
+            // Fetch and map jobs with the filtered query
+            $jobs = $jobsQuery
+                ->with('summary:company_job_id,balance,job_type,market') // Load only necessary fields from the summary
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($job) {
+                    $job->amount = $job->summary->balance ?? 0;
+                    return $job;
+                });
+
+            $task->jobs = $jobs;
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'data' => $task
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+
+    public function filterJobsdone(Request $request) //not used
+    {
+        $request->validate([
             'location' => 'nullable|string',
             'job_type' => 'nullable|string',
         ]);
@@ -1359,6 +1561,11 @@ class CompanyJobController extends Controller
             'data' => $jobs,
         ]);
     }
+
+
+
+   
+
 
    
 
