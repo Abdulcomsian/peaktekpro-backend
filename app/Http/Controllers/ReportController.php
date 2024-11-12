@@ -61,7 +61,7 @@ class ReportController extends Controller
                 'new_leads' => $newLeadsCount,
                 'job_won' => $jobWonCount,
                 'value_jobs_won' => $jobWonTotal,
-                'average_value_job_won' => $averageJobWonValue,
+                'average_job_value' => $averageJobWonValue,
                 'conversion_rate' => $conversionRate
             ];
         });
