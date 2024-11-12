@@ -1281,49 +1281,86 @@ class CompanyJobController extends Controller
         }
     }
 
-
-    public function filterJobByLocation(Request $request)
+    public function filterJobs(Request $request)
     {
         $request->validate([
-            'market' => 'nullable|string',
+            'location' => 'nullable|string',
+            'job_type' => 'nullable|string',
         ]);
 
-        $query = CompanyJobSummary::with('job');
-
-        if($request->market)
-        {
-            $query->where('market',$request->market);
-        }
-
-        $query->get();
+        $jobs = CompanyJob::with(['companyJobSummaries' => function ($query) use ($request) {
+            if ($request->location) {
+                $query->where('market', $request->location);
+            }
+            if ($request->job_type) {
+                $query->where('job_type', $request->job_type);
+            }
+        }])->whereHas('companyJobSummaries', function ($query) use ($request) {
+            if ($request->location) {
+                $query->where('market', $request->location);
+            }
+            if ($request->job_type) {
+                $query->where('job_type', $request->job_type);
+            }
+        })->get();
 
         return response()->json([
             'message' => 'Data Fetched Successfully',
             'status_code' => 200,
-            'status' =>true,
-            'data' => $jobs
-            ]);
+            'status' => true,
+            'data' => $jobs,
+        ]);
     }
 
-    public function filterJobByLocations(Request $request)
+    public function filterJobByLocation(Request $request) //not used
     {
         $request->validate([
             'location' => 'nullable|string',
         ]);
 
-        $jobs = CompanyJobSummary::query()
-            ->where('market', $request->location)
-            ->join('company_jobs', 'company_job_summaries.company_job_id', '=', 'company_jobs.id')
-            ->select('company_jobs.*', 'company_job_summaries.market')
-            ->get();
+        $jobs = CompanyJob::with(['companyJobSummaries' => function ($query) use ($request) {
+            if ($request->location) {
+                $query->where('market', $request->location);
+            }
+        }])->whereHas('companyJobSummaries', function ($query) use ($request) {
+            if ($request->location) {
+                $query->where('market', $request->location);
+            }
+        })->get();
 
         return response()->json([
             'message' => 'Data Fetched Successfully',
             'status_code' => 200,
-            'status' =>true,
-            'data' => $jobs
-            ]);
+            'status' => true,
+            'data' => $jobs,
+        ]);
     }
+
+    public function filterJobsByJobType(Request $request)//not used
+    {
+        $request->validate([
+            'job_type' => 'nullable|string',
+        ]);
+
+        $jobs = CompanyJob::with(['companyJobSummaries' => function ($query) use ($request) {
+            if ($request->job_type) {
+                $query->where('job_type', $request->job_type);
+            }
+        }])->whereHas('companyJobSummaries', function ($query) use ($request) {
+            if ($request->job_type) {
+                $query->where('job_type', $request->job_type);
+            }
+        })->get();
+
+        return response()->json([
+            'message' => 'Data Fetched Successfully',
+            'status_code' => 200,
+            'status' => true,
+            'data' => $jobs,
+        ]);
+    }
+
+   
 
 
 }
