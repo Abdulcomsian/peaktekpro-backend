@@ -57,8 +57,8 @@ class ReportController extends Controller
             return [
                 'user' => $user,
                 'new_leads' => $newLeadsCount,
-                'job_won_count' => $jobWonCount,
-                'job_won_total' => $jobWonTotal,
+                'value_job_won' => $jobWonCount,
+                'job_won' => $jobWonTotal,
                 'conversion_rate' => $conversionRate
             ];
         });
