@@ -50,6 +50,18 @@ class CompanyJobController extends Controller
             $job->phone = $request->phone;
             $job->save();
 
+            //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
+            // Get address details from Google Maps API response
+            // $googleAddress = $request->address;
+            // $parsedAddress = $this->parseAddress($googleAddress);
+            // $address = new CustomerAgreement();
+            // $address->company_job_id = $job->id;
+            // $address->street = $parsedAddress['street'];
+            // $address->city = $parsedAddress['city'];
+            // $address->state = $parsedAddress['state'];
+            // $address->zip_code = $parsedAddress['zip_code'];
+            // $address->save();
+
             //Update Project Design Status Table
             $pages = ProjectDesignPage::all();
             foreach($pages as $page)
@@ -79,6 +91,17 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    // protected function parseAddress($googleAddress)
+    // {
+    //     return [
+    //         'street' => $googleAddress->street_address ?? '',
+    //         'city' => $googleAddress->locality ?? '',
+    //         'state' => $googleAddress->administrative_area_level_1 ?? '',
+    //         'zip_code' => $googleAddress->postal_code ?? '',
+    //     ];
+    // }
+
 
     public function getAllJobs()
     {
@@ -120,7 +143,7 @@ class CompanyJobController extends Controller
                 'Final Payment Due',
                 'Ready to Close',
                 'Won and Closed'
-            ])->get();
+            ])->get(); 
             
             // Structure the response
             $response = $statuses->map(function ($status) use ($groupedJobs) {

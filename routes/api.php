@@ -123,7 +123,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/job-summary/{id}', [CompanyJobController::class, 'getJobSummary']);
 
     ///////new Filter APIS for job count and job details
-    Route::get('filter/jobs', [CompanyJobController::class, 'filterJobs']);
+    Route::post('filter/jobs', [CompanyJobController::class, 'filterJobs']);
     Route::get('filter/jobs-by-status/{statusId}', [CompanyJobController::class, 'FilterJobWithStatus']);
 
     Route::get('filter/job/location', [CompanyJobController::class, 'filterJobByLocation']);//not used
