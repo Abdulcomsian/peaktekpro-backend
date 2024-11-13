@@ -52,15 +52,15 @@ class CompanyJobController extends Controller
 
             //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
             // Get address details from Google Maps API response
-            // $googleAddress = $request->address;
-            // $parsedAddress = $this->parseAddress($googleAddress);
-            // $address = new CustomerAgreement();
-            // $address->company_job_id = $job->id;
-            // $address->street = $parsedAddress['street'];
-            // $address->city = $parsedAddress['city'];
-            // $address->state = $parsedAddress['state'];
-            // $address->zip_code = $parsedAddress['zip_code'];
-            // $address->save();
+            $googleAddress = $request->address;
+            $parsedAddress = $this->parseAddress($googleAddress);
+            $address = new CustomerAgreement();
+            $address->company_job_id = $job->id;
+            $address->street = $parsedAddress['street'];
+            $address->city = $parsedAddress['city'];
+            $address->state = $parsedAddress['state'];
+            $address->zip_code = $parsedAddress['zip_code'];
+            $address->save();
 
             //Update Project Design Status Table
             $pages = ProjectDesignPage::all();
@@ -92,15 +92,16 @@ class CompanyJobController extends Controller
         }
     }
 
-    // protected function parseAddress($googleAddress)
-    // {
-    //     return [
-    //         'street' => $googleAddress->street_address ?? '',
-    //         'city' => $googleAddress->locality ?? '',
-    //         'state' => $googleAddress->administrative_area_level_1 ?? '',
-    //         'zip_code' => $googleAddress->postal_code ?? '',
-    //     ];
-    // }
+    protected function parseAddress($googleAddress)
+    {
+        return [
+            'street' => $googleAddress->route ?? '',
+            // 'street' => $googleAddress->street_address ?? '',
+            'city' => $googleAddress->locality ?? '',
+            'state' => $googleAddress->administrative_area_level_1 ?? '',
+            'zip_code' => $googleAddress->postal_code ?? '',
+        ];
+    }
 
 
     public function getAllJobs()
@@ -1399,7 +1400,7 @@ class CompanyJobController extends Controller
             $created_by = $user->created_by == 0 ? 1 : $user->created_by; 
             // dd($created_by);
 
-            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
+            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close','Won and Closed'];
 
             if ($user->role_id == 1 || $user->role_id == 2) {
                 $tasks = Status::whereIn('name', $specificStatuses)
