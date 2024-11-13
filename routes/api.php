@@ -33,6 +33,7 @@ use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CompanyLocationController;
 
 
 
@@ -137,7 +138,16 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     ///count for grid
     Route::get('get/v1/task-with-jobs-count', [CompanyJobController::class, 'getV1TaskWithJobCount']);
     Route::get('get/jobs-by-task/{statusId}', [CompanyJobController::class, 'getJobWithStatus']);
-    //Inprogress Api's
+
+    //company Location 
+    Route::post('add/company_location', [CompanyLocationController::class, 'addCompanyLocation']);
+    Route::get('get/company_location', [CompanyLocationController::class, 'getCompanyLocation']);
+    Route::get('edit/company_location/{id}', [CompanyLocationController::class, 'editCompanyLocation']);
+    Route::post('update/company_location/{id}', [CompanyLocationController::class, 'updateCompanyLocation']);
+    Route::post('delete/company_location/{id}', [CompanyLocationController::class, 'deleteCompanyLocation']);
+
+
+    //Inprogress Api's 
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
     Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
     Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
