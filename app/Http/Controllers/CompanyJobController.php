@@ -108,9 +108,20 @@ class CompanyJobController extends Controller
                 return $job->status->name;
             });
 
-            $statuses = Status::select('New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Won and Closed')->get();
-            // $statuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Won and Closed'];
-
+            $statuses = Status::whereIn('name', [
+                'New Leads', 
+                'Signed Deals', 
+                'Estimate Prepared', 
+                'Adjustor',
+                'Ready To Build',
+                'Build Scheduled',
+                'In Progress',
+                'Build Complete',
+                'Final Payment Due',
+                'Ready to Close',
+                'Won and Closed'
+            ])->get();
+            
             // Structure the response
             $response = $statuses->map(function ($status) use ($groupedJobs) {
                 return [
