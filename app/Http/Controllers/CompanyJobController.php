@@ -1387,7 +1387,7 @@ class CompanyJobController extends Controller
         }
     }
 
-    public function filterJobs(Request $request)
+    public function filterJobs(Request $request) //for grid view
     {
         $request->validate([
             'job_type' => 'nullable|string',
@@ -1453,7 +1453,84 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-    
+
+    public function filterJobskanban(Request $request) // for kanban
+    {
+        $request->validate([
+            'job_type' => 'nullable|string',
+            'location' => 'nullable|string',
+        ]);
+
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close','Won and Closed'];
+
+            // Get statuses and related tasks
+            $tasks = Status::select('id', 'name')
+                ->whereIn('name', $specificStatuses)
+                ->withCount([
+                    'tasks' => function ($query) use ($created_by, $request) {
+                        $query->where('created_by', $created_by);
+
+                        if ($request->job_type) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('job_type', $request->job_type);
+                            });
+                        }
+
+                        if ($request->location) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('market', $request->location);
+                            });
+                        }
+                    }
+                ])
+                ->with([
+                    'tasks' => function ($query) use ($created_by, $request) {
+                        $query->where('created_by', $created_by);
+
+                        if ($request->job_type) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('job_type', $request->job_type);
+                            });
+                        }
+
+                        if ($request->location) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('market', $request->location);
+                            });
+                        }
+                    }
+                ])
+                ->get();
+
+            // Modify the tasks data to include detailed information
+            $tasks->each(function ($task) {
+                $task->tasks->transform(function ($job) {
+                    // Add 'status' and 'address' to the job
+                    return [
+                        'id' => $job->id,
+                        'name' => $job->name,
+                        'address' => $job->address,
+                        'status_id' => $job->status_id,
+                        'status' => $job->status,
+                    ];
+                });
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data Fetched Successfully',
+                'data' => $tasks
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 
     public function FilterJobWithStatus(Request $request, $statusId) //notused
     {
