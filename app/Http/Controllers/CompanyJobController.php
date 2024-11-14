@@ -135,14 +135,12 @@ class CompanyJobController extends Controller
                     ->get();
             }
 
-            // Group jobs by status name and add job_total, claim_number, and days_since_creation
             $groupedJobs = $jobs->map(function ($job) {
                 $job->days_since_creation = $job->created_at->diffInDays($job->updated_at);
 
-                // Retrieve job_total and claim_number for each job summary related to this job, handling cases where jobSummaries may be null
                 $job->job_summaries = $job->jobSummaries ? $job->jobSummaries->map(function ($summary) {
                     return [
-                        'job_total' => $summary->job_total,
+                        'job_total' => $summary->job_total ?? 0,
                         'claim_number' => $summary->claim_number,
                     ];
                 }) : collect([]);
@@ -166,7 +164,6 @@ class CompanyJobController extends Controller
                 'Won and Closed'
             ])->get();
 
-            // Structure the response with job_total calculation
             $response = $statuses->map(function ($status) use ($groupedJobs) {
                 $jobTotalSum = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
                     $query->where('status_id', $status->id);

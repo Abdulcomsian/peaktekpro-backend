@@ -34,8 +34,7 @@ use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CompanyLocationController;
-
-
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -144,6 +143,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     ///count for grid
     Route::get('get/v1/task-with-jobs-count', [CompanyJobController::class, 'getV1TaskWithJobCount']);
     Route::get('get/jobs-by-task/{statusId}', [CompanyJobController::class, 'getJobWithStatus']);
+
+    ////Pyment History Section
+    Route::get('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
 
     //company Location 
     Route::post('add/company_location', [CompanyLocationController::class, 'addCompanyLocation']);
