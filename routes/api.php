@@ -145,7 +145,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/company_location', [CompanyLocationController::class, 'getCompanyLocation']);
     Route::get('edit/company_location/{id}', [CompanyLocationController::class, 'editCompanyLocation']);
     Route::post('update/company_location/{id}', [CompanyLocationController::class, 'updateCompanyLocation']);
-    Route::post('delete/company_location/{id}', [CompanyLocationController::class, 'deleteCompanyLocation']);
+    Route::get('delete/company_location/{id}', [CompanyLocationController::class, 'deleteCompanyLocation']);
 
 
     //Inprogress Api's 
