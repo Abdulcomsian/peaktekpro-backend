@@ -5,7 +5,8 @@
 @section('content')
     <section class="h-screen flex">
         <!-- Sidebar with Tabs -->
-        <aside class="w-1/4 p-4 bg-white shadow overflow-y-auto h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">
+        <aside
+            class="w-1/4 p-4 bg-white shadow overflow-y-auto h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">
             <ul id="tabsList" class="space-y-2">
                 <!-- Loop through pages -->
                 @forelse ($template->templatePages as $page)
@@ -14,8 +15,8 @@
                         <span>{{ $page->name }}</span>
                         <!-- Toggle switch to update page status -->
                         <label for="toggle-{{ $page->id }}" class="inline-flex relative items-center cursor-pointer">
-                            <input type="checkbox" id="toggle-{{ $page->id }}" class="sr-only toggle" data-page-id="{{ $page->id }}"
-                                {{ $page->is_active === 1 ? 'checked' : '' }}>
+                            <input type="checkbox" id="toggle-{{ $page->id }}" class="sr-only toggle"
+                                data-page-id="{{ $page->id }}" {{ $page->is_active === 1 ? 'checked' : '' }}>
                             <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
                                 <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
                             </span>
@@ -64,6 +65,8 @@
                         <div id="tab{{ $page->id }}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
                             <h3 class="text-lg font-medium mb-2">{{ $page->name }}</h3>
                             <p>Content for {{ $page->name }}</p>
+                            @includeIf('templates.forms.' . $page->slug)
+
                         </div>
                     @empty
                         <p class="text-gray-500">No content available</p>
@@ -162,7 +165,7 @@
             $("#content1").show();
 
             // Tab click handler
-            $(document).on('click','.tab-item', function() {
+            $(document).on('click', '.tab-item', function() {
                 $(".tab-item").removeClass("bg-blue-400").addClass("bg-blue-200");
                 $(this).addClass("bg-blue-400");
 
@@ -196,21 +199,23 @@
                         success: function(response) {
                             if (response.status) {
 
-                            // show a success message
-                            showSuccessNotification(response.message);
-                        } else {
-                            showErrorNotification(response.message);
-                        }
+                                // show a success message
+                                showSuccessNotification(response.message);
+                            } else {
+                                showErrorNotification(response.message);
+                            }
                         },
                         error: async function(xhr) {
                             // Handle validation errors
                             if (xhr.status ===
-                                422) { // Laravel returns 422 status code for validation errors
+                                422
+                            ) { // Laravel returns 422 status code for validation errors
                                 let errors = xhr.responseJSON.errors;
                                 // Loop through each error field and display messages
                                 $.each(errors, function(field, messages) {
                                     // Find the error container with data attribute matching the field name
-                                    let errorContainer = $(`[data-error="${field}"]`);
+                                    let errorContainer = $(
+                                        `[data-error="${field}"]`);
                                     // Append each error message
                                     messages.forEach(function(message) {
                                         errorContainer.append(
@@ -231,7 +236,7 @@
             // Handle "Create Page" button click
             $('#createPageBtn').on('click', function() {
                 $.ajax({
-                    url: "{{ route('templates.create-page',$template->id) }}",
+                    url: "{{ route('templates.create-page', $template->id) }}",
                     method: 'POST',
                     data: {
                         title: 'Custom Page',
@@ -245,9 +250,10 @@
                                     data-target="#tab${response.page.id}" data-id="${response.page.id}">
                                     <span>${response.page.name}</span>
                                     <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
-                                        <input type="checkbox" id="toggle-${response.page.id}" class="sr-only" data-page-id="${response.page.id}">
-                                        <span class="toggle-switch w-10 h-4 bg-gray-300 rounded-full flex items-center"></span>
-                                        <span class="absolute inset-y-0 left-0 flex items-center justify-center w-6 h-6 bg-white rounded-full transition"></span>
+                                        <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}" ${ response.page.is_active === 1 ? 'checked' : '' } />
+                                        <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
+                                            <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
+                                        </span>
                                     </label>
                                 </li>
                             `);
@@ -278,7 +284,7 @@
                 // Hide the tab content when toggle is clicked
                 $(`#tab${pageId}`).addClass('hidden');
 
-                let actionUrl = "{{ route('templates.update-page.status',['pageId' => ':pageId']) }}"
+                let actionUrl = "{{ route('templates.update-page.status', ['pageId' => ':pageId']) }}"
                 actionUrl = actionUrl.replace(':pageId', pageId)
                 // Send AJAX request to update page status
                 $.ajax({
@@ -300,7 +306,7 @@
                     },
                     error: function() {
                         showErrorNotification(
-                                'An error occurred while updating page status');
+                            'An error occurred while updating page status');
                     }
                 });
             });

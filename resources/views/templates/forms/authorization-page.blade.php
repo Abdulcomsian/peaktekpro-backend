@@ -1,0 +1,3 @@
+<p>
+    authorization page
+</p>

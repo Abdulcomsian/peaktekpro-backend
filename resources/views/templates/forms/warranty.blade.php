@@ -1,0 +1,3 @@
+<p>
+    warranty code
+</p>

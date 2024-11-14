@@ -24,17 +24,28 @@
                         </tr>
                     </thead>
                     <tbody class="text-gray-700 text-sm font-light">
-                        <tr class="border-b border-gray-200 hover:bg-gray-100">
-                            <td class="py-3 px-6 text-left">1</td>
-                            <td class="py-3 px-6 text-left">Sample Template 1</td>
-                            <td class="py-3 px-6 text-center">
-                                <button class="text-blue-500 hover:text-blue-600">Edit</button>
-                                <button class="text-red-500 hover:text-red-600 ml-4">Delete</button>
-                            </td>
-                        </tr>
+                        @forelse ($templates as $template)
+                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
+                                <td class="py-3 px-6 text-left">{{ $template->title }}</td>
+                                <td class="py-3 px-6 text-center">
+                                    <a href="{{ route('templates.edit', $template->id) }}"
+                                        class="text-blue-500 hover:text-blue-600">Edit</a>
+                                    <button onclick="openDeleteModal({{ $template->id }})"
+                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
+                            </tr>
+                        @endforelse
                         <!-- Repeat rows as needed -->
                     </tbody>
                 </table>
+            </div>
+            <div class="bg-white shadow-md rounded-lg">
+                {!! $templates->links('vendor.pagination.tailwind') !!}
             </div>
         </div>
     </section>
@@ -67,10 +78,28 @@
         </div>
     </div>
 
+    <!--Template Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 class="text-xl font-semibold mb-4">Delete Template</h2>
+            <p class="text-gray-700 mb-4">Are you sure you want to delete this template?</p>
+            <div class="flex justify-end">
+                <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded mr-2"
+                    onclick="closeDeleteModal()">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
+                    onclick="confirmDelete()">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
 @endsection
 @push('scripts')
     <script>
-        // show modal
+        // show create modal
         function openModal() {
 
             $('#storeTemplateForm')[0].reset();
@@ -78,7 +107,7 @@
 
             $('#modal').removeClass('hidden');
         }
-        // hide modal
+        // hide create modal
         function closeModal() {
 
             $('#storeTemplateForm')[0].reset();
@@ -112,9 +141,7 @@
 
                             window.location.href = response.redirect_to;
 
-                        }
-                        else
-                        {
+                        } else {
                             showErrorNotification('Error creating template!');
                         }
                     },
@@ -136,16 +163,64 @@
                         } else {
 
                             await showErrorNotification('An error occurred. Please try again.');
-                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled',
+                                false);
 
                         }
                     }
                 })
             })
-
-
-
-
         })
+
+        // delete template start
+
+        let deleteTemplateId = null;
+
+        // Open the delete modal and set the template ID
+        function openDeleteModal(templateId) {
+            deleteTemplateId = templateId;
+            $('#deleteModal').removeClass('hidden');
+        }
+
+        // Close the delete modal
+        function closeDeleteModal() {
+            $('#deleteModal').addClass('hidden');
+            deleteTemplateId = null;
+        }
+
+        // Confirm deletion via AJAX
+        function confirmDelete() {
+            if (!deleteTemplateId) {
+                showErrorNotification('Template not found');
+                return;
+            }
+
+            $.ajax({
+                url: `{{ route('templates.destroy', ':id') }}`.replace(':id', deleteTemplateId),
+                type: 'DELETE',
+                data: {
+                    _token: $('meta[name=csrf-token]').attr('content')
+                },
+                success: function(response) {
+
+                    if (response.status) {
+
+                        closeDeleteModal();
+
+                        showSuccessNotification(response.message);
+
+                        window.location.reload();
+
+                    }
+
+                },
+                error: function(error) {
+                    showErrorNotification('An error occurred. Please try again.');
+                }
+            });
+        }
+
+        // delete template end
+
     </script>
 @endpush

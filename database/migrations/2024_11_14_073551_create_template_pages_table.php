@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('template_id');
             $table->foreign('template_id')->references('id')->on('templates')->onDelete('cascade');
             $table->string('name');
+            $table->string('slug')->nullable();
             $table->boolean('is_active')->default(1);
             $table->integer('order_no')->nullable();
             $table->timestamps();

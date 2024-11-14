@@ -7,6 +7,7 @@
     <meta content="{{ csrf_token() }}" name="csrf-token" />
     <title>@yield('title') | {{ config('app.name') }}</title>
     @vite('resources/css/app.css')
+    @stack('styles')
 </head>
 
 <body>
@@ -22,7 +23,7 @@
             <!-- Navigation Links -->
             <div class="flex space-x-4">
                 <a href="{{ route('templates.index') }}" class="text-gray-300 hover:text-white">Templates</a>
-                <a href="{{ route('templates.create') }}" class="text-gray-300 hover:text-white">Create Template</a>
+                {{-- <a href="{{ route('templates.create') }}" class="text-gray-300 hover:text-white">Create Template</a> --}}
                 <!-- Add more links as needed -->
             </div>
         </nav>

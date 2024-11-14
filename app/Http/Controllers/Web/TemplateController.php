@@ -11,7 +11,8 @@ class TemplateController extends Controller
 {
     public function index()
     {
-        return view('templates.index');
+        $templates = Template::paginate(5);
+        return view('templates.index', compact('templates'));
     }
     public function create()
     {
@@ -35,6 +36,7 @@ class TemplateController extends Controller
             $pages->each(function ($page, $index) use ($template) {
                 $template->templatePages()->create([
                     'name' => $page->name,
+                    'slug' => $page->slug,
                     'order_no' => $index
                 ]);
             });
@@ -79,6 +81,29 @@ class TemplateController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Title updated successfully',
+            ], 200);
+        } catch (\Throwable $th) {
+
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => 'Something went wrong',
+                    'errors' => $th->getMessage()
+                ]
+            );
+        }
+    }
+
+    public function destroy($templateId)
+    {
+        try {
+
+            $template = Template::findOrFail($templateId);
+            $template->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Template deleted successfully',
             ], 200);
         } catch (\Throwable $th) {
 
@@ -139,6 +164,8 @@ class TemplateController extends Controller
                 'name' => $request->title,
                 'order_no' => $lastTemplatePage->order_no + 1
             ]);
+
+            $templatePage = TemplatePage::findOrFail($templatePage->id);
 
             return response()->json([
                 'status' => true,

@@ -21,6 +21,7 @@ Route::get('/', function () {
 Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
 Route::get('/templates/create', [TemplateController::class, 'create'])->name('templates.create');
 Route::post('/templates/store', [TemplateController::class, 'store'])->name('templates.store');
+Route::delete('/templates/{id}', [TemplateController::class, 'destroy'])->name('templates.destroy');
 Route::get('/templates/edit/{id}', [TemplateController::class, 'edit'])->name('templates.edit');
 Route::put('/templates/update-title/{id}', [TemplateController::class, 'updateTitle'])->name('templates.update.title');
 Route::post('/update-page-ordering/{id}', [TemplateController::class, 'updateTemplatePagesOrdering'])->name('templates.page-ordering.update');

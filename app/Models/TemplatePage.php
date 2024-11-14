@@ -12,6 +12,7 @@ class TemplatePage extends Model
     protected $fillable = [
         'template_id',
         'name',
+        'slug',
         'is_active',
         'order_no'
     ];
