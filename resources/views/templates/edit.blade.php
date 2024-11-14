@@ -59,7 +59,7 @@
             <!-- Content area with tabs and corresponding content -->
             <div class="flex">
                 <!-- Right side for tab content -->
-                <div class="w-full">
+                <div class="w-full" id="tabContent">
                     @forelse ($template->templatePages as $page)
                         <div id="tab{{ $page->id }}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
                             <h3 class="text-lg font-medium mb-2">{{ $page->name }}</h3>
@@ -162,7 +162,7 @@
             $("#content1").show();
 
             // Tab click handler
-            $(".tab-item").on("click", function() {
+            $(document).on('click','.tab-item', function() {
                 $(".tab-item").removeClass("bg-blue-400").addClass("bg-blue-200");
                 $(this).addClass("bg-blue-400");
 
@@ -251,6 +251,12 @@
                                     </label>
                                 </li>
                             `);
+
+                            // Append the new page content
+                            $('#tabContent').append(`<div id="tab${response.page.id}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
+                                <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
+                                <p>Content for ${response.page.name}</p>
+                            </div>`);
 
                             showSuccessNotification(response.message);
 
