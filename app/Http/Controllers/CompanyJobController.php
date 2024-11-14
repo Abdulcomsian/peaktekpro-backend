@@ -110,16 +110,104 @@ class CompanyJobController extends Controller
         try {
             $user = Auth::user();
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+            if ($user->role_id == 1 || $user->role_id == 2) {
+                $jobs = CompanyJob::with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'job_total', 'claim_number');
+                    }])
+                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
+                    ->where('created_by', $created_by)
+                    ->orderBy('status_id', 'asc')
+                    ->orderBy('id', 'desc')
+                    ->get();
+            } else {
+                $jobs = CompanyJob::with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'job_total', 'claim_number');
+                    }])
+                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
+                    ->where(function ($query) use ($user, $assigned_jobs) {
+                        $query->orWhere('user_id', $user->id);
+                        $query->orWhereIn('id', $assigned_jobs);
+                    })
+                    ->orderBy('status_id', 'asc')
+                    ->orderBy('id', 'desc')
+                    ->get();
+            }
+
+            // Group jobs by status name and add job_total, claim_number, and days_since_creation
+            $groupedJobs = $jobs->map(function ($job) {
+                $job->days_since_creation = $job->created_at->diffInDays($job->updated_at);
+
+                // Retrieve job_total and claim_number for each job summary related to this job, handling cases where jobSummaries may be null
+                $job->job_summaries = $job->jobSummaries ? $job->jobSummaries->map(function ($summary) {
+                    return [
+                        'job_total' => $summary->job_total,
+                        'claim_number' => $summary->claim_number,
+                    ];
+                }) : collect([]);
+
+                return $job;
+            })->groupBy(function ($job) {
+                return $job->status->name;
+            });
+
+            $statuses = Status::whereIn('name', [
+                'New Leads', 
+                'Signed Deals', 
+                'Estimate Prepared', 
+                'Adjustor',
+                'Ready To Build',
+                'Build Scheduled',
+                'In Progress',
+                'Build Complete',
+                'Final Payment Due',
+                'Ready to Close',
+                'Won and Closed'
+            ])->get();
+
+            // Structure the response with job_total calculation
+            $response = $statuses->map(function ($status) use ($groupedJobs) {
+                $jobTotalSum = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
+                    $query->where('status_id', $status->id);
+                })->sum('job_total');
+
+                return [
+                    'id' => $status->id,
+                    'name' => $status->name,
+                    'job_total' => $jobTotalSum,
+                    'tasks' => $groupedJobs->get($status->name, collect()),
+                ];
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'data' => $response
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+
+    public function getAllJobsFirst()
+    {
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
             
             $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
             
             if($user->role_id == 1 || $user->role_id == 2) {
-                $jobs = CompanyJob::select('id','name','address','created_at','updated_at','status_id')->where('created_by', $created_by)
+                $jobs = CompanyJob::select('id','name','address','created_at','updated_at','status_id')
+                ->where('created_by', $created_by)
                 ->orderBy('status_id', 'asc')
                 ->orderBy('id', 'desc')
                 ->get();
             } else {
-                $jobs = CompanyJob::select('id','name','address','status_id')->where(function($query) use ($user,$assigned_jobs) {
+                $jobs = CompanyJob::select('id','name','address','status_id')
+                ->where(function($query) use ($user,$assigned_jobs) {
                     $query->orWhere('user_id', $user->id);
                     $query->orWhereIn('id', $assigned_jobs);
                 })
