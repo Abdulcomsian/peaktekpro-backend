@@ -20,4 +20,6 @@ class CompanyJobSummary extends Model
     {
         return $this->belongsTo(CompanyJob::class, 'company_job_id');
     }
+
+    
 }

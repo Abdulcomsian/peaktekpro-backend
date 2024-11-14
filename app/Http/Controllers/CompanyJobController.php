@@ -114,7 +114,7 @@ class CompanyJobController extends Controller
             $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
             
             if($user->role_id == 1 || $user->role_id == 2) {
-                $jobs = CompanyJob::select('id','name','address','status_id')->where('created_by', $created_by)
+                $jobs = CompanyJob::select('id','name','address','created_at','updated_at','status_id')->where('created_by', $created_by)
                 ->orderBy('status_id', 'asc')
                 ->orderBy('id', 'desc')
                 ->get();
@@ -149,9 +149,14 @@ class CompanyJobController extends Controller
             
             // Structure the response
             $response = $statuses->map(function ($status) use ($groupedJobs) {
+                //calucte sum for 
+                $jobTotalSum = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
+                    $query->where('status_id', $status->id);
+                })->sum('job_total');
                 return [
                     'id' => $status->id,
                     'name' => $status->name,
+                    'job_total' => $jobTotalSum,
                     'tasks' => $groupedJobs->get($status->name, new Collection()),
                 ];
             });
@@ -672,46 +677,108 @@ class CompanyJobController extends Controller
         }
     }
     
-    public function getTaskWithJobCount()
+    public function getTaskWithJobCount1()
     {
         try {
-            
             $user = Auth::user();
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
-            // dd($assigned_jobs);
             $created_by = $user->created_by == 0 ? 1 : $user->created_by; 
-            // dd($created_by);
-            if($user->role_id == 1 || $user->role_id == 2 || $user->role_id == 7) {
-                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Won and Closed'];
+            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
 
+            if (in_array($user->role_id, [1, 2, 7])) {
                 $tasks = Status::whereIn('name', $specificStatuses)
-                ->withCount([
-                    'tasks as jobs_count' => function ($query) use ($created_by) {
-                        $query->where('created_by', $created_by);
-                    }
-                ])->get();
-
+                    ->withCount([
+                        'tasks as jobs_count' => function ($query) use ($created_by) {
+                            $query->where('created_by', $created_by);
+                        },
+                        'jobSummaries as job_total' => function ($query) use ($created_by) {
+                            $query->whereHas('job', function ($q) use ($created_by) {
+                                $q->where('created_by', $created_by);
+                            });
+                        }
+                    ])
+                    ->get();
             } else {
-                $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','Final Payment Due','Ready to Close','Won and Closed'];
-                $tasks = Status::whereIn('name',$specificStatuses)
-                ->withCount([
-                    'tasks as jobs_count' => function ($query) use ($user,$assigned_jobs) {
-                        $query->where('user_id', $user->id);
-                        $query->orWhereIn('id', $assigned_jobs);
-                    }
-                ])->get();
+                $tasks = Status::whereIn('name', $specificStatuses)
+                    ->withCount([
+                        'tasks as jobs_count' => function ($query) use ($user, $assigned_jobs) {
+                            $query->where('user_id', $user->id)
+                                ->orWhereIn('id', $assigned_jobs);
+                        },
+                        'jobSummaries as job_total' => function ($query) use ($user, $assigned_jobs) {
+                            $query->whereHas('job', function ($q) use ($user, $assigned_jobs) {
+                                $q->where('user_id', $user->id)
+                                ->orWhereIn('id', $assigned_jobs);
+                            });
+                        }
+                    ])
+                    ->get();
             }
-            
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Tasks Found Successfully',
                 'data' => $tasks
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function getTaskWithJobCount()
+    {
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by; 
+            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
+
+            if (in_array($user->role_id, [1, 2, 7])) {
+                $tasks = Status::whereIn('name', $specificStatuses)
+                    ->withCount([
+                        'tasks as jobs_count' => function ($query) use ($created_by) {
+                            $query->where('created_by', $created_by);
+                        }
+                    ])
+                    ->withSum([
+                        'jobSummaries as job_total' => function ($query) use ($created_by) {
+                            $query->whereHas('job', function ($q) use ($created_by) {
+                                $q->where('created_by', $created_by);
+                            });
+                        }
+                    ], 'job_total')
+                    ->get();
+            } else {
+                $tasks = Status::whereIn('name', $specificStatuses)
+                    ->withCount([
+                        'tasks as jobs_count' => function ($query) use ($user, $assigned_jobs) {
+                            $query->where('user_id', $user->id)
+                                ->orWhereIn('id', $assigned_jobs);
+                        }
+                    ])
+                    ->withSum([
+                        'jobSummaries as job_total' => function ($query) use ($user, $assigned_jobs) {
+                            $query->whereHas('job', function ($q) use ($user, $assigned_jobs) {
+                                $q->where('user_id', $user->id)
+                                ->orWhereIn('id', $assigned_jobs);
+                            });
+                        }
+                    ], 'job_total')
+                    ->get();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Tasks Found Successfully',
+                'data' => $tasks
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
 
     public function getV1TaskWithJobCount(Request $request)
     {

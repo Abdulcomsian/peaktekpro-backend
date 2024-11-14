@@ -21,4 +21,10 @@ class Status extends Model
         return $this->hasMany(CompanyJob::class);
     }
 
+    public function jobSummaries()
+    {
+        return $this->hasManyThrough(CompanyJobSummary::class, CompanyJob::class, 'status_id', 'company_job_id', 'id', 'id');
+    }
+
+
 }
