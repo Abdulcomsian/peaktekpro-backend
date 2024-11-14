@@ -1538,11 +1538,30 @@ class CompanyJobController extends Controller
         }
     }
 
-    public function getCurrentJobStatus($jobId)
+    public function getCurrentJobStage($jobId)
     {
-        $companyJob = CompanyJob::where('id',$jobId)->first();
-        return response()->json($companyJob);
+        $companyJob = CompanyJob::with('status:id,name')->where('id',$jobId)->first();
+        if($companyJob)
+        {
+            $response = $companyJob->toArray();
+            $response['activeStatus'] = $response['status']; // Rename 
+            unset($response['status']); // Remove the original key
 
+
+            return response()->json([
+                'message'=> 'Status Fetched Successfully',
+                'status' =>200,
+                'data' => $response
+            ]);
+        }
+        return response()->json(['status' => 404, 'message' => 'Job Not Found'], 404);
+
+    }
+
+    public function getCustomerSummary($jobId)
+    {
+        $job= CompanyJob::with('summary:id,company_job_id,job_total,insurance,policy_number,insurance_representative,claim_number')->where('id',$jobId)->first();
+        return response(["data"=>$job]);
     }
 
     public function FilterJobWithStatus(Request $request, $statusId) //notused

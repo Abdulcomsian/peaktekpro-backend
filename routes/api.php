@@ -128,7 +128,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('filter/jobs-by-status/{statusId}', [CompanyJobController::class, 'FilterJobWithStatus']);
 
     ///find customer job status
-    Route::get('get/current/job/status/{jobId}', [CompanyJobController::class, 'getCurrentJobStatus']);
+    Route::get('get/current/job/stage/{jobId}', [CompanyJobController::class, 'getCurrentJobStage']);
+    Route::get('get/customer/summary/{jobId}', [CompanyJobController::class, 'getCustomerSummary']);
+
 
     Route::get('filter/job/location', [CompanyJobController::class, 'filterJobByLocation']);//not used
     Route::get('filter/job/jobType/{statusId}', [CompanyJobController::class, 'filterJobsByJobType']); //not used
