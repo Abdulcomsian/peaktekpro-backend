@@ -11,10 +11,10 @@ class Status extends Model
 
     protected $guarded = [];
     
-    // public function jobs()
-    // {
-    //     return $this->hasMany(CompanyJob::class);
-    // }
+    public function jobs()
+    {
+        return $this->hasMany(CompanyJob::class);
+    }
 
     public function tasks()
     {
