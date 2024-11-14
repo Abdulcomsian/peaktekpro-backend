@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Status;
+use App\Models\Location;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
+use App\Models\CompanyJobUser;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
@@ -15,8 +18,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
-use App\Models\CompanyJobUser;
-use Carbon\Carbon;
 
 class CompanyJobController extends Controller
 {
@@ -447,8 +448,12 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type')
+            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type','market','job_type')
             ->where('company_job_id', $job->id)->first();
+
+            $location= Location::select('id','name')->get();
+            // $location_ids = Location::pluck('id')->toArray(); // Retrieve location IDs as an array
+
             if(!$job_summary) {
                 
                 //Create Object
@@ -472,7 +477,8 @@ class CompanyJobController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Job Summary Found Successfully',
-                'job' => $job_summary
+                'job' => $job_summary,
+                'locations' => $location
             ], 200); 
             
         } catch (\Exception $e) {
@@ -1530,6 +1536,13 @@ class CompanyJobController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
+    }
+
+    public function getCurrentJobStatus($jobId)
+    {
+        $companyJob = CompanyJob::where('id',$jobId)->first();
+        return response()->json($companyJob);
+
     }
 
     public function FilterJobWithStatus(Request $request, $statusId) //notused
