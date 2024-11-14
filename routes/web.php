@@ -20,7 +20,13 @@ Route::get('/', function () {
 
 Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
 Route::get('/templates/create', [TemplateController::class, 'create'])->name('templates.create');
-Route::post('/update-page-ordering', [TemplateController::class, 'updatePageOrdering'])->name('templates.page-ordering.update');
+Route::post('/templates/store', [TemplateController::class, 'store'])->name('templates.store');
+Route::get('/templates/edit/{id}', [TemplateController::class, 'edit'])->name('templates.edit');
+Route::put('/templates/update-title/{id}', [TemplateController::class, 'updateTitle'])->name('templates.update.title');
+Route::post('/update-page-ordering/{id}', [TemplateController::class, 'updateTemplatePagesOrdering'])->name('templates.page-ordering.update');
+
+Route::post('/templates/create-page/{id}', [TemplateController::class, 'createPage'])->name('templates.create-page');
+Route::patch('/templates/update-page-status/{pageId}', [TemplateController::class, 'updatePageStatus'])->name('templates.update-page.status');
 
 Route::get('/test', function(){
     $job = \App\Models\CompanyJob::find(4);
