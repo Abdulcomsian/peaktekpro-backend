@@ -2,6 +2,11 @@
 
 @section('title', 'Create Template')
 
+@push('styles')
+    {{-- load quill css --}}
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+@endpush
+
 @section('content')
     <section class="h-screen flex">
         <!-- Sidebar with Tabs -->
@@ -12,7 +17,7 @@
                 @forelse ($template->templatePages as $page)
                     <li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
                         data-target="#tab{{ $page->id }}" data-id="{{ $page->id }}">
-                        <span>{{ $page->name }}</span>
+                        <span id="leftMenuPageName-{{ $page->id }}">{{ $page->name }}</span>
                         <!-- Toggle switch to update page status -->
                         <label for="toggle-{{ $page->id }}" class="inline-flex relative items-center cursor-pointer">
                             <input type="checkbox" id="toggle-{{ $page->id }}" class="sr-only toggle"
@@ -39,20 +44,19 @@
         <section class="w-3/4 p-6">
             <!-- Heading at the top of the right side -->
             <div class="bg-white shadow p-4 rounded-lg mb-4">
-                <h2 class="text-xl font-semibold" id="templateTitleText">{{ $template->title }}</h2>
-
-                <!-- Edit icon (clickable) -->
-                <button id="editTitleBtn" class="text-blue-500 hover:text-blue-700 ml-2">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-semibold" id="templateTitleText">{{ $template->title }}</h2>
+                    <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn"
+                        data-name="{{ $page->name }}">Edit</button>
+                </div>
 
                 <!-- Edit input (initially hidden) -->
                 <div id="editTitleContainer" class="hidden mt-2">
                     <input type="text" id="templateTitleInput" value="{{ $template->title }}"
                         class="border p-2 rounded w-full" name="title" />
                     <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
-                    <button id="saveTitleBtn" class="bg-blue-500 text-white p-2 rounded mt-2">Save</button>
-                    <button id="cancelEditBtn" class="bg-gray-300 text-black p-2 rounded mt-2 ml-2">Cancel</button>
+                    <button id="saveTitleBtn" class="bg-blue-500 text-white text-sm p-2 rounded mt-2">Save</button>
+                    <button id="cancelEditBtn" class="bg-gray-300 text-black text-sm p-2 rounded mt-2 ml-2">Cancel</button>
                 </div>
             </div>
 
@@ -63,7 +67,23 @@
                 <div class="w-full" id="tabContent">
                     @forelse ($template->templatePages as $page)
                         <div id="tab{{ $page->id }}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
-                            <h3 class="text-lg font-medium mb-2">{{ $page->name }}</h3>
+                            <div class="flex items-center justify-between">
+                                <h3 id="pageName-{{ $page->id }}" class="text-lg font-medium mb-2">{{ $page->name }}
+                                </h3>
+                                <button class="text-blue-500 hover:text-blue-600 edit-button" data-id="{{ $page->id }}"
+                                    data-name="{{ $page->name }}">Edit</button>
+                            </div>
+
+                            <div id="editPageForm-{{ $page->id }}" class="edit-form hidden mb-2">
+                                <input type="text" id="editInput-{{ $page->id }}" class="border rounded p-2 w-full"
+                                    value="{{ $page->name }}" />
+                                <div class="flex space-x-2 mt-2">
+                                    <button class="bg-blue-500 text-white text-sm px-4 py-2 rounded update-button"
+                                        data-id="{{ $page->id }}">Update</button>
+                                    <button class="bg-gray-500 text-white text-sm px-4 py-2 rounded cancel-button"
+                                        data-id="{{ $page->id }}">Cancel</button>
+                                </div>
+                            </div>
                             <p>Content for {{ $page->name }}</p>
                             @includeIf('templates.forms.' . $page->slug)
 
@@ -158,7 +178,7 @@
 
             // edit template title end
 
-            // pages start
+            // left menu pages start
 
             // Show the first tab content by default
             $(".tab-content").hide();
@@ -246,23 +266,24 @@
                         if (response.status) {
                             // Append the new page to the list dynamically
                             $('#tabsList').append(`
-                                <li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
-                                    data-target="#tab${response.page.id}" data-id="${response.page.id}">
-                                    <span>${response.page.name}</span>
-                                    <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
-                                        <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}" ${ response.page.is_active === 1 ? 'checked' : '' } />
-                                        <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
-                                            <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
-                                        </span>
-                                    </label>
-                                </li>
-                            `);
+    <li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
+        data-target="#tab${response.page.id}" data-id="${response.page.id}">
+        <span>${response.page.name}</span>
+        <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
+            <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}"
+                ${ response.page.is_active===1 ? 'checked' : '' } />
+            <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
+                <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
+            </span>
+        </label>
+    </li>
+    `);
 
                             // Append the new page content
                             $('#tabContent').append(`<div id="tab${response.page.id}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
-                                <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
-                                <p>Content for ${response.page.name}</p>
-                            </div>`);
+        <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
+        <p>Content for ${response.page.name}</p>
+    </div>`);
 
                             showSuccessNotification(response.message);
 
@@ -277,7 +298,8 @@
             });
 
             // Handle toggle change (to update page status)
-            $(document).on('change', 'input[type="checkbox"][data-page-id]', function() {
+            $(document).on('change', 'input[type="checkbox"][data-page-id]', function(e) {
+                e.stopPropagation();
                 var pageId = $(this).data('page-id');
                 var status = $(this).prop('checked') ? 1 : 0;
 
@@ -311,7 +333,82 @@
                 });
             });
 
-            // pages end
+            // left menu pages end
+
+            // page name edit start
+
+            // Handle the Edit button click
+            $(document).on('click', '.edit-button', function() {
+                const pageId = $(this).data('id');
+                const pageName = $(this).data('name');
+
+                // Show edit form and hide the static name
+                $(`#pageName-${pageId}`).addClass('hidden');
+                $(`#editPageForm-${pageId}`).removeClass('hidden');
+                $(`#editInput-${pageId}`).val(pageName);
+            });
+
+            // Handle the Cancel button click
+            $(document).on('click', '.cancel-button', function() {
+                const pageId = $(this).data('id');
+
+                // Hide edit form and show the static name
+                $(`#pageName-${pageId}`).removeClass('hidden');
+                $(`#editPageForm-${pageId}`).addClass('hidden');
+            });
+
+            // Handle the Update button click with AJAX call
+            $(document).on('click', '.update-button', function() {
+                const pageId = $(this).data('id');
+                const newName = $(`#editInput-${pageId}`).val().trim();
+
+                // Basic validation
+                if (!newName) {
+                    showErrorNotification('Page name cannot be empty');
+                    return;
+                }
+
+                // AJAX request to update page name
+                $.ajax({
+                    url: `{{ route('templates.update.page-title', ':id') }}`.replace(':id',
+                        pageId),
+                    method: 'PUT',
+                    data: {
+                        name: newName,
+                        _token: $('meta[name=csrf-token]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status) {
+
+                            // Update the static name and revert the form to original state
+                            $(`#pageName-${pageId}`).text(newName).removeClass('hidden');
+                            $(`#editPageForm-${pageId}`).addClass('hidden');
+
+                            // let menu page name update
+                            $('#leftMenuPageName-' + pageId).text(newName);
+
+                            showSuccessNotification(response.message);
+
+                        } else {
+                            showErrorNotification(
+                                'Error updating page name. Please try again.');
+                        }
+                    },
+                    error: function() {
+                        showErrorNotification('An error occurred. Please try again.');
+                    }
+                });
+            });
+            // page name edit end
         });
     </script>
+
+    {{-- load quill --}}
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+   {{-- introduction js --}}
+   <script src="{{ asset('assets/js/templates/introduction.js') }}"></script>
+   {{-- repairability assessment js --}}
+   <script src="{{ asset('assets/js/templates/repairability_assessment.js') }}"></script>
+   {{-- repairability or compatibility photosjs js --}}
+   <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
 @endpush

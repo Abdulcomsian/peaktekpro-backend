@@ -206,4 +206,28 @@ class TemplateController extends Controller
             );
         }
     }
+
+    public function updatePageTitle(Request $request,$pageId)
+    {
+
+        try {
+
+            $page = TemplatePage::findOrFail($pageId);
+            $page->name = $request->name;
+            $page->save();
+
+            return response()->json(['status' => true, 'message' => 'Page name updated successfully'], 200);
+        } catch (\Throwable $th) {
+
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => 'Something went wrong',
+                    'errors' => $th->getMessage()
+                ]
+            );
+        }
+
+    }
+
 }
