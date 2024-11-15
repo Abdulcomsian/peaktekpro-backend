@@ -9,14 +9,15 @@
                     <input type="text"
                         class="section-title text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
                         placeholder="Section Title" />
-                    <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
-                        X
-                    </button>
+                        <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                            X
+                        </button>
+                        <span class="section-drag-handle cursor-pointer">⇄ Drag</span>
                 </div>
                 <div class="relative flex items-center">
                     <span id="toggle-tooltip"
                         class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
-                        Total will be included.
+                        Show or Hide this section, It's total is always included.
                     </span>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" class="sr-only peer section-toggle">
@@ -29,14 +30,29 @@
             <!-- Rows Container -->
             <div class="rows-container space-y-4">
                 <!-- Default Row -->
-                <div class="row flex items-center space-x-4" data-id="row_1">
-                    <input type="text" class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
+                <div class="row flex flex-wrap items-center space-x-4" data-id="row_1">
+                    <span class="row-drag-handle cursor-pointer">⇄ Drag</span>
+                    <!-- Item Description -->
+                    <input type="text"
+                        class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
                         placeholder="Item Description">
-                    <input type="number" class="item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
+
+                    <!-- Quantity -->
+                    <input type="number"
+                        class="item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
                         placeholder="Qty" min="0" step="0.01">
-                    <input type="number" class="item-price w-20 border border-gray-300 rounded-md px-2 py-1"
+
+                    <!-- Unit Price -->
+                    <input type="number"
+                        class="item-price w-20 border border-gray-300 rounded-md px-2 py-1"
                         placeholder="Unit Price" min="0" step="0.01">
-                    <span class="line-total w-24 text-right">$0.00</span>
+
+                    <!-- Line Total -->
+                    <div class="line-total-container w-24 text-right flex-1">
+                        <span class="line-total block">$0.00</span>
+                    </div>
+
+                    <!-- Remove Button -->
                     <button class="remove-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
                         X
                     </button>
