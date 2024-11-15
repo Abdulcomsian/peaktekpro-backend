@@ -18,18 +18,18 @@ class PaymentController extends Controller
     
             ]);
 
-            $payment = Payment::where('company_job_id',$jobId)->first();
+            // $payment = Payment::where('company_job_id',$jobId)->first();
 
-            if($payment){
-                $payment->payment_date = $request->payment_date;
-                $payment->payment_amount = $request->payment_amount;
-                $payment->payment_type = $request->payment_type;
-                $payment->check_number = $request->check_number;
-                $payment->remaining_balance = $request->remaining_balance;
-                $payment->save();
-                $message = "Payment Updated Successfully";
+            // if($payment){
+            //     $payment->payment_date = $request->payment_date;
+            //     $payment->payment_amount = $request->payment_amount;
+            //     $payment->payment_type = $request->payment_type;
+            //     $payment->check_number = $request->check_number;
+            //     $payment->remaining_balance = $request->remaining_balance;
+            //     $payment->save();
+            //     $message = "Payment Updated Successfully";
 
-            }else{
+            // }else{
                 $payment = new Payment;
                 $payment->company_job_id = $jobId;
                 $payment->payment_date = $request->payment_due;
@@ -40,7 +40,7 @@ class PaymentController extends Controller
                 $payment->save();
                 $message = "Payment Created Successfully";
 
-            }
+            // }
             return response()->json([
                 'status_code' =>200,
                 'message' => $message,
@@ -58,7 +58,7 @@ class PaymentController extends Controller
 
     public function getPaymentHistory($jobId)
     {
-        $payment = Payment::where('company_job_id',$jobId)->first();
+        $payment = Payment::where('company_job_id',$jobId)->get();
         if($payment)
         {
             $message = "Payment data Fetched Successfully";
@@ -73,7 +73,6 @@ class PaymentController extends Controller
         return response()->json([
             'status_code' =>200,
             'message' => $message,
-            'data' => $payment
         ]);
     }
 }
