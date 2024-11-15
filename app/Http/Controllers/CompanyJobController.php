@@ -521,7 +521,7 @@ class CompanyJobController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message' => 'Job Summary Not Yet Created',
-                    'job' => $object
+                    'job' => $job_summary
                 ], 200);
             }
 
