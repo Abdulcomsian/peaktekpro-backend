@@ -49,6 +49,7 @@ class CompanyJobController extends Controller
             $job->longitude = $request->longitude;
             $job->email = $request->email;
             $job->phone = $request->phone;
+
             $job->save();
 
             //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
@@ -508,6 +509,7 @@ class CompanyJobController extends Controller
                 'job_type' => $request->job_type,
 
             ]);
+
             
             // Assign Job To Users
             if(isset($request->user_ids) && count($request->user_ids) > 0) {
@@ -1674,6 +1676,8 @@ class CompanyJobController extends Controller
                         'name' => $job->name,
                         'address' => $job->address,
                         'status_id' => $job->status_id,
+                        'created_at' => $job->created_at,
+                        'updated_at' => $job->updated_at,
                         'status' => $job->status,
                     ];
                 });
