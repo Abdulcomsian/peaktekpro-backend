@@ -44,7 +44,7 @@ function submitForm() {
 
 // quill
 
-const roofRepairLimitationsOptions = [
+const roofRepairLimitationsQuillOptions = [
     ['bold', 'italic', 'underline', 'strike'], // toggled buttons
     ['blockquote', 'code-block'],
     ['link'],
@@ -85,7 +85,7 @@ const roofRepairLimitationsOptions = [
 var roofRepairLimitationsQuill = new Quill('#roof-repair-limitations-quill', {
     theme: 'snow',
     modules: {
-        toolbar: roofRepairLimitationsOptions
+        toolbar: roofRepairLimitationsQuillOptions
     }
 });
 // Set the height dynamically via JavaScript
