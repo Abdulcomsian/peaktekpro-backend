@@ -60,7 +60,7 @@ function submitForm() {
 
 // quill
 
-const productCompatibilityQuill = [
+const productCompatibilityQuillOptions = [
     ['bold', 'italic', 'underline', 'strike'], // toggled buttons
     ['blockquote', 'code-block'],
     ['link'],
@@ -98,21 +98,21 @@ const productCompatibilityQuill = [
     }],
     ['clean'] // remove formatting button
 ];
-var productCompatibilityText = new Quill('#product-compatibility-quill', {
+var productCompatibilityQuill = new Quill('#product-compatibility-quill', {
     theme: 'snow',
     modules: {
-        toolbar: productCompatibilityQuill
+        toolbar: productCompatibilityQuillOptions
     }
 });
 // Set the height dynamically via JavaScript
-productCompatibilityText.root.style.height = '200px';
+productCompatibilityQuill.root.style.height = '200px';
 
 // old intro text value
-let oldProductCompatibilityText = '';
+let oldProductCompatibilityValue = '';
 
 // Load the saved content into the editor
-productCompatibilityText.clipboard.dangerouslyPasteHTML(oldProductCompatibilityText);
-productCompatibilityText.on('text-change', function() {
-    $('#product-compatibility-text').val(productCompatibilityText.root.innerHTML);
+productCompatibilityQuill.clipboard.dangerouslyPasteHTML(oldProductCompatibilityValue);
+productCompatibilityQuill.on('text-change', function() {
+    $('#product-compatibility-text').val(productCompatibilityQuill.root.innerHTML);
 });
 

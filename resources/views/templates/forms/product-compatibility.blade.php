@@ -26,7 +26,7 @@
         <!-- Descriptive Text Field -->
         <div class="my-6">
             <div id="product-compatibility-quill" class="bg-white"></div>
-            <textarea class="hidden" id="product-compatibility-text" name="roof_repair_limitations" required>{{ '' }}</textarea>
+            <textarea class="hidden" id="product-compatibility-text" name="product_compatibility_text" required>{{ '' }}</textarea>
         </div>
     </form>
 </div>
