@@ -1,8 +1,24 @@
 
+// Show the appropriate form when the radio button is changed
+$("input[name='product_compatibility_type']").on("change", function() {
+    var selectedValue = $("input[name='product_compatibility_type']:checked").val();
+
+    console.log(selectedValue)
+
+    if (selectedValue === 'pdf') {
+        $('#product-compatibility-form-upload-pdf').removeClass('hidden');
+        $('#product-compatibility-form-text-page').hasClass('hidden') ? '' : $('#product-compatibility-form-text-page').addClass('hidden');
+    } else if (selectedValue === 'text') {
+        $('#product-compatibility-form-text-page').removeClass('hidden');
+        $('#product-compatibility-form-upload-pdf').hasClass('hidden') ? '' : $('#product-compatibility-form-upload-pdf').addClass('hidden');
+    }
+});
+
+
 // drop zone
 Dropzone.autoDiscover = false;
 
-const repairabilityAssessmentDropzone = new Dropzone("#repairabilityAssessmentDropzone", {
+const productCompatibilityDropzone = new Dropzone("#product-compatibility-form-upload-pdf", {
     url: "/templates/repairibility-assessment",
     uploadMultiple: true,
     parallelUploads: 100,
@@ -15,7 +31,7 @@ const repairabilityAssessmentDropzone = new Dropzone("#repairabilityAssessmentDr
 
         // When a file is added, check if it's valid based on accepted file types
         this.on("addedfile", function(file) {
-            if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
+            if (!file.type.match(/image\/(jpeg|jpg)/)) {
                 // If the file type doesn't match, remove the file from preview
                 this.removeFile(file);
                 showErrorNotification('Only JPEG, JPG, and PNG images are allowed.')
@@ -32,7 +48,7 @@ const repairabilityAssessmentDropzone = new Dropzone("#repairabilityAssessmentDr
 
 // Optional: Prevent multiple submissions
 function submitForm() {
-    if (repairabilityAssessmentDropzone.getAcceptedFiles().length > 0) {
+    if (productCompatibilityDropzone.getAcceptedFiles().length > 0) {
         alert("Form submitted successfully!");
         // Add any further form submission logic if necessary
     } else {
@@ -44,7 +60,7 @@ function submitForm() {
 
 // quill
 
-const roofRepairLimitationsOptions = [
+const productCompatibilityQuill = [
     ['bold', 'italic', 'underline', 'strike'], // toggled buttons
     ['blockquote', 'code-block'],
     ['link'],
@@ -82,20 +98,21 @@ const roofRepairLimitationsOptions = [
     }],
     ['clean'] // remove formatting button
 ];
-var roofRepairLimitationsQuill = new Quill('#roof-repair-limitations-quill', {
+var productCompatibilityText = new Quill('#product-compatibility-quill', {
     theme: 'snow',
     modules: {
-        toolbar: roofRepairLimitationsOptions
+        toolbar: productCompatibilityQuill
     }
 });
 // Set the height dynamically via JavaScript
-roofRepairLimitationsQuill.root.style.height = '200px';
+productCompatibilityText.root.style.height = '200px';
 
 // old intro text value
-let oldRoofRepairLimitationText = '';
+let oldProductCompatibilityText = '';
 
 // Load the saved content into the editor
-roofRepairLimitationsQuill.clipboard.dangerouslyPasteHTML(oldRoofRepairLimitationText);
-roofRepairLimitationsQuill.on('text-change', function() {
-    $('#roof-repair-limitations-text').val(roofRepairLimitationsQuill.root.innerHTML);
+productCompatibilityText.clipboard.dangerouslyPasteHTML(oldProductCompatibilityText);
+productCompatibilityText.on('text-change', function() {
+    $('#product-compatibility-text').val(productCompatibilityText.root.innerHTML);
 });
+

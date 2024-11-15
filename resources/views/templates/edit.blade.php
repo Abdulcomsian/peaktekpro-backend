@@ -5,6 +5,57 @@
 @push('styles')
     {{-- load quill css --}}
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    {{-- load dropzone --}}
+    <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        #repairabilityAssessmentDropzone .dz-details
+        {
+            display: none;
+        }
+    </style>
+    {{-- <style>
+        /* Style for uploaded image preview */
+        .dropzone .dz-preview {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Tooltip styling */
+        .dz-preview:hover::after {
+            content: "Image uploaded";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        }
+        .dz-preview:hover::after {
+            opacity: 1;
+        }
+
+        /* Centered cross (delete) icon */
+        .dropzone .dz-remove {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 50%;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style> --}}
 @endpush
 
 @section('content')
@@ -405,10 +456,14 @@
 
     {{-- load quill --}}
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    {{-- load drop zone --}}
+    <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
    {{-- introduction js --}}
    <script src="{{ asset('assets/js/templates/introduction.js') }}"></script>
    {{-- repairability assessment js --}}
    <script src="{{ asset('assets/js/templates/repairability_assessment.js') }}"></script>
    {{-- repairability or compatibility photosjs js --}}
    <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
+    {{-- product compatibility js --}}
+    <script src="{{ asset('assets/js/templates/product_compatibility.js') }}"></script>
 @endpush

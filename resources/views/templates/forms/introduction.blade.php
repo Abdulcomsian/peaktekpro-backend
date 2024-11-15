@@ -23,12 +23,5 @@
             <textarea class="hidden" id="intro-text" name="intro_text" required>{{ '' }}</textarea>
         </div>
 
-        <!-- Submit Button -->
-        <div class="flex">
-            <button type="submit"
-                class="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
-                Submit
-            </button>
-        </div>
     </form>
 </div>

@@ -30,12 +30,5 @@
                 class=" px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Row</button>
         </div>
 
-        <!-- Submit Button -->
-        <div class="flex">
-            <button type="submit"
-                class="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
-                Submit
-            </button>
-        </div>
     </form>
 </div>

@@ -88,12 +88,12 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('company/view/{id}', [CompanyController::class, 'viewCompany']);
     Route::get('company/edit/{id}', [CompanyController::class, 'editCompany']);
     Route::post('update/company/{id}', [CompanyController::class, 'updateCompany']);
-    
+
     Route::get('get/company-users', [CompanyController::class, 'getCompanyUsers']);
     Route::get('get/company-sub-contractors', [CompanyController::class, 'getCompanySubContractors']);
     Route::get('get/company-suppliers', [CompanyController::class, 'getCompanySuppliers']);
     Route::get('get/company-adjustors', [CompanyController::class, 'getCompanyAdjustors']);
-    
+
     //User Management Api's
     Route::post('add/user', [UserManagementController::class, 'addUser']);
     Route::get('get/user/{id}', [UserManagementController::class, 'getUser']);

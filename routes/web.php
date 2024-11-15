@@ -31,6 +31,11 @@ Route::patch('/templates/update-page-status/{pageId}', [TemplateController::clas
 
 Route::put('/templates/page-title/{id}', [TemplateController::class, 'updatePageTitle'])->name('templates.update.page-title');
 
+// repairibility assessment
+Route::post('/templates/repairibility-assessment', function () {
+    return true;
+});
+
 Route::get('/test', function(){
     $job = \App\Models\CompanyJob::find(4);
     $quotes = \App\Models\ProjectDesignQuote::where('company_job_id', $job->id)->with('sections','sections.items')->first();
