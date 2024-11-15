@@ -466,4 +466,6 @@
    <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
     {{-- product compatibility js --}}
     <script src="{{ asset('assets/js/templates/product_compatibility.js') }}"></script>
+    {{-- unfair claim practices js --}}
+    <script src="{{ asset('assets/js/templates/unfair_claim_practices.js') }}"></script>
 @endpush

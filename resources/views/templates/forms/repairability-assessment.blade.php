@@ -2,7 +2,7 @@
     <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone" id="repairabilityAssessmentDropzone">
         <div class="dz-message text-gray-600">
             <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Image</span>
-            <small class="text-gray-500">Only image files are allowed</small>
+            <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
         </div>
     </form>
 

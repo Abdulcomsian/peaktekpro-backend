@@ -23,7 +23,7 @@ const productCompatibilityDropzone = new Dropzone("#product-compatibility-form-u
     uploadMultiple: true,
     parallelUploads: 100,
     maxFiles: 100,
-    acceptedFiles: ".jpeg,.jpg,.png",
+    acceptedFiles: ".pdf",
     addRemoveLinks: true,
     dictRemoveFile: "Remove",
     dictDefaultMessage: "Drag & Drop or Click to Upload",
@@ -31,10 +31,10 @@ const productCompatibilityDropzone = new Dropzone("#product-compatibility-form-u
 
         // When a file is added, check if it's valid based on accepted file types
         this.on("addedfile", function(file) {
-            if (!file.type.match(/image\/(jpeg|jpg)/)) {
+            if (!file.type.match('application/pdf')) {
                 // If the file type doesn't match, remove the file from preview
                 this.removeFile(file);
-                showErrorNotification('Only JPEG, JPG, and PNG images are allowed.')
+                showErrorNotification('Only PDFs are allowed.')
             }
         });
         this.on("success", function(file, response) {
