@@ -468,4 +468,6 @@
     <script src="{{ asset('assets/js/templates/product_compatibility.js') }}"></script>
     {{-- unfair claim practices js --}}
     <script src="{{ asset('assets/js/templates/unfair_claim_practices.js') }}"></script>
+    {{-- applicable code guidelines js --}}
+    <script src="{{ asset('assets/js/templates/applicable_code_guidelines.js') }}"></script>
 @endpush

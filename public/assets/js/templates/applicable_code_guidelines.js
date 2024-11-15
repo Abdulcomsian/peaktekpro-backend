@@ -1,5 +1,5 @@
 // quill
-const introTextQuillOptions = [
+const applicableCodeGuidelinesQuillOptions = [
     ['bold', 'italic', 'underline', 'strike'], // toggled buttons
     ['blockquote', 'code-block'],
     ['link'],
@@ -37,20 +37,20 @@ const introTextQuillOptions = [
     }],
     ['clean'] // remove formatting button
 ];
-var introTextQuill = new Quill('#intro-text-quill', {
+var applicableCodeGuidelinesQuill = new Quill('#applicable-code-guidelines-text-quill', {
     theme: 'snow',
     modules: {
-        toolbar: introTextQuillOptions
+        toolbar: applicableCodeGuidelinesQuillOptions
     }
 });
 // Set the height dynamically via JavaScript
-introTextQuill.root.style.height = '200px';
+applicableCodeGuidelinesQuill.root.style.height = '200px';
 
 // old text value
-let oldIntrolTextValue = '';
+let oldApplicableCodeGuidelinesValue = '';
 
 // Load the saved content into the editor
-introTextQuill.clipboard.dangerouslyPasteHTML(oldIntrolTextValue);
-introTextQuill.on('text-change', function() {
-    $('#intro-text').val(introTextQuill.root.innerHTML);
-});
+applicableCodeGuidelinesQuill.clipboard.dangerouslyPasteHTML(oldApplicableCodeGuidelinesValue);
+applicableCodeGuidelinesQuill.on('text-change', function() {
+    $('#applicable-code-guidelines-text').val(applicableCodeGuidelinesQuill.root.innerHTML);
+})
