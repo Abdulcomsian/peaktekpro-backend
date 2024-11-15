@@ -28,6 +28,10 @@ class CompanyJobController extends Controller
         //Validate Request
         $this->validate($request, [
             'address' => 'required',
+            'address.city'=>'nullable',
+            'address.postalCode' => 'nullable',
+            'address.state' => 'nullable',
+            'address.street' => 'nullable',
             // 'latitude' => 'required',
             // 'longitude' => 'required',
             'name' => 'required',
@@ -46,7 +50,8 @@ class CompanyJobController extends Controller
             $job->user_id = Auth::id();
             $job->created_by = $created_by;
             $job->name = $request->name;
-            $job->address = $request->address;
+            $job->address = json_encode($request->address); // Save raw address JSON in the job table
+            // $job->address = $request->address;
             $job->latitude = 12.3; //dummay add
             $job->longitude = 12.4; //dummy temp add
             $job->email = $request->email;
@@ -60,10 +65,10 @@ class CompanyJobController extends Controller
             $parsedAddress = $this->parseAddress($googleAddress);
             $address = new CustomerAgreement();
             $address->company_job_id = $job->id;
-            $address->street = $parsedAddress['street'];
-            $address->city = $parsedAddress['city'];
-            $address->state = $parsedAddress['state'];
-            $address->zip_code = $parsedAddress['zip_code'];
+            $address->street = $request->address['street'];
+            $address->city = $request->address['city'];
+            $address->state = $request->address['state'];
+            $address->zip_code = $request->address['postalCode'];
             $address->save();
 
             //Update Project Design Status Table
@@ -89,8 +94,17 @@ class CompanyJobController extends Controller
             return response()->json([
                 'status' => 201,
                 'message' => 'Job Created Successfully',
-                'job' => $job
+                'job' => [
+                    'id' => $job->id,
+                    'name' => $job->name,
+                    'email' => $job->email,
+                    'phone' => $job->phone,
+                    'address' => json_decode($job->address, true), 
+                    'created_at' => $job->created_at,
+                    'updated_at' => $job->updated_at
+                ]
             ], 201);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
@@ -483,7 +497,7 @@ class CompanyJobController extends Controller
                 
                 //Create Object
                 $object = new \StdClass;
-                $object->address = $job->address;
+                $object->address = json_decode($job->address);
                 $object->email = $job->email;
                 $object->phone = $job->phone;
                 
