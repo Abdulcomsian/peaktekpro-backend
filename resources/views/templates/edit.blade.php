@@ -470,4 +470,6 @@
     <script src="{{ asset('assets/js/templates/unfair_claim_practices.js') }}"></script>
     {{-- applicable code guidelines js --}}
     <script src="{{ asset('assets/js/templates/applicable_code_guidelines.js') }}"></script>
+    {{-- quote details js --}}
+    <script src="{{ asset('assets/js/templates/quote_details.js') }}"></script>
 @endpush
