@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Status;
 use App\Models\Location;
 use App\Models\CompanyJob;
+use App\Models\ClaimDetail;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
 use App\Models\CompanyJobContent;
@@ -17,6 +18,7 @@ use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
+use Exception;
 use Illuminate\Support\Facades\Storage;
 
 class CompanyJobController extends Controller
@@ -26,8 +28,8 @@ class CompanyJobController extends Controller
         //Validate Request
         $this->validate($request, [
             'address' => 'required',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            // 'latitude' => 'required',
+            // 'longitude' => 'required',
             'name' => 'required',
             'email' => 'required|email',
             'phone' => 'required'
@@ -45,8 +47,8 @@ class CompanyJobController extends Controller
             $job->created_by = $created_by;
             $job->name = $request->name;
             $job->address = $request->address;
-            $job->latitude = $request->latitude;
-            $job->longitude = $request->longitude;
+            $job->latitude = 12.3; //dummay add
+            $job->longitude = 12.4; //dummy temp add
             $job->email = $request->email;
             $job->phone = $request->phone;
 
@@ -175,75 +177,6 @@ class CompanyJobController extends Controller
                     'name' => $status->name,
                     'job_total' => $jobTotalSum,
                     'tasks' => $groupedJobs->get($status->name, collect()),
-                ];
-            });
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Jobs Found Successfully',
-                'data' => $response
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-    }
-
-
-    public function getAllJobsFirst()
-    {
-        try {
-            $user = Auth::user();
-            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
-            
-            $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
-            
-            if($user->role_id == 1 || $user->role_id == 2) {
-                $jobs = CompanyJob::select('id','name','address','created_at','updated_at','status_id')
-                ->where('created_by', $created_by)
-                ->orderBy('status_id', 'asc')
-                ->orderBy('id', 'desc')
-                ->get();
-            } else {
-                $jobs = CompanyJob::select('id','name','address','status_id')
-                ->where(function($query) use ($user,$assigned_jobs) {
-                    $query->orWhere('user_id', $user->id);
-                    $query->orWhereIn('id', $assigned_jobs);
-                })
-                ->orderBy('status_id', 'asc')
-                ->orderBy('id', 'desc')
-                ->get();   
-            }
-
-            // Group jobs by status name
-            $groupedJobs = $jobs->groupBy(function ($job) {
-                return $job->status->name;
-            });
-
-            $statuses = Status::whereIn('name', [
-                'New Leads', 
-                'Signed Deals', 
-                'Estimate Prepared', 
-                'Adjustor',
-                'Ready To Build',
-                'Build Scheduled',
-                'In Progress',
-                'Build Complete',
-                'Final Payment Due',
-                'Ready to Close',
-                'Won and Closed'
-            ])->get(); 
-            
-            // Structure the response
-            $response = $statuses->map(function ($status) use ($groupedJobs) {
-                //calucte sum for 
-                $jobTotalSum = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
-                    $query->where('status_id', $status->id);
-                })->sum('job_total');
-                return [
-                    'id' => $status->id,
-                    'name' => $status->name,
-                    'job_total' => $jobTotalSum,
-                    'tasks' => $groupedJobs->get($status->name, new Collection()),
                 ];
             });
 
@@ -1620,6 +1553,103 @@ class CompanyJobController extends Controller
             'job_type' => 'nullable|string',
             'location' => 'nullable|string',
         ]);
+    
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+    
+            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
+    
+            $tasks = Status::select('id', 'name')
+                ->whereIn('name', $specificStatuses)
+                ->withCount([
+                    'tasks' => function ($query) use ($created_by, $request) {
+                        $query->where('created_by', $created_by);
+    
+                        if ($request->job_type) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('job_type', $request->job_type);
+                            });
+                        }
+    
+                        if ($request->location) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('market', $request->location);
+                            });
+                        }
+                    }
+                ])
+                ->with([
+                    'tasks' => function ($query) use ($created_by, $request) {
+                        $query->with(['summary' => function ($q) {
+                            $q->select('company_job_id', 'job_total', 'claim_number');
+                        }, 'status'])
+                        ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
+                        ->where('created_by', $created_by);
+    
+                        if ($request->job_type) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('job_type', $request->job_type);
+                            });
+                        }
+    
+                        if ($request->location) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('market', $request->location);
+                            });
+                        }
+                    }
+                ])
+                ->get();
+    
+            // Transform tasks data to include 'job_total' and 'claim_number' in 'summary' and sum up 'job_total' for each status
+            $tasks->each(function ($status) {
+                $status->job_total = $status->tasks->sum(function ($job) {
+                    return optional($job->summary)->job_total ?? 0;
+                });
+    
+                $status->tasks->transform(function ($job) {
+                    return [
+                        'id' => $job->id,
+                        'name' => $job->name,
+                        'address' => $job->address,
+                        'status_id' => $job->status_id,
+                        'created_at' => $job->created_at,
+                        'updated_at' => $job->updated_at,
+                        // 'days_since_creation' => $job->created_at->diffInDays($job->updated_at),
+                        'summary' => [
+                            'company_job_id' => $job->summary->company_job_id ?? null,
+                            'job_total' => $job->summary->job_total ?? 0,
+                            'claim_number' => $job->summary->claim_number ?? null,
+                        ],
+                        'status' => [
+                            'id' => $job->status->id ?? null,
+                            'name' => $job->status->name ?? null,
+                            'created_at' => $job->status->created_at ?? null,
+                            'updated_at' => $job->status->updated_at ?? null,
+                        ]
+                    ];
+                });
+            });
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data Fetched Successfully',
+                'data' => $tasks
+            ], 200);
+    
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+    
+    public function filterJobskanbaaaan1(Request $request) // for kanban
+    {
+        $request->validate([
+            'job_type' => 'nullable|string',
+            'location' => 'nullable|string',
+        ]);
 
         try {
             $user = Auth::user();
@@ -1679,6 +1709,8 @@ class CompanyJobController extends Controller
                         'created_at' => $job->created_at,
                         'updated_at' => $job->updated_at,
                         'status' => $job->status,
+                        // 'job_total' => optional($job->companyJobSummaries)->job_total,
+                        // 'claim_number' => optional($job->companyJobSummaries)->claim_number,
                     ];
                 });
             });
@@ -1787,83 +1819,76 @@ class CompanyJobController extends Controller
     }
 
 
-    public function filterJobsdone(Request $request) //not used
+    public function claimDetails($jobId, Request $request)
     {
-        $request->validate([
-            'location' => 'nullable|string',
-            'job_type' => 'nullable|string',
-        ]);
+        // dd($request->all());
+        try{
+            $request->validate([
+                'claim_number' => 'nullable',
+                'status' => 'nullable|in:Pending,Supplement,Denied,Approved',
+                'supplement_amount' => 'nullable|string',
+                'notes' => 'nullable|string',
+                'last_update_date' =>'nullable|date'
+    
+            ]);
 
-        $jobs = CompanyJob::with(['companyJobSummaries' => function ($query) use ($request) {
-            if ($request->location) {
-                $query->where('market', $request->location);
-            }
-            if ($request->job_type) {
-                $query->where('job_type', $request->job_type);
-            }
-        }])->whereHas('companyJobSummaries', function ($query) use ($request) {
-            if ($request->location) {
-                $query->where('market', $request->location);
-            }
-            if ($request->job_type) {
-                $query->where('job_type', $request->job_type);
-            }
-        })->get();
+            $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
 
-        return response()->json([
-            'message' => 'Data Fetched Successfully',
-            'status_code' => 200,
-            'status' => true,
-            'data' => $jobs,
-        ]);
+            if($ClaimDetail){
+                $ClaimDetail->claim_number = $request->claim_number;
+                $ClaimDetail->status = $request->status;
+                $ClaimDetail->supplement_amount = $request->supplement_amount;
+                $ClaimDetail->notes = $request->notes;
+                $ClaimDetail->last_update_date = $request->last_update_date;
+                $ClaimDetail->save();
+                $message = "Claim Details Updated";
+            }else{
+                $ClaimDetail = new ClaimDetail();
+                $ClaimDetail->company_job_id = $jobId;
+                $ClaimDetail->claim_number = $request->claim_number;
+                $ClaimDetail->status = $request->status;
+                $ClaimDetail->supplement_amount = $request->supplement_amount;
+                $ClaimDetail->notes = $request->notes;
+                $ClaimDetail->last_update_date = $request->last_update_date;
+                $ClaimDetail->save();
+                $message = "Claim Details Created";
+
+            }
+
+            return response()->json([
+                'status_code' =>200,
+                'message' => $message,
+                'data' => $ClaimDetail
+            ]);
+    
+        }catch(\Exception $e){
+            return response()->json([
+                'status_code' =>500,
+                'message' => 'Issue Occured While Claim Details Added',
+                'error' => $e->getMessage(),
+            ]);
+        }
+       
     }
 
-    public function filterJobByLocation(Request $request) //not used
+    public function getclaimDetails($jobId)
     {
-        $request->validate([
-            'location' => 'nullable|string',
-        ]);
-
-        $jobs = CompanyJob::with(['companyJobSummaries' => function ($query) use ($request) {
-            if ($request->location) {
-                $query->where('market', $request->location);
-            }
-        }])->whereHas('companyJobSummaries', function ($query) use ($request) {
-            if ($request->location) {
-                $query->where('market', $request->location);
-            }
-        })->get();
-
+        $ClaimDetail = ClaimDetail::where('id',$jobId)->first();
+        if($ClaimDetail)
+        {
+            return response()->json([
+                'status_code' =>200,
+                'message' => 'Claim Details Added Successfully',
+                'data' => $ClaimDetail
+            ]);
+        }
         return response()->json([
-            'message' => 'Data Fetched Successfully',
-            'status_code' => 200,
-            'status' => true,
-            'data' => $jobs,
-        ]);
-    }
-
-    public function filterJobsByJobType(Request $request)//not used
-    {
-        $request->validate([
-            'job_type' => 'nullable|string',
+            'status_code' =>200,
+            'message' => 'Claim Details Not Found',
+            'data' => $ClaimDetail
         ]);
 
-        $jobs = CompanyJob::with(['companyJobSummaries' => function ($query) use ($request) {
-            if ($request->job_type) {
-                $query->where('job_type', $request->job_type);
-            }
-        }])->whereHas('companyJobSummaries', function ($query) use ($request) {
-            if ($request->job_type) {
-                $query->where('job_type', $request->job_type);
-            }
-        })->get();
-
-        return response()->json([
-            'message' => 'Data Fetched Successfully',
-            'status_code' => 200,
-            'status' => true,
-            'data' => $jobs,
-        ]);
+        
     }
 
 

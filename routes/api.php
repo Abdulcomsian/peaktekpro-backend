@@ -144,8 +144,15 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/v1/task-with-jobs-count', [CompanyJobController::class, 'getV1TaskWithJobCount']);
     Route::get('get/jobs-by-task/{statusId}', [CompanyJobController::class, 'getJobWithStatus']);
 
+    //claims details section new section
+    Route::post('add/claim-details/{jobId}', [CompanyJobController::class, 'claimDetails']);
+    Route::get('get/claim-details/{jobId}', [CompanyJobController::class, 'getclaimDetails']);
+
+
     ////Pyment History Section
-    Route::get('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
+    Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
+    Route::get('get/payment-history/{jobId}', [PaymentController::class, 'getPaymentHistory']);
+
 
     //company Location 
     Route::post('add/company_location', [CompanyLocationController::class, 'addCompanyLocation']);
