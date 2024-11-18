@@ -439,6 +439,8 @@
     <script src="{{ asset('assets/js/templates/terms_and_conditions.js') }}"></script>
     {{-- authorization js --}}
     <script src="{{ asset('assets/js/templates/authorization-page.js') }}"></script>
+    {{-- warranty js --}}
+    <script src="{{ asset('assets/js/templates/warranty.js') }}"></script>
     {{-- custom page js --}}
     <script src="{{ asset('assets/js/templates/custom-page.js') }}"></script>
 @endpush
