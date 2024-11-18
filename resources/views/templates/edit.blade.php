@@ -94,7 +94,7 @@
                                         data-id="{{ $page->id }}">Cancel</button>
                                 </div>
                             </div>
-                            <p>Content for {{ $page->name }}</p>
+                            {{-- <p>Content for {{ $page->name }}</p> --}}
                             @includeIf('templates.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'))
                         </div>
                     @empty

@@ -137,7 +137,7 @@ $(document).on('click', '#add-compatibility-section-btn', function () {
                     <span class="compatiblility-section-drag-handle cursor-pointer">↑↓</span>
                 </div>
             </div>
-            <div class="compatibility-items-container space-y-4"></div>
+            <div class="compatibility-items-container flex flex-wrap items-center gap-1"></div>
             <button class="add-compatibility-item-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">+ Add Item</button>
         </div>
             `;
@@ -149,21 +149,23 @@ $(document).on('click', '#add-compatibility-section-btn', function () {
 $(document).on('click', '.add-compatibility-item-btn', function () {
     compatibilityItemCount++;
     const newCompatibilityItem = `
-            <div class="item flex flex-wrap items-center space-x-4" data-id="item_${compatibilityItemCount}">
+            <div class="item flex flex-row gap-2" data-id="item_${compatibilityItemCount}">
                 <div class="mb-2">
-                    <span class="item-drag-handle cursor-pointer">↑↓</span>
+                    <span class="item-drag-handle cursor-pointer">⇄</span>
                 </div>
-                <div class="mb-2">
-                    <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
-                        id="compatibility-dropzone-${compatibilityItemCount}">
-                        <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
+                <div class="flex flex-col flex-wrap">
+                    <div class="mb-2">
+                        <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
+                            id="compatibility-dropzone-${compatibilityItemCount}">
+                            <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
+                        </div>
                     </div>
-                </div>
-                <div class="image-preview-container w-[18.9875rem] h-[12.5rem] hidden mb-2"></div>
-                <div class="mb-2">
-                    <div id="repairability-or-compatibility-text-quill-${compatibilityItemCount}" class="item-editor bg-white"></div>
-                    <textarea class="hidden" id="repairability-or-compatibility-text-${compatibilityItemCount}" name="repairability_or_compatibility_text[]"
-                        required></textarea>
+                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-2"></div>
+                    <div class="mb-14">
+                        <div id="repairability-or-compatibility-text-quill-${compatibilityItemCount}" class="item-editor bg-white"></div>
+                        <textarea class="hidden" id="repairability-or-compatibility-text-${compatibilityItemCount}" name="repairability_or_compatibility_text[]"
+                            required></textarea>
+                    </div>
                 </div>
                 <div class="mb-2">
                     <button class="remove-compatibility-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>

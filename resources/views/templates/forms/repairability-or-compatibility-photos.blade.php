@@ -28,29 +28,33 @@
             </div> --}}
 
             <!-- Items Container -->
-            <div class="compatibility-items-container space-y-4">
+            <div class="compatibility-items-container flex flex-wrap items-center gap-1">
                 <!-- Initial Item -->
-                <div class="item flex flex-wrap items-center space-x-4" data-id="item_1">
+                <div class="item flex flex-row gap-2" data-id="item_1">
                     <!-- Drag Handle -->
                     <div class="mb-2">
-                        <span class="item-drag-handle cursor-pointer">↑↓</span>
+                        <span class="item-drag-handle cursor-pointer">⇄</span>
                     </div>
-                    <!-- Image Upload -->
-                    <div class="mb-2">
-                        <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
-                            id="compatibility-dropzone-1">
-                            <div class="dz-message text-center text-gray-600">Drop an image here or click to upload
+                    <div class="flex flex-col flex-wrap">
+                        <!-- Image Upload -->
+                        <div class="mb-2">
+                            <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
+                                id="compatibility-dropzone-1">
+                                <div class="dz-message text-center text-gray-600">Drop an image here or click to upload
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- Image Preview (Outside Dropzone) -->
-                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-2"></div>
+                        <!-- Image Preview (Outside Dropzone) -->
+                        <div
+                            class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4">
+                        </div>
 
-                    <!-- Quill Editor -->
-                    <div class="mb-2">
-                        <div id="repairability-or-compatibility-text-quill-1" class="item-editor bg-white"></div>
-                        <textarea class="hidden" id="repairability-or-compatibility-text-1" name="repairability_or_compatibility_text[]"
-                            required>{{ '' }}</textarea>
+                        <!-- Quill Editor -->
+                        <div class="mb-14">
+                            <div id="repairability-or-compatibility-text-quill-1" class="item-editor bg-white"></div>
+                            <textarea class="hidden" id="repairability-or-compatibility-text-1" name="repairability_or_compatibility_text[]"
+                                required>{{ '' }}</textarea>
+                        </div>
                     </div>
                     <!-- Remove Button -->
                     <div class="mb-2">
