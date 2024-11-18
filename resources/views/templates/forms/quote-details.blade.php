@@ -4,7 +4,7 @@
         <!-- First Section -->
         <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200" data-id="section_1">
             <!-- Section Header -->
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-4 gap-1">
                 <div class="flex items-center space-x-2">
                     <div>
                         <input type="text"
