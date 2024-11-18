@@ -430,4 +430,8 @@
     <script src="{{ asset('assets/js/templates/applicable_code_guidelines.js') }}"></script>
     {{-- quote details js --}}
     <script src="{{ asset('assets/js/templates/quote_details.js') }}"></script>
+    {{-- terms and conditions js --}}
+    <script src="{{ asset('assets/js/templates/terms_and_conditions.js') }}"></script>
+    {{-- authorization js --}}
+    <script src="{{ asset('assets/js/templates/authorization-page.js') }}"></script>
 @endpush
