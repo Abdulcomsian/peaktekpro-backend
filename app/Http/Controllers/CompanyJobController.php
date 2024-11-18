@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use DB;
+use Exception;
 use Carbon\Carbon;
 use App\Models\Status;
 use App\Models\Location;
@@ -18,8 +20,8 @@ use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
-use Exception;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\ClaimDetailRequest;
 
 class CompanyJobController extends Controller
 {
@@ -942,7 +944,6 @@ class CompanyJobController extends Controller
                 ->orderBy('id', 'desc')
                 ->get()
                 ->map(function ($job) {
-                    // Assign amount based on the summary balance or set it to 0 if summary is null
                     $job->amount = $job->summary->balance ?? 0;
                     return $job;
                 });
@@ -964,7 +965,7 @@ class CompanyJobController extends Controller
     
     public function dashboardStats()
     {
-        try {
+        try { 
             
             $data = [];
             $user = Auth::user();
@@ -1773,19 +1774,10 @@ class CompanyJobController extends Controller
     }
 
 
-    public function claimDetails($jobId, Request $request)
+    public function claimDetails($jobId, ClaimDetailRequest $request)
     {
-        // dd($request->all());
         try{
-            $request->validate([
-                'claim_number' => 'nullable',
-                'status' => 'nullable|in:Pending,Supplement,Denied,Approved',
-                'supplement_amount' => 'nullable|string',
-                'notes' => 'nullable|string',
-                'last_update_date' =>'nullable|date'
-    
-            ]);
-
+             $request->validated();
             $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
 
             if($ClaimDetail){
@@ -1846,13 +1838,36 @@ class CompanyJobController extends Controller
     }
 
 
+    public function openclaimDetails()
+    {
+        $claims = ClaimDetail::get();
+        $response=$claims->filter(function($claim){
+        //    return  $claim['supplement_amount']==100;
+        return $claim->supplement_amount == 100; // Filter claims where supplement_amount is 100
+
+        })
+        ->map(function($claim){
+            $claim->supplement_amount= $claim->supplement_amount*$claim->supplement_amount;
+            return $claim;
+        })
+        ->sortByDesc('id');
+        return response($response);
+    }
+
     public function summaryMetrics()
     {
         $user = Auth::user();
         $created_by = $user->created_by;
-        $jobs = CompanyJob::where('created_by',$created_by)->get();
+        if($user->role_id == 7)
+        {
+            $jobs = CompanyJob::get();
+        }else{
+            $jobs = CompanyJob::where('created_by',$created_by)->get();
+
+        }
         //jobs needing attenstion
         $current_date = now();
+        $threash_hold = 17;
         $response =$jobs->map(function($job)use($current_date){
             $job_date = \Carbon\Carbon::parse($job->date);
             $days_difference = $current_date->diffInDays($job_date);
@@ -1876,8 +1891,8 @@ class CompanyJobController extends Controller
 
         });
 
-        $jobs_needing_attention = $response->filter(function($job){
-            return $job['days_from_now'] >17;
+        $jobs_needing_attention = $response->filter(function($job)use($threash_hold){
+            return $job['days_from_now'] >$threash_hold;
         });
 
         $total_job_needing_attention = $jobs_needing_attention->count();
@@ -1892,8 +1907,42 @@ class CompanyJobController extends Controller
         ]);
     }
 
+    public function progressLine()
+{
+    // Array of table names
+    $tables = [
+        'customer_agreements',
+        'estimate_prepareds',
+        'adjustor_meetings',
+        'ready_to_builds',
+        'build_details',
+        'inprogresses',
+        'cocs',
+        'final_payment_dues',
+        'ready_to_closes',
+    ];
 
-   
+    $stages = [];
+
+    foreach ($tables as $index => $table) {
+        // Query the table for the `current_stage` value
+        $currentStage = DB::table($table)
+            ->select('current_stage')
+            ->first();
+
+        // Add to stages array, assume 'no' if no record found
+        $stages[] = [
+            'step' => $index + 1, // Step number
+            'table' => $table, // Table name for reference
+            'current_stage' => $currentStage->current_stage ?? 'no', // Default to 'no' if null
+        ];
+    }
+
+    return response()->json([
+        'status' => 200,
+        'stages' => $stages, // Array of stages for the progress bar
+    ]);
+}
 
 
 }

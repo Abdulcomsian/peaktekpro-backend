@@ -107,11 +107,20 @@ class ReadyToBuildController extends Controller
             if(isset($request->status) && $request->status == "true") {
                 $job->status_id = 9;
                 $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();    
+                $job->save(); 
+                
+                 //current stage save
+                 $ready_to_build->current_stage="yes";
+                 $ready_to_build->save();
+
             }elseif(isset($request->status) && $request->status == "false"){
                 $job->status_id = 8;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+             //current stage save
+                $ready_to_build->current_stage="no";
+                $ready_to_build->save();
             }
 
             return response()->json([

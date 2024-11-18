@@ -114,11 +114,19 @@ class ReadyToCloseController extends Controller
                 $job->status_id = 15;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                 //current stage save
+                 $ready_to_close->current_stage="yes";
+                 $ready_to_close->save();
+
             }elseif(isset($request->status) && $request->status == false)
             {
                 $job->status_id = 14;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                $ready_to_close->current_stage="no";
+                $ready_to_close->save();
             }
             
             return response()->json([

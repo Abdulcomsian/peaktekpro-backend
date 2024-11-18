@@ -148,8 +148,12 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('add/claim-details/{jobId}', [CompanyJobController::class, 'claimDetails']);
     Route::get('get/claim-details/{jobId}', [CompanyJobController::class, 'getclaimDetails']);
 
+    Route::get('open/claim-details', [CompanyJobController::class, 'openclaimDetails']);
+
+
     ///Summary Metrics Section
     Route::get('summary-metrics', [CompanyJobController::class, 'summaryMetrics']);
+    Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']);
 
     ////Pyment History Section
     Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);

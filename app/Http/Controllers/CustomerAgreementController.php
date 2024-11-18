@@ -139,11 +139,19 @@ class CustomerAgreementController extends Controller
             if(isset($request->status) && $request->status == true) {
                 $job->status_id = 3;
                 $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();    
+                $job->save();   
+                
+                //current stage save
+                $agreement->current_stage="yes";
+                $agreement->save();
             } elseif(isset($request->status) && $request->status == false) {
                 $job->status_id = 2;
                 $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();    
+                $job->save(); 
+                
+                //current stage save
+                $agreement->current_stage="no";
+                $agreement->save();
             }
 
             return response()->json([

@@ -157,10 +157,18 @@ class CocController extends Controller
                 $job->status_id = 13;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                   //current stage save
+                $coc->current_stage="yes";
+                $coc->save();
             } elseif(isset($request->status) && $request->status == false) {
                 $job->status_id = 11;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                   //current stage save
+                $coc->current_stage="no";
+                $coc->save();
             }
 
             return response()->json([

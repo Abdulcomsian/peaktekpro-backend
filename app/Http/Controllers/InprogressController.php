@@ -86,10 +86,18 @@ class InprogressController extends Controller
                 $job->status_id = 11;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                   //current stage save
+                $in_progress->current_stage="yes";
+                $in_progress->save();
             }elseif(isset($request->status) && $request->status == false) {
                 $job->status_id = 10;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                 //current stage save
+                 $in_progress->current_stage="no";
+                 $in_progress->save();
             }
             
             return response()->json([
