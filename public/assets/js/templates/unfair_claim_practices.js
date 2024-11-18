@@ -1,9 +1,6 @@
-
 // Show the appropriate form when the radio button is changed
 $("input[name='unfair_claims_type']").on("change", function() {
     var selectedValue = $("input[name='unfair_claims_type']:checked").val();
-
-    console.log(selectedValue)
 
     if (selectedValue === 'single_pdf') {
         $('#unfair-claims-form-single-pdf').removeClass('hidden');

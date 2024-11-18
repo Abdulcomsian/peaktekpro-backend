@@ -95,8 +95,7 @@
                                 </div>
                             </div>
                             <p>Content for {{ $page->name }}</p>
-                            @includeIf('templates.forms.' . $page->slug)
-
+                            @includeIf('templates.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'))
                         </div>
                     @empty
                         <p class="text-gray-500">No content available</p>
@@ -106,6 +105,10 @@
         </section>
     </section>
 
+    {{-- custom page content --}}
+    <template id="custom-page-content">
+        @includeIf('templates.forms.custom-page')
+    </template>
 
 @endsection
 
@@ -293,6 +296,7 @@
                             $('#tabContent').append(`<div id="tab${response.page.id}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
         <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
         <p>Content for ${response.page.name}</p>
+         ${$('#custom-page-content').html()}
     </div>`);
 
                             showSuccessNotification(response.message);
@@ -435,4 +439,6 @@
     <script src="{{ asset('assets/js/templates/terms_and_conditions.js') }}"></script>
     {{-- authorization js --}}
     <script src="{{ asset('assets/js/templates/authorization-page.js') }}"></script>
+    {{-- custom page js --}}
+    <script src="{{ asset('assets/js/templates/custom-page.js') }}"></script>
 @endpush
