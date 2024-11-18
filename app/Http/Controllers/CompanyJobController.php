@@ -1838,7 +1838,7 @@ class CompanyJobController extends Controller
         return response()->json([
             'status_code' =>200,
             'message' => 'Claim Details Not Found',
-            'data' => $ClaimDetail
+            'data' => []
         ]);
 
         
@@ -1848,6 +1848,36 @@ class CompanyJobController extends Controller
     public function summaryMetrics()
     {
         $user = Auth::user();
+        $created_by = $user->created_by;
+        $jobs = CompanyJob::where('created_by',$created_by)->get();
+        //jobs needing attenstion
+        $current_date = now();
+        $attensions= 
+        $response =$jobs->map(function($job)use($current_date){
+            $job_date = \Carbon\Carbon::parse($job->date);
+            $days_difference = $current_date->diffInDays($job_date);
+            return [
+                'id' => $job->id,
+                'status_id' => $job->status_id,
+                'user_id' =>$job->user_id,
+                'created_by' =>$job->created_by ,
+                'user_id' =>$job->user_id,
+                'name' =>$job->name,
+                'address' =>json_decode($job->address),
+                'email' =>$job->email,
+                'phone' =>$job->phone,
+                'date' =>$job->date,
+                'daysCount' => $days_difference,
+                'created_at' =>$job->created_at,
+                'updated_at' =>$job->updated_at,
+
+            ];
+
+        });
+
+        $response = $response->toArray();
+        
+        return response($response);
     }
 
 

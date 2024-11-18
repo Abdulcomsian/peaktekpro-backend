@@ -149,7 +149,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/claim-details/{jobId}', [CompanyJobController::class, 'getclaimDetails']);
 
     ///Summary Metrics Section
-    Route::post('summary-metrics', [CompanyJobController::class, 'summaryMetrics']);
+    Route::get('summary-metrics', [CompanyJobController::class, 'summaryMetrics']);
 
     ////Pyment History Section
     Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
