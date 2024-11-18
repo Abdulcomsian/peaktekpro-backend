@@ -1,34 +1,52 @@
-<div class="w-full p-6 bg-white shadow rounded-lg">
-    <form action="/submit" method="POST" enctype="multipart/form-data">
-        @csrf
-
-        <!-- Dynamic Fields Container -->
-        <div id="dynamic-photos-container">
-            <!-- Initial Row (Empty for Now) -->
-            <div class="photo-row flex space-x-6 mb-6" id="photo-row-1">
-                <div class="flex-1">
-                    <label for="photo1" class="block text-gray-700 text-sm font-medium mb-2">Upload Photo 1</label>
-                    <input type="file" id="photo1" name="photos[]" accept="image/*"
-                        class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+<div class="w-full">
+    <!-- Section Container -->
+    <div id="compatibility-sections-container">
+        <!-- Initial Section -->
+        <div class="compatibility-section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200" data-id="section_1">
+            <!-- Section Header -->
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <input type="text"
+                        class="section-title text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
+                        placeholder="Section Title" />
+                    <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+                    <span class="section-drag-handle cursor-pointer">↑↓</span>
                 </div>
-
-                <div class="flex-1">
-                    <label for="caption1" class="block text-gray-700 text-sm font-medium mb-2">Caption for Photo
-                        1</label>
-                    <input type="text" id="caption1" name="captions[]"
-                        class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter caption" required>
-                </div>
-
-                <button type="button" class="remove-row text-red-500 hover:text-red-600 mt-6">Remove</button>
             </div>
-        </div>
 
-        <!-- Add New Row Button -->
-        <div class="flex my-2">
-            <button type="button" id="add-photo-row"
-                class=" px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Row</button>
-        </div>
+            <!-- Items Container -->
+            <div class="compatibility-items-container space-y-4">
+                <!-- Initial Item -->
+                <div class="item flex flex-wrap items-center space-x-4" data-id="item_1">
+                    <!-- Drag Handle -->
+                    <div class="mb-2">
+                        <span class="item-drag-handle cursor-pointer">↑↓</span>
+                    </div>
+                    <!-- Image Upload -->
+                    <div class="mb-2">
+                        <input type="file" class="item-image border border-gray-300 rounded-md px-2 py-1" />
+                    </div>
+                    <!-- Quill Editor -->
+                    <div class="mb-2">
+                        <div id="repairability-or-compatibility-text-quill-1" class="item-editor bg-white"></div>
+                        <textarea class="hidden" id="repairability-or-compatibility-text-1" name="repairability_or_compatibility_text[]"
+                            required>{{ '' }}</textarea>
+                    </div>
+                    <!-- Remove Button -->
+                    <div class="mb-2">
+                        <button class="remove-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+                    </div>
+                </div>
+            </div>
 
-    </form>
+            <!-- Add Item Button -->
+            <button class="add-compatibility-item-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">+ Add Item</button>
+        </div>
+    </div>
+
+    <!-- Add Section Button -->
+    <button id="add-compatibility-section-btn"
+        class="mt-6 text-white text-sm bg-blue-600 hover:bg-blue-700 font-medium rounded-md px-4 py-2">
+        + Add Section
+    </button>
 </div>

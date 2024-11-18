@@ -12,7 +12,7 @@
                         <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
                             X
                         </button>
-                        <span class="section-drag-handle cursor-pointer">⇄ Drag</span>
+                        <span class="section-drag-handle cursor-pointer">↑↓</span>
                 </div>
                 <div class="relative flex items-center">
                     <span id="toggle-tooltip"
@@ -31,7 +31,7 @@
             <div class="rows-container space-y-4">
                 <!-- Default Row -->
                 <div class="row flex flex-wrap items-center space-x-4" data-id="row_1">
-                    <span class="row-drag-handle cursor-pointer">⇄ Drag</span>
+                    <span class="row-drag-handle cursor-pointer">↑↓</span>
                     <!-- Item Description -->
                     <input type="text"
                         class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
