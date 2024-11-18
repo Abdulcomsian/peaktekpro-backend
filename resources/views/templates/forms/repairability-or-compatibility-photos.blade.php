@@ -18,6 +18,14 @@
                     <span class="compatiblility-section-drag-handle cursor-pointer">↑↓</span>
                 </div>
             </div>
+            {{-- <div class="flex justify-start flex-row flex-wrap items-center my-2">
+                    <label for="layout-select" class="font-bold lg:w-2/12 md:w-4/12 w-full">Change Layout:</label>
+                    <select class="layout-select border p-2 lg:w-2/12 md:w-4/12 w-full">
+                        <option value="one-item">One Item Per Row</option>
+                        <option value="two-items">Two Items Per Row</option>
+                        <option value="full-width">Full-Width Cover</option>
+                    </select>
+            </div> --}}
 
             <!-- Items Container -->
             <div class="compatibility-items-container space-y-4">
