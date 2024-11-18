@@ -5,14 +5,18 @@
         <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200" data-id="section_1">
             <!-- Section Header -->
             <div class="flex justify-between items-center mb-4">
-                <div>
-                    <input type="text"
-                        class="section-title text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                        placeholder="Section Title" />
+                <div class="flex items-center space-x-2">
+                    <div>
+                        <input type="text"
+                            class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="Section Title" />
+                    </div>
+                    <div>
                         <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
                             X
                         </button>
                         <span class="section-drag-handle cursor-pointer">↑↓</span>
+                    </div>
                 </div>
                 <div class="relative flex items-center">
                     <span id="toggle-tooltip"

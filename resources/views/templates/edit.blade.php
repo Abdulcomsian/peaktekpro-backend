@@ -9,10 +9,11 @@
     <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
 
     <style>
-        #repairabilityAssessmentDropzone .dz-details
-        {
+        #repairabilityAssessmentDropzone .dz-details {
             display: none;
         }
+
+
     </style>
 @endpush
 
@@ -416,12 +417,12 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     {{-- load drop zone --}}
     <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
-   {{-- introduction js --}}
-   <script src="{{ asset('assets/js/templates/introduction.js') }}"></script>
-   {{-- repairability assessment js --}}
-   <script src="{{ asset('assets/js/templates/repairability_assessment.js') }}"></script>
-   {{-- repairability or compatibility photosjs js --}}
-   <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
+    {{-- introduction js --}}
+    <script src="{{ asset('assets/js/templates/introduction.js') }}"></script>
+    {{-- repairability assessment js --}}
+    <script src="{{ asset('assets/js/templates/repairability_assessment.js') }}"></script>
+    {{-- repairability or compatibility photosjs js --}}
+    <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
     {{-- product compatibility js --}}
     <script src="{{ asset('assets/js/templates/product_compatibility.js') }}"></script>
     {{-- unfair claim practices js --}}

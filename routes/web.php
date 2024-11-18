@@ -33,7 +33,9 @@ Route::put('/templates/page-title/{id}', [TemplateController::class, 'updatePage
 
 // repairibility assessment
 Route::post('/templates/repairibility-assessment', function () {
-    return true;
+
+    return response()->json(['url' => asset('assets/pdf_header.png')], 200);
+    // return true;
 });
 
 Route::get('/test', function(){
