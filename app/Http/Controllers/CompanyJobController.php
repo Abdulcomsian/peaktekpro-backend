@@ -56,6 +56,7 @@ class CompanyJobController extends Controller
             $job->longitude = 12.4; //dummy temp add
             $job->email = $request->email;
             $job->phone = $request->phone;
+            $job->date = now()->format('Y-m-d');
 
             $job->save();
 
@@ -1826,12 +1827,12 @@ class CompanyJobController extends Controller
 
     public function getclaimDetails($jobId)
     {
-        $ClaimDetail = ClaimDetail::where('id',$jobId)->first();
+        $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
         if($ClaimDetail)
         {
             return response()->json([
                 'status_code' =>200,
-                'message' => 'Claim Details Added Successfully',
+                'message' => 'Claim Details Found Successfully',
                 'data' => $ClaimDetail
             ]);
         }
@@ -1852,10 +1853,10 @@ class CompanyJobController extends Controller
         $jobs = CompanyJob::where('created_by',$created_by)->get();
         //jobs needing attenstion
         $current_date = now();
-        $attensions= 
         $response =$jobs->map(function($job)use($current_date){
             $job_date = \Carbon\Carbon::parse($job->date);
             $days_difference = $current_date->diffInDays($job_date);
+    
             return [
                 'id' => $job->id,
                 'status_id' => $job->status_id,
@@ -1867,7 +1868,7 @@ class CompanyJobController extends Controller
                 'email' =>$job->email,
                 'phone' =>$job->phone,
                 'date' =>$job->date,
-                'daysCount' => $days_difference,
+                'days_from_now' => $days_difference,
                 'created_at' =>$job->created_at,
                 'updated_at' =>$job->updated_at,
 
@@ -1875,9 +1876,20 @@ class CompanyJobController extends Controller
 
         });
 
+        $jobs_needing_attention = $response->filter(function($job){
+            return $job['days_from_now'] >17;
+        });
+
+        $total_job_needing_attention = $jobs_needing_attention->count();
+
         $response = $response->toArray();
         
-        return response($response);
+        return response()->json([
+            'status' => 200,
+            'total_job_needing_attention' => $total_job_needing_attention,
+            'total_jobs' => $response,
+            
+        ]);
     }
 
 
