@@ -445,7 +445,7 @@ class CompanyJobController extends Controller
         //Validate Request
         $this->validate($request, [
             'invoice_number' => 'nullable',
-            'market' => 'nullable|in:Nashville,Chattanooga,Knoxville',
+            'market' => 'nullable',
             'job_type' => 'nullable|in:Retail,Insurance',
             'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
             'user_ids' => 'nullable|array',
@@ -1845,8 +1845,10 @@ class CompanyJobController extends Controller
     }
 
 
-
-   
+    public function summaryMetrics()
+    {
+        $user = Auth::user();
+    }
 
 
    
