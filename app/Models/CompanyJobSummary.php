@@ -15,4 +15,11 @@ class CompanyJobSummary extends Model
     {
         return $this->hasMany(CustomerAgreement::class, 'company_job_id', 'id');
     }
+
+    public function job()
+    {
+        return $this->belongsTo(CompanyJob::class, 'company_job_id');
+    }
+
+    
 }

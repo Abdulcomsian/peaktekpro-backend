@@ -32,7 +32,9 @@ use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
-
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CompanyLocationController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -118,14 +120,56 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/job-summary/initial-information/{id}', [CompanyJobController::class, 'updateJobSummaryInitialInformation']);
     Route::get('get/job-summary/initial-information/{id}', [CompanyJobController::class, 'getJobSummaryInitialInformation']);
     Route::get('get/job-summary/{id}', [CompanyJobController::class, 'getJobSummary']);
+
+    ///////new Filter APIS for job count and job details
+    Route::post('filter/jobs', [CompanyJobController::class, 'filterJobs']);
+    Route::post('filter/jobs/kanban', [CompanyJobController::class, 'filterJobskanban']);
+    Route::get('filter/jobs-by-status/{statusId}', [CompanyJobController::class, 'FilterJobWithStatus']);
+
+    ///find customer job status
+    Route::get('get/current/job/stage/{jobId}', [CompanyJobController::class, 'getCurrentJobStage']);
+    Route::get('get/customer/summary/{jobId}', [CompanyJobController::class, 'getCustomerSummary']);
+
+
+    Route::get('filter/job/location', [CompanyJobController::class, 'filterJobByLocation']);//not used
+    Route::get('filter/job/jobType/{statusId}', [CompanyJobController::class, 'filterJobsByJobType']); //not used
+
     //Job Content Api's
     Route::post('update/job-content/{id}', [CompanyJobController::class, 'updateJobContent']);
     Route::get('get/job-content/{id}', [CompanyJobController::class, 'getJobContent']);
     Route::post('change/job-content/file-name/{id}', [CompanyJobController::class, 'updateJobContentFileName']);
     Route::post('delete/job-content/media/{id}', [CompanyJobController::class, 'deleteJobContentMedia']);
     Route::get('get/task-with-jobs-count', [CompanyJobController::class, 'getTaskWithJobCount']);
+    ///count for grid
+    Route::get('get/v1/task-with-jobs-count', [CompanyJobController::class, 'getV1TaskWithJobCount']);
     Route::get('get/jobs-by-task/{statusId}', [CompanyJobController::class, 'getJobWithStatus']);
-    //Inprogress Api's
+
+    //claims details section new section
+    Route::post('add/claim-details/{jobId}', [CompanyJobController::class, 'claimDetails']);
+    Route::get('get/claim-details/{jobId}', [CompanyJobController::class, 'getclaimDetails']);
+
+    ///Summary Metrics Section
+    Route::get('summary-metrics', [CompanyJobController::class, 'summaryMetrics']);
+    //progress Line
+    Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']); 
+
+    //new Notes section api
+    Route::post('job-notes-add/{jobId}', [CompanyJobController::class, 'notesAdd']); 
+    Route::get('job-notes/{jobId}', [CompanyJobController::class, 'getNotes']); 
+
+    ////Pyment History Section
+    Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
+    Route::get('get/payment-history/{jobId}', [PaymentController::class, 'getPaymentHistory']);
+
+    //company Location 
+    Route::post('add/company_location', [CompanyLocationController::class, 'addCompanyLocation']);
+    Route::get('get/company_location', [CompanyLocationController::class, 'getCompanyLocation']);
+    Route::get('edit/company_location/{id}', [CompanyLocationController::class, 'editCompanyLocation']);
+    Route::post('update/company_location/{id}', [CompanyLocationController::class, 'updateCompanyLocation']);
+    Route::get('delete/company_location/{id}', [CompanyLocationController::class, 'deleteCompanyLocation']);
+
+
+    //Inprogress Api's 
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
     Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
     Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
@@ -279,4 +323,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/ready-to-close/{jobId}', [ReadyToCloseController::class, 'updateReadyToClose']);
     Route::post('update/ready-to-close-status/{jobId}', [ReadyToCloseController::class, 'updateReadyToCloseStatus']);
     Route::get('get/ready-to-close/{jobId}', [ReadyToCloseController::class, 'getReadyToClose']);
+
+    //Report Apis
+    Route::post('user-reports', [ReportController::class, 'userReports']); //performance api
+    Route::get('get-pipeline-data', [ReportController::class, 'getPipelineData']);  //pipeline api
+    Route::get('get-own-pipeline-data', [ReportController::class, 'getOwnPipelineData']);  //when click on my job pipeline api
+
 });

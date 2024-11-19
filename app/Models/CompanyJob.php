@@ -100,4 +100,15 @@ class CompanyJob extends Model
     {
         return $this->hasOne(XactimateReport::class);
     }
+
+    public function companyJobSummaries()
+    {
+        return $this->hasMany(CompanyJobSummary::class, 'company_job_id');
+    }
+
+//     public function status()
+// {
+//     return $this->belongsTo(Status::class, 'status_id');
+// }
+
 }

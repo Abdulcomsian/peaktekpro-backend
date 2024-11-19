@@ -70,7 +70,7 @@ class EstimatePreparedController extends Controller
     {
         // dd("123");
         $this->validate($request, [
-            'status' => 'nullable|string',
+            'status' => 'nullable|string|in:true,false',
         ]);
 
         try {
@@ -96,10 +96,19 @@ class EstimatePreparedController extends Controller
                 $job->status_id = 4;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();    
+
+                //current stage save
+                $estimate->current_stage="yes";
+                $estimate->save();
+
             }elseif(isset($request->status) && $request->status == 'false'){
                 $job->status_id = 3;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();  
+
+                //current stage save
+                $estimate->current_stage="no";
+                $estimate->save();
             }
 
             return response()->json([

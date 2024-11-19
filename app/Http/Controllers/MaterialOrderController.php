@@ -630,10 +630,19 @@ class MaterialOrderController extends Controller
                 $job->status_id = 10;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                  //current stage save
+                $build_detail->current_stage="yes";
+                $build_detail->save();
+
             }if(isset($request->confirmed) && $request->confirmed == 'false') {
                 $job->status_id = 9;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                  //current stage save
+                $build_detail->current_stage="no";
+                $build_detail->save();
             }
 
             return response()->json([

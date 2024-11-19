@@ -88,10 +88,19 @@ class FinalPaymentController extends Controller
                 $job->status_id = 14;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                      //current stage save
+                $final_payment->current_stage="yes";
+                $final_payment->save();
+
             }if(isset($request->status) && $request->status == false) {
                 $job->status_id = 13;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
+
+                      //current stage save
+                $final_payment->current_stage="no";
+                $final_payment->save();
             }
             
             return response()->json([

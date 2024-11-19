@@ -97,6 +97,7 @@ class UserController extends Controller
                 $add_user->company_id = $request->company_id;
                 $add_user->role_id = $request->permission_level_id;
                 $add_user->status = $request->status;
+                $add_user->created_by = $user->company_id;
                 $add_user->password =  Hash::make($password);
 
                 $add_user->save();
