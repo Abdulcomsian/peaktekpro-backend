@@ -113,7 +113,7 @@ class CompanyJobController extends Controller
         }
     }
 
-    public function getAllJobs()
+    public function getAllJobsold()
     {
         try {
             $user = Auth::user();
@@ -223,6 +223,156 @@ class CompanyJobController extends Controller
             ], 500);
         }
     }
+
+    public function getAllJobs()
+    {
+        try {
+            $user = Auth::user();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+            // Retrieve assigned jobs
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+
+            // Tables with stages
+            $tables = [
+                'customer_agreements',
+                'estimate_prepareds',
+                'adjustor_meetings',
+                'ready_to_builds',
+                'build_details',
+                'inprogresses',
+                'cocs',
+                'final_payment_dues',
+                'ready_to_closes',
+            ];
+
+            // Fetch jobs based on user role
+            $jobs = ($user->role_id == 1 || $user->role_id == 2) ?
+                CompanyJob::with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'job_total', 'claim_number');
+                    }])
+                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
+                    ->where('created_by', $created_by)
+                    ->orderBy('status_id', 'asc')
+                    ->orderBy('id', 'desc')
+                    ->get()
+                    ->map(function ($job) {
+                        $decodedAddress = json_decode($job->address, true);
+                        $job->address = $decodedAddress['formatedAddress'] ?? null;
+                        return $job;
+                    })
+                :
+                CompanyJob::with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'job_total', 'claim_number');
+                    }])
+                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
+                    ->where(function ($query) use ($user, $assigned_jobs) {
+                        $query->orWhere('user_id', $user->id);
+                        $query->orWhereIn('id', $assigned_jobs);
+                    })
+                    ->orderBy('status_id', 'asc')
+                    ->orderBy('id', 'desc')
+                    ->get()
+                    ->map(function ($job) {
+                        $decodedAddress = json_decode($job->address, true);
+                        $job->address = $decodedAddress['formatedAddress'] ?? null;
+                        return $job;
+                    });
+
+            // Add progress calculations to each job
+            $jobsWithProgress = $jobs->map(function ($job) use ($tables) {
+                $completedSteps = 0;
+                $totalSteps = count($tables) + 1; 
+
+                $customerAgreement = DB::table('customer_agreements')
+                    ->where('company_job_id', $job->id)
+                    ->exists();
+                if ($customerAgreement) {
+                    $completedSteps++;
+                }
+
+                foreach ($tables as $table) {
+                    $currentStage = DB::table($table)
+                        ->where('company_job_id', $job->id)
+                        ->select('current_stage')
+                        ->first();
+
+                    if ($currentStage && $currentStage->current_stage === 'yes') {
+                        $completedSteps++;
+                    }
+                }
+
+                $completedPercentage = ($completedSteps / $totalSteps) * 100;
+
+                $job->completed_percentage = round($completedPercentage, 2);
+                return $job;
+            });
+
+            // Group jobs by status name
+            $groupedJobs = $jobsWithProgress->map(function ($job) {
+                $job->job_summaries = $job->jobSummaries ? $job->jobSummaries->map(function ($summary) {
+                    return [
+                        'job_total' => $summary->job_total ?? 0,
+                        'claim_number' => $summary->claim_number,
+                    ];
+                }) : collect([]);
+
+                return $job;
+            })->groupBy(function ($job) {
+                return $job->status->name;
+            });
+
+            // Define statuses
+            $statuses = Status::whereIn('name', [
+                'New Leads',
+                'Signed Deals',
+                'Estimate Prepared',
+                'Adjustor',
+                'Ready To Build',
+                'Build Scheduled',
+                'In Progress',
+                'Build Complete',
+                'Final Payment Due',
+                'Ready to Close',
+                'Won and Closed'
+            ])->get();
+
+            // Map statuses with job totals and tasks
+            $response = $statuses->map(function ($status) use ($groupedJobs, $user, $created_by, $jobsWithProgress) {
+                $jobTotalSumQuery = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
+                    $query->where('status_id', $status->id);
+                });
+
+                // Apply `created_by` filter for role_id 1 and 2
+                if ($user->role_id == 1 || $user->role_id == 2) {
+                    $jobTotalSumQuery->whereHas('job', function ($query) use ($created_by) {
+                        $query->where('created_by', $created_by);
+                    });
+                }
+
+                $jobTotalSum = $jobTotalSumQuery->sum('job_total');
+
+                return [
+                    'id' => $status->id,
+                    'name' => $status->name,
+                    'job_total' => $jobTotalSum,
+                    'tasks' => $groupedJobs->get($status->name, collect()),
+                    'completed' => $jobsWithProgress,
+                ];
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'data' => $response
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
+            ], 500);
+        }
+    }
+
 
 
     public function getSingleJob($id)
@@ -548,7 +698,7 @@ class CompanyJobController extends Controller
         }
     }
 
-    public function updateJobContent(Request $request, $id)
+    public function updateJobContentold(Request $request, $id)
     {
         //Validate Request
         $this->validate($request, [
@@ -604,6 +754,60 @@ class CompanyJobController extends Controller
         }
     }
 
+    public function updateJobContent(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'notes' => 'nullable',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:png,jpg,jpeg,gif'
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Update Job Content
+
+            $content = new CompanyJobContent;
+            $content->company_job_id = $id;
+            $content->notes = $request->notes;
+            $content->save();
+
+            if(isset($request->images)) {
+                //Store New Images
+                foreach($request->file('images') as $file)
+                {
+                    $fileName = $file->getClientOriginalName();
+                    $fileName = time() . '_' . $fileName;
+                    $path = $file->storeAs('public/job_content_media', $fileName);
+
+                    //Update Job Content
+                    $media = new CompanyJobContentMedia;
+                    $media->content_id = $content->id;
+                    $media->media_url = Storage::url($path);
+                    $media->save();
+                }
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Content Updated Successfully',
+                'job' => $job
+            ], 200); 
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function getJobContent($id)
     {
         try {
@@ -617,7 +821,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_content = CompanyJobContent::where('company_job_id', $job->id)->with('images')->first();
+            $job_content = CompanyJobContent::where('company_job_id', $job->id)->with('images')->get();
             if(!$job_content) {
                 return response()->json([
                     'status' => 422,
@@ -625,7 +829,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
                 'message' => 'Job Content Found Successfully',
                 'job' => $job_content
