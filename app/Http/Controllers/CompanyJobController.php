@@ -1837,23 +1837,6 @@ class CompanyJobController extends Controller
         
     }
 
-
-    public function openclaimDetails()
-    {
-        $claims = ClaimDetail::get();
-        $response=$claims->filter(function($claim){
-        //    return  $claim['supplement_amount']==100;
-        return $claim->supplement_amount == 100; // Filter claims where supplement_amount is 100
-
-        })
-        ->map(function($claim){
-            $claim->supplement_amount= $claim->supplement_amount*$claim->supplement_amount;
-            return $claim;
-        })
-        ->sortByDesc('id');
-        return response($response);
-    }
-
     public function summaryMetrics()
     {
         $user = Auth::user();
@@ -1907,42 +1890,114 @@ class CompanyJobController extends Controller
         ]);
     }
 
-    public function progressLine()
-{
-    // Array of table names
-    $tables = [
-        'customer_agreements',
-        'estimate_prepareds',
-        'adjustor_meetings',
-        'ready_to_builds',
-        'build_details',
-        'inprogresses',
-        'cocs',
-        'final_payment_dues',
-        'ready_to_closes',
-    ];
-
-    $stages = [];
-
-    foreach ($tables as $index => $table) {
-        // Query the table for the `current_stage` value
-        $currentStage = DB::table($table)
-            ->select('current_stage')
-            ->first();
-
-        // Add to stages array, assume 'no' if no record found
-        $stages[] = [
-            'step' => $index + 1, // Step number
-            'table' => $table, // Table name for reference
-            'current_stage' => $currentStage->current_stage ?? 'no', // Default to 'no' if null
+    public function progressLine($jobId) //used for both grid and kanban
+    {
+        $tables = [
+            'customer_agreements',
+            'estimate_prepareds',
+            'adjustor_meetings',
+            'ready_to_builds',
+            'build_details',
+            'inprogresses',
+            'cocs',
+            'final_payment_dues',
+            'ready_to_closes',
         ];
+
+        $stages = [];
+        $completedSteps = 0; 
+        $totalSteps = count($tables) + 1; 
+
+        $customerAgreement = DB::table('customer_agreements')
+        ->where('company_job_id',$jobId)
+        ->where('current_stage','yes')
+        ->exists(); // Check if any customer agreement exists
+        $newLeadsStatus = $customerAgreement ? 'yes' : 'no';
+
+        $stages[] = [
+            'step' => 1, 
+            'table' => 'new_leads', 
+            'current_stage' => $newLeadsStatus, 
+        ];
+
+        if ($newLeadsStatus === 'yes') {
+            $completedSteps++; // Increment completed steps
+        }
+
+        foreach ($tables as $index => $table) {
+            $currentStage = DB::table($table)
+            ->where('company_job_id',$jobId)
+                ->select('current_stage')
+                ->first();
+
+            $currentStageValue = $currentStage->current_stage ?? 'no';
+
+            $stages[] = [
+                'step' => $index + 2, 
+                'table' => $table,
+                'current_stage' => $currentStageValue, 
+            ];
+            if ($currentStageValue === 'yes') {
+                $completedSteps++; 
+            }
+        }
+
+        $completedPercentage = ($completedSteps / $totalSteps) * 100;
+        $remainingPercentage = 100 - $completedPercentage;
+
+        return response()->json([
+            'status' => 200,
+            'completed' => round($completedPercentage, 2),
+            'remaining' => round($remainingPercentage, 2),
+            'stages' => $stages, 
+            
+        ]);
     }
 
-    return response()->json([
-        'status' => 200,
-        'stages' => $stages, // Array of stages for the progress bar
-    ]);
-}
+    public function progressLineNotused($jobId) //currently not used
+    {
+        $tables = [
+            'customer_agreements',
+            'estimate_prepareds',
+            'adjustor_meetings',
+            'ready_to_builds',
+            'build_details',
+            'inprogresses',
+            'cocs',
+            'final_payment_dues',
+            'ready_to_closes',
+        ];
 
+        $stages = [];
+        $customerAgreement = DB::table('customer_agreements')
+        ->where('company_job_id',$jobId)
+        ->where('current_stage','yes')
+        ->exists(); // Check if any customer agreement exists
+        $stages[] = [
+            'step' => 1, 
+            'table' => 'new_leads', 
+            'current_stage' => $customerAgreement ? 'yes' : 'no', 
+        ];
 
+        foreach ($tables as $index => $table) {
+            $currentStage = DB::table($table)
+            ->where('company_job_id',$jobId)
+                ->select('current_stage')
+                ->first();
+
+            $stages[] = [
+                'step' => $index + 2, // Adjust step number to account for 'new_leads'
+                'table' => $table, // Table name for reference
+                'current_stage' => $currentStage->current_stage ?? 'no', // Default to 'no' if null
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'stages' => $stages, 
+        ]);
+    }
+
+   
+  
 }
