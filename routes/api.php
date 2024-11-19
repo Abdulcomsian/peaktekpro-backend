@@ -153,6 +153,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //progress Line
     Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']); 
 
+    //new Notes section api
+    Route::post('job-notes-add/{jobId}', [CompanyJobController::class, 'notesAdd']); 
+    Route::get('job-notes/{jobId}', [CompanyJobController::class, 'getNotes']); 
+
     ////Pyment History Section
     Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
     Route::get('get/payment-history/{jobId}', [PaymentController::class, 'getPaymentHistory']);

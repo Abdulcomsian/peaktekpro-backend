@@ -22,6 +22,7 @@ use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
+use App\Models\CompanyNotes;
 
 class CompanyJobController extends Controller
 {
@@ -113,116 +114,6 @@ class CompanyJobController extends Controller
         }
     }
 
-    public function getAllJobsold()
-    {
-        try {
-            $user = Auth::user();
-            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
-
-            // Retrieve assigned jobs
-            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
-
-            // Fetch jobs based on user role
-            if ($user->role_id == 1 || $user->role_id == 2) {
-                $jobs = CompanyJob::with(['summary' => function ($query) {
-                        $query->select('company_job_id', 'job_total', 'claim_number');
-                    }])
-                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
-                    ->where('created_by', $created_by)
-                    ->orderBy('status_id', 'asc')
-                    ->orderBy('id', 'desc')
-                    ->get()
-                    ->map(function ($job) {
-                        // Decode the JSON address field
-                        $decodedAddress  = json_decode($job->address, true);
-                        $job->address = $decodedAddress['formatedAddress'] ?? null; // Return only the city or null if not found
-                        return $job;
-                    });
-                    ;
-            } else {
-                $jobs = CompanyJob::with(['summary' => function ($query) {
-                        $query->select('company_job_id', 'job_total', 'claim_number');
-                    }])
-                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
-                    ->where(function ($query) use ($user, $assigned_jobs) {
-                        $query->orWhere('user_id', $user->id);
-                        $query->orWhereIn('id', $assigned_jobs);
-                    })
-                    ->orderBy('status_id', 'asc')
-                    ->orderBy('id', 'desc')
-                    ->get()
-                    ->map(function ($job) {
-                        // Decode the JSON address field
-                        $decodedAddress  = json_decode($job->address, true);
-                        $job->address = $decodedAddress['formatedAddress'] ?? null; // Return only the city or null if not found
-                        return $job;
-                    });
-                    ;
-            }
-
-            // Group jobs by status name
-            $groupedJobs = $jobs->map(function ($job) {
-                $job->job_summaries = $job->jobSummaries ? $job->jobSummaries->map(function ($summary) {
-                    return [
-                        'job_total' => $summary->job_total ?? 0,
-                        'claim_number' => $summary->claim_number,
-                    ];
-                }) : collect([]);
-
-                return $job;
-            })->groupBy(function ($job) {
-                return $job->status->name;
-            });
-
-            // Define statuses
-            $statuses = Status::whereIn('name', [
-                'New Leads', 
-                'Signed Deals', 
-                'Estimate Prepared', 
-                'Adjustor',
-                'Ready To Build',
-                'Build Scheduled',
-                'In Progress',
-                'Build Complete',
-                'Final Payment Due',
-                'Ready to Close',
-                'Won and Closed'
-            ])->get();
-
-            // Map statuses with job totals and tasks
-            $response = $statuses->map(function ($status) use ($groupedJobs, $user, $created_by) {
-                $jobTotalSumQuery = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
-                    $query->where('status_id', $status->id);
-                });
-
-                // Apply `created_by` filter for role_id 1 and 2
-                if ($user->role_id == 1 || $user->role_id == 2) {
-                    $jobTotalSumQuery->whereHas('job', function ($query) use ($created_by) {
-                        $query->where('created_by', $created_by);
-                    });
-                }
-
-                $jobTotalSum = $jobTotalSumQuery->sum('job_total');
-
-                return [
-                    'id' => $status->id,
-                    'name' => $status->name,
-                    'job_total' => $jobTotalSum,
-                    'tasks' => $groupedJobs->get($status->name, collect()),
-                ];
-            });
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Jobs Found Successfully',
-                'data' => $response
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()
-            ], 500);
-        }
-    }
 
     public function getAllJobs()
     {
@@ -283,19 +174,23 @@ class CompanyJobController extends Controller
             $jobsWithProgress = $jobs->map(function ($job) use ($tables) {
                 $completedSteps = 0;
                 $totalSteps = count($tables) + 1; 
+                // dd($totalSteps);
 
                 $customerAgreement = DB::table('customer_agreements')
                     ->where('company_job_id', $job->id)
-                    ->exists();
-                if ($customerAgreement) {
-                    $completedSteps++;
-                }
+                    ->select('current_stage')
+                    ->first();
+                    if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
+                        $completedSteps += 1; // Count both 'new_leads' and 'customer_agreements'
+                    }
 
                 foreach ($tables as $table) {
                     $currentStage = DB::table($table)
                         ->where('company_job_id', $job->id)
                         ->select('current_stage')
                         ->first();
+
+                        // dd($currentStage);
 
                     if ($currentStage && $currentStage->current_stage === 'yes') {
                         $completedSteps++;
@@ -2202,6 +2097,50 @@ class CompanyJobController extends Controller
         ]);
     }
 
-   
-  
+    public function notesAdd($jobId, Request $request)
+    {
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        try{
+            $notes = new CompanyNotes();
+            $notes->company_job_id = $jobId;
+            $notes->notes = $request->notes;
+            $notes->save();
+
+            return response()->json([
+                'status' =>200,
+                'message' => 'notes added successfully',
+                'data' => $notes
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'status' =>200,
+                'message' => 'issue occure while adding notes',
+                'data' => []
+            ]);
+        }
+
+    }
+
+    public function getNotes($jobId)
+    {
+
+            $notes = CompanyNotes::where('company_job_id',$jobId)->get();
+            if($notes)
+            {
+                return response()->json([
+                    'status' =>200,
+                    'message' => 'notes fetched successfully',
+                    'data' => $notes
+                ]);
+            }
+            return response()->json([
+                'status' =>200,
+                'message' => 'notes not exist',
+                'data' => []
+            ]);
+    }
+
 }
