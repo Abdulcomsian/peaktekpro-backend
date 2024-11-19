@@ -671,10 +671,17 @@ class CompanyJobController extends Controller
 
             //Update Job Content
 
-            $content = new CompanyJobContent;
-            $content->company_job_id = $id;
-            $content->notes = $request->notes;
-            $content->save();
+            $content = CompanyJobContent::where('company_job_id',$id)->first();
+            if($content)
+            {
+                $content->notes = $request->notes;
+                $content->save();
+            }else{
+                $content->company_job_id = $id;
+                $content->notes = $request->notes;
+                $content->save();
+            }
+          
 
             if(isset($request->images)) {
                 //Store New Images
@@ -716,7 +723,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_content = CompanyJobContent::where('company_job_id', $job->id)->with('images')->get();
+            $job_content = CompanyJobContent::where('company_job_id', $job->id)->with('images')->first();
             if(!$job_content) {
                 return response()->json([
                     'status' => 422,
