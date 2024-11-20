@@ -567,7 +567,7 @@ class CompanyController extends Controller
             $skipped = ($page - 1) * $results;
 
             $usersQuery = User::where('company_id', $companyId)
-                ->whereIn('role_id', [2,8,9])->with('role');
+                ->whereIn('role_id', [1,2,8,9])->with('role');
 
             if (isset($request->results) && isset($request->page)) {
                 $users = $usersQuery->skip($skipped)->take($results)->get();
