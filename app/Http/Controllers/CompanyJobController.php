@@ -64,15 +64,15 @@ class CompanyJobController extends Controller
             $job->save();
 
             //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
-            // $address = new CustomerAgreement();
-            // $address->company_job_id = $job->id;
-            // $address->street = $request->address['street'];
-            // $address->city = $request->address['city'];
-            // $address->state = $request->address['state'];
-            // $address->zip_code = $request->address['postalCode'];
-            // $address->address = $request->address['formatedAddress'];//full addres save
+            $address = new CustomerAgreement();
+            $address->company_job_id = $job->id;
+            $address->street = $request->address['street'];
+            $address->city = $request->address['city'];
+            $address->state = $request->address['state'];
+            $address->zip_code = $request->address['postalCode'];
+            $address->address = $request->address['formatedAddress'];//full addres save
 
-            // $address->save();
+            $address->save();
 
             //Update Project Design Status Table
             $pages = ProjectDesignPage::all();
