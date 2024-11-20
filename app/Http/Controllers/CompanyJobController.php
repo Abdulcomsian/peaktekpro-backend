@@ -64,15 +64,15 @@ class CompanyJobController extends Controller
             $job->save();
 
             //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
-            $address = new CustomerAgreement();
-            $address->company_job_id = $job->id;
-            $address->street = $request->address['street'];
-            $address->city = $request->address['city'];
-            $address->state = $request->address['state'];
-            $address->zip_code = $request->address['postalCode'];
-            $address->address = $request->address['formatedAddress'];//full addres save
+            // $address = new CustomerAgreement();
+            // $address->company_job_id = $job->id;
+            // $address->street = $request->address['street'];
+            // $address->city = $request->address['city'];
+            // $address->state = $request->address['state'];
+            // $address->zip_code = $request->address['postalCode'];
+            // $address->address = $request->address['formatedAddress'];//full addres save
 
-            $address->save();
+            // $address->save();
 
             //Update Project Design Status Table
             $pages = ProjectDesignPage::all();
@@ -91,7 +91,7 @@ class CompanyJobController extends Controller
             event(new JobStatusUpdateEvent('Refresh Pgae'));
             
             //Assign Job
-            // $job->users()->attach($user->id);
+            $job->users()->attach($user->id);
             //  i have comment this line because it auto add the value in company_job_user table and it will show the user in ready to close sales represntative
 
             return response()->json([
