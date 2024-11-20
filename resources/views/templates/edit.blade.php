@@ -57,7 +57,7 @@
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold" id="templateTitleText">{{ $template->title }}</h2>
                     <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn"
-                        data-name="{{ $page->name }}">Edit</button>
+                        >Edit</button>
                 </div>
 
                 <!-- Edit input (initially hidden) -->
