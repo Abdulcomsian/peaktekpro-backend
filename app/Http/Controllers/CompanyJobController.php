@@ -677,6 +677,7 @@ class CompanyJobController extends Controller
                 $content->notes = $request->notes;
                 $content->save();
             }else{
+                $content = new CompanyJobContent();
                 $content->company_job_id = $id;
                 $content->notes = $request->notes;
                 $content->save();
