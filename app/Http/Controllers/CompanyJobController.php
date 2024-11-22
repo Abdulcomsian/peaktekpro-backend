@@ -2017,12 +2017,13 @@ class CompanyJobController extends Controller
             'location' => 'nullable|string',
             'stages' => 'nullable|array',
             'stages.*' => 'nullable|string',
-            'sort_by' => 'nullable|string|in:last_updated_newest,last_updated_oldest,created_date_newest,created_date_oldest,name,value_high,value_low,time_in_stage_newest,time_in_stage_oldest',
+            'sort_by' => 'nullable|string|in:last_updated_newest,last_updated_oldest,created_date_newest,created_date_oldest,address,value_high,value_low,time_in_stage_newest,time_in_stage_oldest',
             'time_period' => 'nullable|string|in:last_7_days,last_4_weeks,last_3_months,last_6_months,last_12_months,month_to_date,quarter_to_date,year_to_date',
             'lead_source' => 'nullable|array',
             'lead_source.*' => 'nullable|string|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
             'sales_representatives' => 'nullable|array',
             'sales_representatives.*' => 'nullable|integer|exists:users,id',
+            'search_term' => 'nullable|string', // Add search
 
         ]);
 
@@ -2054,7 +2055,7 @@ class CompanyJobController extends Controller
                         $sortOrder = 'asc';
                         break;
                     case 'name':
-                        $sortField = 'name';
+                        $sortField = 'address';
                         $sortOrder = 'asc';
                         break;
                     case 'value_high':
@@ -2110,6 +2111,12 @@ class CompanyJobController extends Controller
                                 $q->where('user_id', $request->sales_representative);
                             });
                         }
+
+                        // Add search filter
+                        if ($request->search_term) {
+                            $query->where('name', 'like', '%' . $request->search_term . '%');
+                        }
+
                     }
                 ])
                 ->with([
@@ -2121,6 +2128,11 @@ class CompanyJobController extends Controller
                         ->leftJoin('company_job_summaries', 'company_jobs.id', '=', 'company_job_summaries.company_job_id')
                         ->where('created_by', $created_by);
 
+                        // Add search filter
+                        if ($request->search_term) {
+                            $query->where('name', 'like', '%' . $request->search_term . '%');
+                        }
+                        
                         //filter for job type
                         if ($request->job_type) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
