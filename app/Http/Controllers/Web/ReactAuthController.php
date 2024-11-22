@@ -8,6 +8,8 @@ class ReactAuthController extends Controller
 {
     public function __invoke(Request $request)
     {
-        dd($request->all());
+
+        return redirect()->route('templates.index',$request->query('_accessToken',$request->_accessToken));
+
     }
 }

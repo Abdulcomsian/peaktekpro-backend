@@ -7,7 +7,10 @@
         <div class="container mx-auto p-4">
             <!-- Header with Title and Create Button -->
             <div class="flex items-center justify-between mb-4">
-                <h1 class="text-2xl font-bold text-gray-700">Templates</h1>
+
+                <h1 class="text-2xl font-bold text-gray-700">
+                    <input type="text" id="_accessToken" value="{{ $accessToken }}"/>
+                    Templates</h1>
                 <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Create
                 </button>

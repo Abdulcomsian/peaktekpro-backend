@@ -21,7 +21,7 @@ Route::get('/', function () {
 
 Route::get('auth',ReactAuthController::class)->middleware('check.react.auth');
 
-Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
+Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index')->middleware('check.react.auth');
 Route::get('/templates/create', [TemplateController::class, 'create'])->name('templates.create');
 Route::post('/templates/store', [TemplateController::class, 'store'])->name('templates.store');
 Route::delete('/templates/{id}', [TemplateController::class, 'destroy'])->name('templates.destroy');

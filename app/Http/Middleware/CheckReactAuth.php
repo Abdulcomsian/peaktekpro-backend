@@ -2,9 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Facades\Auth;
+
 
 class CheckReactAuth
 {
@@ -17,28 +20,34 @@ class CheckReactAuth
      */
     public function handle(Request $request, Closure $next)
     {
-        $token = $request->query('t');
-        $accessToken = PersonalAccessToken::findToken($token);
 
-        dd($accessToken);
-
-        if (!$token) {
-            return redirect('/login')->with('error', 'Unauthorized');
-        }
 
         try {
 
-            if (str_starts_with($token, 'Bearer ')) {
-                $token = str_replace('Bearer ', '', $token);
-            }
+            $token = $request->query('t');
+            // validate token
+            $accessToken = PersonalAccessToken::findToken($token);
 
-            // $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256')); // Validate the token
-            // $request->user = $decoded; // Attach the user
+            // if (!$token || !$accessToken) {
+            //     abort(401, 'Unauthorized user.');
+            // }
+
+            // // Retrieve the user associated with the token
+            // $user = $accessToken->tokenable;
+
+            // if (!$user) {
+            //     abort(401, 'User not found.');
+            // }
+            $user = User::find(1);
+
+            // Attach user to the request
+            $request->replace(['_accessToken' => $token, 'user' => $user]);
+
+            return $next($request);
+
         } catch (\Exception $e) {
-            return redirect('/login')->with('error', 'Invalid token');
+            abort(500, 'An error occured on authorization.');
         }
-
-        return $next($request);
 
     }
 }

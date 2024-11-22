@@ -5,14 +5,21 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Template\{StoreRequest, UpdateRequest};
 use Illuminate\Http\Request;
-use App\Models\{Page, Template, TemplatePage};
+use App\Models\{Page, Role, Template, TemplatePage};
 
 class TemplateController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $templates = Template::paginate(5);
-        return view('templates.index', compact('templates'));
+        try {
+            $accessToken = $request->_accessToken;
+            $user = $request->user;
+            $templates = Template::paginate(5);
+            dd($request->all(),$accessToken);
+            return view('templates.index', compact('accessToken','user','templates'));
+        } catch (\Throwable $th) {
+            abort(500,'An error occurred while fetching templates.');
+        }
     }
     public function create()
     {
