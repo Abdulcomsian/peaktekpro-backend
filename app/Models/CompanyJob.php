@@ -106,6 +106,11 @@ class CompanyJob extends Model
         return $this->hasMany(CompanyJobSummary::class, 'company_job_id');
     }
 
+    public function companyJobUsers()
+    {
+        return $this->hasMany(CompanyJobUser::class, 'company_job_id', 'id');
+    }
+
 //     public function status()
 // {
 //     return $this->belongsTo(Status::class, 'status_id');

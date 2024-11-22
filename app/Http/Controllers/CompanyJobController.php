@@ -13,6 +13,7 @@ use App\Models\ClaimDetail;
 use App\Models\CompanyNotes;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
+use App\Models\User;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
@@ -2020,7 +2021,8 @@ class CompanyJobController extends Controller
             'time_period' => 'nullable|string|in:last_7_days,last_4_weeks,last_3_months,last_6_months,last_12_months,month_to_date,quarter_to_date,year_to_date',
             'lead_source' => 'nullable|array',
             'lead_source.*' => 'nullable|string|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
-
+            'sales_representatives' => 'nullable|array',
+            'sales_representatives.*' => 'nullable|integer|exists:users,id',
 
         ]);
 
@@ -2099,6 +2101,13 @@ class CompanyJobController extends Controller
                         if ($request->lead_source) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
                                 $q->where('lead_source', $request->lead_source);
+                            });
+                        }
+
+                         // Filter by sales representative
+                        if ($request->sales_representative) {
+                            $query->whereHas('companyJobUsers', function ($q) use ($request) {
+                                $q->where('user_id', $request->sales_representative);
                             });
                         }
                     }
@@ -2189,6 +2198,13 @@ class CompanyJobController extends Controller
                             });
                         }
 
+                         // Filter by sales representative
+                        if ($request->sales_representative) {
+                            $query->whereHas('companyJobUsers', function ($q) use ($request) {
+                                $q->where('user_id', $request->sales_representative);
+                            });
+                        }
+
                     }
                 ])
                 ->get();
@@ -2235,6 +2251,39 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
+
+    public function getJobsAssignees(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $companyId = $user->company_id;
+
+        
+            if (in_array($user->role_id, [1, 2])) {
+                // Role 1 or 2: Fetch users with the same company_id as the logged-in user
+                $representatives = User::whereHas('companyJobUsers')
+                    ->where('created_by', $companyId)
+                    ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
+                    ->get();
+            } else {
+                $representatives = User::whereHas('companyJobUsers')
+                    ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone', 'created_by','created_at', 'updated_at')
+                    ->get();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Sales Representatives Retrieved Successfully',
+                'data' => $representatives,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage() . ' on line ' . $e->getLine(),
+            ], 500);
+        }
+    }
+
 
     public function getCurrentJobStage($jobId)
     {
