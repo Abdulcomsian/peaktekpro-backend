@@ -40,7 +40,7 @@ class CustomerAgreementController extends Controller
                 'customer_date' => 'nullable|date_format:m/d/Y',
                 'agreement_date' => 'nullable|date_format:m/d/Y',
                 'customer_name' => 'nullable|string',
-                'status' => 'nullable'
+                'status' => 'nullable',
             ]);
 
             //Check Job
@@ -51,6 +51,54 @@ class CustomerAgreementController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
+
+            /////////////////
+            $companyRepresentativeSignUrl = null;
+            $customerSignatureUrl = null; 
+        if($request->has('company_signature')) {
+            $base64Image = $request->input('company_signature');
+            $data = substr($base64Image, strpos($base64Image, ',') + 1);
+            $decodedImage = base64_decode($data);
+
+            // Generate a unique filename
+            $filename = 'image_' . time() . '.png';
+
+            // Check and delete old image
+            $oldImage = CustomerAgreement::where('company_job_id', $id)->value('company_signature');
+            if ($oldImage) {
+                $oldImagePath = public_path($oldImage);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Save the new image
+            Storage::disk('public')->put('company_representative_signature/' . $filename, $decodedImage);
+            $companyRepresentativeSignUrl = '/storage/company_representative_signature/' . $filename;
+        }
+
+        if($request->has('customer_signature')) {
+            $base64Image = $request->input('customer_signature');
+            $data = substr($base64Image, strpos($base64Image, ',') + 1);
+            $decodedImage = base64_decode($data);
+
+            // Generate a unique filename
+            $filename = 'image_' . time() . '.png';
+
+            // Check and delete old image
+            $oldImage = CustomerAgreement::where('company_job_id', $id)->value('customer_signature');
+            if ($oldImage) {
+                $oldImagePath = public_path($oldImage);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Save the new image
+            Storage::disk('public')->put('customer_signature/' . $filename, $decodedImage);
+            $customerSignatureUrl = '/storage/customer_signature/' . $filename;
+        }
+
 
             //Update Agreement
             $agreement = CustomerAgreement::updateOrCreate([
@@ -64,15 +112,18 @@ class CustomerAgreementController extends Controller
                 'insurance' => $request->insurance,
                 'claim_number' => $request->claim_number,
                 'policy_number' => $request->policy_number,
-                'company_signature' => $request->company_signature,
+                // 'company_signature' => $request->company_signature,
                 'company_printed_name' => $request->company_printed_name,
                 'company_date' => $request->company_date,
-                'customer_signature' => $request->customer_signature,
+                // 'customer_signature' => $request->customer_signature,
                 'customer_printed_name' => $request->customer_printed_name,
                 'customer_date' => $request->customer_date,
                 'agreement_date' => $request->agreement_date,
                 'customer_name' => $request->customer_name,
                 'status' => $request->status,
+                'company_signature'=>$companyRepresentativeSignUrl,
+                'customer_signature'=>$customerSignatureUrl
+
             ]);
 
             // Store values in project_design_titles because it will used in design meeting pdf making

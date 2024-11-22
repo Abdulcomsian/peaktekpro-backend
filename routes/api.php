@@ -123,7 +123,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     ///////new Filter APIS for job count and job details
     Route::post('filter/jobs', [CompanyJobController::class, 'filterJobs']);
+    Route::post('filter/jobs/insurance', [CompanyJobController::class, 'filterJobsByInsurance']);
+    Route::post('filter/jobs/retail', [CompanyJobController::class, 'filterJobsByRetail']);
     Route::post('filter/jobs/kanban', [CompanyJobController::class, 'filterJobskanban']);
+    Route::get('get/jobs/filter/sections', [CompanyJobController::class, 'getJobsFilterSection']); //get sales resprenstative as assigneees for the filters
     Route::get('filter/jobs-by-status/{statusId}', [CompanyJobController::class, 'FilterJobWithStatus']);
 
     ///find customer job status

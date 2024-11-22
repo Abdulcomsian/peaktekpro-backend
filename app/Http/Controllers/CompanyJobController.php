@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use DB;
+use Illuminate\Support\Facades\Log;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Status;
 use App\Models\Location;
 use App\Models\CompanyJob;
 use App\Models\ClaimDetail;
+use App\Models\CompanyNotes;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
+use App\Models\User;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
@@ -22,7 +25,6 @@ use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
-use App\Models\CompanyNotes;
 
 class CompanyJobController extends Controller
 {
@@ -91,7 +93,7 @@ class CompanyJobController extends Controller
             event(new JobStatusUpdateEvent('Refresh Pgae'));
             
             //Assign Job
-            // $job->users()->attach($user->id);
+            $job->users()->attach($user->id);
             //  i have comment this line because it auto add the value in company_job_user table and it will show the user in ready to close sales represntative
 
             return response()->json([
@@ -140,7 +142,7 @@ class CompanyJobController extends Controller
             // Fetch jobs based on user role
             $jobs = ($user->role_id == 1 || $user->role_id == 2) ?
                 CompanyJob::with(['summary' => function ($query) {
-                        $query->select('company_job_id', 'job_total', 'claim_number');
+                        $query->select('company_job_id', 'job_total', 'claim_number','job_type');
                     }])
                     ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
                     ->where('created_by', $created_by)
@@ -154,7 +156,7 @@ class CompanyJobController extends Controller
                     })
                 :
                 CompanyJob::with(['summary' => function ($query) {
-                        $query->select('company_job_id', 'job_total', 'claim_number');
+                        $query->select('company_job_id', 'job_total', 'claim_number','job_type');
                     }])
                     ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
                     ->where(function ($query) use ($user, $assigned_jobs) {
@@ -268,7 +270,156 @@ class CompanyJobController extends Controller
         }
     }
 
+    public function filterJobsByInsurance(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
 
+            // $jobTypeFilter = $request->input('job_type');
+            $jobTypeFilter = "insurance";
+
+
+            // Retrieve assigned jobs
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+
+            // Tables with stages
+            $tables = [
+                'customer_agreements',
+                'estimate_prepareds',
+                'adjustor_meetings',
+                'ready_to_builds',
+                'build_details',
+                'inprogresses',
+                'cocs',
+                'final_payment_dues',
+                'ready_to_closes',
+            ];
+
+            // Fetch jobs based on user role
+            $jobsQuery = CompanyJob::with(['summary' => function ($query) {
+                    $query->select('company_job_id', 'job_total', 'claim_number', 'job_type');
+                }])
+                ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id');
+
+            if ($user->role_id == 1 || $user->role_id == 2) {
+                $jobsQuery->where('created_by', $created_by);
+            } else {
+                $jobsQuery->where(function ($query) use ($user, $assigned_jobs) {
+                    $query->orWhere('user_id', $user->id)
+                        ->orWhereIn('id', $assigned_jobs);
+                });
+            }
+
+            // Apply job_type filter if provided
+            if ($jobTypeFilter) {
+                $jobsQuery->whereHas('summary', function ($query) use ($jobTypeFilter) {
+                    $query->where('job_type', $jobTypeFilter);
+                });
+            }
+
+            $jobs = $jobsQuery->orderBy('status_id', 'asc')
+                            ->orderBy('id', 'desc')
+                            ->get()
+                            ->map(function ($job) {
+                                $decodedAddress = json_decode($job->address, true);
+                                $job->address = $decodedAddress['formatedAddress'] ?? null;
+                                return $job;
+                            });
+
+            // Add progress calculations to each job
+            $jobsWithProgress = $jobs->map(function ($job) use ($tables) {
+                $completedSteps = 0;
+                $totalSteps = count($tables) + 1;
+
+                $customerAgreement = DB::table('customer_agreements')
+                    ->where('company_job_id', $job->id)
+                    ->select('current_stage')
+                    ->first();
+                if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
+                    $completedSteps += 1; // Count both 'new_leads' and 'customer_agreements'
+                }
+
+                foreach ($tables as $table) {
+                    $currentStage = DB::table($table)
+                        ->where('company_job_id', $job->id)
+                        ->select('current_stage')
+                        ->first();
+                    if ($currentStage && $currentStage->current_stage === 'yes') {
+                        $completedSteps++;
+                    }
+                }
+
+                $completedPercentage = ($completedSteps / $totalSteps) * 100;
+
+                $job->completed_percentage = round($completedPercentage, 2);
+                return $job;
+            });
+
+            // Group jobs by status name
+            $groupedJobs = $jobsWithProgress->map(function ($job) {
+                $job->job_summaries = $job->jobSummaries ? $job->jobSummaries->map(function ($summary) {
+                    return [
+                        'job_total' => $summary->job_total ?? 0,
+                        'claim_number' => $summary->claim_number,
+                    ];
+                }) : collect([]);
+
+                return $job;
+            })->groupBy(function ($job) {
+                return $job->status->name;
+            });
+
+            // Define statuses
+            $statuses = Status::whereIn('name', [
+                'New Leads',
+                'Signed Deals',
+                'Estimate Prepared',
+                'Adjustor',
+                'Ready To Build',
+                'Build Scheduled',
+                'In Progress',
+                'Build Complete',
+                'Final Payment Due',
+                'Ready to Close',
+                'Won and Closed'
+            ])->get();
+
+            // Map statuses with job totals and tasks
+            $response = $statuses->map(function ($status) use ($groupedJobs, $user, $created_by, $jobsWithProgress) {
+                $jobTotalSumQuery = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
+                    $query->where('status_id', $status->id);
+                });
+
+                // Apply `created_by` filter for role_id 1 and 2
+                if ($user->role_id == 1 || $user->role_id == 2) {
+                    $jobTotalSumQuery->whereHas('job', function ($query) use ($created_by) {
+                        $query->where('created_by', $created_by);
+                    });
+                }
+
+                $jobTotalSum = $jobTotalSumQuery->sum('job_total');
+
+                return [
+                    'id' => $status->id,
+                    'name' => $status->name,
+                    'job_total' => $jobTotalSum,
+                    // 'tasks' => $groupedJobs->get($status->name, collect()),
+                    'tasks' => $jobsWithProgress,
+                ];
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'data' => $response
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
+            ], 500);
+        }
+    }
 
     public function getSingleJob($id)
     {
@@ -671,10 +822,18 @@ class CompanyJobController extends Controller
 
             //Update Job Content
 
-            $content = new CompanyJobContent;
-            $content->company_job_id = $id;
-            $content->notes = $request->notes;
-            $content->save();
+            $content = CompanyJobContent::where('company_job_id',$id)->first();
+            if($content)
+            {
+                $content->notes = $request->notes;
+                $content->save();
+            }else{
+                $content = new CompanyJobContent();
+                $content->company_job_id = $id;
+                $content->notes = $request->notes;
+                $content->save();
+            }
+          
 
             if(isset($request->images)) {
                 //Store New Images
@@ -716,7 +875,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_content = CompanyJobContent::where('company_job_id', $job->id)->with('images')->get();
+            $job_content = CompanyJobContent::where('company_job_id', $job->id)->with('images')->first();
             if(!$job_content) {
                 return response()->json([
                     'status' => 422,
@@ -1657,7 +1816,7 @@ class CompanyJobController extends Controller
                             $query->orWhereIn('id', $assigned_jobs);
                             
                             if ($request->job_type) {
-                                $query->whereHas('summaries', function ($q) use ($request) {
+                                $query->whereHas('companyJobSummaries', function ($q) use ($request) {
                                     $q->where('job_type', $request->job_type);
                                 });
                             }
@@ -1682,11 +1841,16 @@ class CompanyJobController extends Controller
         }
     }
 
-    public function filterJobskanban(Request $request) // for kanban
+    public function filterJobskanban1(Request $request) // for kanban
     {
         $request->validate([
-            'job_type' => 'nullable|string',
+            'job_type' => 'nullable|array',
+            'job_type.*'=>'nullable|string',
             'location' => 'nullable|string',
+            'stages' => 'nullable|array',
+            'stages.*' => 'nullable|string',
+            'sort_by' => 'nullable|string|in:last_updated_newest,last_updated_oldest,created_date_newest,created_date_oldest,name,value_high,value_low,time_in_stage_newest,time_in_stage_oldest',
+
         ]);
     
         try {
@@ -1694,17 +1858,64 @@ class CompanyJobController extends Controller
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
             $created_by = $user->created_by == 0 ? 1 : $user->created_by;
     
+            $sortField = 'updated_at';
+            $sortOrder = 'desc';
+
+        // Determine sorting based on request
+            if (!empty($request->sort_by)) {
+                switch ($request->sort_by) {
+                    case 'last_updated_newest':
+                        $sortField = 'updated_at';
+                        $sortOrder = 'desc';
+                        break;
+                    case 'last_updated_oldest':
+                        $sortField = 'updated_at';
+                        $sortOrder = 'asc';
+                        break;
+                    case 'created_date_newest':
+                        $sortField = 'created_at';
+                        $sortOrder = 'desc';
+                        break;
+                    case 'created_date_oldest':
+                        $sortField = 'created_at';
+                        $sortOrder = 'asc';
+                        break;
+                    case 'name':
+                        $sortField = 'name';
+                        $sortOrder = 'asc';
+                        break;
+                    case 'value_high':
+                        $sortField = 'company_job_summaries.job_total'; // Sort by job_total (higher)
+                        $sortOrder = 'desc';
+                        break;
+                    case 'value_low':
+                        $sortField = 'job_total'; // Sort by job_total (lower)
+                        $sortOrder = 'asc';
+                        break;
+                    case 'time_in_stage_newest':
+                        $sortField = 'company_jobs.updated_at'; // You can use `updated_at` or `created_at` to determine time in stage
+                        $sortOrder = 'desc';
+                        break;
+                    case 'time_in_stage_oldest':
+                        $sortField = 'company_jobs.updated_at'; // You can use `updated_at` or `created_at` to determine time in stage
+                        $sortOrder = 'asc';
+                        break;
+                }
+            }
             $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
     
             $tasks = Status::select('id', 'name')
-                ->whereIn('name', $specificStatuses)
+                // ->whereIn('name', $specificStatuses)
+                ->when(!empty($request->stages), function ($query) use ($request) {
+                    $query->whereIn('name', $request->stages); 
+                })
                 ->withCount([
                     'tasks' => function ($query) use ($created_by, $request) {
                         $query->where('created_by', $created_by);
     
                         if ($request->job_type) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('job_type', $request->job_type);
+                                $q->whereIn('job_type', $request->job_type);
                             });
                         }
     
@@ -1713,19 +1924,20 @@ class CompanyJobController extends Controller
                                 $q->where('market', $request->location);
                             });
                         }
+
                     }
                 ])
                 ->with([
-                    'tasks' => function ($query) use ($created_by, $request) {
+                    'tasks' => function ($query) use ($created_by, $request, $sortField,$sortOrder) {
                         $query->with(['summary' => function ($q) {
-                            $q->select('company_job_id', 'job_total', 'claim_number');
+                            $q->select('company_job_id', 'job_total', 'claim_number','job_type','job_total');
                         }, 'status'])
                         ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
                         ->where('created_by', $created_by);
     
                         if ($request->job_type) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('job_type', $request->job_type);
+                                $q->whereIn('job_type', $request->job_type);
                             });
                         }
     
@@ -1733,6 +1945,21 @@ class CompanyJobController extends Controller
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
                                 $q->where('market', $request->location);
                             });
+                        }
+
+                        // Handle sorting for summary->job_total
+                        // if (in_array($sortField, ['job_total'])) {
+                        //     $query->leftJoin('company_job_summaries', 'company_jobs.id', '=', 'company_job_summaries.company_job_id')
+                        //         ->orderBy('company_job_summaries.job_total', $sortOrder);
+                        // } else {
+                        //     $query->orderBy($sortField, $sortOrder);
+                        // }
+
+                          // Handle sorting for job_total (from company_job_summaries)
+                        if ($sortField === 'company_job_summaries.job_total') {
+                            $query->orderBy('company_job_summaries.job_total', $sortOrder);
+                        } else {
+                            $query->orderBy($sortField, $sortOrder);
                         }
                     }
                 ])
@@ -1757,6 +1984,8 @@ class CompanyJobController extends Controller
                             'company_job_id' => $job->summary->company_job_id ?? null,
                             'job_total' => $job->summary->job_total ?? 0,
                             'claim_number' => $job->summary->claim_number ?? null,
+                            'job_type' => $job->summary->job_type ?? null,
+
                         ],
                         'status' => [
                             'id' => $job->status->id ?? null,
@@ -1779,6 +2008,290 @@ class CompanyJobController extends Controller
         }
     }
     
+
+    public function filterJobskanban(Request $request)
+    {
+        $request->validate([
+            'job_type' => 'nullable|array',
+            'job_type.*'=>'nullable|string',
+            'location' => 'nullable|string',
+            'stages' => 'nullable|array',
+            'stages.*' => 'nullable|string',
+            'sort_by' => 'nullable|string|in:last_updated_newest,last_updated_oldest,created_date_newest,created_date_oldest,name,value_high,value_low,time_in_stage_newest,time_in_stage_oldest',
+            'time_period' => 'nullable|string|in:last_7_days,last_4_weeks,last_3_months,last_6_months,last_12_months,month_to_date,quarter_to_date,year_to_date',
+            'lead_source' => 'nullable|array',
+            'lead_source.*' => 'nullable|string|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+            'sales_representatives' => 'nullable|array',
+            'sales_representatives.*' => 'nullable|integer|exists:users,id',
+
+        ]);
+
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+            $sortField = 'updated_at';
+            $sortOrder = 'desc';
+
+            // Determine sorting based on request
+            if (!empty($request->sort_by)) {
+                switch ($request->sort_by) {
+                    case 'last_updated_newest':
+                        $sortField = 'updated_at';
+                        $sortOrder = 'desc';
+                        break;
+                    case 'last_updated_oldest':
+                        $sortField = 'updated_at';
+                        $sortOrder = 'asc';
+                        break;
+                    case 'created_date_newest':
+                        $sortField = 'created_at';
+                        $sortOrder = 'desc';
+                        break;
+                    case 'created_date_oldest':
+                        $sortField = 'created_at';
+                        $sortOrder = 'asc';
+                        break;
+                    case 'name':
+                        $sortField = 'name';
+                        $sortOrder = 'asc';
+                        break;
+                    case 'value_high':
+                        $sortField = 'company_job_summaries.job_total'; // Sort by job_total (higher)
+                        $sortOrder = 'desc';
+                        break;
+                    case 'value_low':
+                        $sortField = 'company_job_summaries.job_total'; // Sort by job_total (lower)
+                        $sortOrder = 'asc';
+                        break;
+                    case 'time_in_stage_newest':
+                        $sortField = 'company_jobs.updated_at'; // You can use `updated_at` or `created_at` to determine time in stage
+                        $sortOrder = 'desc';
+                        break;
+                    case 'time_in_stage_oldest':
+                        $sortField = 'company_jobs.updated_at'; // You can use `updated_at` or `created_at` to determine time in stage
+                        $sortOrder = 'asc';
+                        break;
+                }
+            }
+
+            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
+
+            $tasks = Status::select('id', 'name')
+                ->when(!empty($request->stages), function ($query) use ($request) {
+                    $query->whereIn('name', $request->stages);
+                })
+                ->withCount([
+                    'tasks' => function ($query) use ($created_by, $request) {
+                        $query->where('created_by', $created_by);
+
+                        if ($request->job_type) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->whereIn('job_type', $request->job_type);
+                            });
+                        }
+
+                        if ($request->location) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('market', $request->location);
+                            });
+                        }
+
+                        if ($request->lead_source) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('lead_source', $request->lead_source);
+                            });
+                        }
+
+                         // Filter by sales representative
+                        if ($request->sales_representative) {
+                            $query->whereHas('companyJobUsers', function ($q) use ($request) {
+                                $q->where('user_id', $request->sales_representative);
+                            });
+                        }
+                    }
+                ])
+                ->with([
+                    'tasks' => function ($query) use ($created_by, $request, $sortField, $sortOrder) {
+                        $query->with(['summary' => function ($q) {
+                            $q->select('company_job_id', 'job_total', 'claim_number','job_type','lead_source');
+                        }, 'status'])
+                        ->select('company_jobs.id', 'company_jobs.name', 'company_jobs.address', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.status_id')
+                        ->leftJoin('company_job_summaries', 'company_jobs.id', '=', 'company_job_summaries.company_job_id')
+                        ->where('created_by', $created_by);
+
+                        //filter for job type
+                        if ($request->job_type) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->whereIn('job_type', $request->job_type);
+                            });
+                        }
+
+                        //filter fir location
+                        if ($request->location) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->where('market', $request->location);
+                            });
+                        }
+
+                        // Handle sorting for job_total (from company_job_summaries) using the summary relation
+                        if ($sortField === 'company_job_summaries.job_total') {
+                            $query->orderBy('company_job_summaries.job_total', $sortOrder);
+                        } else {
+                            $query->orderBy($sortField, $sortOrder);
+                        }
+
+                        //here apply filter for time period on Updated Date
+                        if ($request->has('time_period')) {
+                            $now = now();
+                            switch ($request->time_period) {
+                                case 'last_7_days':
+                                    $startDate = $now->copy()->subDays(7);
+                                    $endDate = $now;
+                                    Log::info(['start_date' => $startDate->toDateTimeString(), 'end_date' => $endDate->toDateTimeString()]);
+                                    $query->whereBetween('company_jobs.updated_at', [$startDate, $endDate]);
+                                    // Log::info(["jobs" => $jobs->toArray()]);
+                                    break;
+                                case 'last_4_weeks':
+                                    $startDate = $now->copy()->subWeeks(4);
+                                    $endDate = $now;
+                                    $query->whereBetween('company_jobs.updated_at', [$startDate, $endDate]);
+                                    break;
+                                case 'last_3_months':
+                                    $startDate = $now->copy()->subMonths(3);
+                                    $endDate = $now;
+                                    $query->whereBetween('company_jobs.updated_at', [$startDate, $endDate]);
+                                    break;
+                                case 'last_6_months':
+                                    $startDate = $now->copy()->subMonths(6);
+                                    $endDate =now();
+                                    $query->whereBetween('company_jobs.updated_at', [$startDate, $endDate]);
+                                    break;
+                                case 'last_12_months':
+                                    $startDate = $now->copy()->subMonths(6);
+                                    $endDate =now();
+                                    $query->whereBetween('company_jobs.updated_at', [$startDate, $endDate]);
+                                    break;
+                                case 'month_to_date':
+                                    $query->whereMonth('company_jobs.updated_at', $now->month)
+                                          ->whereYear('company_jobs.updated_at', $now->year);
+                                    break;
+                                case 'quarter_to_date':
+                                    $startDate = $now->copy()->startOfQuarter();
+                                    $endDate =now();
+                                    Log::info(['start_date' => $startDate->toDateTimeString(), 'end_date' => $endDate->toDateTimeString()]);
+                                    $jobs = $query->whereBetween('company_jobs.updated_at', [$startDate, $endDate])->get();
+                                    Log::info(["jobs" => $jobs->toArray()]);
+
+                                    break;
+                                case 'year_to_date':
+                                    $query->whereYear('company_jobs.updated_at', $now->year);
+                                    break;
+                            }
+                        }
+
+                          //filter for lead source
+                        if ($request->lead_source) {
+                            $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                                $q->whereIn('lead_source', $request->lead_source);
+                            });
+                        }
+
+                         // Filter by sales representative
+                        if ($request->sales_representative) {
+                            $query->whereHas('companyJobUsers', function ($q) use ($request) {
+                                $q->where('user_id', $request->sales_representative);
+                            });
+                        }
+
+                    }
+                ])
+                ->get();
+
+            // Transform tasks data to include 'job_total' and 'claim_number' in 'summary' and sum up 'job_total' for each status
+            $tasks->each(function ($status) {
+                $status->job_total = $status->tasks->sum(function ($job) {
+                    return optional($job->summary)->job_total ?? 0;
+                });
+
+                $status->tasks->transform(function ($job) {
+                    return [
+                        'id' => $job->id,
+                        'name' => $job->name,
+                        'address' => json_decode($job->address, true)['formatedAddress'] ?? null,
+                        'status_id' => $job->status_id,
+                        'created_at' => $job->created_at,
+                        'updated_at' => $job->updated_at,
+                        'summary' => [
+                            'company_job_id' => $job->summary->company_job_id ?? null,
+                            'job_total' => $job->summary->job_total ?? 0,
+                            'claim_number' => $job->summary->claim_number ?? null,
+                            'job_type' => $job->summary->job_type ?? null,
+                            'lead_source' => $job->summary->lead_source ?? null,
+
+                        ],
+                        'status' => [
+                            'id' => $job->status->id ?? null,
+                            'name' => $job->status->name ?? null,
+                            'created_at' => $job->status->created_at ?? null,
+                            'updated_at' => $job->status->updated_at ?? null,
+                        ]
+                    ];
+                });
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data Fetched Successfully',
+                'data' => $tasks
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    public function getJobsFilterSection(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $companyId = $user->company_id;
+
+            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Estimate Prepared','Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Won and Closed'])->get();
+            if (in_array($user->role_id, [1, 2])) {
+                // Role 1 or 2: Fetch users with the same company_id as the logged-in user
+                $representatives = User::whereHas('companyJobUsers')
+                    ->where('created_by', $companyId)
+                    ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
+                    ->get();
+                $location = Location::whereIn('created_by',[$companyId,0])->get();
+
+            } else {
+                $representatives = User::whereHas('companyJobUsers')
+                    ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone', 'created_by','created_at', 'updated_at')
+                    ->get();
+                $location = Location::whereIn('created_by',[0])->get();
+
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Filters Retrieved Successfully',
+                'data' =>[ 
+                    'assignees'=>$representatives,
+                     'locations'=>$location,
+                     'stages' => $statuses
+                    ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage() . ' on line ' . $e->getLine(),
+            ], 500);
+        }
+    }
+
 
     public function getCurrentJobStage($jobId)
     {
