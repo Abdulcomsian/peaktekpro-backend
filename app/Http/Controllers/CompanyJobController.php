@@ -2252,29 +2252,37 @@ class CompanyJobController extends Controller
         }
     }
 
-    public function getJobsAssignees(Request $request)
+    public function getJobsFilterSection(Request $request)
     {
         try {
             $user = Auth::user();
             $companyId = $user->company_id;
 
-        
+            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Estimate Prepared','Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Won and Closed'])->get();
             if (in_array($user->role_id, [1, 2])) {
                 // Role 1 or 2: Fetch users with the same company_id as the logged-in user
                 $representatives = User::whereHas('companyJobUsers')
                     ->where('created_by', $companyId)
                     ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
                     ->get();
+                $location = Location::whereIn('created_by',[$companyId,0])->get();
+
             } else {
                 $representatives = User::whereHas('companyJobUsers')
                     ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone', 'created_by','created_at', 'updated_at')
                     ->get();
+                $location = Location::whereIn('created_by',[0])->get();
+
             }
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Sales Representatives Retrieved Successfully',
-                'data' => $representatives,
+                'message' => 'Filters Retrieved Successfully',
+                'data' =>[ 
+                    'assignees'=>$representatives,
+                     'locations'=>$location,
+                     'stages' => $statuses
+                    ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
