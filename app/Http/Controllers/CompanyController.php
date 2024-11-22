@@ -556,8 +556,8 @@ class CompanyController extends Controller
 
             $user = Auth::user();
             // Determine the company ID
-            // $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
-            $companyId = $user->company_id;
+            $companyId = ($user->created_by == 0) ? 1 : $user->created_by;
+            // $companyId = $user->company_id;
 
             // Get pagination parameters
             $results = $request->input('results', 15);
@@ -567,7 +567,7 @@ class CompanyController extends Controller
             $skipped = ($page - 1) * $results;
 
             $usersQuery = User::where('company_id', $companyId)
-                ->whereIn('role_id', [2,8,9])->with('role');
+                ->whereIn('role_id', [1,2,8,9])->with('role');
 
             if (isset($request->results) && isset($request->page)) {
                 $users = $usersQuery->skip($skipped)->take($results)->get();

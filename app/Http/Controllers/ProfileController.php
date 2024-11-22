@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
 use Exception;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+
 class ProfileController extends Controller
 {
     public function updateProfile(Request $request,$id)
@@ -20,9 +22,28 @@ class ProfileController extends Controller
             'phone' => 'nullable|string|max:255',
             'job_title' => 'nullable|string|max:255',
             'market_segment' => 'nullable|string|max:255',
+            'profile_image' => 'nullable|image'
         ]);
 
         try { 
+
+           
+            if($request->hasFile('profile_image'))
+            {
+                $user = Auth::user();
+                if (!empty($user->profile_image)) {
+                    $existingImagePath = storage_path('app/public/user_profile_image/' . $user->profile_image);
+                    
+                    // Delete the existing image file
+                    if (file_exists($existingImagePath)) {
+                        unlink($existingImagePath);
+                    }
+                }
+
+                $image = $request->file('profile_image');
+                $imageName = time(). '.'.$image->getClientOriginalExtension();
+                $path = $image->storeAs('public/user_profile_image', $imageName);
+            }
             $user= User::find($id);
             $user->first_name=$request->first_name ?? $user->first_name;
             $user->last_name=$request->last_name ?? $user->last_name;
@@ -30,6 +51,7 @@ class ProfileController extends Controller
             $user->phone=$request->phone ?? $user->phone;
             $user->job_title=$request->job_title ?? $user->job_title;
             $user->market_segment=$request->market_segment ?? $user->market_segment;
+            $user->profile_image = Storage::url($path);
 
             $user->save();
 
