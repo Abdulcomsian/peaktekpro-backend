@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\TemplateController;
+use App\Http\Controllers\Web\ReactAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,8 @@ use App\Http\Controllers\Web\TemplateController;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('auth',ReactAuthController::class)->middleware('check.react.auth');
 
 Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
 Route::get('/templates/create', [TemplateController::class, 'create'])->name('templates.create');
