@@ -9,7 +9,7 @@
             <div class="flex items-center justify-between mb-4">
 
                 <h1 class="text-2xl font-bold text-gray-700">
-                    Templates</h1>
+                    Report Layout</h1>
                 <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Create
                 </button>
@@ -57,10 +57,10 @@
         <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
             <!-- Modal Header -->
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Create Template</h2>
+                <h2 class="text-xl font-semibold">Create Report Layout</h2>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
             </div>
-            <form action="{{ route('templates.store') }}" method="post" id="storeTemplateForm" method="post">
+            <form action="{{ route('reports.store') }}" method="post" id="storeReportLayoutForm" method="post">
                 @csrf
                 <!-- Modal Body -->
                 <div class="mb-4">
@@ -104,23 +104,23 @@
         // show create modal
         function openModal() {
 
-            $('#storeTemplateForm')[0].reset();
-            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+            $('#storeReportLayoutForm')[0].reset();
+            $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
 
             $('#modal').removeClass('hidden');
         }
         // hide create modal
         function closeModal() {
 
-            $('#storeTemplateForm')[0].reset();
-            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+            $('#storeReportLayoutForm')[0].reset();
+            $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
 
             $('#modal').addClass('hidden');
 
         }
         $(document).ready(function() {
 
-            $('#storeTemplateForm').submit(function(e) {
+            $('#storeReportLayoutForm').submit(function(e) {
 
                 e.preventDefault();
 
@@ -139,12 +139,12 @@
 
                             closeModal();
 
-                            await showSuccessNotification('Template created successfully!');
+                            await showSuccessNotification('Report Layout created successfully!');
 
                             window.location.href = response.redirect_to;
 
                         } else {
-                            showErrorNotification('Error creating template!');
+                            showErrorNotification('Error creating report layout!');
                         }
                     },
                     error: async function(xhr) {

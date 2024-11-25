@@ -7,15 +7,15 @@ use App\Http\Requests\Template\{StoreRequest, UpdateRequest};
 use Illuminate\Http\Request;
 use App\Models\{Page, Role, Template, TemplatePage};
 
-class TemplateController extends Controller
+class ReportLayoutController extends Controller
 {
     public function index(Request $request)
     {
         try {
             $templates = Template::paginate(5);
-            return view('templates.index', compact('templates'));
+            return view('reports_layout.index', compact('templates'));
         } catch (\Throwable $th) {
-            abort(500,'An error occurred while fetching templates.');
+            abort(500,'An error occurred while fetching report layouts.');
         }
     }
     public function create()
@@ -48,7 +48,7 @@ class TemplateController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Template created successfully',
-                'redirect_to' => route('templates.edit', $template->id)
+                'redirect_to' => route('reports.edit', 1)
             ], 200);
         } catch (\Throwable $th) {
 
@@ -62,13 +62,14 @@ class TemplateController extends Controller
         }
     }
 
-    public function edit($templateId)
+    public function edit($reportLayoutId)
     {
         try {
-            $template = Template::with('templatePages')->findOrFail($templateId);
-            return view('templates.edit', compact('template'));
+            $templates = Template::all();
+            $template = Template::with('templatePages')->first();
+            return view('reports_layout.edit', compact('templates','template'));
         } catch (\Throwable $e) {
-            return redirect()->route('templates.index')->with('error', 'Template not found');
+            return redirect()->route('reports.index')->with('error', 'Report layout not found');
         }
     }
 
