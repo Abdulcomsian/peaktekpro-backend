@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Events\JobStatusUpdateEvent;
 use App\Models\OverturnMeetingMedia;
 use App\Models\AdjustorMeetingMedia;
+use App\Models\AdjustorMeetingPhotoSection;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
@@ -141,6 +142,143 @@ class MeetingController extends Controller
         }
     }
 
+    public function AdjustorMeetingPhotoSection1(Request $request,$Id)
+    {
+        $request->validate([
+            'front' => 'nullable|string',
+            'front_imagePath' => 'nullable|image',
+
+            'front_left' => 'nullable|string',
+            'front_left_imagePath' => 'nullable|image',
+
+            'left' => 'nullable|string',
+            'left_imagePath' => 'nullable|image',
+
+            'back_left' => 'nullable|string',
+            'back_left_imagePath' => 'nullable|image',
+
+            'back' => 'nullable|string',
+            'back_imagePath' => 'nullable|image',
+
+            'back_right' => 'nullable|string',
+            'back_right_imagePath' => 'nullable|image',
+
+            'right' => 'nullable|string',
+            'right_imagePath' => 'nullable|image',
+
+            'front_right' => 'nullable|string',
+            'front_right_imagePath' => 'nullable|image',
+
+        ]);
+
+        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate([
+            [
+                'adjustor_meeting_id', $Id
+            ],
+            [
+                'adjustor_meeting_id', $Id,
+                'front' => $request->front,
+                'front_left' => $request->front_left,
+                'left' => $request->left,
+                'back_left' => $request->back_left,
+                'back' => $request->back,
+                'back_right' => $request->back_right,
+                'right' => $request->right,
+                'front_right' => $request->front_right,
+            ]
+        ]);
+
+        // $adjustor_meeting = AdjustorMeeting::where('id', $Id)->first();
+        return response()->json([
+            'message' => 'added successfully',
+            'status' =>200,
+            'data' => $adjustor_meeting_photos
+        ]);
+
+    }
+
+    public function AdjustorMeetingPhotoSection(Request $request, $Id)
+    {
+        // Validate request
+        $request->validate([
+            'front' => 'nullable|string',
+            'front_imagePath' => 'nullable|image',
+
+            'front_left' => 'nullable|string',
+            'front_left_imagePath' => 'nullable|image',
+
+            'left' => 'nullable|string',
+            'left_imagePath' => 'nullable|image',
+
+            'back_left' => 'nullable|string',
+            'back_left_imagePath' => 'nullable|image',
+
+            'back' => 'nullable|string',
+            'back_imagePath' => 'nullable|image',
+
+            'back_right' => 'nullable|string',
+            'back_right_imagePath' => 'nullable|image',
+
+            'right' => 'nullable|string',
+            'right_imagePath' => 'nullable|image',
+
+            'front_right' => 'nullable|string',
+            'front_right_imagePath' => 'nullable|image',
+        ]);
+
+        // Handle file uploads (if needed) and store file paths
+        $data = [
+            'adjustor_meeting_id' => $Id,
+            'front' => $request->front,
+            'front_left' => $request->front_left,
+            'left' => $request->left,
+            'back_left' => $request->back_left,
+            'back' => $request->back,
+            'back_right' => $request->back_right,
+            'right' => $request->right,
+            'front_right' => $request->front_right,
+        ];
+
+        // Process image files
+        foreach (['front_imagePath', 'front_left_imagePath', 'left_imagePath', 'back_left_imagePath', 'back_imagePath', 'back_right_imagePath', 'right_imagePath', 'front_right_imagePath'] as $imageField) {
+            if ($request->hasFile($imageField)) {
+                $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
+            }
+        }
+
+        // Update or create the record
+        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate(
+            ['adjustor_meeting_id' => $Id], 
+            $data                        
+        );
+
+        // Return response
+        return response()->json([
+            'message' => 'Added successfully',
+            'status' => 200,
+            'data' => $adjustor_meeting_photos,
+        ]);
+    }
+
+
+    public function getAdjustorMeetingPhotoSection($Id)
+    {
+        // dd($Id);
+        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::where('adjustor_meeting_id', $Id)->first();
+        if($adjustor_meeting_photos)
+        {
+            return response()->json([
+                'message' => 'Fetched successfully',
+                'status' => 200,
+                'data' => $adjustor_meeting_photos,
+            ]);
+        }
+        return response()->json([
+            'message' => 'Issue Occured',
+            'status' => 200,
+            'data' => [],
+        ]);
+    }
     public function AdjustorMeetingStatus(Request $request, $jobId)
     {
         //Validate Rules

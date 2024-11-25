@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use DB;
-use Illuminate\Support\Facades\Log;
 use Exception;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Status;
 use App\Models\Location;
 use App\Models\CompanyJob;
@@ -13,18 +12,20 @@ use App\Models\ClaimDetail;
 use App\Models\CompanyNotes;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
-use App\Models\User;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignPage;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class CompanyJobController extends Controller
 {
@@ -647,6 +648,7 @@ class CompanyJobController extends Controller
             'market' => 'nullable',
             'job_type' => 'nullable|in:Retail,Insurance',
             'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+            'lead_status' => 'nullable|in:New,Contacted,Follow-up Needed',
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id'
         ]);
@@ -671,6 +673,8 @@ class CompanyJobController extends Controller
                 'market' => $request->market,
                 'lead_source' => $request->lead_source,
                 'job_type' => $request->job_type,
+                'lead_status' => $request->lead_status,
+
 
             ]);
 
@@ -704,7 +708,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type','market','job_type')
+            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type','market','job_type','lead_status')
             ->where('company_job_id', $job->id)->first();
 
             $location= Location::select('id','name')->get();
@@ -2512,6 +2516,78 @@ class CompanyJobController extends Controller
             'total_jobs' => $response,
             
         ]);
+    }
+
+    public function summaryFilter(Request $request)
+    {
+        $request->validate([
+            'location'=>'nullable|string',
+            'job_status' => 'nullable|string|in:total_jobs,completed_jobs,in_progress'
+        ]);
+
+        try{
+            $user = Auth::user();
+            $created_by = $user->company_id;
+
+            $jobs = CompanyJob::with('companyJobSummaries')
+                ->when($user->role_id !== 7, function ($query) use ($created_by) {
+                       // Apply the created_by filter only if the user's role_id is not 7
+                    $query->where('created_by', $created_by);
+                })
+                ->when($request->has('location'), function ($query) use ($request) {
+                    $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                        $q->where('market', $request->location);
+                    });
+                })
+                ->when($request->has('job_status'),function ($query) use ($request) {
+                    //apply filter
+                    switch($request->job_status){
+                        case 'total_jobs':
+                        break;
+                        case 'completed_jobs':
+                        $query->where('status_id',15);
+                        break;
+                        case 'in_progress':
+                        $query->where('status_id', '<>', 15);
+                        break;
+                    }
+                })
+                ->get();
+
+                // Add the "need_attention" field dynamically
+                $jobs->each(function ($job) {
+                    $dateField = $job->date; 
+                    $job->attention_status = Carbon::parse($dateField)->diffInDays(Carbon::now()) > 17 ? 'required' : 'ok';
+                });
+
+                    // if need to apply the attention on the base of level uncomment this code and comment above
+                    // $jobs->each(function ($job) {
+                    //     $dateField = $job->date; 
+                    //     $daysDifference = Carbon::parse($dateField)->diffInDays(Carbon::now());
+    
+                    //     if ($daysDifference <= 6) {
+                    //         $job->attention_status = 'yellow';
+                    //     } elseif ($daysDifference > 6 && $daysDifference < 17) {
+                    //         $job->attention_status = 'normal';
+                    //     } else {
+                    //         $job->attention_status = 'urgenet attention';
+                    //     }
+                    // });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Filtered and Feteched Successfully',
+                'data' => $jobs
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage(),
+                'message' => 'Issue occured',
+                'data' => []
+            ]);
+        }
+       
     }
 
     public function progressLine($jobId) //used for both grid and kanban

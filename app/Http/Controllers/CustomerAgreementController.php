@@ -178,31 +178,65 @@ class CustomerAgreementController extends Controller
                 ], 422);
             }
 
-            //Update Agreement
-            $agreement = CustomerAgreement::updateOrCreate([
-                'company_job_id' => $id,
-            ],[
-                'company_job_id' => $id,
-                'status' => $request->status,
-            ]);
-            
-            //Update Status
-            if(isset($request->status) && $request->status == true) {
-                $job->status_id = 3;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();   
+            $jobSummary = CompanyJobSummary::where('company_job_id',$id)->first();
+            $jobType = $jobSummary->job_type;
+
+            if($jobType == "Insurance")
+            {
+                 //Update Agreement
+                $agreement = CustomerAgreement::updateOrCreate([
+                    'company_job_id' => $id,
+                ],[
+                    'company_job_id' => $id,
+                    'status' => $request->status,
+                ]);
                 
-                //current stage save
-                $agreement->current_stage="yes";
-                $agreement->save();
-            } elseif(isset($request->status) && $request->status == false) {
-                $job->status_id = 2;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save(); 
+                //Update Status
+                if(isset($request->status) && $request->status == true) {
+                    $job->status_id = 3;
+                    $job->date = Carbon::now()->format('Y-m-d');
+                    $job->save();   
+                    
+                    //current stage save
+                    $agreement->current_stage="yes";
+                    $agreement->save();
+                } elseif(isset($request->status) && $request->status == false) {
+                    $job->status_id = 2;
+                    $job->date = Carbon::now()->format('Y-m-d');
+                    $job->save(); 
+                    
+                    //current stage save
+                    $agreement->current_stage="no";
+                    $agreement->save();
+                }
+            }else{
+                 //Update Agreement
+                 $agreement = CustomerAgreement::updateOrCreate([
+                    'company_job_id' => $id,
+                ],[
+                    'company_job_id' => $id,
+                    'status' => $request->status,
+                ]);
                 
-                //current stage save
-                $agreement->current_stage="no";
-                $agreement->save();
+                //Update Status
+                if(isset($request->status) && $request->status == true) {
+                    $job->status_id = 4;
+                    $job->date = Carbon::now()->format('Y-m-d');
+                    $job->save();   
+                    
+                    //current stage save
+                    $agreement->current_stage="yes";
+                    $agreement->save();
+                } elseif(isset($request->status) && $request->status == false) {
+                    $job->status_id = 2;
+                    $job->date = Carbon::now()->format('Y-m-d');
+                    $job->save(); 
+                    
+                    //current stage save
+                    $agreement->current_stage="no";
+                    $agreement->save();
+                }
+
             }
 
             return response()->json([
