@@ -20,14 +20,16 @@ class CheckReactAuth
      */
     public function handle(Request $request, Closure $next)
     {
-
-
         try {
 
             $token = $request->query('t');
             // validate token
             $accessToken = PersonalAccessToken::findToken($token);
 
+            if(!$token)
+            {
+                abort(401, 'Unauthorized user.');
+            }
             // if (!$token || !$accessToken) {
             //     abort(401, 'Unauthorized user.');
             // }
@@ -38,15 +40,15 @@ class CheckReactAuth
             // if (!$user) {
             //     abort(401, 'User not found.');
             // }
-            $user = User::find(1);
+            $user = User::with('role')->find(1);
 
             // Attach user to the request
-            $request->replace(['_accessToken' => $token, 'user' => $user]);
+            $request->replace(['t' => $token, 'user' => $user]);
 
             return $next($request);
 
         } catch (\Exception $e) {
-            abort(500, 'An error occured on authorization.');
+            abort(403, 'An error occured on authorization.');
         }
 
     }

@@ -15,15 +15,16 @@
         <nav class="container mx-auto flex justify-between items-center">
             <!-- Logo and App Name -->
             <div class="flex items-center space-x-4">
-                <img src="{{ asset('assets/logo/logo-white.png') }}" alt="Logo" class="h-8 w-8 object-contain">
+                <img src="{{ asset('assets/logo/logo-white.png') }}" alt="Logo" class="h-14 w-16 object-contain">
                 <!-- Logo -->
-                <a href="{{ route('templates.index') }}" class="text-xl font-bold">{{ config('app.name') }}</a>
+                {{-- <a href="{{ route('templates.index') }}" class="text-xl font-bold">{{ config('app.name') }}</a> --}}
             </div>
 
             <!-- Navigation Links -->
             <div class="flex space-x-4">
+                <a href="{{ route('reports.index') }}" class="text-gray-300 hover:text-white">Reports</a>
                 <a href="{{ route('templates.index') }}" class="text-gray-300 hover:text-white">Templates</a>
-                {{-- <a href="{{ route('templates.create') }}" class="text-gray-300 hover:text-white">Create Template</a> --}}
+
                 <!-- Add more links as needed -->
             </div>
         </nav>
