@@ -2018,7 +2018,8 @@ class CompanyJobController extends Controller
         $request->validate([
             'job_type' => 'nullable|array',
             'job_type.*'=>'nullable|string',
-            'location' => 'nullable|string',
+            'location' => 'nullable|array',
+            'location.*' => 'nullable|string',
             'stages' => 'nullable|array',
             'stages.*' => 'nullable|string',
             'sort_by' => 'nullable|string|in:last_updated_newest,last_updated_oldest,created_date_newest,created_date_oldest,address,value_high,value_low,time_in_stage_newest,time_in_stage_oldest',
@@ -2273,12 +2274,14 @@ class CompanyJobController extends Controller
         try {
             $user = Auth::user();
             $companyId = $user->company_id;
+            // dd($companyId);
 
             $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Estimate Prepared','Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Won and Closed'])->get();
-            if (in_array($user->role_id, [1, 2])) {
+            if (in_array($user->role_id, [1, 2,5,8,9])) {
                 // Role 1 or 2: Fetch users with the same company_id as the logged-in user
-                $representatives = User::whereHas('companyJobUsers')
-                    ->where('created_by', $companyId)
+                $representatives = User::
+                    // whereHas('companyJobUsers')
+                    where('created_by', $companyId)
                     ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
                     ->get();
                 $location = Location::whereIn('created_by',[$companyId,0])->get();
