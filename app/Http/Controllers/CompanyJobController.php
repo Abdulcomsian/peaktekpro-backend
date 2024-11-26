@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use DB;
-use Illuminate\Support\Facades\Log;
 use Exception;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Status;
 use App\Models\Location;
 use App\Models\CompanyJob;
@@ -13,18 +12,20 @@ use App\Models\ClaimDetail;
 use App\Models\CompanyNotes;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
-use App\Models\User;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignPage;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class CompanyJobController extends Controller
 {
@@ -647,6 +648,7 @@ class CompanyJobController extends Controller
             'market' => 'nullable',
             'job_type' => 'nullable|in:Retail,Insurance',
             'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+            'lead_status' => 'nullable|in:New,Contacted,Follow-up Needed',
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id'
         ]);
@@ -671,6 +673,8 @@ class CompanyJobController extends Controller
                 'market' => $request->market,
                 'lead_source' => $request->lead_source,
                 'job_type' => $request->job_type,
+                'lead_status' => $request->lead_status,
+
 
             ]);
 
@@ -704,7 +708,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type','market','job_type')
+            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type','market','job_type','lead_status')
             ->where('company_job_id', $job->id)->first();
 
             $location= Location::select('id','name')->get();
@@ -2014,7 +2018,8 @@ class CompanyJobController extends Controller
         $request->validate([
             'job_type' => 'nullable|array',
             'job_type.*'=>'nullable|string',
-            'location' => 'nullable|string',
+            'location' => 'nullable|array',
+            'location.*' => 'nullable|string',
             'stages' => 'nullable|array',
             'stages.*' => 'nullable|string',
             'sort_by' => 'nullable|string|in:last_updated_newest,last_updated_oldest,created_date_newest,created_date_oldest,address,value_high,value_low,time_in_stage_newest,time_in_stage_oldest',
@@ -2054,7 +2059,7 @@ class CompanyJobController extends Controller
                         $sortField = 'created_at';
                         $sortOrder = 'asc';
                         break;
-                    case 'name':
+                    case 'address':
                         $sortField = 'address';
                         $sortOrder = 'asc';
                         break;
@@ -2106,11 +2111,12 @@ class CompanyJobController extends Controller
                         }
 
                          // Filter by sales representative
-                        if ($request->sales_representative) {
+                         if (!empty($request->sales_representatives)) {
                             $query->whereHas('companyJobUsers', function ($q) use ($request) {
-                                $q->where('user_id', $request->sales_representative);
+                                $q->whereIn('user_id', $request->sales_representatives);
                             });
                         }
+                        
 
                         // Add search filter
                         if ($request->search_term) {
@@ -2124,7 +2130,7 @@ class CompanyJobController extends Controller
                         $query->with(['summary' => function ($q) {
                             $q->select('company_job_id', 'job_total', 'claim_number','job_type','lead_source');
                         }, 'status'])
-                        ->select('company_jobs.id', 'company_jobs.name', 'company_jobs.address', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.status_id')
+                        ->select('company_jobs.id', 'company_jobs.name', 'company_jobs.address', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.status_id','company_jobs.user_id')
                         ->leftJoin('company_job_summaries', 'company_jobs.id', '=', 'company_job_summaries.company_job_id')
                         ->where('created_by', $created_by);
 
@@ -2211,11 +2217,12 @@ class CompanyJobController extends Controller
                         }
 
                          // Filter by sales representative
-                        if ($request->sales_representative) {
+                         if (!empty($request->sales_representatives)) {
                             $query->whereHas('companyJobUsers', function ($q) use ($request) {
-                                $q->where('user_id', $request->sales_representative);
+                                $q->whereIn('user_id', $request->sales_representatives);
                             });
                         }
+                        
 
                     }
                 ])
@@ -2233,6 +2240,7 @@ class CompanyJobController extends Controller
                         'name' => $job->name,
                         'address' => json_decode($job->address, true)['formatedAddress'] ?? null,
                         'status_id' => $job->status_id,
+                        'user_id' => $job->user_id,
                         'created_at' => $job->created_at,
                         'updated_at' => $job->updated_at,
                         'summary' => [
@@ -2269,12 +2277,14 @@ class CompanyJobController extends Controller
         try {
             $user = Auth::user();
             $companyId = $user->company_id;
+            // dd($companyId);
 
             $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Estimate Prepared','Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Won and Closed'])->get();
-            if (in_array($user->role_id, [1, 2])) {
+            if (in_array($user->role_id, [1, 2,5,8,9])) {
                 // Role 1 or 2: Fetch users with the same company_id as the logged-in user
-                $representatives = User::whereHas('companyJobUsers')
-                    ->where('created_by', $companyId)
+                $representatives = User::
+                    // whereHas('companyJobUsers')
+                    where('created_by', $companyId)
                     ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
                     ->get();
                 $location = Location::whereIn('created_by',[$companyId,0])->get();
@@ -2512,6 +2522,78 @@ class CompanyJobController extends Controller
             'total_jobs' => $response,
             
         ]);
+    }
+
+    public function summaryFilter(Request $request)
+    {
+        $request->validate([
+            'location'=>'nullable|string',
+            'job_status' => 'nullable|string|in:total_jobs,completed_jobs,in_progress'
+        ]);
+
+        try{
+            $user = Auth::user();
+            $created_by = $user->company_id;
+
+            $jobs = CompanyJob::with('companyJobSummaries')
+                ->when($user->role_id !== 7, function ($query) use ($created_by) {
+                       // Apply the created_by filter only if the user's role_id is not 7
+                    $query->where('created_by', $created_by);
+                })
+                ->when($request->has('location'), function ($query) use ($request) {
+                    $query->whereHas('companyJobSummaries', function ($q) use ($request) {
+                        $q->where('market', $request->location);
+                    });
+                })
+                ->when($request->has('job_status'),function ($query) use ($request) {
+                    //apply filter
+                    switch($request->job_status){
+                        case 'total_jobs':
+                        break;
+                        case 'completed_jobs':
+                        $query->where('status_id',15);
+                        break;
+                        case 'in_progress':
+                        $query->where('status_id', '<>', 15);
+                        break;
+                    }
+                })
+                ->get();
+
+                // Add the "need_attention" field dynamically
+                $jobs->each(function ($job) {
+                    $dateField = $job->date; 
+                    $job->attention_status = Carbon::parse($dateField)->diffInDays(Carbon::now()) > 17 ? 'required' : 'ok';
+                });
+
+                    // if need to apply the attention on the base of level uncomment this code and comment above
+                    // $jobs->each(function ($job) {
+                    //     $dateField = $job->date; 
+                    //     $daysDifference = Carbon::parse($dateField)->diffInDays(Carbon::now());
+    
+                    //     if ($daysDifference <= 6) {
+                    //         $job->attention_status = 'yellow';
+                    //     } elseif ($daysDifference > 6 && $daysDifference < 17) {
+                    //         $job->attention_status = 'normal';
+                    //     } else {
+                    //         $job->attention_status = 'urgenet attention';
+                    //     }
+                    // });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Filtered and Feteched Successfully',
+                'data' => $jobs
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage(),
+                'message' => 'Issue occured',
+                'data' => []
+            ]);
+        }
+       
     }
 
     public function progressLine($jobId) //used for both grid and kanban
