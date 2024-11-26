@@ -192,6 +192,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Adjustor meeting Photo section
     Route::post('add/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'AdjustorMeetingPhotoSection']);
     Route::get('get/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'getAdjustorMeetingPhotoSection']);
+    Route::post('add/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'AdjustorMeetingSquarePhotos']);
+    Route::get('get/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'getAdjustorMeetingSquarePhotos']);
+    Route::get('mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'CompleteAdjustorMeetingSquarePhotos']);
 
     //Overturn Meeting Api
     Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
