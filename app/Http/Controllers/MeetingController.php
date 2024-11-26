@@ -390,10 +390,49 @@ class MeetingController extends Controller
 
     }
 
-    public function CompleteAdjustorMeetingSquarePhotos($Id)
+    public function CompleteAdjustorMeetingSquarePhotos($Id, Request $request)
     {
-        
+        $request->validate([
+            'status'=> "nullable|in:true,false"
+        ]);
+        $job = CompanyJob::find($Id);
+        // dd($job);
+        if(!$job)
+        {
+            return response()->json([
+                'status' =>200,
+                'message' =>'Job not show',
+                'data' => []
+            ]);
+        }
+
+        if($request->input('status') == "true"){
+            $job->status_id = 10;
+            $job->save();
+
+            return response()->json([
+                'status' =>200,
+                'message' =>'Job Status Updated SuccessFully',
+                'data' => $job
+            ]);
+        } else if($request->input('status') == "false"){
+            $job->status_id = 4;
+            $job->save();
+
+            return response()->json([
+                'status' =>200,
+                'message' =>'Job Status Updated SuccessFully',
+                'data' => $job
+            ]);
+        }
+        return response()->json([
+            'status' =>200,
+            'message' =>'No status Updated',
+            'data' => []
+        ]);
+           
     }
+
     public function updateAdjustorMeetingStatus(Request $request, $jobId)
     {
         //Validate Rules
