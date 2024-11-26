@@ -152,7 +152,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/claim-details/{jobId}', [CompanyJobController::class, 'getclaimDetails']);
 
     ///Summary Metrics Section
-    Route::get('summary-metrics', [CompanyJobController::class, 'summaryMetrics']);
+    Route::get('summary-metrics', [CompanyJobController::class, 'summaryMetrics']); //Summary Metrics and Alerts Section Api
+    Route::get('summary-filter', [CompanyJobController::class, 'summaryFilter']);  //Summary and Key Metrics api
+
     //progress Line
     Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']); 
 
@@ -186,6 +188,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/adjustor-meeting/{jobId}', [MeetingController::class, 'getAdjustorMeeting']);
     Route::post('change/adjustor-meeting/file-name/{id}', [MeetingController::class, 'changeAdjustorMeetingFileName']);
     Route::post('delete/adjustor-meeting/media/{id}', [MeetingController::class, 'deleteAdjustorMeetingMedia']);
+
+    //Adjustor meeting Photo section
+    Route::post('add/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'AdjustorMeetingPhotoSection']);
+    Route::get('get/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'getAdjustorMeetingPhotoSection']);
+
     //Overturn Meeting Api
     Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
     Route::post('update/overturn-meeting-media/{jobId}', [MeetingController::class, 'updateOverturnMeetingMedia']);
