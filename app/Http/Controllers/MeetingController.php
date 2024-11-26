@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Status;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
@@ -9,11 +10,11 @@ use App\Models\AdjustorMeeting;
 use App\Models\OverturnMeeting;
 use Illuminate\Support\Facades\DB;
 use App\Events\JobStatusUpdateEvent;
-use App\Models\OverturnMeetingMedia;
 use App\Models\AdjustorMeetingMedia;
-use App\Models\AdjustorMeetingPhotoSection;
+use App\Models\AdjustorSquarePhotos;
+use App\Models\OverturnMeetingMedia;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use App\Models\AdjustorMeetingPhotoSection;
 
 class MeetingController extends Controller
 {
@@ -274,7 +275,7 @@ class MeetingController extends Controller
             ]);
         }
         return response()->json([
-            'message' => 'Issue Occured',
+            'message' => 'Not Found',
             'status' => 200,
             'data' => [],
         ]);
@@ -332,6 +333,67 @@ class MeetingController extends Controller
         }
     }
 
+    public function AdjustorMeetingSquarePhotos($id,Request $request)
+    {
+        $request->validate([
+            'square_photo'=>'nullable|image',
+            'label' => 'nullable|string'
+        ]);
+
+        try{
+            if($request->hasFile('square_photo'))
+            {
+                $image = $request->file('square_photo');
+                $imageName = time().'.'. $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('AdjustorSquarePhotos',$imageName,'public');
+            }
+
+            $photos = new AdjustorSquarePhotos();
+            $photos->adjustor_meeting_id = $id;
+            $photos->square_photos = $imagePath;
+            $photos->label = $request->label;
+            $photos->save();
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Sqaure Photos Added Successfully',
+                'date' => $photos
+            ]);
+            
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 500,
+                'message' => 'Issue Occured',
+                'date' => []
+            ]);
+        }
+
+    }
+
+    public function getAdjustorMeetingSquarePhotos($Id,Request $request)
+    { 
+        $photos = AdjustorSquarePhotos::where('adjustor_meeting_id',$Id)->get();
+
+        if($photos){
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Sqaure Photos Fetched Successfully',
+                'date' => $photos
+            ]);
+        }
+
+        return response()->json([
+            'status' => 500,
+            'message' => 'Not Found',
+            'date' => []
+        ]);
+
+    }
+
+    public function CompleteAdjustorMeetingSquarePhotos($Id)
+    {
+        
+    }
     public function updateAdjustorMeetingStatus(Request $request, $jobId)
     {
         //Validate Rules

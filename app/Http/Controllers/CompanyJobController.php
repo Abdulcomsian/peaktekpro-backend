@@ -2059,7 +2059,7 @@ class CompanyJobController extends Controller
                         $sortField = 'created_at';
                         $sortOrder = 'asc';
                         break;
-                    case 'name':
+                    case 'address':
                         $sortField = 'address';
                         $sortOrder = 'asc';
                         break;
@@ -2111,11 +2111,12 @@ class CompanyJobController extends Controller
                         }
 
                          // Filter by sales representative
-                        if ($request->sales_representative) {
+                         if (!empty($request->sales_representatives)) {
                             $query->whereHas('companyJobUsers', function ($q) use ($request) {
-                                $q->where('user_id', $request->sales_representative);
+                                $q->whereIn('user_id', $request->sales_representatives);
                             });
                         }
+                        
 
                         // Add search filter
                         if ($request->search_term) {
@@ -2129,7 +2130,7 @@ class CompanyJobController extends Controller
                         $query->with(['summary' => function ($q) {
                             $q->select('company_job_id', 'job_total', 'claim_number','job_type','lead_source');
                         }, 'status'])
-                        ->select('company_jobs.id', 'company_jobs.name', 'company_jobs.address', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.status_id')
+                        ->select('company_jobs.id', 'company_jobs.name', 'company_jobs.address', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.status_id','company_jobs.user_id')
                         ->leftJoin('company_job_summaries', 'company_jobs.id', '=', 'company_job_summaries.company_job_id')
                         ->where('created_by', $created_by);
 
@@ -2216,11 +2217,12 @@ class CompanyJobController extends Controller
                         }
 
                          // Filter by sales representative
-                        if ($request->sales_representative) {
+                         if (!empty($request->sales_representatives)) {
                             $query->whereHas('companyJobUsers', function ($q) use ($request) {
-                                $q->where('user_id', $request->sales_representative);
+                                $q->whereIn('user_id', $request->sales_representatives);
                             });
                         }
+                        
 
                     }
                 ])
@@ -2238,6 +2240,7 @@ class CompanyJobController extends Controller
                         'name' => $job->name,
                         'address' => json_decode($job->address, true)['formatedAddress'] ?? null,
                         'status_id' => $job->status_id,
+                        'user_id' => $job->user_id,
                         'created_at' => $job->created_at,
                         'updated_at' => $job->updated_at,
                         'summary' => [
