@@ -179,6 +179,12 @@ class CustomerAgreementController extends Controller
             }
 
             $jobSummary = CompanyJobSummary::where('company_job_id',$id)->first();
+            if (!$jobSummary) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Summary Not Found for the given Job ID.'
+                ], 422);
+            }
             $jobType = $jobSummary->job_type;
 
             if($jobType == "Insurance")
