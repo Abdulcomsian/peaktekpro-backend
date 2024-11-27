@@ -37,8 +37,17 @@ class StatusSeeder extends Seeder
             ['name' => 'COC Required'],
             ['name' => 'Final Payment Due'],
             ['name' => 'Ready to Close'],
-            ['name' => 'Completed'],
+            ['name' => 'Won and Closed'],
             ['name' => 'Lost'],
+
+            ['name' => 'Ins Under Review'],
+            ['name' => 'Appraisal'],
+            ['name' => 'Supplement Submitted'],
+            ['name' => 'Unqualified'],
+            ['name' => 'Completed'],
+            
+
+
         ];
 
         foreach($statuses as $status)
