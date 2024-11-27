@@ -304,15 +304,59 @@ class MeetingController extends Controller
             ]);
 
             if(isset($request->sent) && $request->sent== 'true' && $adjustor_meeting->status === 'approved') {
-                $job->status_id = 8;
+                $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();  
                 
                    //current stage save
                 $adjustor_meeting->current_stage="yes";
                 $adjustor_meeting->save();
+            }
+            elseif(isset($request->sent) && $request->sent== 'true' && $adjustor_meeting->status === 'overturn') {
 
-            }elseif(isset($request->sent) && $request->sent == "false"){
+                $job->status_id = 5;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();  
+                
+                    //current stage save
+                $adjustor_meeting->current_stage="yes";
+                $adjustor_meeting->save();
+
+            }
+            elseif(isset($request->sent) && $request->sent== 'true' && $adjustor_meeting->status === 'apprisal') {
+
+                $job->status_id = 18;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();  
+                
+                    //current stage save
+                $adjustor_meeting->current_stage="yes";
+                $adjustor_meeting->save();
+
+            }
+            elseif(isset($request->sent) && $request->sent== 'true' && $adjustor_meeting->status === 'denied') {
+
+                $job->status_id = 16;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();  
+                
+                    //current stage save
+                $adjustor_meeting->current_stage="yes";
+                $adjustor_meeting->save();
+
+            }
+            elseif(isset($request->sent) && $request->sent== 'true' && $adjustor_meeting->status === 'denied') {
+
+                $job->status_id = 16;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();  
+                
+                    //current stage save
+                $adjustor_meeting->current_stage="yes";
+                $adjustor_meeting->save();
+
+            }
+            elseif(isset($request->sent) && $request->sent == "false"){
                 $job->status_id = 4;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save(); 
@@ -392,42 +436,49 @@ class MeetingController extends Controller
 
     public function CompleteAdjustorMeetingSquarePhotos($Id, Request $request)
     {
-        $request->validate([
-            'status'=> "nullable|in:true,false"
+        // dd($Id);
+        $validator = $request->validate([
+            'status'=> 'nullable|in:yes,no'
         ]);
-        $job = CompanyJob::find($Id);
+
+        // if($validator->fails())
+        // {
+        //     return response()->json([
+        //         'status' =>401,
+        //         'message' =>'please select the assigned Values of status',
+        //     ]);
+        // }
+
+
+        $job = CompanyJob::where('id',$Id)->first();
         // dd($job);
-        if(!$job)
+        if($job)
         {
-            return response()->json([
-                'status' =>200,
-                'message' =>'Job not show',
-                'data' => []
-            ]);
-        }
+            if($request->input('status') == "yes"){
+                $job->status_id = 17;
+                $job->save();
 
-        if($request->input('status') == "true"){
-            $job->status_id = 10;
-            $job->save();
+                return response()->json([
+                    'status' =>200,
+                    'message' =>'Adjustor Meeting Marked as Completed',
+                    'data' => $job
+                ]);
 
-            return response()->json([
-                'status' =>200,
-                'message' =>'Job Status Updated SuccessFully',
-                'data' => $job
-            ]);
-        } else if($request->input('status') == "false"){
-            $job->status_id = 4;
-            $job->save();
+            } elseif($request->input('status') == "no"){
+            
+                $job->status_id = 4;
+                $job->save();
 
-            return response()->json([
-                'status' =>200,
-                'message' =>'Job Status Updated SuccessFully',
-                'data' => $job
-            ]);
+                return response()->json([
+                    'status' =>200,
+                    'message' =>'Adjustor Meeting Status Updated SuccessFully',
+                    'data' => $job
+                ]);
+            }
         }
         return response()->json([
             'status' =>200,
-            'message' =>'No status Updated',
+            'message' =>'Job Not Found',
             'data' => []
         ]);
            
@@ -437,7 +488,7 @@ class MeetingController extends Controller
     {
         //Validate Rules
         $rules = [
-            'status' => 'nullable|in:approved,overturn,appraisal',
+            'status' => 'nullable|in:approved,overturn,appraisal,denied,pending_insurance',
         ];
         try {
             //Check Job
@@ -461,11 +512,23 @@ class MeetingController extends Controller
             ]);
 
             if($request->status=== 'approved' && $adjustor_meeting->sent === 'true') {
-                $job->status_id = 8;
+                $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
-            }elseif($request->status=== 'overturn' || $request->status=== 'appraisal') {
-                $job->status_id = 4;
+            }elseif($request->status=== 'overturn' && $adjustor_meeting->sent === 'true') {
+                $job->status_id = 5;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }elseif($request->status=== 'appraisal' || $adjustor_meeting->sent === 'true') {
+                $job->status_id = 18;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }elseif($request->status=== 'denied' || $adjustor_meeting->sent === 'true') {
+                $job->status_id = 16;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+            }elseif($request->status=== 'pending_insurance' || $adjustor_meeting->sent === 'true') {
+                $job->status_id = 17;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
             }
@@ -480,7 +543,6 @@ class MeetingController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-
     
     public function updateAdjustorMeetingMedia(Request $request, $jobId)
     {
