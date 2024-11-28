@@ -111,7 +111,7 @@ class ReadyToCloseController extends Controller
             //Update Job Status
             if(isset($request->status) && $request->status == true)
             {
-                $job->status_id = 15;
+                $job->status_id = 16;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
@@ -121,7 +121,7 @@ class ReadyToCloseController extends Controller
 
             }elseif(isset($request->status) && $request->status == false)
             {
-                $job->status_id = 14;
+                $job->status_id = 15;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 

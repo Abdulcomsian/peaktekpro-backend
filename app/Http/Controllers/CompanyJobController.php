@@ -224,8 +224,8 @@ class CompanyJobController extends Controller
             $statuses = Status::whereIn('name', [
                 'New Leads',
                 'Signed Deals',
-                // 'Estimate Prepared', //excluded
-                'Adjustor',
+                'Estimate Prepared', //excluded
+                'Adjuster Scheduled',
                 'Ins Under Review', 
                 'Overturn',
                 'Appraisal',  
@@ -242,6 +242,8 @@ class CompanyJobController extends Controller
                 'Lost',
                 'Unqualified', 
             ])->get();
+
+            // return response($statuses);
 
             // Map statuses with job totals and tasks
             $response = $statuses->map(function ($status) use ($groupedJobs, $user, $created_by) {
@@ -1077,8 +1079,28 @@ class CompanyJobController extends Controller
             $user = Auth::user();
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
             $created_by = $user->created_by == 0 ? 1 : $user->created_by; 
-            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
-
+            // $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
+            $specificStatuses=[
+                            'New Leads',
+                            'Signed Deals',
+                            'Estimate Prepared', //excluded show only when job_type is insurance
+                            'Adjuster Scheduled',
+                            'Ins Under Review', 
+                            'Overturn',
+                            'Appraisal',  
+                            'Approved',
+                            'Ready To Build',
+                            'Build Scheduled',
+                            'In Progress',
+                            'Build Complete',
+                            'COC Required',
+                            'Final Payment Due',
+                            'Ready to Close',
+                            'Supplement Submitted',
+                            'Won and Closed',
+                            'Lost',
+                            'Unqualified',
+            ];
             if (in_array($user->role_id, [1, 2, 7])) {
                 $tasks = Status::whereIn('name', $specificStatuses)
                     ->withCount([
