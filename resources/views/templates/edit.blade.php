@@ -467,6 +467,9 @@
 
         // Apply debounced function to save data on keyup
         $('.inp-data').on('keyup change', saveTemplatePageInputData);
+        // $(document).on('keyup change', '.inp-data', function (){
+        //     console.log('test')
+        // });
 
         // save textarea data
         const saveTemplatePageTextareaData = debounce(function(element) {

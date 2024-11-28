@@ -4,8 +4,8 @@
         <div class="mb-4">
             <label for="disclaimer" class="block text-gray-700 text-sm font-medium">Disclaimer</label>
             <small>For example, the terms of an estimate, or a direction to the insurer.</small>
-            <input type="text" id="disclaimer" name="disclaimer" placeholder="Enter disclaimer"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500"
+            <input type="text" id="disclaimer" name="authorization_disclaimer" placeholder="Enter disclaimer"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
                 required />
         </div>
 
