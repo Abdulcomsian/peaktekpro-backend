@@ -224,19 +224,27 @@ class CompanyJobController extends Controller
             $statuses = Status::whereIn('name', [
                 'New Leads',
                 'Signed Deals',
-                'Estimate Prepared',
+                // 'Estimate Prepared', //excluded
                 'Adjustor',
+                'Ins Under Review', 
+                'Overturn',
+                'Appraisal',  
+                'Approved',
                 'Ready To Build',
                 'Build Scheduled',
                 'In Progress',
                 'Build Complete',
+                'COC Required',
                 'Final Payment Due',
                 'Ready to Close',
-                'Won and Closed'
+                'Supplement Submitted',
+                'Won and Closed',
+                'Lost',
+                'Unqualified', 
             ])->get();
 
             // Map statuses with job totals and tasks
-            $response = $statuses->map(function ($status) use ($groupedJobs, $user, $created_by, $jobsWithProgress) {
+            $response = $statuses->map(function ($status) use ($groupedJobs, $user, $created_by) {
                 $jobTotalSumQuery = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
                     $query->where('status_id', $status->id);
                 });
@@ -250,12 +258,22 @@ class CompanyJobController extends Controller
 
                 $jobTotalSum = $jobTotalSumQuery->sum('job_total');
 
+                // $completedJobs = $jobsWithProgress->filter(function ($job) use ($status) {
+                //     return $job->status_id === $status->id;
+                // })->map(function ($job) {
+                //     return [
+                //         'id' => $job->id,
+                //         'name' => $job->name,
+                //         'completed_percentage' => $job->completed_percentage,
+                //     ];
+                // });
+
                 return [
                     'id' => $status->id,
                     'name' => $status->name,
                     'job_total' => $jobTotalSum,
                     'tasks' => $groupedJobs->get($status->name, collect()),
-                    'completed' => $jobsWithProgress,
+                    // 'completed' => $completedJobs,
                 ];
             });
 
@@ -373,17 +391,25 @@ class CompanyJobController extends Controller
 
             // Define statuses
             $statuses = Status::whereIn('name', [
-                'New Leads',
+               'New Leads',
                 'Signed Deals',
-                'Estimate Prepared',
-                'Adjustor',
+                // 'Estimate Prepared', //excluded
+                'Adjuster',
+                'Ins Under Review', 
+                'Overturn',
+                'Appraisal',  
+                'Approved',
                 'Ready To Build',
                 'Build Scheduled',
                 'In Progress',
                 'Build Complete',
+                'COC Required',
                 'Final Payment Due',
                 'Ready to Close',
-                'Won and Closed'
+                'Supplement Submitted',
+                'Won and Closed',
+                'Lost',
+                'Unqualified', 
             ])->get();
 
             // Map statuses with job totals and tasks
@@ -2082,7 +2108,28 @@ class CompanyJobController extends Controller
                 }
             }
 
-            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
+            $specificStatuses =
+                ['New Leads',
+                'Signed Deals',
+                // 'Estimate Prepared', //excluded
+                'Adjuster',
+                'Ins Under Review', 
+                'Overturn',
+                'Appraisal',  
+                'Approved',
+                'Ready To Build',
+                'Build Scheduled',
+                'In Progress',
+                'Build Complete',
+                'COC Required',
+                'Final Payment Due',
+                'Ready to Close',
+                'Supplement Submitted',
+                'Won and Closed',
+                'Lost',
+                'Unqualified', ];
+
+            // $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
 
             $tasks = Status::select('id', 'name')
                 ->when(!empty($request->stages), function ($query) use ($request) {
@@ -2279,7 +2326,8 @@ class CompanyJobController extends Controller
             $companyId = $user->company_id;
             // dd($companyId);
 
-            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Estimate Prepared','Adjustor','Ready To Build','Build Scheduled','In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Won and Closed'])->get();
+            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Adjuster','Ins Under Review', 'Overturn','Appraisal','Approved','Ready To Build','Build Scheduled', 'In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Supplement Submitted','Won and Closed','Lost','Unqualified'])
+                 ->get();
             if (in_array($user->role_id, [1, 2,5,8,9])) {
                 // Role 1 or 2: Fetch users with the same company_id as the logged-in user
                 $representatives = User::
