@@ -55,6 +55,7 @@ authorizationFooterTextQuill.clipboard.dangerouslyPasteHTML(oldAuthorizationlFoo
 authorizationFooterTextQuill.on('text-change', function() {
     $('#authorization-footer-text').val(authorizationFooterTextQuill.root.innerHTML);
 
+    //save textarea data
     saveTemplatePageTextareaData('#authorization-footer-text');
 });
 

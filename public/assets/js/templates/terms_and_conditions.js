@@ -52,5 +52,9 @@ let oldTermsAndConditionsTextValue = '';
 // Load the saved content into the editor
 termsAndConditionsQuill.clipboard.dangerouslyPasteHTML(oldTermsAndConditionsTextValue);
 termsAndConditionsQuill.on('text-change', function() {
-    $('#terms-and-conditions-text').val(introTextQuill.root.innerHTML);
+    $('#terms-and-conditions-text').val(termsAndConditionsQuill.root.innerHTML);
+
+    //save textarea data
+    saveTemplatePageTextareaData('#terms-and-conditions-text');
+
 });
