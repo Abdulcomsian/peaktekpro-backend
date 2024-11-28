@@ -12,7 +12,7 @@
             <label for="roof-repair-limitations-text" class="block text-gray-700 text-sm font-medium mb-2">Descriptive
                 Text for Roof Repair Limitations</label>
             <div id="roof-repair-limitations-quill" class="bg-white"></div>
-            <textarea class="hidden" id="roof-repair-limitations-text" name="roof_repair_limitations" required>{{ '' }}</textarea>
+            <textarea class="hidden" id="roof-repair-limitations-text" name="roof_repair_limitations_text" required>{{ '' }}</textarea>
         </div>
     </form>
 </div>

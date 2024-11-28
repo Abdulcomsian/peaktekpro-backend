@@ -98,4 +98,7 @@ let oldRoofRepairLimitationText = '';
 roofRepairLimitationsQuill.clipboard.dangerouslyPasteHTML(oldRoofRepairLimitationText);
 roofRepairLimitationsQuill.on('text-change', function() {
     $('#roof-repair-limitations-text').val(roofRepairLimitationsQuill.root.innerHTML);
+
+    //save textarea data
+    saveTemplatePageTextareaData('#roof-repair-limitations-text');
 });

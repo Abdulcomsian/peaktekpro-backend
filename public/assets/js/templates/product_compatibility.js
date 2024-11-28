@@ -3,8 +3,6 @@
 $("input[name='product_compatibility_type']").on("change", function() {
     var selectedValue = $("input[name='product_compatibility_type']:checked").val();
 
-    console.log(selectedValue)
-
     if (selectedValue === 'pdf') {
         $('#product-compatibility-form-upload-pdf').removeClass('hidden');
         $('#product-compatibility-form-text-page').hasClass('hidden') ? '' : $('#product-compatibility-form-text-page').addClass('hidden');
