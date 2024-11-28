@@ -53,4 +53,8 @@ let oldWarrantyTextValue = '';
 warrantyTextQuill.clipboard.dangerouslyPasteHTML(oldWarrantyTextValue);
 warrantyTextQuill.on('text-change', function() {
     $('#warranty-text').val(warrantyTextQuill.root.innerHTML);
+
+    //save textarea data
+    saveTemplatePageTextareaData('#warranty-text');
+
 });
