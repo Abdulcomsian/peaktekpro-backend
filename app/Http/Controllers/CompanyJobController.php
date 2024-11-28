@@ -223,8 +223,8 @@ class CompanyJobController extends Controller
             // Define statuses
             $statuses = Status::whereIn('name', [
                 'New Leads',
-                'Signed Deals',
-                'Estimate Prepared', //excluded
+                'Customer Agreement',
+                // 'Estimate Prepared', //excluded
                 'Adjuster Scheduled',
                 'Ins Under Review', 
                 'Overturn',
@@ -1082,8 +1082,8 @@ class CompanyJobController extends Controller
             // $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
             $specificStatuses=[
                             'New Leads',
-                            'Signed Deals',
-                            'Estimate Prepared', //excluded show only when job_type is insurance
+                            'Customer Agreement',
+                            // 'Estimate Prepared', //excluded show only when job_type is insurance
                             'Adjuster Scheduled',
                             'Ins Under Review', 
                             'Overturn',

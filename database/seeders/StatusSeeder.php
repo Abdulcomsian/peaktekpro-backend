@@ -24,7 +24,7 @@ class StatusSeeder extends Seeder
         
         $statuses = [
             ['name' => 'New Leads'],
-            ['name' => 'Signed Deals'],
+            ['name' => 'Customer Agreement'],
             ['name' => 'Estimate Prepared'],
             ['name' => 'Adjuster Scheduled'],
             ['name' => 'Ins Under Review'],
