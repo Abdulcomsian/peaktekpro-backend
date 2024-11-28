@@ -85,7 +85,7 @@ class FinalPaymentController extends Controller
             ]);
             
             if(isset($request->status) && $request->status == true) {
-                $job->status_id = 14;
+                $job->status_id = 15;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
@@ -94,7 +94,7 @@ class FinalPaymentController extends Controller
                 $final_payment->save();
 
             }if(isset($request->status) && $request->status == false) {
-                $job->status_id = 13;
+                $job->status_id = 14;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
