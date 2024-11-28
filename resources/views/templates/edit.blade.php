@@ -266,6 +266,50 @@
                 }
             });
 
+
+            // Initialize Quill editor
+            function customPageInitializeQuill() {
+                // Re-initialize Quill for the newly added content
+                $('.custom-page-quill-editor').each(function() {
+                    if (!$(this).hasClass('quill-initialized')) {
+                        var quill = new Quill($(this)[0], {
+                            theme: 'snow',
+                            placeholder: 'Enter your content...',
+                            modules: {
+                                toolbar: [
+                                    [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                    [{ 'align': [] }],
+                                    ['bold', 'italic', 'underline'],
+                                    ['link'],
+                                    ['blockquote'],
+                                    [{ 'script': 'sub' }, { 'script': 'super' }],
+                                    ['clean']
+                                ]
+                            }
+                        });
+                        $(this).addClass('quill-initialized'); // Mark as initialized
+                    }
+                });
+            }
+
+            // Initialize Dropzone
+            function customPageInitializeDropzone() {
+                // Re-initialize Dropzone for the newly added elements
+                $('.custom-page-dropzone').each(function() {
+                    if (!$(this).hasClass('dropzone-initialized')) {
+                        new Dropzone($(this)[0], {
+                            url: '/your-upload-endpoint',
+                            paramName: 'file', // The name that will be used to send the file
+                            maxFilesize: 2, // Maximum file size in MB
+                            acceptedFiles: '.jpg,.jpeg,.png,.gif,.pdf',
+                            addRemoveLinks: true
+                        });
+                        $(this).addClass('dropzone-initialized'); // Mark as initialized
+                    }
+                });
+            }
+
             // Handle "Create Page" button click
             $('#createPageBtn').on('click', function() {
                 $.ajax({
@@ -297,6 +341,10 @@
         <p>Content for ${response.page.name}</p>
          ${$('#custom-page-content').html()}
     </div>`);
+
+                            // Re-initialize Quill and Dropzone after appending content
+                            customPageInitializeQuill();
+                            customPageInitializeDropzone();
 
                             showSuccessNotification(response.message);
 

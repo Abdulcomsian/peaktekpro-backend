@@ -16,7 +16,7 @@
     <div class="hidden" data-selected="single_pdf">
 
         <!-- Form for PDF Upload (Dropzone) -->
-        <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone" id="custom-page-single-pdf-dropzone" >
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone custom-page-dropzone" id="custom-page-single-pdf-dropzone">
             <div class="dz-message text-gray-600">
                 <span class="block text-lg font-semibold">Drag & Drop or Click to Upload PDF</span>
                 <small class="text-gray-500">Only PDF file are allowed</small>
@@ -26,7 +26,7 @@
     </div>
 
     <div class="hidden" data-selected="single_text">
-        <div id="custom-page-text-quill" class="bg-white"></div>
+        <div id="custom-page-text-quill" class="bg-white custom-page-quill-editor"></div>
         <textarea class="hidden" id="custom-page-text" name="custom_page_text" required>{{ '' }}</textarea>
     </div>
 </div>
