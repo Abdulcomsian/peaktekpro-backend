@@ -53,4 +53,7 @@ let oldApplicableCodeGuidelinesValue = '';
 applicableCodeGuidelinesQuill.clipboard.dangerouslyPasteHTML(oldApplicableCodeGuidelinesValue);
 applicableCodeGuidelinesQuill.on('text-change', function() {
     $('#applicable-code-guidelines-text').val(applicableCodeGuidelinesQuill.root.innerHTML);
+
+    //save textarea data
+    saveTemplatePageTextareaData('#applicable-code-guidelines-text');
 })
