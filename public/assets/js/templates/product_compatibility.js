@@ -112,5 +112,9 @@ let oldProductCompatibilityValue = '';
 productCompatibilityQuill.clipboard.dangerouslyPasteHTML(oldProductCompatibilityValue);
 productCompatibilityQuill.on('text-change', function() {
     $('#product-compatibility-text').val(productCompatibilityQuill.root.innerHTML);
+
+    //save textarea data
+    saveTemplatePageTextareaData('#product-compatibility-text');
+
 });
 
