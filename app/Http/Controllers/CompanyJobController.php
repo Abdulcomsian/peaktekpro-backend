@@ -185,6 +185,8 @@ class CompanyJobController extends Controller
                     ->first();
                     if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
                         $completedSteps += 1; // Count both 'new_leads' and 'customer_agreements'
+                    }elseif ($customerAgreement && $customerAgreement->current_stage === 'no') {
+                        $completedSteps += 1; // when we revert from status 4 to status 2 it means at this time job is in status 2 so no 1 step is complete thats why set 10 percent
                     }
 
                 foreach ($tables as $table) {
