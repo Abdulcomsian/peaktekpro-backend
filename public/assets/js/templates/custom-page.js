@@ -4,8 +4,6 @@
 $("input[name='custom_page_type']").on("change", function() {
     var selectedValue = $("input[name='custom_page_type']:checked").val();
 
-    console.log(selectedValue)
-
      // Toggle visibility of elements based on `data-selected`
      $(".custom-page-container div[data-selected]").each(function() {
         if ($(this).data("selected") === selectedValue) {
@@ -112,4 +110,8 @@ let oldCustomPageTextValue = '';
 customPageTextQuill.clipboard.dangerouslyPasteHTML(oldCustomPageTextValue);
 customPageTextQuill.on('text-change', function() {
     $('#custom-page-text').val(customPageTextQuill.root.innerHTML);
+
+    //save textarea data
+    saveTemplatePageTextareaData('#custom-page-text');
+
 });
