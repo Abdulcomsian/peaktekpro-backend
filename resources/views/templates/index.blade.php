@@ -200,9 +200,6 @@
             $.ajax({
                 url: `{{ route('templates.destroy', ['id' => ':id']) }}`.replace(':id', deleteTemplateId),
                 type: 'DELETE',
-                data: {
-                    _token: $('meta[name=csrf-token]').attr('content')
-                },
                 success: function(response) {
 
                     if (response.status) {

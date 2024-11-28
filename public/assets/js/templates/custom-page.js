@@ -19,7 +19,6 @@ $("input[name='custom_page_type']").on("change", function() {
 
 
 // drop zone
-Dropzone.autoDiscover = false;
 
 const customPageSinglePdfDropZone = new Dropzone("#custom-page-single-pdf-dropzone", {
     url: "/templates/repairibility-assessment",

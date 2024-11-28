@@ -12,8 +12,6 @@
         #repairabilityAssessmentDropzone .dz-details {
             display: none;
         }
-
-
     </style>
 @endpush
 
@@ -38,7 +36,7 @@
                         </label>
                     </li>
                 @empty
-                    <p class="text-gray-500">No tabs available</p>
+                    <p class="text-gray-500">No pages found</p>
                 @endforelse
             </ul>
 
@@ -56,8 +54,7 @@
             <div class="bg-white shadow p-4 rounded-lg mb-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold" id="templateTitleText">{{ $template->title }}</h2>
-                    <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn"
-                        >Edit</button>
+                    <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
                 </div>
 
                 <!-- Edit input (initially hidden) -->
@@ -114,6 +111,7 @@
 
 @push('scripts')
     <script>
+        var pageId = null
         $(document).ready(function() {
             // edit template title start
             // Show input field for editing when edit button is clicked
@@ -150,7 +148,6 @@
                     method: 'PUT',
                     data: {
                         title: newTitle,
-                        _token: $('meta[name=csrf-token]').attr('content')
                     },
                     success: function(response) {
                         if (response.status) {
@@ -205,6 +202,10 @@
                 // Show the related content
                 $(".tab-content").hide();
                 $($(this).data("target")).fadeIn();
+
+                // assign active page id
+                pageId = $(this).data('id')
+
             });
 
             // Enable draggable tabs
@@ -227,7 +228,6 @@
                         method: 'POST',
                         data: {
                             order: order,
-                            _token: $('meta[name=csrf-token]').attr('content')
                         },
                         success: function(response) {
                             if (response.status) {
@@ -273,7 +273,6 @@
                     method: 'POST',
                     data: {
                         title: 'Custom Page',
-                        _token: $('meta[name=csrf-token]').attr('content')
                     },
                     success: function(response) {
                         if (response.status) {
@@ -328,7 +327,6 @@
                     method: 'PATCH',
                     data: {
                         status: status,
-                        _token: $('meta[name=csrf-token]').attr('content')
                     },
                     success: function(response) {
                         if (response.status) {
@@ -389,7 +387,6 @@
                     method: 'PUT',
                     data: {
                         name: newName,
-                        _token: $('meta[name=csrf-token]').attr('content')
                     },
                     success: function(response) {
                         if (response.status) {
@@ -443,4 +440,55 @@
     <script src="{{ asset('assets/js/templates/warranty.js') }}"></script>
     {{-- custom page js --}}
     <script src="{{ asset('assets/js/templates/custom-page.js') }}"></script>
+
+    {{-- save data --}}
+    <script type="text/javascript">
+        const saveTemplatePageData = "{{ route('templates.page.save-data') }}";
+
+        // save inputs data
+        const saveTemplatePageInputData = debounce(function() {
+            let fieldName = $(this).attr('name');
+            let fieldValue = $(this).val();
+            $.ajax({
+                url: saveTemplatePageData,
+                method: 'POST',
+                data: {
+                    page_id: pageId,
+                    [fieldName]: fieldValue
+                },
+                success: function(response) {
+                    console.log('Saved:', response.message);
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        }, 500); // Delay in milliseconds
+
+        // Apply debounced function to save data on keyup
+        $('.inp-data').on('keyup change', saveTemplatePageInputData);
+
+        // save textarea data
+        const saveTemplatePageTextareaData = debounce(function(element) {
+
+            let fieldName = $(element).attr('name');
+            let fieldValue = $(element).val();
+
+            $.ajax({
+                url: saveTemplatePageData,
+                method: 'POST',
+                data: {
+                    page_id: pageId,
+                    [fieldName]: fieldValue
+                },
+                success: function(response) {
+                    console.log('Saved:', response.message);
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+
+        }, 500)
+    </script>
 @endpush

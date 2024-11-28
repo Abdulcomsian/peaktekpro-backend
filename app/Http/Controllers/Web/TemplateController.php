@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Template\{StoreRequest, UpdateRequest};
 use Illuminate\Http\Request;
-use App\Models\{Page, Role, Template, TemplatePage};
+use App\Models\{Page, Role, Template, TemplatePage, TemplatePageData};
 
 class TemplateController extends Controller
 {
@@ -231,6 +231,48 @@ class TemplateController extends Controller
                 ]
             );
         }
+
+    }
+
+    public function savePageData(Request $request)
+    {
+
+        // dd($request->all());
+        try {
+
+            $pageId = $request->input('page_id');
+            $jsonData = $request->except('page_id');
+
+            // Find if the report exists by page_id
+            $template = TemplatePageData::where('template_page_id', $pageId)->first();
+
+            // dd($template, $pageId, $jsonData);
+
+            if ($template) {
+                // If the template exists, update the json_data
+                $existingJsonData = json_decode($template->json_data, true);
+
+                // Merge existing data with the new data from the request
+                $updatedData = array_merge($existingJsonData, $jsonData);
+
+                // Save the updated json_data
+                $template->json_data = json_encode($updatedData);
+                $template->save();
+
+                return response()->json(['status' => true, 'message' => 'Data updated successfully']);
+            } else {
+                // If the tem$template does not exist, create a new one with the json_data
+                $newtemTemplate = new TemplatePageData();
+                $newtemTemplate->template_page_id = $pageId;
+                $newtemTemplate->json_data = json_encode($jsonData);
+                $newtemTemplate->save();
+
+                return response()->json(['status' => true, 'message' => 'Data saved successfully']);
+            }
+        } catch (\Throwable $th) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while updating the page data'], 500);
+        }
+
 
     }
 
