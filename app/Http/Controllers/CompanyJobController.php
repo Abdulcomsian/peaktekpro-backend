@@ -25,6 +25,7 @@ use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
+use App\Models\ClaimInformation;
 use Illuminate\Support\Facades\DB as FacadesDB;
 
 class CompanyJobController extends Controller
@@ -2820,6 +2821,61 @@ class CompanyJobController extends Controller
                 'message' => 'notes not exist',
                 'data' => []
             ]);
+    }
+
+    public function claimInformationSummary($jobId, Request $request)
+    {
+        $request->validate([
+            'claim_number' => 'nullable|string',
+            'date_of_loss' => 'nullable|date',
+            'insurance_provider' => 'nullable|string',
+            'adjustor_name' => 'nullable|string',
+            'contact_information' => 'nullable|string',
+            'status' => 'nullable|in:approved,review,denied'
+        ]);
+
+        try{
+            $claim = new ClaimInformation();
+            $claim->company_job_id = $jobId;
+            $claim->claim_number = $request->claim_number;
+            $claim->date_of_loss = $request->date_of_loss;
+            $claim->insurance_provider = $request->insurance_provider;
+            $claim->adjustor_name = $request->adjustor_name;
+            $claim->contact_information = $request->contact_information;
+            $claim->status = $request->status;
+            $claim->save();
+
+            return response()->json([
+                'status' =>200,
+                'message' => 'saved successfully',
+                'data' => $claim
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 500,
+                'message' => 'Issue Occcured',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function getClaimInformationSummary($jobId)
+    {
+        $claim_summary = ClaimInformation::where('company_job_id',$jobId)->first();
+        if($claim_summary)
+        {
+            return response()->json([
+                'status' => 200,
+                'message' => 'claim summary fetched successfully',
+                'data' => $claim_summary
+            ]);
+        }
+        return response()->json([
+            'status' => 401,
+            'message' => 'Not found',
+            'data' => []
+        ]);
     }
 
 }
