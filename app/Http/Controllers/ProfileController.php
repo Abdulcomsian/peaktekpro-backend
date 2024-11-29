@@ -27,6 +27,7 @@ class ProfileController extends Controller
 
         try { 
 
+            $path = null;
            
             if($request->hasFile('profile_image'))
             {
@@ -43,6 +44,9 @@ class ProfileController extends Controller
                 $image = $request->file('profile_image');
                 $imageName = time(). '.'.$image->getClientOriginalExtension();
                 $path = $image->storeAs('public/user_profile_image', $imageName);
+            }else {
+                $user = User::find($id);
+                $path = $user->profile_image; 
             }
             $user= User::find($id);
             $user->first_name=$request->first_name ?? $user->first_name;
