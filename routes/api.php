@@ -190,8 +190,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('delete/adjustor-meeting/media/{id}', [MeetingController::class, 'deleteAdjustorMeetingMedia']);
 
     //Adjustor meeting Photo section
-    Route::post('add/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'AdjustorMeetingPhotoSection']);
-    Route::get('get/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'getAdjustorMeetingPhotoSection']);
+    Route::post('add/exterior/photo-section/{Id}', [MeetingController::class, 'AddExteriorPhotoSection']);
+    Route::get('get/exterior/photo-section/{Id}', [MeetingController::class, 'getExteriorPhotoSection']);
     Route::post('add/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'AdjustorMeetingSquarePhotos']);
     Route::get('get/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'getAdjustorMeetingSquarePhotos']);
     Route::get('mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'CompleteAdjustorMeetingSquarePhotos']);

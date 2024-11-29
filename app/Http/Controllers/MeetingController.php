@@ -143,105 +143,51 @@ class MeetingController extends Controller
         }
     }
 
-    public function AdjustorMeetingPhotoSection1(Request $request,$Id)
-    {
-        $request->validate([
-            'front' => 'nullable|string',
-            'front_imagePath' => 'nullable|image',
 
-            'front_left' => 'nullable|string',
-            'front_left_imagePath' => 'nullable|image',
-
-            'left' => 'nullable|string',
-            'left_imagePath' => 'nullable|image',
-
-            'back_left' => 'nullable|string',
-            'back_left_imagePath' => 'nullable|image',
-
-            'back' => 'nullable|string',
-            'back_imagePath' => 'nullable|image',
-
-            'back_right' => 'nullable|string',
-            'back_right_imagePath' => 'nullable|image',
-
-            'right' => 'nullable|string',
-            'right_imagePath' => 'nullable|image',
-
-            'front_right' => 'nullable|string',
-            'front_right_imagePath' => 'nullable|image',
-
-        ]);
-
-        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate([
-            [
-                'adjustor_meeting_id', $Id
-            ],
-            [
-                'adjustor_meeting_id', $Id,
-                'front' => $request->front,
-                'front_left' => $request->front_left,
-                'left' => $request->left,
-                'back_left' => $request->back_left,
-                'back' => $request->back,
-                'back_right' => $request->back_right,
-                'right' => $request->right,
-                'front_right' => $request->front_right,
-            ]
-        ]);
-
-        // $adjustor_meeting = AdjustorMeeting::where('id', $Id)->first();
-        return response()->json([
-            'message' => 'added successfully',
-            'status' =>200,
-            'data' => $adjustor_meeting_photos
-        ]);
-
-    }
-
-    public function AdjustorMeetingPhotoSection(Request $request, $Id)
+    public function AddExteriorPhotoSection(Request $request, $Id)
     {
         // Validate request
         $request->validate([
-            'front' => 'nullable|string',
-            'front_imagePath' => 'nullable|image',
+            // 'front' => 'nullable|string',
+            'exteriorPhotos_front' => 'nullable|image',
 
-            'front_left' => 'nullable|string',
-            'front_left_imagePath' => 'nullable|image',
+            // 'front_left' => 'nullable|string',
+            'exteriorPhotos_front_left' => 'nullable|image',
 
-            'left' => 'nullable|string',
-            'left_imagePath' => 'nullable|image',
+            // 'left' => 'nullable|string',
+            'exteriorPhotos_left' => 'nullable|image',
 
-            'back_left' => 'nullable|string',
-            'back_left_imagePath' => 'nullable|image',
+            // 'back_left' => 'nullable|string',
+            'exteriorPhotos_back_left' => 'nullable|image',
 
-            'back' => 'nullable|string',
-            'back_imagePath' => 'nullable|image',
+            // 'back' => 'nullable|string',
+            'exteriorPhotos_back' => 'nullable|image',
 
-            'back_right' => 'nullable|string',
-            'back_right_imagePath' => 'nullable|image',
+            // 'back_right' => 'nullable|string',
+            'exteriorPhotos_back_right' => 'nullable|image',
 
-            'right' => 'nullable|string',
-            'right_imagePath' => 'nullable|image',
+            // 'right' => 'nullable|string',
+            'exteriorPhotos_right' => 'nullable|image',
 
-            'front_right' => 'nullable|string',
-            'front_right_imagePath' => 'nullable|image',
+            // 'front_right' => 'nullable|string',
+            'exteriorPhotos_front_right' => 'nullable|image',
         ]);
 
         // Handle file uploads (if needed) and store file paths
         $data = [
             'adjustor_meeting_id' => $Id,
-            'front' => $request->front,
-            'front_left' => $request->front_left,
-            'left' => $request->left,
-            'back_left' => $request->back_left,
-            'back' => $request->back,
-            'back_right' => $request->back_right,
-            'right' => $request->right,
-            'front_right' => $request->front_right,
+            'front' => "front",
+            'front_left' => "frontleft",
+            'left' => "left",
+            'back_left' => "backleft",
+            'back' => "back",
+            'back_right' => "backright",
+            'right' => "right",
+            'front_right' => "frontright",
         ];
 
         // Process image files
-        foreach (['front_imagePath', 'front_left_imagePath', 'left_imagePath', 'back_left_imagePath', 'back_imagePath', 'back_right_imagePath', 'right_imagePath', 'front_right_imagePath'] as $imageField) {
+        foreach (['exteriorPhotos_front', 'exteriorPhotos_front_left', 'exteriorPhotos_left', 'exteriorPhotos_back_left', 'exteriorPhotos_back', 'exteriorPhotos_back_right', 'exteriorPhotos_right', 'exteriorPhotos_front_right'] as $imageField) {
             if ($request->hasFile($imageField)) {
                 $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
             }
@@ -262,7 +208,7 @@ class MeetingController extends Controller
     }
 
 
-    public function getAdjustorMeetingPhotoSection($Id)
+    public function getExteriorPhotoSection($Id)
     {
         // dd($Id);
         $adjustor_meeting_photos = AdjustorMeetingPhotoSection::where('adjustor_meeting_id', $Id)->first();
@@ -377,42 +323,71 @@ class MeetingController extends Controller
         }
     }
 
-    public function AdjustorMeetingSquarePhotos($id,Request $request)
+
+    public function AdjustorMeetingSquarePhotos($id, Request $request)
     {
         $request->validate([
-            'square_photo'=>'nullable|image',
-            'label' => 'nullable|string'
+            'square_photos.*' => 'nullable|image', 
+            'labels' => 'nullable|array',         
+            'labels.*' => 'nullable|string',      
         ]);
 
-        try{
-            if($request->hasFile('square_photo'))
-            {
-                $image = $request->file('square_photo');
-                $imageName = time().'.'. $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('AdjustorSquarePhotos',$imageName,'public');
-            }
+        try {
+            $savedPhotos = []; 
 
-            $photos = new AdjustorSquarePhotos();
-            $photos->adjustor_meeting_id = $id;
-            $photos->square_photos = $imagePath;
-            $photos->label = $request->label;
-            $photos->save();
-    
+            foreach($request->square_photos as $index => $image) {
+                $image_fileName = time() . '_' . $image->getClientOriginalName();
+                $image_filePath = $image->storeAs('public/AdjustorSquarePhotos', $image_fileName);
+
+                // Store Path   
+                $media = new AdjustorSquarePhotos();
+                $media->adjustor_meeting_id = $id;
+                $media->label = $request->labels[$index] ?? null;
+                $media->square_photos = Storage::url($image_filePath);
+                $media->save();
+
+                 // Collect saved photo details
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'adjustor_meeting_id' => $media->adjustor_meeting_id,
+                    'label' => $media->label,
+                    'square_photos' => $media->square_photos,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+            // $uploadedPhotos = [];
+
+            // if ($request->hasFile('square_photos')) {
+            //     foreach ($request->file('square_photos') as $key => $image) {
+            //         $imageName = time() . '_' . $key . '.' . $image->getClientOriginalExtension();
+            //         $imagePath = $image->storeAs('public/AdjustorSquarePhotos', $imageName);
+
+            //         // Create a new record for each image
+            //         $photos = new AdjustorSquarePhotos();
+            //         $photos->adjustor_meeting_id = $id;
+            //         $photos->square_photos = $imagePath;
+            //         $photos->label = $request->labels[$key] ?? null; // Assign corresponding label or null
+            //         $photos->save();
+
+            //         $uploadedPhotos[] = $photos; // Collect each saved photo record
+            //     }
+            // }
+
             return response()->json([
                 'status' => 200,
-                'message' => 'Adjustor Sqaure Photos Added Successfully',
-                'date' => $photos
+                'message' => 'Adjustor Square Photos Added Successfully',
+                'data' => $savedPhotos,
             ]);
-            
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
-                'message' => 'Issue Occured',
-                'date' => []
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
             ]);
         }
-
     }
+
 
     public function getAdjustorMeetingSquarePhotos($Id,Request $request)
     { 
