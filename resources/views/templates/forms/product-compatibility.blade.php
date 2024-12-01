@@ -3,18 +3,21 @@
     <div class="mb-6">
         <div class="flex flex-col justify-start">
             <div class="mb-1">
-                <input type="radio" id="product-compatibility-upload-pdf" name="product_compatibility_type" value="pdf" class="mr-2">
+                <input type="radio" id="product-compatibility-upload-pdf" name="product_compatibility_type" value="pdf"
+                    class="mr-2">
                 <label for="product-compatibility-upload-pdf" class="text-gray-700 text-md">Upload PDFs</label>
             </div>
             <div>
-                <input type="radio" id="product-compatibility-text-page" name="product_compatibility_type" value="text" class="mr-2">
+                <input type="radio" id="product-compatibility-text-page" name="product_compatibility_type"
+                    value="text" class="mr-2">
                 <label for="product-compatibility-text-page" class="text-gray-700 text-md">Text Page</label>
             </div>
         </div>
     </div>
 
     <!-- Form for PDF Upload (Dropzone) -->
-    <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone hidden" id="product-compatibility-form-upload-pdf" >
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone hidden"
+        id="product-compatibility-form-upload-pdf">
         <div class="dz-message text-gray-600">
             <span class="block text-lg font-semibold">Drag & Drop or Click to Upload PDFs</span>
             <small class="text-gray-500">Only PDF files are allowed</small>
@@ -26,7 +29,132 @@
         <!-- Descriptive Text Field -->
         <div class="my-6">
             <div id="product-compatibility-quill" class="bg-white"></div>
-            <textarea class="hidden" id="product-compatibility-text" name="product_compatibility_text" required>{{ '' }}</textarea>
+            <textarea class="hidden" id="product-compatibility-text" name="product_compatibility_text" required>{{ $pageData->json_data['product_compatibility_text'] ?? '' }}</textarea>
         </div>
     </form>
 </div>
+
+@push('scripts')
+    <script type="text/javascript">
+        // Show the appropriate form when the radio button is changed
+        $("input[name='product_compatibility_type']").on("change", function() {
+            var selectedValue = $("input[name='product_compatibility_type']:checked").val();
+
+            if (selectedValue === 'pdf') {
+                $('#product-compatibility-form-upload-pdf').removeClass('hidden');
+                $('#product-compatibility-form-text-page').hasClass('hidden') ? '' : $(
+                    '#product-compatibility-form-text-page').addClass('hidden');
+            } else if (selectedValue === 'text') {
+                $('#product-compatibility-form-text-page').removeClass('hidden');
+                $('#product-compatibility-form-upload-pdf').hasClass('hidden') ? '' : $(
+                    '#product-compatibility-form-upload-pdf').addClass('hidden');
+            }
+        });
+
+
+        // drop zone
+        Dropzone.autoDiscover = false;
+
+        const productCompatibilityDropzone = new Dropzone("#product-compatibility-form-upload-pdf", {
+            url: "/templates/repairibility-assessment",
+            uploadMultiple: true,
+            parallelUploads: 100,
+            maxFiles: 100,
+            acceptedFiles: ".pdf",
+            addRemoveLinks: true,
+            dictRemoveFile: "Remove",
+            dictDefaultMessage: "Drag & Drop or Click to Upload",
+            init: function() {
+
+                // When a file is added, check if it's valid based on accepted file types
+                this.on("addedfile", function(file) {
+                    if (!file.type.match('application/pdf')) {
+                        // If the file type doesn't match, remove the file from preview
+                        this.removeFile(file);
+                        showErrorNotification('Only PDFs are allowed.')
+                    }
+                });
+                this.on("success", function(file, response) {
+                    console.log("File uploaded successfully:", response);
+                });
+                this.on("removedfile", function(file) {
+                    console.log("File removed:", file);
+                });
+            }
+        });
+
+        // Optional: Prevent multiple submissions
+        function submitForm() {
+            if (productCompatibilityDropzone.getAcceptedFiles().length > 0) {
+                alert("Form submitted successfully!");
+                // Add any further form submission logic if necessary
+            } else {
+                alert("Please upload an image first.");
+            }
+        }
+
+
+
+        // quill
+
+        const productCompatibilityQuillOptions = [
+            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+            ['blockquote', 'code-block'],
+            ['link'],
+            [{
+                'header': 1
+            }, {
+                'header': 2
+            }], // custom button values
+            [{
+                'list': 'ordered'
+            }, {
+                'list': 'bullet'
+            }, {
+                'list': 'check'
+            }],
+            [{
+                'script': 'sub'
+            }, {
+                'script': 'super'
+            }], // superscript/subscript
+            [{
+                'header': [1, 2, 3, 4, 5, 6, false]
+            }],
+
+            [{
+                'color': []
+            }, {
+                'background': []
+            }], // dropdown with defaults from theme
+            [{
+                'font': []
+            }],
+            [{
+                'align': []
+            }],
+            ['clean'] // remove formatting button
+        ];
+        var productCompatibilityQuill = new Quill('#product-compatibility-quill', {
+            theme: 'snow',
+            modules: {
+                toolbar: productCompatibilityQuillOptions
+            }
+        });
+        // Set the height dynamically via JavaScript
+        productCompatibilityQuill.root.style.height = '200px';
+
+        // old intro text value
+        let oldProductCompatibilityValue = "{!! $pageData->json_data['product_compatibility_text'] ?? '' !!}";
+
+        // Load the saved content into the editor
+        productCompatibilityQuill.clipboard.dangerouslyPasteHTML(oldProductCompatibilityValue);
+        productCompatibilityQuill.on('text-change', function() {
+            $('#product-compatibility-text').val(productCompatibilityQuill.root.innerHTML);
+
+            //save textarea data
+            saveTemplatePageTextareaData('#product-compatibility-text');
+
+        });
+    </script>
+@endpush

@@ -65,7 +65,7 @@ class TemplateController extends Controller
     public function edit($templateId)
     {
         try {
-            $template = Template::with('templatePages')->findOrFail($templateId);
+            $template = Template::with('templatePages.pageData')->findOrFail($templateId);
             return view('templates.edit', compact('template'));
         } catch (\Throwable $e) {
             return redirect()->route('templates.index')->with('error', 'Template not found');
@@ -237,7 +237,6 @@ class TemplateController extends Controller
     public function savePageData(Request $request)
     {
 
-        // dd($request->all());
         try {
 
             $pageId = $request->input('page_id');
@@ -246,11 +245,9 @@ class TemplateController extends Controller
             // Find if the report exists by page_id
             $template = TemplatePageData::where('template_page_id', $pageId)->first();
 
-            // dd($template, $pageId, $jsonData);
-
             if ($template) {
-                // If the template exists, update the json_data
-                $existingJsonData = json_decode($template->json_data, true);
+
+                $existingJsonData = $template->json_data;
 
                 // Merge existing data with the new data from the request
                 $updatedData = array_merge($existingJsonData, $jsonData);
