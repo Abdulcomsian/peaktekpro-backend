@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Template\{StoreRequest, UpdateRequest};
 use Illuminate\Http\Request;
 use App\Models\{Page, Role, Template, TemplatePage, TemplatePageData};
+use Illuminate\Support\Facades\Storage;
 
 class TemplateController extends Controller
 {
@@ -66,6 +67,7 @@ class TemplateController extends Controller
     {
         try {
             $template = Template::with('templatePages.pageData')->findOrFail($templateId);
+            // dd($template->templatePages->toArray());
             return view('templates.edit', compact('template'));
         } catch (\Throwable $e) {
             return redirect()->route('templates.index')->with('error', 'Template not found');
@@ -258,11 +260,11 @@ class TemplateController extends Controller
 
                 return response()->json(['status' => true, 'message' => 'Data updated successfully']);
             } else {
-                // If the tem$template does not exist, create a new one with the json_data
-                $newtemTemplate = new TemplatePageData();
-                $newtemTemplate->template_page_id = $pageId;
-                $newtemTemplate->json_data = json_encode($jsonData);
-                $newtemTemplate->save();
+                // If the $template does not exist, create a new one with the json_data
+                $newTemplate = new TemplatePageData();
+                $newTemplate->template_page_id = $pageId;
+                $newTemplate->json_data = json_encode($jsonData);
+                $newTemplate->save();
 
                 return response()->json(['status' => true, 'message' => 'Data saved successfully']);
             }
@@ -272,5 +274,113 @@ class TemplateController extends Controller
 
 
     }
+
+    public function savePageFile(Request $request)
+    {
+        try {
+
+            if ($request->hasFile('file')) {
+
+                // Retrieve additional data from the request
+                $pageId = $request->input('page_id');
+                $type = $request->input('type');
+                $folder = $request->input('folder');
+
+                // Find if the report exists by page_id
+                $template = TemplatePageData::where('template_page_id', $pageId)->first();
+
+                $file = $request->file('file');
+                // Generate unique filename
+                $filename = time() . '_' . $file->getClientOriginalName();
+
+                // Store the file in 'storage/app/public/uploads'
+                $path = $file->storeAs('template-files/'.$folder, $filename, 'public');
+
+                // Get the file size
+                $fileSize = $file->getSize();  // Size in bytes
+
+                // store file data
+                $jsonData[$type] = [
+                    'file_name' => $filename,
+                    'path' => $path,
+                    'size' => $fileSize
+                ];
+
+                if ($template) {
+
+                    $existingJsonData = $template->json_data;
+
+                    // Merge existing data with the new data from the request
+                    $updatedData = array_merge($existingJsonData, $jsonData);
+
+                    // Save the updated json_data
+                    $template->json_data = json_encode($updatedData);
+                    $template->save();
+
+                } else {
+                    // If the $template does not exist, create a new one with the json_data
+                    $newTemplate = new TemplatePageData();
+                    $newTemplate->template_page_id = $pageId;
+                    $newTemplate->json_data = json_encode($jsonData);
+                    $newTemplate->save();
+                }
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'File uploaded successfully',
+                    'file_id' => $pageId,
+                    'file_name' => $filename,
+                    'file_size' => $fileSize,  // Include size in the response
+                    'file_url' => asset('storage/' . $path)  // Full URL to access the file
+                ]);
+
+            }
+
+            return response()->json(['status' => false, 'message' => 'No file uploaded'], 400);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while uploading file'], 400);
+        }
+    }
+
+    public function deletePageFile(Request $request)
+    {
+        try {
+
+            $pageId = $request->input('page_id');
+            $fileKey = $request->input('file_key');
+
+            // Find if the report exists by page_id
+            $template = TemplatePageData::where('template_page_id', $pageId)->firstOrFail();
+
+            if ($template) {
+                $existingJsonData = $template->json_data;
+                $fileData = '';
+                // Check if the key exists and remove it
+                if (array_key_exists($fileKey, $existingJsonData)) {
+                    $fileData = $existingJsonData[$fileKey];
+                    unset($existingJsonData[$fileKey]); // Remove the key from the array
+                }
+
+                // Re-encode the updated data to JSON
+                $template->json_data = json_encode($existingJsonData);
+
+                // Save the updated template data back to the database
+                $template->save();
+
+                // Delete the file from storage
+                Storage::disk('public')->delete($fileData['path']);;
+
+                return response()->json(['status' => true, 'message' => 'File removed successfully']);
+            }
+
+            return response()->json(['status' => false, 'message' => 'File not found'], 404);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while deleting file not found'], 400);
+        }
+
+    }
+
 
 }

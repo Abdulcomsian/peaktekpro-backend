@@ -14,8 +14,15 @@ class TemplatePageData extends Model
         'json_data'
     ];
 
+    public $appends = ['file_url'];
+
     public function getJsonDataAttribute($value)
     {
         return json_decode($value, true);
+    }
+
+    public function getFileUrlAttribute()
+    {
+        return asset('/storage');
     }
 }

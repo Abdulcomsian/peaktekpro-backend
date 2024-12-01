@@ -181,51 +181,103 @@
         // dropzone
 
         const uploadPrimaryImageDropzone = new Dropzone("#introduction-upload-primary-image", {
-            url: "/templates/repairibility-assessment",
+            url: "{{ route('templates.page.save-file') }}",
             maxFiles: 1,
             acceptedFiles: ".jpeg,.jpg,.png",
             dictRemoveFile: "Remove",
             dictDefaultMessage: "Drag & Drop or Click to Upload",
+            addRemoveLinks: true,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             init: function() {
 
-                // When a file is added, check if it's valid based on accepted file types
+                let primaryImageData = {
+                    name: "{{ $pageData->json_data['primary_image']['file_name'] ?? '' }}",
+                    size: "{{ $pageData->json_data['primary_image']['size'] ?? '' }}",
+                    url: "{{ $pageData->file_url ?? '' }}",
+                    path : "{{ $pageData->json_data['primary_image']['path'] ?? '' }}",
+                    type : 'primary_image'
+                }
+
+                // Show the image on load
+                showFileOnLoadInDropzone(this, primaryImageData);
+
+                this.on("sending", function(file, xhr, formData) {
+                    formData.append('type', 'primary_image');
+                    formData.append('page_id', pageId);
+                    formData.append('folder', 'introduction');
+                });
+                // adding file
                 this.on("addedfile", function(file) {
                     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                        // If the file type doesn't match, remove the file from preview
                         this.removeFile(file);
-                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.')
+                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
                     }
                 });
+
                 this.on("success", function(file, response) {
-                    console.log("File uploaded successfully:", response);
+                    showSuccessNotification(response.message);
                 });
+
                 this.on("removedfile", function(file) {
-                    console.log("File removed:", file);
+                    // delete file from dropzone
+                    deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
+                        page_id: pageId,
+                        file_key: file.type,
+                    });
                 });
             }
         });
 
         const uploadSecondaryImageDropzone = new Dropzone("#introduction-upload-secondary-image", {
-            url: "/templates/repairibility-assessment",
+            url: "{{ route('templates.page.save-file') }}",
             maxFiles: 1,
             acceptedFiles: ".jpeg,.jpg,.png",
             dictRemoveFile: "Remove",
             dictDefaultMessage: "Drag & Drop or Click to Upload",
+            addRemoveLinks: true,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             init: function() {
 
-                // When a file is added, check if it's valid based on accepted file types
+                let secondaryImageData = {
+                    name: "{{ $pageData->json_data['secondary_image']['file_name'] ?? '' }}",
+                    size: "{{ $pageData->json_data['secondary_image']['size'] ?? '' }}",
+                    url: "{{ $pageData->file_url ?? '' }}",
+                    path : "{{ $pageData->json_data['secondary_image']['path'] ?? '' }}",
+                    type : 'secondary_image'
+                }
+
+                // Show the image on load
+                showFileOnLoadInDropzone(this, secondaryImageData);
+
+                this.on("sending", function(file, xhr, formData) {
+                    formData.append('type', 'secondary_image');
+                    formData.append('page_id', pageId);
+                    formData.append('folder', 'introduction');
+                });
+                // adding file
                 this.on("addedfile", function(file) {
                     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                        // If the file type doesn't match, remove the file from preview
                         this.removeFile(file);
-                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.')
+                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
                     }
                 });
+
                 this.on("success", function(file, response) {
-                    console.log("File uploaded successfully:", response);
+                    showSuccessNotification(response.message);
                 });
+
                 this.on("removedfile", function(file) {
-                    console.log("File removed:", file);
+
+                    // delete file from dropzone
+                    deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
+                        page_id: pageId,
+                        file_key: file.type,
+                    });
+
                 });
             }
         });

@@ -12,6 +12,11 @@
         #repairabilityAssessmentDropzone .dz-details {
             display: none;
         }
+
+        #introduction-upload-secondary-image .dz-details .dz-filename,
+        #introduction-upload-primary-image .dz-details .dz-filename {
+            display: none;
+        }
     </style>
 @endpush
 
@@ -23,8 +28,8 @@
     <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
 
     <script>
-
         var pageId = null
+        var deleteFileFromDropZoneRoute = "{{ route('templates.page.delete-file') }}"
 
         // Initialize Quill editor
         const customPageInitializeQuill = () => {
@@ -130,6 +135,44 @@
                 }
             });
         }
+
+        // show file on load in dropzone
+        function showFileOnLoadInDropzone(dropzoneInstance, fileData) {
+            if (fileData.name && fileData.size && fileData.url && fileData.path && fileData.type) {
+                // Simulate adding the existing file
+                dropzoneInstance.emit("addedfile", fileData);
+                let fileUrl = `${fileData.url}/${fileData.path}`;
+                dropzoneInstance.emit("thumbnail", fileData, fileUrl); // Set the thumbnail
+
+                // Set the file as already uploaded
+                fileData.status = Dropzone.SUCCESS;
+                dropzoneInstance.emit("complete", fileData);
+
+                // Add file to Dropzone's internal files array
+                dropzoneInstance.files.push(fileData);
+            }
+        }
+        // remove file from dropzone
+        function deleteFileFromDropzone(fileData, deleteUrl, params) {
+            if (fileData.name && fileData.size && fileData.url && fileData.path && fileData.type) {
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    data: params,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        showSuccessNotification(response.message);
+                    },
+                    error: function() {
+                        showErrorNotification('Error deleting the file.');
+                    }
+                });
+            }
+        }
+
+
 
         $(document).ready(function() {
             // edit template title start
@@ -461,8 +504,6 @@
     <script src="{{ asset('assets/js/templates/unfair_claim_practices.js') }}"></script>
     {{-- quote details js --}}
     <script src="{{ asset('assets/js/templates/quote_details.js') }}"></script>
-    {{-- custom page js --}}
-    <script src="{{ asset('assets/js/templates/custom-page.js') }}"></script>
 
     {{-- save data --}}
     <script type="text/javascript">
@@ -597,7 +638,10 @@
                                 </div>
                             </div>
                             {{-- <p>Content for {{ $page->name }}</p> --}}
-                            @includeIf('templates.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'), ['pageData' => $page->pageData])
+                            @includeIf(
+                                'templates.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
+                                ['pageData' => $page->pageData]
+                            )
                         </div>
                     @empty
                         <p class="text-gray-500">No content available</p>
