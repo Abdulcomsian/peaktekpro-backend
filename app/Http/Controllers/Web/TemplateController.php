@@ -330,8 +330,9 @@ class TemplateController extends Controller
                     'message' => 'File uploaded successfully',
                     'file_id' => $pageId,
                     'file_name' => $filename,
-                    'file_size' => $fileSize,  // Include size in the response
-                    'file_url' => asset('storage/' . $path)  // Full URL to access the file
+                    'file_size' => $fileSize,
+                    'file_url' => asset('storage'),
+                    'file_path' => $path
                 ]);
 
             }
