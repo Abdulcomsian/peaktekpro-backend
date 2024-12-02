@@ -327,6 +327,7 @@ class MeetingController extends Controller
     public function AdjustorMeetingSquarePhotos($id, Request $request)
     {
         $request->validate([
+            'square_photos' => 'nullable|array', 
             'square_photos.*' => 'nullable|image', 
             'labels' => 'nullable|array',         
             'labels.*' => 'nullable|string',      
@@ -335,14 +336,20 @@ class MeetingController extends Controller
         try {
             $savedPhotos = []; 
 
-            foreach($request->square_photos as $index => $image) {
-                $image_fileName = time() . '_' . $image->getClientOriginalName();
-                $image_filePath = $image->storeAs('public/AdjustorSquarePhotos', $image_fileName);
+            $squarePhotos = $request->square_photos ?? [];
 
+            foreach($squarePhotos as $index => $image) {
+               
+
+                $image_fileName = time() . '_' . $image->getClientOriginalName();
+                // $image_filePath = $image->storeAs('public/AdjustorSquarePhotos', $image_fileName);
+
+                $image_filePath = $image->storeAs('AdjustorSquarePhotos', $image_fileName, 'public');
                 // Store Path   
                 $media = new AdjustorSquarePhotos();
                 $media->adjustor_meeting_id = $id;
                 $media->label = $request->labels[$index] ?? null;
+                // $media->square_photos = Storage::url($image_filePath);
                 $media->square_photos = Storage::url($image_filePath);
                 $media->save();
 
