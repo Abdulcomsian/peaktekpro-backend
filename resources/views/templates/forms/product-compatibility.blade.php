@@ -56,7 +56,7 @@
         Dropzone.autoDiscover = false;
 
         const productCompatibilityDropzone = new Dropzone("#product-compatibility-form-upload-pdf", {
-            url: "/templates/repairibility-assessment",
+            url: saveMultipleFilesFromDropZoneRoute,
             uploadMultiple: true,
             parallelUploads: 100,
             maxFiles: 100,
@@ -64,7 +64,16 @@
             addRemoveLinks: true,
             dictRemoveFile: "Remove",
             dictDefaultMessage: "Drag & Drop or Click to Upload",
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             init: function() {
+                let productCompatibilityFiles = {
+                    files : JSON.parse(`{!! json_encode($pageData->json_data['product_compatibility_files'] ?? []) !!}`),
+                    file_url : "{{ $pageData->file_url ?? '' }}"
+                }
+                // Show images on load
+                showMultipleFilesOnLoadInDropzone(this, productCompatibilityFiles, 'product_compatibility_files');
 
                 // When a file is added, check if it's valid based on accepted file types
                 this.on("addedfile", function(file) {
@@ -74,25 +83,41 @@
                         showErrorNotification('Only PDFs are allowed.')
                     }
                 });
-                this.on("success", function(file, response) {
-                    console.log("File uploaded successfully:", response);
+
+                this.on("sending", function(file, xhr, formData) {
+                    formData.append('type', 'product_compatibility_files');
+                    formData.append('page_id', pageId);
+                    formData.append('folder', 'product_compatibility');
                 });
+
+                this.on("successmultiple", function(files, response) {
+                    if (response.status && response.file_details.length === files.length) {
+                        // Iterate through each uploaded file and its corresponding server response
+                        files.forEach((file, index) => {
+                            const fileData = response.file_details[index];  // Match file with its response data
+
+                            // Add custom keys from the server response to the file object
+                            file.file_id = fileData.file_id;
+
+                        });
+                        showSuccessNotification(response.message);
+                    } else {
+                        showErrorNotification("Mismatch between uploaded files and server response.");
+                    }
+                });
+
                 this.on("removedfile", function(file) {
-                    console.log("File removed:", file);
+
+                    // delete file from dropzone
+                    deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
+                        page_id: pageId,
+                        file_key: 'product_compatibility_files',
+                        file_id: file.file_id,
+                    });
+
                 });
             }
         });
-
-        // Optional: Prevent multiple submissions
-        function submitForm() {
-            if (productCompatibilityDropzone.getAcceptedFiles().length > 0) {
-                alert("Form submitted successfully!");
-                // Add any further form submission logic if necessary
-            } else {
-                alert("Please upload an image first.");
-            }
-        }
-
 
 
         // quill

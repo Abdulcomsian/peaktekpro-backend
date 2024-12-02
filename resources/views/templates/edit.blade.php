@@ -9,12 +9,8 @@
     <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
 
     <style>
-        #repairabilityAssessmentDropzone .dz-details {
-            display: none;
-        }
 
-        #introduction-upload-secondary-image .dz-details .dz-filename,
-        #introduction-upload-primary-image .dz-details .dz-filename {
+        .dropzone .dz-preview .dz-details .dz-filename {
             display: none;
         }
     </style>

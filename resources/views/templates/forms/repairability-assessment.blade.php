@@ -37,7 +37,6 @@
             },
             init: function() {
 
-                let a = `{!! json_encode($pageData->json_data['repariability_assessment_imageas'] ?? []) !!}`
                 let repairabilityAssessmentImages = {
                     files : JSON.parse(`{!! json_encode($pageData->json_data['repariability_assessment_images'] ?? []) !!}`),
                     file_url : "{{ $pageData->file_url ?? '' }}"
@@ -87,17 +86,6 @@
                 });
             }
         });
-
-        // Optional: Prevent multiple submissions
-        function submitForm() {
-            if (repairabilityAssessmentDropzone.getAcceptedFiles().length > 0) {
-                alert("Form submitted successfully!");
-                // Add any further form submission logic if necessary
-            } else {
-                alert("Please upload an image first.");
-            }
-        }
-
 
 
         // quill
