@@ -112,6 +112,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
     Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
+    Route::get('customer/profile/{jobId}', [CompanyJobController::class, 'customerProfile']); //get customer details
+
     //Job Summary Api's
     Route::post('update/job-status/{id}', [CompanyJobController::class, 'updateJobStatus']);
     Route::post('update/job-summary/{id}', [CompanyJobController::class, 'updateJobSummary']);
