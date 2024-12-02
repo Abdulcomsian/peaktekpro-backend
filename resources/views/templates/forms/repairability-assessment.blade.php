@@ -24,7 +24,7 @@
         Dropzone.autoDiscover = false;
 
         const repairabilityAssessmentDropzone = new Dropzone("#repairabilityAssessmentDropzone", {
-            url: "/templates/repairibility-assessment",
+            url: saveMultipleFilesFromDropZoneRoute,
             uploadMultiple: true,
             parallelUploads: 100,
             maxFiles: 100,
@@ -32,7 +32,18 @@
             addRemoveLinks: true,
             dictRemoveFile: "Remove",
             dictDefaultMessage: "Drag & Drop or Click to Upload",
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             init: function() {
+
+                let a = `{!! json_encode($pageData->json_data['repariability_assessment_imageas'] ?? []) !!}`
+                let repairabilityAssessmentImages = {
+                    files : JSON.parse(`{!! json_encode($pageData->json_data['repariability_assessment_images'] ?? []) !!}`),
+                    file_url : "{{ $pageData->file_url ?? '' }}"
+                }
+                // Show images on load
+                showMultipleFilesOnLoadInDropzone(this, repairabilityAssessmentImages, 'repariability_assessment_images');
 
                 // When a file is added, check if it's valid based on accepted file types
                 this.on("addedfile", function(file) {
@@ -42,11 +53,37 @@
                         showErrorNotification('Only JPEG, JPG, and PNG images are allowed.')
                     }
                 });
-                this.on("success", function(file, response) {
-                    console.log("File uploaded successfully:", response);
+                this.on("sending", function(file, xhr, formData) {
+                    formData.append('type', 'repariability_assessment_images');
+                    formData.append('page_id', pageId);
+                    formData.append('folder', 'repairability_assessment');
                 });
+
+                this.on("successmultiple", function(files, response) {
+                    if (response.status && response.file_details.length === files.length) {
+                        // Iterate through each uploaded file and its corresponding server response
+                        files.forEach((file, index) => {
+                            const fileData = response.file_details[index];  // Match file with its response data
+
+                            // Add custom keys from the server response to the file object
+                            file.file_id = fileData.file_id;
+
+                        });
+                        showSuccessNotification(response.message);
+                    } else {
+                        showErrorNotification("Mismatch between uploaded files and server response.");
+                    }
+                });
+
                 this.on("removedfile", function(file) {
-                    console.log("File removed:", file);
+
+                    // delete file from dropzone
+                    deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
+                        page_id: pageId,
+                        file_key: 'repariability_assessment_images',
+                        file_id: file.file_id,
+                    });
+
                 });
             }
         });

@@ -40,6 +40,7 @@ Route::put('/templates/page-title/{id}', [TemplateController::class, 'updatePage
 Route::post('/templates/page/save-data', [TemplateController::class, 'savePageData'])->name('templates.page.save-data');
 Route::post('/templates/page/save-file', [TemplateController::class, 'savePageFile'])->name('templates.page.save-file');
 Route::delete('/templates/page/delete-file', [TemplateController::class, 'deletePageFile'])->name('templates.page.delete-file');
+Route::post('/templates/page/save-files', [TemplateController::class, 'savePageMultipleFiles'])->name('templates.page.save-multiple-files');
 
 
 // repairibility assessment

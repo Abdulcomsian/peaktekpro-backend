@@ -181,7 +181,7 @@
         // dropzone
 
         const uploadPrimaryImageDropzone = new Dropzone("#introduction-upload-primary-image", {
-            url: "{{ route('templates.page.save-file') }}",
+            url: saveFileFromDropZoneRoute,
             maxFiles: 1,
             acceptedFiles: ".jpeg,.jpg,.png",
             dictRemoveFile: "Remove",
@@ -200,7 +200,7 @@
                     type : 'primary_image'
                 }
 
-                // Show the image on load
+                // Show image on load
                 showFileOnLoadInDropzone(this, primaryImageData);
 
                 this.on("sending", function(file, xhr, formData) {
@@ -217,16 +217,6 @@
                 });
 
                 this.on("success", function(file, response) {
-
-                    if (response.file_name && response.size && response.path && response.url) {
-                        // Attach metadata directly to the file object
-                        file.name = response.file_name;
-                        file.size = response.file_size;
-                        file.path = response.file_path;
-                        file.url = response.file_url;
-                        file.type = 'primary_image'; // Custom type
-                    }
-
                     showSuccessNotification(response.message);
                 });
 
@@ -234,14 +224,14 @@
                     // delete file from dropzone
                     deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
                         page_id: pageId,
-                        file_key: file.type,
+                        file_key: 'primary_image',
                     });
                 });
             }
         });
 
         const uploadSecondaryImageDropzone = new Dropzone("#introduction-upload-secondary-image", {
-            url: "{{ route('templates.page.save-file') }}",
+            url: saveFileFromDropZoneRoute,
             maxFiles: 1,
             acceptedFiles: ".jpeg,.jpg,.png",
             dictRemoveFile: "Remove",
@@ -260,7 +250,7 @@
                     type : 'secondary_image'
                 }
 
-                // Show the image on load
+                // Show image on load
                 showFileOnLoadInDropzone(this, secondaryImageData);
 
                 this.on("sending", function(file, xhr, formData) {
@@ -277,45 +267,14 @@
                 });
 
                 this.on("success", function(file, response) {
-                    console.log('1',response);
-                    if (response.file_name && response.file_size && response.file_path && response.file_url) {
-                        console.log(2,response)
-                        // Attach metadata directly to the file object
-                        // let fileData = {
-                        //     name : response.file_name,
-                        //     size : response.file_size,
-                        //     path : response.file_path,
-                        //     url : response.file_url,
-                        //     type : 'secondary_image' // Custom type
-                        // }
-
-                        file.name = response.file_name; // Update file name
-                        file.size = response.file_size; // Update file size
-                        file.path = response.file_path; // Update file path
-                        file.url = response.file_url; // Update file URL
-                        file.type = 'primary_image'; // Set a custom file type
-
-                        // Optionally, you can also add metadata directly to the Dropzone's internal `files` array
-                        this.files.push(file); // Ensure file is part of the internal files list
-
-                        // Log the updated file object to verify it contains the correct metadata
-                        console.log("Updated File:", file);
-
-                    }
-
-
-                    console.log(file)
-
                     showSuccessNotification(response.message);
                 });
 
                 this.on("removedfile", function(file) {
-
-                    console.log(file)
                     // delete file from dropzone
                     deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
                         page_id: pageId,
-                        file_key: file.type,
+                        file_key: 'secondary_image',
                     });
 
                 });

@@ -30,6 +30,8 @@
     <script>
         var pageId = null
         var deleteFileFromDropZoneRoute = "{{ route('templates.page.delete-file') }}"
+        var saveFileFromDropZoneRoute = "{{ route('templates.page.save-file') }}"
+        var saveMultipleFilesFromDropZoneRoute = "{{ route('templates.page.save-multiple-files') }}"
 
         // Initialize Quill editor
         const customPageInitializeQuill = () => {
@@ -152,9 +154,33 @@
                 dropzoneInstance.files.push(fileData);
             }
         }
+        // show files on load in dropzone
+        function showMultipleFilesOnLoadInDropzone(dropzoneInstance, filesData, type) {
+            // Check if files exist and add them to Dropzone
+            if (filesData.files.length > 0) {
+                filesData.files.forEach(function(fileData) {
+                    let mockFile = {
+                        name: fileData.file_name,
+                        size: fileData.size,
+                        url: fileData.path,
+                        type : type,
+                        file_id: fileData.file_id,
+                    };
+
+                    dropzoneInstance.emit("addedfile", mockFile); // Add the file to Dropzone
+                    let fileUrl = `${filesData.file_url}/${fileData.path}`;
+                    dropzoneInstance.emit("thumbnail", mockFile, fileUrl); // Set the thumbnail
+
+                    mockFile.status = Dropzone.SUCCESS;
+                    dropzoneInstance.emit("complete", mockFile); // Mark as complete
+
+                    dropzoneInstance.files.push(mockFile); // Add to Dropzone's file list
+                });
+            }
+        }
         // remove file from dropzone
         function deleteFileFromDropzone(fileData, deleteUrl, params) {
-            if (fileData.name && fileData.size && fileData.url && fileData.path && fileData.type) {
+            if (fileData.name && fileData.type) {
                 $.ajax({
                     url: deleteUrl,
                     type: 'DELETE',
@@ -521,19 +547,16 @@
                     [fieldName]: fieldValue
                 },
                 success: function(response) {
-                    console.log('Saved:', response.message);
+                    showSuccessNotification(response.message);
                 },
                 error: function(xhr) {
-                    console.error('Error:', xhr.responseText);
+                    showErrorNotification('An error occurred. while saving data.');
                 }
             });
         }, 500); // Delay in milliseconds
 
         // Apply debounced function to save data on keyup
         $('.inp-data').on('keyup change', saveTemplatePageInputData);
-        // $(document).on('keyup change', '.inp-data', function (){
-        //     console.log('test')
-        // });
 
         // save textarea data
         const saveTemplatePageTextareaData = debounce(function(element) {
@@ -549,10 +572,10 @@
                     [fieldName]: fieldValue
                 },
                 success: function(response) {
-                    console.log('Saved:', response.message);
+                    showSuccessNotification(response.message);
                 },
                 error: function(xhr) {
-                    console.error('Error:', xhr.responseText);
+                    showErrorNotification('An error occurred. while saving data.');
                 }
             });
 
