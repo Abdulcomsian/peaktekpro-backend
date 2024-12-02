@@ -18,7 +18,7 @@ class ProfileController extends Controller
         $this->validate($request, [
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|unique:users,email,' . $id, // Unique check excluding current user
+            'email' => 'nullable|string|email|unique:users,email,' . $id,
             'phone' => 'nullable|string|max:255',
             'job_title' => 'nullable|string|max:255',
             'market_segment' => 'nullable|string|max:255',

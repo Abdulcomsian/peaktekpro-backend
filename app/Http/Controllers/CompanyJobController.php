@@ -9,9 +9,11 @@ use App\Models\Status;
 use App\Models\Location;
 use App\Models\CompanyJob;
 use App\Models\ClaimDetail;
+use Illuminate\Support\Str;
 use App\Models\CompanyNotes;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
+use App\Models\ClaimInformation;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
@@ -21,11 +23,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
-use App\Models\ClaimInformation;
 use Illuminate\Support\Facades\DB as FacadesDB;
 
 class CompanyJobController extends Controller
@@ -49,7 +51,29 @@ class CompanyJobController extends Controller
         try {
 
             $user = Auth::user();
+            $company= $user->company_id;
             $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
+
+             //here We will check that this mail exist in users table and if it is in users table then add the job with it if we have no email then create a new customer
+            $user=User::where('email',$request->email)->first();
+            if(!$user)
+            {
+                //here I am making a new customer/client
+                $user=new User();
+                $user->name = $request->name;
+                $names = explode(' ', $request->name, 2); // Split into two parts
+                $user->first_name = $names[0] ?? null;
+                $user->last_name = $names[1] ?? null;
+                $user->email = $request->email;
+                $user->phone = $request->phone;
+                // $user->password = Hash::make(Str::random(8));
+                $user->password = Hash::make('12345678');
+                $user->status = 'active';
+                $user->role_id = 46;
+                $user->created_by = $created_by;
+                $user->company_id = $company;
+                $user->save();
+            }
 
             //Create Job
             $job = new CompanyJob;
@@ -65,8 +89,9 @@ class CompanyJobController extends Controller
             $job->phone = $request->phone;
             $job->date = now()->format('Y-m-d');
 
+            $job->customer_id = $user->id; //it will be job customer
             $job->save();
-
+           
             //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
             $address = new CustomerAgreement();
             $address->company_job_id = $job->id;
@@ -116,6 +141,40 @@ class CompanyJobController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
+    }
+
+    public function customerProfile($jobId)
+    {
+        $customer_profile = CompanyJob::with('companyJobSummaries')->select('id','name','address','email','phone','user_id')->where('id',$jobId)->first();
+
+        $jobTotal = $customer_profile->companyJobSummaries->first()->job_total ?? null;
+
+        $response=[
+            'id'=>$customer_profile->id,
+            'name'=>$customer_profile->name,
+            'email'=>$customer_profile->email,
+            'phone'=>$customer_profile->phone,
+            'address'=>$customer_profile->address,
+            'job_total' => $jobTotal ?? null, // Safely access job_total
+            // 'job_total' => $customer_profile->companyJobSummaries->sum('job_total') ?? null, // Safely access job_total
+
+        ];
+        
+        if($customer_profile)
+        {
+            return response()->json([
+                'status'=>200,
+                'message' => 'Details Fetched Successfully',
+                'data' => $response
+            ]);
+        }
+
+        return response()->json([
+            'status'=>404,
+            'message' => 'Not Found',
+            'data' =>[]
+        ]);
+
     }
 
 
@@ -2875,6 +2934,7 @@ class CompanyJobController extends Controller
             'status' => 401,
             'message' => 'Not found',
             'data' => []
+
         ]);
     }
 
