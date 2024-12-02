@@ -154,7 +154,7 @@ class CompanyJobController extends Controller
             'name'=>$customer_profile->name,
             'email'=>$customer_profile->email,
             'phone'=>$customer_profile->phone,
-            'address'=>$customer_profile->address,
+            'address'=>json_decode($customer_profile->address),
             'job_total' => $jobTotal ?? null, // Safely access job_total
             // 'job_total' => $customer_profile->companyJobSummaries->sum('job_total') ?? null, // Safely access job_total
 
