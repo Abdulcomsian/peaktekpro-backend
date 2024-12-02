@@ -172,6 +172,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
     Route::get('get/payment-history/{jobId}', [PaymentController::class, 'getPaymentHistory']);
 
+
     //company Location 
     Route::post('add/company_location', [CompanyLocationController::class, 'addCompanyLocation']);
     Route::get('get/company_location', [CompanyLocationController::class, 'getCompanyLocation']);
@@ -185,6 +186,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
     Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
     Route::get('get/in-progress/{jobId}', [InprogressController::class, 'getInprogress']);
+
+    //Build Packet template Sumo quote
+    Route::post('build-packet/sidebar/{jobId}', [InprogressController::class, 'buildPacketSidebar']);
 
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);

@@ -347,7 +347,7 @@ class MeetingController extends Controller
                 $image_filePath = $image->storeAs('AdjustorSquarePhotos', $image_fileName, 'public');
                 // Store Path   
                 $media = new AdjustorSquarePhotos();
-                $media->adjustor_meeting_id = $id;
+                $media->company_job_id = $id;
                 $media->label = $request->labels[$index] ?? null;
                 // $media->square_photos = Storage::url($image_filePath);
                 $media->square_photos = Storage::url($image_filePath);
@@ -356,7 +356,7 @@ class MeetingController extends Controller
                  // Collect saved photo details
                 $savedPhotos[] = [
                     'id' => $media->id,
-                    'adjustor_meeting_id' => $media->adjustor_meeting_id,
+                    'company_job_id' => $media->company_job_id,
                     'label' => $media->label,
                     'square_photos' => $media->square_photos,
                     'created_at' => $media->created_at,
@@ -398,7 +398,7 @@ class MeetingController extends Controller
 
     public function getAdjustorMeetingSquarePhotos($Id,Request $request)
     { 
-        $photos = AdjustorSquarePhotos::where('adjustor_meeting_id',$Id)->get();
+        $photos = AdjustorSquarePhotos::where('company_job_id',$Id)->get();
 
         if($photos){
             return response()->json([

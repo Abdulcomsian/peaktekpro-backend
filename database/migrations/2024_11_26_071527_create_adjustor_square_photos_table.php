@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('adjustor_square_photos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('adjustor_meeting_id')->constrained('adjustor_meetings');
+            $table->foreignId('company_job_id')->constrained('company_jobs');
             $table->string('square_photos')->nullable();
             $table->string('label')->nullable();
             $table->timestamps();

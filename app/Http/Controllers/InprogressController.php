@@ -144,4 +144,9 @@ class InprogressController extends Controller
         }
     }
 
+    public function buildPacketSidebar($jobId)
+    {
+
+    }
+
 }
