@@ -522,8 +522,6 @@
 
     {{-- repairability or compatibility photosjs js --}}
     <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
-    {{-- unfair claim practices js --}}
-    <script src="{{ asset('assets/js/templates/unfair_claim_practices.js') }}"></script>
     {{-- quote details js --}}
     <script src="{{ asset('assets/js/templates/quote_details.js') }}"></script>
 
