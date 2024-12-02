@@ -94,6 +94,25 @@
                 setTimeout(resolve, 3000);
             });
         }
+
+        // debounce function
+        function debounce(func, delay) {
+            let timer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // CSRF token setup for AJAX in Laravel
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
     </script>
     @stack('scripts')
 </body>

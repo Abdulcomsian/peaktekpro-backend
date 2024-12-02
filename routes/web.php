@@ -36,8 +36,12 @@ Route::get('auth',ReactAuthController::class)->middleware('check.react.auth');
 Route::post('/update-page-ordering/{id}', [TemplateController::class, 'updateTemplatePagesOrdering'])->name('templates.page-ordering.update');
 Route::post('/templates/create-page/{id}', [TemplateController::class, 'createPage'])->name('templates.create-page');
 Route::patch('/templates/update-page-status/{pageId}', [TemplateController::class, 'updatePageStatus'])->name('templates.update-page.status');
-
 Route::put('/templates/page-title/{id}', [TemplateController::class, 'updatePageTitle'])->name('templates.update.page-title');
+Route::post('/templates/page/save-data', [TemplateController::class, 'savePageData'])->name('templates.page.save-data');
+Route::post('/templates/page/save-file', [TemplateController::class, 'savePageFile'])->name('templates.page.save-file');
+Route::delete('/templates/page/delete-file', [TemplateController::class, 'deletePageFile'])->name('templates.page.delete-file');
+Route::post('/templates/page/save-files', [TemplateController::class, 'savePageMultipleFiles'])->name('templates.page.save-multiple-files');
+
 
 // repairibility assessment
 Route::post('/templates/repairibility-assessment', function () {

@@ -17,4 +17,8 @@ class TemplatePage extends Model
         'order_no'
     ];
 
+    public function pageData()
+    {
+        return $this->hasOne(TemplatePageData::class, 'template_page_id');
+    }
 }

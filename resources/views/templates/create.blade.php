@@ -70,7 +70,6 @@
                         method: 'POST',
                         data: {
                             order: order,
-                            _token: $('meta[name=csrf-token]').attr('content')
                         },
                         success: function(response) {
                             console.log("Order updated successfully!");
