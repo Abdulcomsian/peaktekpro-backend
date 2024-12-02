@@ -69,7 +69,7 @@ class CompanyJobController extends Controller
                 // $user->password = Hash::make(Str::random(8));
                 $user->password = Hash::make('12345678');
                 $user->status = 'active';
-                $user->role_id = 46;
+                $user->role_id = 10;
                 $user->created_by = $created_by;
                 $user->company_id = $company;
                 $user->save();
