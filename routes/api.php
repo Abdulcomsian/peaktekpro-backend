@@ -189,6 +189,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Build Packet template Sumo quote
     Route::post('build-packet/sidebar/{jobId}', [InprogressController::class, 'buildPacketSidebar']);
+    Route::get('get/build-packet/sidebar/{jobId}', [InprogressController::class, 'getBuildPacketSidebar']);
+    Route::get('mark/build-packet-complete/{jobId}', [InprogressController::class, 'markBuildPacketComplete']);
+    Route::get('get/project-status/{jobId}', [InprogressController::class, 'getProjectStatus']);
+    Route::post('sign/build-packet/{jobId}', [InprogressController::class, 'signBuildPacket']);
 
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);

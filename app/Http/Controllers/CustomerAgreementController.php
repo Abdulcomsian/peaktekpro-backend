@@ -161,7 +161,7 @@ class CustomerAgreementController extends Controller
         }
     }
 
-    public function customerAgreementStatus(Request $request, $id)
+    public function customerAgreementStatus11(Request $request, $id) //currently not used because of we have elimite the estimate prepared stage and also not checking the job_type
     {
         try {
             //Validate Request
@@ -250,6 +250,61 @@ class CustomerAgreementController extends Controller
                 'message' => 'Agreement Status Updated Successfully',
                 'agreement' => $agreement
             ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function customerAgreementStatus(Request $request, $id)
+    {
+        //Check Job
+        $job = CompanyJob::find($id);
+        if(!$job) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Job Not Found'
+            ], 404);
+        }
+
+        $this->validate($request, [
+            'status' => 'nullable|boolean'
+        ]);
+
+        try {
+            $agreement = CustomerAgreement::updateOrCreate(
+                ['company_job_id'=> $id],
+
+                [
+                    'company_job_id'=> $id,
+                    'status' => $request->status
+                ]
+            );
+
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+                
+                //current stage save
+                $agreement->current_stage="yes";
+                $agreement->save();
+            } elseif(isset($request->status) && $request->status == false) {
+                $job->status_id = 2;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save(); 
+                
+                //current stage save
+                $agreement->current_stage="no";
+                $agreement->save();
+            }
+       
+            return response()->json([
+                'status' => 200,
+                'message' => 'Agreement Status Updated Successfully',
+                'agreement' => $agreement
+            ], 200);
+
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
