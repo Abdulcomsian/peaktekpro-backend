@@ -227,6 +227,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('check/customer-agreement/{jobId}', [CustomerAgreementController::class, 'checkCustomerAgreement']);
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
+    Route::post('material-selection/{id}', [MaterialOrderController::class, 'materialSelection']);
+    Route::get('get/material-selection/{id}', [MaterialOrderController::class, 'getMaterialSelection']);
     Route::post('generate-pdf/{jobId}', [MaterialOrderController::class, 'generatePdf']);
     Route::get('view-pdf', [MaterialOrderController::class, 'viewPdf']);
     Route::get('delete/material-order/material/{id}', [MaterialOrderController::class, 'deleteMaterialOrderMaterial']);
@@ -311,8 +313,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('delete/ready-to-build/media/{id}', [ReadyToBuildController::class, 'deleteReadyToBuildMedia']);
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
     //Supplier Api's
-    Route::post('store/supplier/{jobId}', [SupplierController::class, 'storeSupplier']);
-    Route::get('get/suppliers/{jobId}', [SupplierController::class, 'getSuppliers']);
+    Route::post('store/supplier/{Id}', [SupplierController::class, 'storeSupplier']);
+    Route::get('get/suppliers/{Id}', [SupplierController::class, 'getSuppliers']);
     //Sub Contractor Api's
     Route::post('store/sub-contractor/{jobId}', [SubContractorController::class, 'storeSubContractor']);
     Route::get('get/sub-contractors/{jobId}', [SubContractorController::class, 'getSubContractors']);
