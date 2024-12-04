@@ -13,6 +13,7 @@ use App\Jobs\ConfirmationJob;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
 use App\Models\CustomerAgreement;
+use App\Models\MaterialSelection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MaterialOrderMaterial;
@@ -64,6 +65,9 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
 
+            //Generate PO number
+            $poNumber = $this->generatePONumber();
+
             //Check Supplier
             // $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
             // if(!$supplier) {
@@ -78,6 +82,7 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $id,
             ],[
                 'company_job_id' => $id,
+                'po_number' => $poNumber, 
                 'supplier_id' => $request->supplier_id,
                 'street' => $request->street,
                 'city' => $request->city,
@@ -147,6 +152,94 @@ class MaterialOrderController extends Controller
             DB::rollback();
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
+    }
+
+    private function generatePONumber()
+    {
+        $latestOrder = MaterialOrder::latest('id')->first();
+        $nextId = $latestOrder ? $latestOrder->id + 1 : 1; // Increment ID or start at 1
+        return 'PO-' . str_pad($nextId, 8, '0', STR_PAD_LEFT); // Format: PO-00000001
+    }
+
+    //material Selections
+    public function materialSelection(Request $request, $id)
+    {
+        $this->validate($request,[
+            'name' => 'nullable|array',
+            'name.*'=> 'nullable|string',
+            'option' => 'nullable|array',
+            'option.*' => 'nullable|string',
+            'unit' => 'nullable|array',
+            'unit.*' => 'nullable|string',
+            'unit_cost' => 'nullable|array',
+            'unit_cost.*' => 'nullable|string',
+            'quantity' => 'nullable|array',
+            'quantity.*' => 'nullable|string',
+            'total' => 'nullable|array',
+            'total.*' => 'nullable|string'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->name as $index => $name) {
+                $material = MaterialSelection::create(
+                    [   
+                        'material_order_id' => $id,
+                        'name' => $name,
+                        'option' => $request->option[$index] ?? null,
+                        'unit' => $request->unit[$index] ?? null,
+                        'unit_cost' => $request->unit_cost[$index] ?? null,
+                        'quantity' => $request->quantity[$index] ?? null,
+                        'total' => $request->total[$index] ?? null,
+                    ]       
+                );
+            }
+    
+            DB::commit();
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Material selection saved successfully.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack(); 
+    
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage() . ' on line ' . $e->getLine(),
+            ]);
+        }
+
+    }
+
+    public function getMaterialSelection($id)
+    {
+        $material_order = MaterialOrder::where('id',$id)->first();
+        if(!$material_order)
+        {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Material Order Not Exist.',
+            ]);
+        }
+
+        $material_order_selection = MaterialSelection::where('material_order_id',$id)->get();
+        if($material_order_selection->isEmpty())
+        {
+            return response()->json([
+                'status' =>404,
+                'message' => 'Materail Order Selection not Found',
+                'data' => []
+            ]);
+           
+        }else{
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data Fetched Successfully',
+                'data' => $material_order_selection
+            ]);
+        }
+        
     }
 
     public function generatePdf($jobId)
@@ -580,6 +673,15 @@ class MaterialOrderController extends Controller
                 'supplier_email' => $request->supplier_email,
                 'confirmed' => $request->confirmed,
             ]);
+
+            // Send Email to Supplier
+            // if (!empty($request->supplier_email)) {
+            //     $buildDetails = [
+            //         'build_date' => $request->build_date,
+            //         'build_time' => $request->build_time,
+            //     ];
+            //     Mail::to($request->supplier_email)->send(new SupplierNotification($request->supplier, $buildDetails));
+            // }
 
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
