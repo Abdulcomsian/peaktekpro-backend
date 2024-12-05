@@ -116,23 +116,40 @@ class SupplierController extends Controller
         try {
 
             //Check Job
-            $job = Company::find($Id);
+            // $job = CompanyJob::find($Id);
+            $job = CompanyJob::with('summary')->where('id',$Id)->first();
+
             if(!$job) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Company not found'
+                    'message' => 'Company job not found'
                 ], 422);
             }
 
-            $suppliers = User::where('role_id', 4)->whereHas('userRoles', function($query) use ($Id){
-                $query->where('company_id', $Id); //if you want to get all supplier just commer this line
-            })->get();
+            $summary=$job->summary;
+            $company_id = $job->created_by; //this is job company id
+            $location = $summary->market;  //this is job location
+
+            $suppliers = User::where('role_id', 4)
+            ->whereHas('userRoles', function($query) use ($company_id){
+                $query->where('company_id', $company_id); //if you want to get all supplier whos company_id is same as my job company id, check user_roles table because each role have company id here in this table also
+            })
+            // ->whereHas('companySummaries', function ($query) use ($location) {
+            //     $query->where('market', $location); // Ensure location matches the job's location in company_summaries
+            // })
+            ->get();   
+            // $suppliers = User::where('role_id', 4)
+            // ->join('company_jobs', 'company_jobs.user_id', '=', 'users.id') // Join company_jobs with users based on user_id
+            // ->join('company_job_summaries', 'company_job_summaries.company_job_id', '=', 'company_jobs.id') // Join company_job_summaries with company_jobs based on company_job_id
+            // // ->where('company_jobs.created_by', $company_id) // Filter by company_id from company_jobs
+            // // ->where('company_job_summaries.market', $location) // Filter by location (market) from company_job_summaries
+            // ->get(); 
 
             if($suppliers->isEmpty())
             {
                 return response()->json([
                     'status' => 404,
-                    'message' => 'Suppliers not Found against this Company id',
+                    'message' => 'Suppliers not Found',
                     'user' =>[],
                 ], 404);
             }

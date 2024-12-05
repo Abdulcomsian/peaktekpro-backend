@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Log;
 use PDF;
 use Carbon\Carbon;
 use App\Models\User;
@@ -83,7 +84,7 @@ class MaterialOrderController extends Controller
             ],[
                 'company_job_id' => $id,
                 'po_number' => $poNumber, 
-                'supplier_id' => $request->supplier_id,
+                // 'supplier_id' => $request->supplier_id,
                 'street' => $request->street,
                 'city' => $request->city,
                 'state' => $request->state,
@@ -254,17 +255,22 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
             //here we will create a pdf 
-            $material_order = MaterialOrder::with('materials')->where('company_job_id',$jobId)->first();
+            $material_order =MaterialOrder::with('materials','materialSelection')->where('company_job_id',$jobId)->first();
             if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Material Order Not Found'
                 ], 404);
             }
-            // return response()->json($material_order);
-
+            $materialSelection=$material_order->materialSelection;
+            // Log::info($material_order->materialSelection);
             //Generate PDF
-            $pdf = PDF::loadView('pdf.material-order', ['data' => $material_order]);
+            $pdf = PDF::loadView('pdf.material-order', [
+                // Log::info($material_order),// Ensure all data is present
+
+                'data' => $material_order,
+                'materialSelection' => $materialSelection,
+            ]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
             
@@ -403,7 +409,7 @@ class MaterialOrderController extends Controller
         try {
 
             //Check Material Order
-            $material_order = MaterialOrder::find($id);
+            $material_order = MaterialOrder::where('company_job_id',$id)->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
@@ -573,7 +579,9 @@ class MaterialOrderController extends Controller
             }
 
             //Check Material Order
-            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('job','materials')->first();
+            $material_order = MaterialOrder::with('materialSelection')->where('company_job_id', $jobId)->with('job','materials')->first();
+            $materialSelection = $material_order->materialSelection;
+            // return response($material_order);
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
@@ -600,7 +608,9 @@ class MaterialOrderController extends Controller
             }
 
             //Generate PDF
-            $pdf = PDF::loadView('pdf.material-order', ['data' => $material_order]);
+            $pdf = PDF::loadView('pdf.material-order', [
+                'materialSelection'=>$materialSelection,
+                'data' => $material_order]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
             // Check if the old PDF exists and delete it
@@ -674,14 +684,15 @@ class MaterialOrderController extends Controller
                 'confirmed' => $request->confirmed,
             ]);
 
-            // Send Email to Supplier
-            // if (!empty($request->supplier_email)) {
-            //     $buildDetails = [
-            //         'build_date' => $request->build_date,
-            //         'build_time' => $request->build_time,
-            //     ];
-            //     Mail::to($request->supplier_email)->send(new SupplierNotification($request->supplier, $buildDetails));
-            // }
+            //i am adding the supplier in material order from here
+            $supplier = User::where('email',$request->supplier_email)->where('role_id',4)->first();
+            $supplier_id = $supplier->id;
+            $build_detail = MaterialOrder::updateOrCreate([
+                'company_job_id' => $jobId
+            ],[
+                'company_job_id' => $jobId,
+                'supplier_id' => $supplier_id,
+            ]);
 
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
