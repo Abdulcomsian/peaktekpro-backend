@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Material Order</title>
     <style>
       * {
         padding: 0;
@@ -73,7 +73,7 @@
       <thead>
         <tr>
           <th colspan="6">
-            <h2 style="text-align: left">Material Order</h2>
+            <h2 style="text-align: left">Contact Information</h2>
           </th>
         </tr>
       </thead>
@@ -126,32 +126,6 @@
             />
           </td>
         </tr>
-        <tr>
-          <td>
-            <label for="">Insurance:</label>
-            <input
-              style="width: 100%"
-              type="text"
-              value="{{$data->insurance}}"
-            />
-          </td>
-          <td>
-            <label for="">Claim Number:</label>
-            <input
-              style="width: 100%"
-              type="text"
-              value="{{$data->claim_number}}"
-            />
-          </td>
-          <td colspan="2">
-            <label for="">Policy Number:</label>
-            <input
-              style="width: 100%"
-              type="text"
-              value="{{$data->policy_number}}"
-            />
-          </td>
-        </tr>
       </tbody>
     </table>
     <!-- section4 -->
@@ -160,20 +134,29 @@
       <thead>
         <tr>
           <th colspan="6">
-            <h2 style="text-align: left">Delivry Information</h2>
+            <h2 style="text-align: left">Project Specific Fields</h2>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
+            <label for="">PO Number</label>
+            <input type="text"
+            style="width:100%"
+            value= "{{$data->po_number}}"
+            />
+          </td>
+        </tr>
+        <tr>
+          <!-- <td>
             <label for="">Date</label>
             <input
               style="width: 100%"
               type="text"
               value="{{$data->date_needed}}"
             />
-          </td>
+          </td> -->
           <td>
             <label for="">Square Count</label>
             <input
@@ -200,43 +183,142 @@
           </td>
         </tr>
         <tr>
-          <td>
+          <!-- <td>
             <label for="">Build Date</label>
             <input
               style="width: 100%"
               type="text"
               value="{{$data->build_date}}"
             />
-          </td>
-          <td>
+          </td> -->
+          <!-- <td>
             <label for="">Valley SF</label>
             <input
               style="width: 100%"
               type="text"
               value="{{$data->valley_sf}}"
             />
-          </td>
-          <td>
+          </td> -->
+          <!-- <td>
             <label for="">Hip and ridge LF</label>
             <input
               style="width: 100%"
               type="text"
               value="{{$data->hip_and_ridge_lf}}"
             />
-          </td>
-          <td>
+          </td> -->
+          <!-- <td>
             <label for="">Drip Edge LF </label>
             <input
               style="width: 100%"
               type="text"
               value="{{$data->drip_edge_lf}}"
             />
-          </td>
+          </td> -->
         </tr>
       </tbody>
     </table>
 
+      <!-- material Selection -->
+      <table style="width: 1200px; margin: auto">
+        <thead>
+            <tr>
+              <th colspan="6">
+                <h2 style="text-align: left">Material Selection</h2>
+              </th>
+            </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <label for="">Name</label>
+            </td>
+            <td>
+              <label for="">Option</label>
+            </td>
+            <td>
+              <label for="">Unit</label>
+            </td>
+            <td>
+              <label for="">Unit cost</label>
+            </td>
+            <td>
+              <label for="">Quantity</label>
+            </td>
+            <td>
+              <label for="">Total</label>
+            </td>
+          </tr>
+
+            @php
+                Log::info($materialSelection);
+            @endphp
+
+          @if($materialSelection->isNotEmpty())
+            @foreach($materialSelection as $selection)
+            <tr>
+              <td>
+                <input
+                  style="width: 100%"
+                  type="text"
+                  value="{{$selection->name ?? ''}}"
+                />
+              </td>
+              <td>
+                <input
+                  style="width: 100%"
+                  type="text"
+                  value="{{$selection->option ?? ''}}"
+                />
+              </td>
+              <td>
+                <input
+                  style="width: 100%"
+                  type="text"
+                  value="{{$selection->unit ?? ''}}"
+                />
+              </td>
+              <td>
+                <input
+                  style="width: 100%"
+                  type="text"
+                  value="{{$selection->unit_cost ?? ''}}"
+                />
+              </td>
+              <td>
+                <input
+                  style="width: 100%"
+                  type="text"
+                  value="{{$selection->quantity ?? ''}}"
+                />
+              </td>
+              <td>
+                <input
+                  style="width: 100%"
+                  type="text"
+                  value="{{$selection->total ?? ''}}"
+                />
+              </td>
+            </tr>
+            @endforeach 
+          @else
+            <tr>
+                <td colspan="6">
+                    <p>No material selections found.</p>
+                </td>
+            </tr>
+        @endif
+        </tbody>
+      </table>
+
     <table style="width: 1200px; margin: auto">
+      <thead>
+          <tr>
+            <th colspan="6">
+              <h2 style="text-align: left">Quantity and Color</h2>
+            </th>
+          </tr>
+      </thead>
       <tbody>
         <tr>
           <td>
@@ -248,9 +330,9 @@
           <td>
             <label for="">Color</label>
           </td>
-          <td>
+          <!-- <td>
             <label for="">Order key</label>
-          </td>
+          </td> -->
         </tr>
         @foreach($data->materials as $material)
         <tr>
@@ -275,18 +357,21 @@
               value="{{$material->color}}"
             />
           </td>
-          <td>
+          <!-- <td>
             <input
               style="width: 100%"
               type="text"
               value="{{$material->order_key}}"
             />
-          </td>
+          </td> -->
         </tr>
         @endforeach
       </tbody>
     </table>
+    
+  
 
+    
     <!-- Page Break -->
     <div class="page-break"></div>
     <!-- End -->
