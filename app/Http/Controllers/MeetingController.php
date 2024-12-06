@@ -335,15 +335,11 @@ class MeetingController extends Controller
 
         try {
             $savedPhotos = []; 
-
             $squarePhotos = $request->square_photos ?? [];
 
             foreach($squarePhotos as $index => $image) {
-               
-
                 $image_fileName = time() . '_' . $image->getClientOriginalName();
                 // $image_filePath = $image->storeAs('public/AdjustorSquarePhotos', $image_fileName);
-
                 $image_filePath = $image->storeAs('AdjustorSquarePhotos', $image_fileName, 'public');
                 // Store Path   
                 $media = new AdjustorSquarePhotos();
@@ -352,7 +348,6 @@ class MeetingController extends Controller
                 // $media->square_photos = Storage::url($image_filePath);
                 $media->square_photos = Storage::url($image_filePath);
                 $media->save();
-
                  // Collect saved photo details
                 $savedPhotos[] = [
                     'id' => $media->id,
@@ -398,6 +393,7 @@ class MeetingController extends Controller
 
     public function getAdjustorMeetingSquarePhotos($Id,Request $request)
     { 
+        // adjustor_meeting_id
         $photos = AdjustorSquarePhotos::where('company_job_id',$Id)->get();
 
         if($photos){
@@ -423,27 +419,38 @@ class MeetingController extends Controller
             'status'=> 'nullable|in:yes,no'
         ]);
 
-        // if($validator->fails())
-        // {
-        //     return response()->json([
-        //         'status' =>401,
-        //         'message' =>'please select the assigned Values of status',
-        //     ]);
-        // }
+        $job = CompanyJob::find($Id);
+        if(!$job)
+        {
+            return response()->json([
+                        'status' =>404,
+                        'message' =>'Job Not Found',
+                        'data'=>[]
+                    ]);
+        }
 
-
-        $job = CompanyJob::where('id',$Id)->first();
-        // dd($job);
-        if($job)
+        $adjustor = AdjustorMeeting::where('company_job_id',$Id)->first();
+        // dd($job);complete/adjustor-meeting-photos
+        if($adjustor)
         {
             if($request->input('status') == "yes"){
                 $job->status_id = 5;
                 $job->save();
 
+                // if ($adjustor->isComplete()) {
+                //     $adjustor->is_complete = "yes";
+                // } else {
+                //     $adjustor->is_complete = "no";
+                // }
+                // $adjustor->save();
+                // $adjustor->is_completed = $adjustor->isComplete() ? "yes" : "no";
+                $adjustor->is_complete = "yes";
+                $adjustor->save();
+
                 return response()->json([
                     'status' =>200,
                     'message' =>'Adjustor Meeting Marked as Completed',
-                    'data' => $job
+                    'data' => $adjustor
                 ]);
 
             } elseif($request->input('status') == "no"){
@@ -451,16 +458,58 @@ class MeetingController extends Controller
                 $job->status_id = 4;
                 $job->save();
 
+                $adjustor->is_complete = "no";
+                $adjustor->save();
+
                 return response()->json([
                     'status' =>200,
                     'message' =>'Adjustor Meeting Status Updated SuccessFully',
-                    'data' => $job
+                    'data' => $adjustor
                 ]);
             }
         }
         return response()->json([
             'status' =>200,
             'message' =>'Job Not Found',
+            'data' => []
+        ]);
+           
+    }
+
+    public function getCompleteAdjustorMeetingSquarePhotos($Id)
+    {
+        $job = CompanyJob::find($Id);
+        if(!$job)
+        {
+            return response()->json([
+                        'status' => 404,
+                        'message' => 'Job Not Found',
+                        'data'=> []
+            ]);
+        }
+
+        $adjustor = AdjustorMeeting::where('company_job_id',$Id)->first();
+        // dd($job);complete/adjustor-meeting-photos
+        if($adjustor)
+        {
+            if ($adjustor->isComplete()) {
+                $adjustor->is_complete = "yes";
+            } else {
+                $adjustor->is_complete = "no";
+            }
+            $adjustor->save();
+            $adjustor->is_completed = $adjustor->isComplete() ? "yes" : "no";
+               
+            return response()->json([
+                'status' =>200,
+                'message' =>'Adjustor Meeting Marked as Completed',
+                'data' => $adjustor
+            ]);
+
+        }
+        return response()->json([
+            'status' =>200,
+            'message' =>'Adjustor Not Found',
             'data' => []
         ]);
            
@@ -716,6 +765,8 @@ class MeetingController extends Controller
 
             // Transform the response
             if ($adjustor_meeting) {
+                $adjustor_meeting->is_completed = $adjustor_meeting->isComplete();
+
                 $data = $adjustor_meeting->toArray(); // Convert the model to an array
                 // Rename the keys
                 $data['image_url'] = $data['images'];
@@ -724,6 +775,8 @@ class MeetingController extends Controller
                 $data['documents'] = $data['attachments'];
                 unset($data['attachments']); // Remove the old key
             
+                //return completed if the required fields are fill
+
                 return response()->json([
                     'status' => 200,
                     'message' => 'Adjustor Meeting Found Successfully',

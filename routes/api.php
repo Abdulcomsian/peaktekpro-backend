@@ -183,6 +183,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Inprogress Api's 
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
+    Route::post('add/in-progress/photos/{jobId}', [InprogressController::class, 'addInprogressPhotos']);
+    Route::get('get/in-progress/photos/{jobId}', [InprogressController::class, 'getInprogressPhotos']);
     Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
     Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
     Route::get('get/in-progress/{jobId}', [InprogressController::class, 'getInprogress']);
@@ -209,6 +211,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('add/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'AdjustorMeetingSquarePhotos']);
     Route::get('get/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'getAdjustorMeetingSquarePhotos']);
     Route::get('mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'CompleteAdjustorMeetingSquarePhotos']);
+    Route::get('get/mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'getCompleteAdjustorMeetingSquarePhotos']);
 
     //Overturn Meeting Api
     Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
