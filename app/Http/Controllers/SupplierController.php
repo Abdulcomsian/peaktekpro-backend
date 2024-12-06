@@ -128,7 +128,7 @@ class SupplierController extends Controller
 
             $summary=$job->summary;
             $company_id = $job->created_by; //this is job company id
-            $location = $summary->market;  //this is job location
+            // $location = $summary->market;  //this is job location
 
             $suppliers = User::where('role_id', 4)
             ->whereHas('userRoles', function($query) use ($company_id){

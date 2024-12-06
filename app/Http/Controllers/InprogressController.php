@@ -6,12 +6,13 @@ use Carbon\Carbon;
 use App\Models\CompanyJob;
 use App\Models\Inprogress;
 use Illuminate\Http\Request;
+use App\Models\InprogressMedia;
 use App\Models\BuildPacketChecklist;
 use Illuminate\Support\Facades\Storage;
 
 class InprogressController extends Controller
 {
-    public function updateInprogress(Request $request, $jobId)
+    public function updateInprogress1(Request $request, $jobId)
     {
         //Validate Request
         $this->validate($request, [
@@ -58,6 +59,159 @@ class InprogressController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
+    }
+
+    public function updateInprogress(Request $request, $jobId)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'build_start_date' => 'nullable|date_format:m/d/Y',
+            'build_end_date' => 'nullable|date_format:m/d/Y',
+            'notes' => 'nullable',
+            'status' => 'nullable',
+            'labels' => 'nullable|array',
+            'labels.*' => 'nullable|string',
+            'photos' => 'nullable|array',
+            'photos.*' => 'nullable|image'
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found'
+                ], 422);
+            }
+            
+            //Update Inprogress
+            $in_progress = Inprogress::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'build_start_date' => $request->build_start_date,
+                'build_end_date' => $request->build_end_date,
+                'notes' => $request->notes,
+                'status' => $request->status,
+            ]);
+
+            $savedPhotos=[];
+            if($request->hasFile('photos'))
+            {
+                $images= $request->file('photos');
+                foreach($images as $index => $image)
+                {
+                    $image_filename = time(). '.' .$image->getClientOriginalName();
+                    $image_filePath = $image->storeAS('inprogressPhotos',$image_filename,'public');
+
+                    $media = new InprogressMedia();
+                    $media->company_job_id = $jobId;
+                    $media->labels = $request->labels[$index]??null;
+                    $media->image_path = Storage::url($image_filePath);
+
+                    $media->save();
+
+                    $savedPhotos[]=[
+                        'id' => $media->id,
+                        'company_job_id' => $media->company_job_id,
+                        'labels' => $media->labels,
+                        'image_paths' => $media->image_path,
+
+                    ];
+                }
+
+            }
+            
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 11;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inprogress Build Updated Successfully',
+                'data' => $in_progress,
+                'saved_photos' => $savedPhotos,
+
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function addInprogressPhotos($jobId, Request $request)
+    {
+        $this->validate($request,[
+            'photos'=> 'nullable|array',
+            'photos.*' => 'nullable|image',
+            'labels' => 'nullable|array',
+            'labels.*' => 'nullable|string'
+        ]);
+
+        try{
+            $savedPhotos = [];
+            $photos = $request->photos ?? [];
+
+            foreach($photos as $index => $image)
+            {
+                $image_filename = time().'.'.$image->getClientOriginalName();
+                $image_filePath = $image->storeAS('ProgressPhotos',$image_filename,'public');
+
+                $media = new InprogressMedia;
+                $media->company_job_id = $jobId;
+                $media->labels = $request->labels[$index] ?? null;
+                $media->image_path = Storage::url($image_filePath);
+                $media->save();
+
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'company_job_id' => $media->company_job_id,
+                    'labels' =>$media->labels,
+                    'image_path'=> $media->image_path,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+               
+            }
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inprogress Photos Added Successfully',
+                'data' => $savedPhotos,
+            ]);
+        }catch(\Exception $e){
+
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+
+        }
+
+
+    }
+
+    public function getInprogressPhotos($jobId)
+    {
+        $photos = InprogressMedia::where('company_job_id',$jobId)->get();
+        if($photos->isNotEmpty())
+        {
+            return response()->json([
+                'status' =>200,
+                'message' =>'in progres media fetched successfully',
+                'data' => $photos
+            ]);
+        }
+        return response()->json([
+            'status' =>200,
+            'message' =>'in progres media Not Found',
+            'data' => []
+        ]);
+
     }
     
     public function updateInprogressStatus(Request $request, $jobId)
@@ -167,10 +321,6 @@ class InprogressController extends Controller
             'authorization'=>'nullable|string|in:true,false',
             'terms_condition'=>'nullable|string|in:true,false',
         ]);
-
-        // if($validate->fails()){
-
-        // }
 
         try{
                 $company_job_checklist = BuildPacketChecklist::updateOrCreate([
@@ -390,81 +540,5 @@ class InprogressController extends Controller
         }
     }
 
-    public function updateCustomerAgreement(Request $request, $id)
-    {
-        //Validate Request
-        $this->validate($request, [
-            'sign_image' => 'nullable',
-        ]);
-        try {
-
-            //Check Agreement
-            $agreement = CustomerAgreement::find($id);
-            if(!$agreement) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Agreement Not Found'
-                ], 422);
-            }
-
-            // Get base64 image data
-            $base64Image = $request->input('sign_image');
-            $data = substr($base64Image, strpos($base64Image, ',') + 1);
-            $decodedImage = base64_decode($data);
-
-            // Generate a unique filename
-            $filename = 'image_' . time() . '.png';
-            // Check if the old image exists and delete it
-            if ($agreement->sign_image_url) {
-                $oldImagePath = public_path($agreement->sign_image_url);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
-            // Save the new image
-            Storage::disk('public')->put('agreement_signature/' . $filename, $decodedImage);
-            $imageUrl = '/storage/agreement_signature/' . $filename;
-
-            //Save Image Path
-            $agreement->sign_image_url = $imageUrl;
-            $agreement->save();
-
-            //Generate PDF
-            $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
-            $pdf_fileName = time() . '.pdf';
-            $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
-            // Check if the old PDF exists and delete it
-            if ($agreement->sign_pdf_url) {
-                $oldPdfPath = public_path($agreement->sign_pdf_url);
-                if (file_exists($oldPdfPath)) {
-                    unlink($oldPdfPath);
-                }
-            }
-            // Save the new PDF
-            Storage::put('public/' . $pdf_filePath, $pdf->output());
-
-            //Save PDF Path
-            $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
-            $agreement->save();
-
-            //Update Job Status
-            $job = CompanyJob::find($agreement->company_job_id);
-            $job->status_id = 2;
-            $job->date = Carbon::now()->format('Y-m-d');
-            $job->save();
-
-            //Fire an Event
-            event(new JobStatusUpdateEvent('Refresh Pgae'));
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Signature Image Added Successfully',
-                'agreement' => $agreement
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-
-    }
 
 }
