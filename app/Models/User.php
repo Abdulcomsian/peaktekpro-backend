@@ -27,7 +27,8 @@ class User extends Authenticatable
         'created_by',
         'profile',
         'status',
-        'company_id'
+        'company_id',
+        'location'
     ];
 
     /**

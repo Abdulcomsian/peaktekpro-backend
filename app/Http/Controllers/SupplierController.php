@@ -56,25 +56,26 @@ class SupplierController extends Controller
         }
     }
 
-    public function storeSupplier(Request $request, $Id) //here handle on the base of company id
+    public function storeSupplier(Request $request)
     {
         //Validate Request
         $this->validate($request, [
             'name' => 'required|string',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
+            'location'=> 'nullable|string'
         ]);
 
         try {
 
             //Check Job
-            $job = Company::find($Id);
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Company not found'
-                ], 422);
-            }   
+            // $job = Company::find($Id);
+            // if(!$job) {
+            //     return response()->json([
+            //         'status' => 422,
+            //         'message' => 'Company not found'
+            //     ], 422);
+            // }   
 
             $user = Auth::user();
             $created_by = $user->company_id; //here we save the company id
@@ -89,15 +90,16 @@ class SupplierController extends Controller
                 'last_name' => $lastName,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'company_id'=> $Id,
+                'company_id'=> $user->company_id,
                 'created_by'=> $created_by,
+                'location' => $request->location,
                 'status' => 'active'
             ]);
 
             //Assign Role
             $user_role = new UserRole;
             $user_role->user_id = $user->id;
-            $user_role->company_id = $Id;
+            $user_role->company_id = $user->company_id;
             $user_role->save();
 
             return response()->json([
@@ -116,9 +118,8 @@ class SupplierController extends Controller
         try {
 
             //Check Job
-            // $job = CompanyJob::find($Id);
-            $job = CompanyJob::with('summary')->where('id',$Id)->first();
-
+            $job = CompanyJob::find($Id);
+            $jobSummary = CompanyJob::with('summary')->where('id',$Id)->first();
             if(!$job) {
                 return response()->json([
                     'status' => 422,
@@ -128,22 +129,14 @@ class SupplierController extends Controller
 
             $summary=$job->summary;
             $company_id = $job->created_by; //this is job company id
-            // $location = $summary->market;  //this is job location
-
+            $location = $summary->market;  //this is job location
+            // dd($location);Nashville
             $suppliers = User::where('role_id', 4)
+            ->where('location',$location)
             ->whereHas('userRoles', function($query) use ($company_id){
                 $query->where('company_id', $company_id); //if you want to get all supplier whos company_id is same as my job company id, check user_roles table because each role have company id here in this table also
             })
-            // ->whereHas('companySummaries', function ($query) use ($location) {
-            //     $query->where('market', $location); // Ensure location matches the job's location in company_summaries
-            // })
             ->get();   
-            // $suppliers = User::where('role_id', 4)
-            // ->join('company_jobs', 'company_jobs.user_id', '=', 'users.id') // Join company_jobs with users based on user_id
-            // ->join('company_job_summaries', 'company_job_summaries.company_job_id', '=', 'company_jobs.id') // Join company_job_summaries with company_jobs based on company_job_id
-            // // ->where('company_jobs.created_by', $company_id) // Filter by company_id from company_jobs
-            // // ->where('company_job_summaries.market', $location) // Filter by location (market) from company_job_summaries
-            // ->get(); 
 
             if($suppliers->isEmpty())
             {

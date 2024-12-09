@@ -36,4 +36,9 @@ class MaterialOrder extends Model
         return $this->belongsTo(CustomerAgreement::class, 'company_id');
     }
 
+    public function media()
+    {
+        return $this->hasMany(MaterialOrderMedia::class, 'material_order_id');
+    }
+
 }
