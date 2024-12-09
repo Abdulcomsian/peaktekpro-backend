@@ -6,6 +6,7 @@ use Log;
 use PDF;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Material;
 use App\Models\CompanyJob;
 use App\Models\BuildDetail;
 use App\Models\ReadyToBuild;
@@ -15,6 +16,7 @@ use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
 use App\Models\CustomerAgreement;
 use App\Models\MaterialSelection;
+use App\Models\MaterialOrderMedia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MaterialOrderMaterial;
@@ -26,6 +28,13 @@ use App\Notifications\MaterialOrderConfirmationNotification;
 
 class MaterialOrderController extends Controller
 {
+    public function materialList()
+    {
+        // dd();
+        $options = Material::with('subOptions')->get(); // Fetch options with sub-options
+        return response()->json($options);
+    }
+
     public function materialOrder(Request $request, $id)
     {
         //Validate Request
@@ -52,6 +61,13 @@ class MaterialOrderController extends Controller
             'materials.*.quantity' => 'nullable',
             'materials.*.color' => 'nullable',
             'materials.*.order_key' => 'nullable',
+            'notes'=>'nullable|string',
+            'file_name' => 'nullable|array',
+            'file_name.*' => 'nullable',
+            'media_type' => 'nullable|array',
+            'media_type.*' => 'nullable|string',
+            'media' => 'nullable|array',
+            'media.*' => 'nullable|mimes:jpg,png,pdf|max:2048',
         ]);
 
         DB::beginTransaction();
@@ -102,6 +118,41 @@ class MaterialOrderController extends Controller
                 'drip_edge_lf' => $request->drip_edge_lf,
             ]);
 
+            ////////save documents and notes////////////
+            $savedPhotos = [];
+            $medias = $request->media ?? [];
+
+            foreach($medias as $index=>$media)
+            {
+                $image_filename = time(). '.'. $media->getClientOriginalName();
+                $image_filePath = $media->storeAs('material_order_documents',$image_filename,'public');
+
+                //store Path
+                $media = new MaterialOrderMedia();
+                $media->notes = $request->notes;
+                $media->material_order_id = $material_order->id;
+                $media->file_name = $request->file_name[$index] ?? null; // Use the corresponding file_name
+                $media->media_type = $request->media_type[$index] ?? null;
+                $media->media_url = Storage::url($image_filePath);
+                $media->save();
+                  // Collect saved photo details
+                  $savedPhotos[] = [
+                    'id' => $media->id,
+                    'material_order_id' => $media->material_order_id,
+                    'file_name' => $media->file_name,
+                    'media_type' => $media->media_type,
+                    'media_url' => $media->media_url,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+
+            }
+
+           
+
+
+            ///end document and notes logic////
+
             // Delete materials that are not in the incoming data
             $existingMaterials = MaterialOrderMaterial::where('material_order_id', $material_order->id)->get();
             $incomingMaterials = $request->materials;
@@ -147,7 +198,7 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Material Order Created Successfully',
-                'material_order' => $material_order
+                'data' =>     $material_order->load('materials', 'media'),
             ], 200);
         } catch (\Exception $e) {
             DB::rollback();
@@ -531,7 +582,7 @@ class MaterialOrderController extends Controller
             }
 
             //Check Supplier
-            $supplier = User::where('id', $request->supplier_id)->where('role_id', 3)->first();
+            $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
             if(!$supplier) {
                 return response()->json([
                     'status' => 422,
