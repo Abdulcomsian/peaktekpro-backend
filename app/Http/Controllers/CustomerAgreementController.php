@@ -592,7 +592,7 @@ class CustomerAgreementController extends Controller
 
             //Save Image Path
             $agreement->sign_image_url = $imageUrl;
-            $agreement->save();
+            $agreement->save(); 
 
             //Generate PDF
             $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);

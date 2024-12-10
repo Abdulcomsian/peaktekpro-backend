@@ -20,6 +20,7 @@ return new class extends Migration
             $table->mediumText('notes')->nullable();
             $table->string('media_type')->nullable();
             $table->string('media_url')->nullable();
+            
             $table->timestamps();
         });
     }

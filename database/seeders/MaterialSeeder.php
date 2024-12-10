@@ -24,10 +24,11 @@ class MaterialSeeder extends Seeder
             ['material' => 'proArmor' , 'orderkey' => 'Roll (10 SQ)'],
             ['material' => 'Starter Strip' , 'orderkey' => 'Bundle (100 LFT)'],
             ['material' => 'Drip Edge' , 'orderkey' => 'Stick (10 LFT)'],
-            // ['material' => '' , 'orderkey' => ''],
-            // ['material' => '' , 'orderkey' => ''],
-            // ['material' => '' , 'orderkey' => ''],
-            // ['material' => '' , 'orderkey' => ''],
+            ['material' => 'Drip Edge' , 'orderkey' => 'Stick (10 LFT)'],
+            ['material' => 'select architectural shingles' , 'orderkey' => 'Bundle (3 / SQ)'],
+            ['material' => 'select three tab shingles' , 'orderkey' => 'Bundle (3 / SQ)'],
+            ['material' => 'select Hip and Ridge Shingles' , 'orderkey' => 'Bundle (30 LFT)'],
+            ['material' => '' , 'orderkey' => ''],
             // ['material' => '' , 'orderkey' => ''],
             // ['material' => '' , 'orderkey' => ''],
             // ['material' => '' , 'orderkey' => ''],
@@ -44,6 +45,8 @@ class MaterialSeeder extends Seeder
             ['material_id' => 6, 'name' => 'Underlayment'],
             ['material_id' => 6, 'name' => 'proArmer'],
             ['material_id' => 6, 'name' => 'Rhino U20'],
+            ['material_id' => 7, 'name' => 'Rhino U20'],
+
 
         ];
 
