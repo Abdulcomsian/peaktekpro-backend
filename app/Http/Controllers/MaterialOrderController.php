@@ -497,7 +497,7 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Signature Image Added Successfully',
-                'material_order' => $material_order
+                'material_order' => $material_order,
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use PDF;
 
 use Carbon\Carbon;
 use App\Models\CompanyJob;
@@ -9,59 +10,11 @@ use Illuminate\Http\Request;
 use App\Models\InprogressMedia;
 use App\Models\BuildPacketChecklist;
 use Illuminate\Support\Facades\Storage;
+// use Barryvdh\DomPDF\Facade as PDF;
 
 class InprogressController extends Controller
 {
     public function updateInprogress1(Request $request, $jobId)
-    {
-        //Validate Request
-        $this->validate($request, [
-            'build_start_date' => 'nullable|date_format:m/d/Y',
-            'build_end_date' => 'nullable|date_format:m/d/Y',
-            'notes' => 'nullable',
-            'status' => 'nullable'
-        ]);
-        
-        try {
-            
-            //Check Job
-            $job = CompanyJob::find($jobId);
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Job not found'
-                ], 422);
-            }
-            
-            //Update Inprogress
-            $in_progress = Inprogress::updateOrCreate([
-                'company_job_id' => $jobId,
-            ],[
-                'company_job_id' => $jobId,
-                'build_start_date' => $request->build_start_date,
-                'build_end_date' => $request->build_end_date,
-                'notes' => $request->notes,
-                'status' => $request->status,
-            ]);
-            
-            if(isset($request->status) && $request->status == true) {
-                $job->status_id = 11;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-            }
-            
-            return response()->json([
-                'status' => 200,
-                'message' => 'Inprogress Build Updated Successfully',
-                'data' => $in_progress
-            ], 200);
-            
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-    }
-
-    public function updateInprogress(Request $request, $jobId)
     {
         //Validate Request
         $this->validate($request, [
@@ -124,6 +77,160 @@ class InprogressController extends Controller
 
             }
             
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 11;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inprogress Build Updated Successfully',
+                'data' => $in_progress,
+                'saved_photos' => $savedPhotos,
+
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function updateInprogress(Request $request, $jobId)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'build_start_date' => 'nullable|date_format:m/d/Y',
+            'build_end_date' => 'nullable|date_format:m/d/Y',
+            'notes' => 'nullable',
+            'status' => 'nullable',
+            'labels' => 'nullable|array',
+            'labels.*' => 'nullable|string',
+            'photos' => 'nullable|array',
+            'photos.*' => 'nullable|image',
+            'production_sign_url' => 'nullable',
+            'homeowner_signature' => 'nullable'
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found'
+                ], 422);
+            }
+            
+            //Update Inprogress
+            $in_progress = Inprogress::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'build_start_date' => $request->build_start_date,
+                'build_end_date' => $request->build_end_date,
+                'notes' => $request->notes,
+                'status' => $request->status,
+            ]);
+
+            $savedPhotos=[];
+            if($request->hasFile('photos'))
+            {
+                $images= $request->file('photos');
+                foreach($images as $index => $image)
+                {
+                    $image_filename = time(). '.' .$image->getClientOriginalName();
+                    $image_filePath = $image->storeAS('inprogressPhotos',$image_filename,'public');
+
+                    $media = new InprogressMedia();
+                    $media->company_job_id = $jobId;
+                    $media->labels = $request->labels[$index]??null;
+                    $media->image_path = Storage::url($image_filePath);
+
+                    $media->save();
+
+                    $savedPhotos[]=[
+                        'id' => $media->id,
+                        'company_job_id' => $media->company_job_id,
+                        'labels' => $media->labels,
+                        'image_paths' => $media->image_path,
+
+                    ];
+                }
+
+            }
+
+           if($request->production_sign_url)
+           {
+                $base64Image = $request->input('production_sign_url');
+                $data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $decodedImage = base64_decode($data);
+
+                // Generate a unique filename
+                $filename = 'image_' . time() . '.png';
+                // Check if the old image exists and delete it
+                if ($in_progress->production_sign_url) {
+                    $oldImagePath = public_path($in_progress->production_sign_url);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+                // Save the new image
+                Storage::disk('public')->put('inprogress_signature/' . $filename, $decodedImage);
+                $imageUrl = '/storage/inprogress_signature/' . $filename;
+
+                //Save Image Path
+                $in_progress->production_sign_url = $imageUrl;
+                $in_progress->save();
+           }
+
+           if($request->homeowner_signature)
+           {
+                $base64Image = $request->input('homeowner_signature');
+                $data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $decodedImage = base64_decode($data);
+
+                // Generate a unique filename
+                $filename = time() . '.png';
+                // Check if the old image exists and delete it
+                if ($in_progress->homeowner_signature) {
+                    $oldImagePath = public_path($in_progress->homeowner_signature);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+                // Save the new image
+                Storage::disk('public')->put('inprogress_signature/' . $filename, $decodedImage);
+                $imageUrl1 = '/storage/inprogress_signature/' . $filename;
+
+                //Save Image Path
+                $in_progress->homeowner_signature = $imageUrl1;
+                $in_progress->save();
+           }
+            
+           ////////////////Generate Pdf///////////////////////
+            //Generate PDF
+            $pdf = PDF::loadView('pdf.inprogress', ['data' => $in_progress,'saved_photos'=>$savedPhotos]);
+           
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'inprogress_pdf/' . $pdf_fileName;
+            // Check if the old PDF exists and delete it
+            if ($in_progress->pdf_url) {
+                $oldPdfPath = public_path($in_progress->pdf_url);
+                if (file_exists($oldPdfPath)) {
+                    unlink($oldPdfPath);
+                }
+            }
+            // Save the new PDF
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+
+            //Save PDF Path
+            $in_progress->pdf_url = '/storage/' . $pdf_filePath;
+            $in_progress->save();
+
+            //////////end generate pdf
+
             if(isset($request->status) && $request->status == true) {
                 $job->status_id = 11;
                 $job->date = Carbon::now()->format('Y-m-d');
