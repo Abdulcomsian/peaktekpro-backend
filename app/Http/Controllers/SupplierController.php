@@ -107,7 +107,6 @@ class SupplierController extends Controller
     public function getSuppliers($Id)
     {
         try {
-
             //Check Job
             $job = CompanyJob::find($Id);
             // $jobSummary = CompanyJob::with('summary')->where('id',$Id)->first();

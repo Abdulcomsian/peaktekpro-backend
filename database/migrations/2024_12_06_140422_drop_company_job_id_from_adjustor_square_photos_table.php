@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -14,8 +15,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('adjustor_square_photos', function (Blueprint $table) {
-            $table->dropForeign(['company_job_id']);
-            $table->dropColumn('company_job_id');
+            // $table->dropForeign(['company_job_id']);
+            // $table->dropColumn('company_job_id');
+            if (DB::getSchemaBuilder()->hasColumn('adjustor_square_photos', 'company_job_id')) {
+                $table->dropForeign(['company_job_id']); // Drop foreign key
+                $table->dropColumn('company_job_id');    // Drop column
+            }
 
         });
     }
@@ -28,10 +33,10 @@ return new class extends Migration
     public function down()
     {
         Schema::table('adjustor_square_photos', function (Blueprint $table) {
-            $table->unsignedBigInteger('company_job_id')->nullable();
-
-            $table->foreign('company_job_id')->references('id')->on('company_jobs')->onDelete('cascade');
-
+            $table->foreignId('company_job_id')
+            ->nullable()
+            ->constrained('company_jobs')
+            ->onDelete('cascade');
         });
     }
 };
