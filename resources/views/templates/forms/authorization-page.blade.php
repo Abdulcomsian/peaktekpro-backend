@@ -6,7 +6,7 @@
             <small>For example, the terms of an estimate, or a direction to the insurer.</small>
             <input type="text" id="disclaimer" name="authorization_disclaimer" placeholder="Enter disclaimer"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                required />
+                required value="{{ $pageData->json_data['authorization_disclaimer'] ?? '' }}"/>
         </div>
 
     </form>
@@ -152,7 +152,7 @@
         authorizationFooterTextQuill.root.style.height = '200px';
 
         // old text value
-        let oldAuthorizationlFooterTextValue = '';
+        let oldAuthorizationlFooterTextValue = "{!! $pageData->json_data['authorization_footer_text'] ?? '' !!}";
 
         // Load the saved content into the editor
         authorizationFooterTextQuill.clipboard.dangerouslyPasteHTML(oldAuthorizationlFooterTextValue);
