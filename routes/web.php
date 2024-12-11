@@ -41,6 +41,10 @@ Route::post('/templates/page/save-data', [TemplateController::class, 'savePageDa
 Route::post('/templates/page/save-file', [TemplateController::class, 'savePageFile'])->name('templates.page.save-file');
 Route::delete('/templates/page/delete-file', [TemplateController::class, 'deletePageFile'])->name('templates.page.delete-file');
 Route::post('/templates/page/save-files', [TemplateController::class, 'savePageMultipleFiles'])->name('templates.page.save-multiple-files');
+Route::post('/templates/page/quote-section/save', [TemplateController::class, 'saveQuoteSectionDetails'])->name('templates.quote-section.update');
+Route::delete('/templates/page/quote-section/destroy', [TemplateController::class, 'removeQuoteSection'])->name('template.quote.remove-section');
+Route::post('/templates/page/quote-section/ordering', [TemplateController::class, 'updateQuoteSectionsOrdering'])->name('templates.page.quote-sections-ordering.update');
+
 
 
 // repairibility assessment

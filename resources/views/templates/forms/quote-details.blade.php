@@ -2,80 +2,174 @@
     <!-- Section Container -->
     <div id="sections-container">
         <!-- First Section -->
-        <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200" data-id="{{ \Str::random(8) }}">
-            <!-- Section Header -->
-            <div class="flex justify-between items-center mb-4 gap-1">
-                <div class="flex items-center space-x-2">
-                    <div>
-                        <input type="text"
-                            class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1 quote-section-title"
-                            placeholder="Section Title" />
+        {{-- {{ $pageData->json_data['warranty_text'] ?? '' }} --}}
+        @if (count($pageData->json_data['sections']) > 0)
+
+            @forelse ($pageData->json_data['sections'] as $section)
+
+            <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
+                data-id="{{ $section['id'] }}">
+                <!-- Section Header -->
+                <div class="flex justify-between items-center mb-4 gap-1">
+                    <div class="flex items-center space-x-2">
+                        <div>
+                            <input type="text"
+                                class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1 quote-section-title"
+                                placeholder="Section Title" value="{{ $section['title'] }}"/>
+                        </div>
+                        <div>
+                            <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                                X
+                            </button>
+                            <span class="section-drag-handle cursor-pointer">↑↓</span>
+                        </div>
                     </div>
-                    <div>
-                        <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                    <div class="relative flex items-center">
+                        <span id="toggle-tooltip"
+                            class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
+                            Show or Hide this section, It's total is always included.
+                        </span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer section-toggle" @checked($section['isActive'] == 'true')>
+                            <div
+                                class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <!-- Rows Container -->
+                <div class="rows-container space-y-4">
+                    <!-- Default Row -->
+                    @forelse ($section['sectionItems'] as $item)
+
+                    <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
+                        <span class="row-drag-handle cursor-pointer">↑↓</span>
+                        <!-- Item Description -->
+                        <input type="text" class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="Item Description" value="{{ $item['description'] }}">
+
+                        <!-- Quantity -->
+                        <input type="number" class="item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] }}">
+
+                        <!-- Unit Price -->
+                        <input type="number" class="item-price w-20 border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] }}">
+
+                        <!-- Line Total -->
+                        <div class="line-total-container w-24 text-right flex-1">
+                            <span class="line-total block">
+                                ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
+                            </span>
+                        </div>
+
+                        <!-- Remove Button -->
+                        <button class="remove-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
                             X
                         </button>
-                        <span class="section-drag-handle cursor-pointer">↑↓</span>
                     </div>
+
+                    @empty
+
+                    @endforelse
+
                 </div>
-                <div class="relative flex items-center">
-                    <span id="toggle-tooltip"
-                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
-                        Show or Hide this section, It's total is always included.
+                <!-- Add Row Button -->
+                <button class="add-row-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">
+                    + Add Row
+                </button>
+                <!-- Section Total -->
+                <div class="flex justify-between items-center mt-4">
+                    <span class="text-lg font-medium text-gray-700">Section Total:</span>
+                    <span class="section-total text-lg font-semibold text-gray-800">
+                        ${{ number_format($section['sectionTotal'] ?? 0, 2, '.', '') }}
                     </span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer section-toggle">
-                        <div
-                            class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+                </div>
+            </div>
+
+            @empty
+
+            @endforelse
+            @else
+
+            <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
+                data-id="{{ \Str::random(8) }}">
+                <!-- Section Header -->
+                <div class="flex justify-between items-center mb-4 gap-1">
+                    <div class="flex items-center space-x-2">
+                        <div>
+                            <input type="text"
+                                class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1 quote-section-title"
+                                placeholder="Section Title" />
                         </div>
-                    </label>
-                </div>
-            </div>
-            <!-- Rows Container -->
-            <div class="rows-container space-y-4">
-                <!-- Default Row -->
-                <div class="row flex flex-wrap items-center space-x-4" data-id="{{ \Str::random(8) }}">
-                    <span class="row-drag-handle cursor-pointer">↑↓</span>
-                    <!-- Item Description -->
-                    <input type="text" class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
-                        placeholder="Item Description">
-
-                    <!-- Quantity -->
-                    <input type="number" class="item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
-                        placeholder="Qty" min="0" step="0.01">
-
-                    <!-- Unit Price -->
-                    <input type="number" class="item-price w-20 border border-gray-300 rounded-md px-2 py-1"
-                        placeholder="Unit Price" min="0" step="0.01">
-
-                    <!-- Line Total -->
-                    <div class="line-total-container w-24 text-right flex-1">
-                        <span class="line-total block">$0.00</span>
+                        <div>
+                            <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                                X
+                            </button>
+                            <span class="section-drag-handle cursor-pointer">↑↓</span>
+                        </div>
                     </div>
+                    <div class="relative flex items-center">
+                        <span id="toggle-tooltip"
+                            class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
+                            Show or Hide this section, It's total is always included.
+                        </span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer section-toggle">
+                            <div
+                                class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <!-- Rows Container -->
+                <div class="rows-container space-y-4">
+                    <!-- Default Row -->
+                    <div class="row flex flex-wrap items-center space-x-4" data-id="{{ \Str::random(8) }}">
+                        <span class="row-drag-handle cursor-pointer">↑↓</span>
+                        <!-- Item Description -->
+                        <input type="text" class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="Item Description">
 
-                    <!-- Remove Button -->
-                    <button class="remove-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
-                        X
-                    </button>
+                        <!-- Quantity -->
+                        <input type="number" class="item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="Qty" min="0" step="0.01">
+
+                        <!-- Unit Price -->
+                        <input type="number" class="item-price w-20 border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="Unit Price" min="0" step="0.01">
+
+                        <!-- Line Total -->
+                        <div class="line-total-container w-24 text-right flex-1">
+                            <span class="line-total block">$0.00</span>
+                        </div>
+
+                        <!-- Remove Button -->
+                        <button class="remove-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                            X
+                        </button>
+                    </div>
+                </div>
+                <!-- Add Row Button -->
+                <button class="add-row-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">
+                    + Add Row
+                </button>
+                <!-- Section Total -->
+                <div class="flex justify-between items-center mt-4">
+                    <span class="text-lg font-medium text-gray-700">Section Total:</span>
+                    <span class="section-total text-lg font-semibold text-gray-800">$0.00</span>
                 </div>
             </div>
-            <!-- Add Row Button -->
-            <button class="add-row-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">
-                + Add Row
-            </button>
-            <!-- Section Total -->
-            <div class="flex justify-between items-center mt-4">
-                <span class="text-lg font-medium text-gray-700">Section Total:</span>
-                <span class="section-total text-lg font-semibold text-gray-800">$0.00</span>
-            </div>
-        </div>
+        @endif
     </div>
 
     <!-- Grand Total -->
     <div class="flex justify-end items-center mb-6">
         <div>
             <span id="grand-total-label" class="text-lg font-medium text-gray-700">Grand Total:</span>
-            <span id="grand-total" class="text-lg font-semibold text-gray-800 ml-2">$0.00</span>
+            <span id="grand-total" class="text-lg font-semibold text-gray-800 ml-2">
+                ${{ number_format($pageData->json_data['grand_total'] ?? 0, 2, '.', '') }}
+            </span>
         </div>
     </div>
 
@@ -88,44 +182,59 @@
 
 @push('scripts')
     <script>
-
-        // save section title
-        const saveQuoteSectionTitle = debounce(function() {
-            let sectionContainer = $(this).closest('.section')
+        // save section data
+        const saveQuoteSectionData = debounce(function(element) {
+            let quoteSectionGrandTotal = $('#grand-total').text().replace('$', '');
+            let sectionContainer = element.closest('.section')
             let quoteSectionId = sectionContainer.data('id');
             let sectionTitle = sectionContainer.find('.quote-section-title').val()
+            let sectionOrder = sectionContainer.index();
 
             let quoteSection = {
                 id: quoteSectionId,
                 title: sectionTitle,
+                order: sectionOrder,
                 isActive: sectionContainer.find('.section-toggle').is(':checked'),
+                sectionTotal: +sectionContainer.find('.section-total').text().replace('$', ''),
                 sectionItems: []
             }
 
-            sectionContainer.find('.rows-container').find('.row').each(function() {
+            sectionContainer.find('.rows-container').find('.row').each(function(index) {
                 let rowId = $(this).data('id');
 
                 quoteSection.sectionItems.push({
-                    row_id: rowId,
+                    rowId: rowId,
+                    order: index, // Add order for the row
                     description: $(this).find('.item-description').val(),
-                    qty: $(this).find('.item-qty').val(),
-                    price: $(this).find('.item-price').val(),
-                    line_total: $(this).find('.line-total').text().replace('$', ''),
+                    qty: +$(this).find('.item-qty').val(),
+                    price: +$(this).find('.item-price').val(),
+                    lineTotal: +$(this).find('.line-total').text().replace('$', ''),
                 })
 
             })
 
-            console.log(quoteSection)
+            $.ajax({
+                url: "{{ route('templates.quote-section.update') }}",
+                method: 'POST',
+                data: {
+                    page_id: pageId,
+                    quoteSection: quoteSection,
+                    grandTotal: quoteSectionGrandTotal
+                },
+                success: function(response) {
+                    showSuccessNotification(response.message);
+                },
+                error: function(xhr) {
+                    showErrorNotification(xhr.responseJSON.message);
+                }
+            })
 
         }, 500); // Delay in milliseconds
 
-
-        $(document).on('keyup change','.quote-section-title', saveQuoteSectionTitle);
-
-
-        let sectionCounter = 1;
-
-
+        // update on section title and toggle
+        $(document).on('keyup change', '.quote-section-title , .section-toggle', function() {
+            saveQuoteSectionData($(this))
+        });
 
         // Update Grand Total
         function updateQuoteGrandTotal() {
@@ -233,41 +342,9 @@
 
             updateQuoteGrandTotal();
 
-            // Send AJAX request to update the row
-            // $.ajax({
-            //     url: "/update-row",
-            //     method: "POST",
-            //     data: {
-            //         id: rowId,
-            //         description: description,
-            //         qty: qty,
-            //         price: price,
-            //     },
-            //     success: function (response) {
-            //         console.log("Row updated:", response);
-            //     },
-            //     error: function (xhr) {
-            //         console.error("Failed to update row:", xhr.responseText);
-            //     },
-            // });
-        });
+            // save / update section data with items
+            saveQuoteSectionData($(this));
 
-        // Update Section Title
-        $(document).on("input", ".section-title", function() {
-            const sectionId = $(this).closest(".section").data("id");
-            const title = $(this).val();
-
-            // $.ajax({
-            //     url: "/update-section",
-            //     method: "POST",
-            //     data: { id: sectionId, title: title },
-            //     success: function (response) {
-            //         console.log("Section updated:", response);
-            //     },
-            //     error: function (xhr) {
-            //         console.error("Failed to update section:", xhr.responseText);
-            //     },
-            // });
         });
 
         // Remove Section
@@ -275,24 +352,27 @@
             const section = $(this).closest(".section");
             const sectionId = section.data("id");
 
-            // Remove the section
-            section.remove();
+            $.ajax({
+                url: "{{ route('template.quote.remove-section') }}",
+                method: "DELETE",
+                data: {
+                    page_id: pageId,
+                    section_id: sectionId
+                },
+                success: function(response) {
 
-            // Update the Grand Total
-            updateQuoteGrandTotal();
+                    // Remove section
+                    section.remove();
 
-            // $.ajax({
-            //     url: "/delete-section",
-            //     method: "DELETE",
-            //     data: { id: sectionId },
-            //     success: function (response) {
-            //         section.remove(); // Remove section from DOM
-            //         console.log("Section removed:", response);
-            //     },
-            //     error: function (xhr) {
-            //         console.error("Failed to remove section:", xhr.responseText);
-            //     },
-            // });
+                    // Update the Grand Total
+                    updateQuoteGrandTotal();
+
+                    showSuccessNotification(response.message);
+                },
+                error: function(xhr) {
+                    showErrorNotification(xhr.responseJSON.message);
+                },
+            });
         });
 
         // Remove Row
@@ -314,18 +394,8 @@
             // Update the Grand Total
             updateQuoteGrandTotal();
 
-            // $.ajax({
-            //     url: "/delete-row",
-            //     method: "DELETE",
-            //     data: { id: rowId },
-            //     success: function (response) {
-            //         row.remove(); // Remove row from DOM
-            //         console.log("Row removed:", response);
-            //     },
-            //     error: function (xhr) {
-            //         console.error("Failed to remove row:", xhr.responseText);
-            //     },
-            // });
+            // save / update section data with items
+            saveQuoteSectionData($(this));
         });
 
         // Make sections sortable (drag to reorder sections)
@@ -340,8 +410,31 @@
                 ui.item.css("background-color", "white"); // Reset opacity
             },
             update: function(event, ui) {
-                console.log('Sections reordered');
-                // Trigger any updates or reordering here if needed
+                // Update order via AJAX after drag stop
+                const quoteSectionsOrder = $("#sections-container .section").map(function() {
+                        return $(this).data("id");
+                    }).get();
+                    $.ajax({
+                        url: "{{ route('templates.page.quote-sections-ordering.update') }}",
+                        method: 'POST',
+                        data: {
+                            page_id: pageId,
+                            sections_order: quoteSectionsOrder,
+                        },
+                        success: function(response) {
+                            if (response.status) {
+
+                                // show a success message
+                                showSuccessNotification(response.message);
+                            } else {
+                                showErrorNotification(response.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error("Failed to reorder sections:", xhr.responseText);
+                        }
+                    });
+
             },
             cancel: ".remove-section-btn, input, button" // Prevent drag interference
         });
@@ -359,8 +452,10 @@
                     ui.item.css("background-color", "white"); // Reset opacity
                 },
                 update: function(event, ui) {
-                    console.log('Rows reordered');
-                    // Trigger any updates or reordering here if needed
+
+                    // save / update section data with items
+                    saveQuoteSectionData($(this));
+
                 }
             });
         }
