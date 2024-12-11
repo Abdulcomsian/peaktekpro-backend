@@ -66,16 +66,7 @@ class SupplierController extends Controller
             'location'=> 'nullable|string'
         ]);
 
-        try {
-
-            //Check Job
-            // $job = Company::find($Id);
-            // if(!$job) {
-            //     return response()->json([
-            //         'status' => 422,
-            //         'message' => 'Company not found'
-            //     ], 422);
-            // }   
+        try {   
 
             $user = Auth::user();
             $created_by = $user->company_id; //here we save the company id
@@ -119,17 +110,27 @@ class SupplierController extends Controller
 
             //Check Job
             $job = CompanyJob::find($Id);
-            $jobSummary = CompanyJob::with('summary')->where('id',$Id)->first();
+            // $jobSummary = CompanyJob::with('summary')->where('id',$Id)->first();
             if(!$job) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Company job not found'
+                    'message' => 'Company job not found',
+                    'data' => []
                 ], 422);
             }
 
             $summary=$job->summary;
-            $company_id = $job->created_by; //this is job company id
+            if(!$summary)
+            {
+                return response()->json([
+                    'status_code' => 404,
+                    'message' => 'Job Location not found',
+                    'data' => []
+                ]);
+            }
+
             $location = $summary->market;  //this is job location
+            $company_id = $job->created_by; //this is job company id
             // dd($location);Nashville
             $suppliers = User::where('role_id', 4)
             ->where('location',$location)
@@ -143,7 +144,7 @@ class SupplierController extends Controller
                 return response()->json([
                     'status' => 404,
                     'message' => 'Suppliers not Found',
-                    'user' =>[],
+                    'data' =>[],
                 ], 404);
             }
 
@@ -151,43 +152,6 @@ class SupplierController extends Controller
                 'status' => 201,
                 'message' => 'Suppliers Found Successfully',
                 'data' => $suppliers,
-            ], 201);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-    }
-
-    public function getSuppliersold($jobId) //here checking on the base of company job
-    {
-        try {
-            //Check Job
-            $job = CompanyJob::find($jobId);
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Job not found'
-                ], 422);
-            }
-
-            $suppliers = User::where('role_id', 4)->whereHas('userRoles', function($query) use ($jobId){
-                $query->where('company_id', $jobId);
-            })->get();
-
-            if($suppliers->isEmpty())
-            {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Suppliers not Found against this job id',
-                    'user' => $suppliers,
-                ], 404);
-
-            }
-
-            return response()->json([
-                'status' => 201,
-                'message' => 'Suppliers Found Successfully',
-                'user' => $suppliers,
             ], 201);
 
         } catch (\Exception $e) {
