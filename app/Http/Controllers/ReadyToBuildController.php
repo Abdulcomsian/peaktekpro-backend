@@ -7,7 +7,10 @@ use App\Models\User;
 use App\Models\CompanyJob;
 use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
+use App\Models\MaterialOrder;
+use App\Models\CustomerAgreement;
 use App\Models\ReadyToBuildMedia;
+use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
 
 class ReadyToBuildController extends Controller
@@ -22,6 +25,18 @@ class ReadyToBuildController extends Controller
             'notes' => 'nullable|string',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'status' => 'nullable|in:true,false',
+            //material order square count//
+            'square_count' => 'nullable',
+            'total_perimeter' => 'nullable',
+            'ridge_lf' => 'nullable',
+            //quantity and color
+            'materials' => 'nullable|array',
+            'materials.*.material' => 'nullable|string',
+            'materials.*.quantity' => 'nullable',
+            'materials.*.color' => 'nullable',
+            'materials.*.order_key' => 'nullable',
+            //supplier selection
+            'supplier_email' => 'nullable',
         ]);
         
         try {
@@ -34,6 +49,12 @@ class ReadyToBuildController extends Controller
                 ], 422);
             }
 
+            $customer_info = CompanyJob::select('name','phone','address')->where('id',$jobId)->first();
+            if($customer_info)
+            {
+                $customer_info->address = json_decode($customer_info->address, true);
+            }
+
             // Update Ready To Build
             $ready_to_build = ReadyToBuild::updateOrCreate([
                 'company_job_id' => $jobId,
@@ -44,7 +65,9 @@ class ReadyToBuildController extends Controller
                 'date' => $request->date,
                 'notes' => $request->notes,
                 'status' => $request->status,
+                'supplier_email' => $request->supplier_email
             ]);
+
 
             //store attachements here
             if(isset($request->attachements) && count($request->attachements) > 0) {
@@ -60,6 +83,52 @@ class ReadyToBuildController extends Controller
                     $media->save();
                 }
             }
+
+            //Generate PO number
+            $poNumber = $this->generatePONumber();
+            
+            //here add  square count of material order
+            $material_order = MaterialOrder::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'po_number' => $poNumber, 
+                'square_count' => $request->square_count,
+                'total_perimeter' => $request->total_perimeter,
+                'ridge_lf' => $request->ridge_lf,
+            ]);
+
+            if($material_order)
+            {
+               $materialOrder =  MaterialOrder::select('id','po_number','square_count','total_perimeter','ridge_lf')->where('company_job_id',$jobId)->first();
+            }
+
+            ///material order quanity and color add
+            if($request->materials)
+            {
+                foreach($request->materials as $material) {
+                    if(isset($material['id'])) {
+                        // Update existing material
+                        $get_material = MaterialOrderMaterial::find($material['id']);
+                        if ($get_material) {
+                            $get_material->material = $material['material'];
+                            $get_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                            $get_material->color = isset($material['color']) ? $material['color'] : null;
+                            $get_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
+                            $get_material->save();
+                        }
+                    } else {
+                        //Store New Material
+                        $add_material = new MaterialOrderMaterial;
+                        $add_material->material_order_id = $material_order->id;
+                        $add_material->material = $material['material'];
+                        $add_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                        $add_material->color = isset($material['color']) ? $material['color'] : null;
+                        $add_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
+                        $add_material->save();
+                    }
+                }
+            }
             
             // Update Status
             if (isset($request->status) && $request->status == 'true') {
@@ -71,12 +140,24 @@ class ReadyToBuildController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Added Successfully',
-                'data' => $ready_to_build,
+                'data' => [
+                    'customer_info' => $customer_info,
+                    'readybuild'=>$ready_to_build->load('documents'), 
+                     'material_order' => $materialOrder->load('materials')
+                    // 'material_order'=>$materialOrder
+                ],
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
+    }
+
+    private function generatePONumber()
+    {
+        $latestOrder = MaterialOrder::latest('id')->first();
+        $nextId = $latestOrder ? $latestOrder->id + 1 : 1; // Increment ID or start at 1
+        return 'PO-' . str_pad($nextId, 8, '0', STR_PAD_LEFT); // Format: PO-00000001
     }
 
     public function storeReadyToBuildStatus(Request $request, $jobId)
@@ -147,6 +228,13 @@ class ReadyToBuildController extends Controller
                 ], 422);
             }
 
+            //here i will get customer information
+            $customer_info = CompanyJob::select('name','phone','address')->where('id',$jobId)->first();
+            if($customer_info)
+            {
+                $customer_info->address = json_decode($customer_info->address, true);
+            }
+
             // Retrieve Ready To Build
             $readyToBuild = ReadyToBuild::with('documents')->where('company_job_id', $jobId)->first();
             
@@ -154,16 +242,21 @@ class ReadyToBuildController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message' => 'Ready To Build Not Yet Created',
-                    'data' => (object)[] 
-                    // 'data' => []
+                    // 'data' => (object)[] 
+                    'data' =>  $customer_info
                 ], 200);
             }
 
+            $material_order = MaterialOrder::select('id','square_count','total_perimeter','ridge_lf')->where('company_job_id',$jobId)->first();
             // Return response with Ready To Build details
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Found Successfully',
-                'data' => $readyToBuild,
+                'data' => [
+                    'readybuild'=> $readyToBuild,
+                    'customer_info' => $customer_info,
+                    'material_order'=> $material_order->load('materials')
+                ],
             ], 200);
 
         } catch (\Exception $e) {
