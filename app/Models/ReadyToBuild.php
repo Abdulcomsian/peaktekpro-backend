@@ -25,5 +25,4 @@ class ReadyToBuild extends Model
         return $this->hasMany(ReadyToBuildMedia::class, 'ready_build_id', 'id');
     }
 
-
 }

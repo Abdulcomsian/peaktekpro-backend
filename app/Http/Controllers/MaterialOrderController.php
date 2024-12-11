@@ -35,7 +35,7 @@ class MaterialOrderController extends Controller
         return response()->json($options);
     }
 
-    public function materialOrder(Request $request, $id)
+    public function materialOrder(Request $request, $id) //add this in ready build now
     {
         //Validate Request
         $this->validate($request, [
@@ -272,6 +272,7 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 404,
                 'message' => 'Material Order Not Exist.',
+                'data' => []
             ]);
         }
 
