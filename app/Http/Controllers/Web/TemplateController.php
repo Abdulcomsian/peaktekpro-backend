@@ -16,7 +16,7 @@ class TemplateController extends Controller
         try {
             $templates = Template::paginate(5);
             return view('templates.index', compact('templates'));
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching templates.');
         }
     }
@@ -52,7 +52,7 @@ class TemplateController extends Controller
                 'message' => 'Template created successfully',
                 'redirect_to' => route('templates.edit', $template->id)
             ], 200);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
 
             return response()->json(
                 [
@@ -70,7 +70,7 @@ class TemplateController extends Controller
             $template = Template::with('templatePages.pageData')->findOrFail($templateId);
             // dd($template->templatePages->toArray());
             return view('templates.edit', compact('template'));
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             return redirect()->route('templates.index')->with('error', 'Template not found');
         }
     }
@@ -89,7 +89,7 @@ class TemplateController extends Controller
                 'status' => true,
                 'message' => 'Title updated successfully',
             ], 200);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
 
             return response()->json(
                 [
@@ -112,7 +112,7 @@ class TemplateController extends Controller
                 'status' => true,
                 'message' => 'Template deleted successfully',
             ], 200);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
 
             return response()->json(
                 [
@@ -148,7 +148,7 @@ class TemplateController extends Controller
                 'status' => true,
                 'message' => 'Pages ordering updated successfully',
             ], 200);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             return response()->json(
                 [
                     'status' => false,
@@ -179,7 +179,7 @@ class TemplateController extends Controller
                 'message' => 'Page created successfully',
                 'page' => $templatePage
             ], 200);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
 
             return response()->json(
                 [
@@ -202,7 +202,7 @@ class TemplateController extends Controller
             $page->save();
 
             return response()->json(['status' => true, 'message' => 'Page status updated successfully'], 200);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
 
             return response()->json(
                 [
@@ -224,7 +224,7 @@ class TemplateController extends Controller
             $page->save();
 
             return response()->json(['status' => true, 'message' => 'Page name updated successfully'], 200);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
 
             return response()->json(
                 [
@@ -268,7 +268,7 @@ class TemplateController extends Controller
 
                 return response()->json(['status' => true, 'message' => 'Data saved successfully']);
             }
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred while updating the page data'], 500);
         }
     }
@@ -514,7 +514,7 @@ class TemplateController extends Controller
             $quote->update(['json_data' => json_encode($currentData, true)]);
 
             return response()->json(['status' => true, 'message' => 'Data saved successfully']);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred while updating the page data'], 500);
         }
     }
@@ -589,6 +589,144 @@ class TemplateController extends Controller
 
                 // Save updated JSON to the database
                 $quote->update(['json_data' => json_encode($quoteDetails, true)]);
+
+            }
+
+            return response()->json(['status' => true, 'message' => 'Ordering saved successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while update ordering'], 400);
+        }
+    }
+
+    public function saveAuthorizationSectionDetails(Request $request)
+    {
+
+        try {
+
+            $pageId = $request->input('page_id');
+            $authorizationSectionData = $request->input('authorizationSection');
+            $grandTotal = $request->input('grandTotal');
+
+            // Find if the page data exists by page_id
+            $authorization = TemplatePageData::where('template_page_id', $pageId)->first();
+
+            if (!$authorization) {
+                // Create a new authorization with default structure
+                $authorization = TemplatePageData::create([
+                    'template_page_id' => $pageId,
+                    'json_data' => json_encode([
+                        'authorization_sections_grand_total' => $grandTotal,
+                        'sections' => []
+                    ], true),
+                ]);
+            }
+
+
+            // Retrieve the current JSON data
+            $currentData = $authorization->json_data ?? [];
+
+            // Ensure default structure for grand_total and sections
+            $currentData['authorization_sections_grand_total'] = $grandTotal;
+            $currentData['sections'] = $currentData['sections'] ?? [];
+
+            $sections = collect($currentData['sections']);
+
+            // Check if the section already exists
+            $existingSectionIndex = $sections->search(fn($s) => $s['id'] === $authorizationSectionData['id']);
+
+            if ($existingSectionIndex !== false) {
+                // Update the existing section
+                $sections[$existingSectionIndex] = $authorizationSectionData;
+            } else {
+                // Add the new section
+                $sections->push($authorizationSectionData);
+            }
+
+            // Update grand total
+            $currentData['authorization_sections_grand_total'] = $grandTotal;
+            $currentData['sections'] = $sections->values()->all();
+
+            // Save the updated JSON back to the database
+            $authorization->update(['json_data' => json_encode($currentData, true)]);
+
+            return response()->json(['status' => true, 'message' => 'Data saved successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+            // return response()->json(['status' => false, 'message' => 'An error occurred while updating the page data'], 500);
+
+        }
+    }
+
+    public function removeAuthorizationSection(Request $request)
+    {
+
+        try {
+
+            $pageId = $request->input('page_id');
+            $sectionId = $request->input('section_id');
+
+            // Validate inputs
+            if (!$pageId || !$sectionId) {
+                return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
+            }
+
+            $authorization = TemplatePageData::where('template_page_id', $pageId)->first();
+            if ($authorization) {
+                // Get the current authorization details
+                $authorizationDetails = $authorization->json_data ?? ['grand_total' => 0, 'sections' => []];
+
+                // Filter out the section to be removed
+                $updatedSections = collect($authorizationDetails['sections'])
+                    ->reject(fn($section) => $section['id'] === $sectionId)
+                    ->values()
+                    ->all();
+
+                // Update grand total
+                $authorizationDetails['sections'] = $updatedSections;
+                $authorizationDetails['grand_total'] = collect($updatedSections)->sum(fn($s) => $s['sectionTotal']);
+
+                // Save updated JSON to the database
+                $authorization->update(['json_data' => json_encode($authorizationDetails, true)]);
+            }
+
+            return response()->json(['status' => true, 'message' => 'Data removed successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while removing section'], 400);
+        }
+    }
+
+    public function updateAuthorizationSectionsOrdering(Request $request)
+    {
+        try {
+
+            $pageId = $request->input('page_id');
+            $sectionsOrder = $request->input('sections_order');
+
+            // Validate inputs
+            if (!$pageId || !$sectionsOrder || !is_array($sectionsOrder)) {
+                return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
+            }
+
+            $authorization = TemplatePageData::where('template_page_id', $pageId)->first();
+            if ($authorization) {
+
+                // Get the current authorization details
+                $authorizationDetails = $authorization->json_data ?? ['grand_total' => 0, 'sections' => []];
+                // Update the order of sections based on the input
+                $updatedSections = collect($authorizationDetails['sections'])->map(function ($section) use ($sectionsOrder) {
+                    $sectionId = $section['id'];
+                    $newOrder = array_search($sectionId, $sectionsOrder); // Get the new order index
+                    if ($newOrder !== false) {
+                        $section['order'] = $newOrder; // Update the order
+                    }
+                    return $section;
+                })->sortBy('order')->values()->all();
+
+                // Save the updated sections back to authorization details
+                $authorizationDetails['sections'] = $updatedSections;
+
+                // Save updated JSON to the database
+                $authorization->update(['json_data' => json_encode($authorizationDetails, true)]);
 
             }
 

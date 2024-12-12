@@ -2,8 +2,7 @@
     <!-- Section Container -->
     <div id="sections-container">
         <!-- First Section -->
-        {{-- {{ $pageData->json_data['warranty_text'] ?? '' }} --}}
-        @if (count($pageData->json_data['sections']) > 0)
+        @if (isset($pageData->json_data['sections']) && count($pageData->json_data['sections']) > 0)
 
             @forelse ($pageData->json_data['sections'] as $section)
 
@@ -431,7 +430,7 @@
                             }
                         },
                         error: function(xhr) {
-                            console.error("Failed to reorder sections:", xhr.responseText);
+                            showErrorNotification("Failed to reorder sections:", xhr.responseText);
                         }
                     });
 
