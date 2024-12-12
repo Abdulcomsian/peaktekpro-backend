@@ -107,22 +107,23 @@
         <tr>
           <td>
             <label for="">Street:</label>
-            <input style="width: 100%" type="text" value="{{$data->street}}" />
+            <input style="width: 100%" type="text" value="{{json_decode($data->job->address)->street}}" />
           </td>
           <td>
             <label for="">City:</label>
-            <input style="width: 100%" type="text" value="{{$data->city}}" />
+            <input style="width: 100%" type="text" value="{{json_decode($data->job->address)->city}}" />
+
           </td>
           <td>
             <label for="">State / province:</label>
-            <input style="width: 100%" type="text" value="{{$data->state}}" />
+            <input style="width: 100%" type="text" value="{{json_decode($data->job->address)->state}}" />
           </td>
           <td>
             <label for="">Zip Code / Postal Code:</label>
             <input
               style="width: 100%"
               type="text"
-              value="{{$data->zip_code}}"
+              value="{{json_decode($data->job->address)->postalCode}}"
             />
           </td>
         </tr>
@@ -220,7 +221,7 @@
     </table>
 
       <!-- material Selection -->
-      <table style="width: 1200px; margin: auto">
+      <!-- <table style="width: 1200px; margin: auto">
         <thead>
             <tr>
               <th colspan="6">
@@ -309,7 +310,7 @@
             </tr>
         @endif
         </tbody>
-      </table>
+      </table> -->
 
     <table style="width: 1200px; margin: auto">
       <thead>

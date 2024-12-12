@@ -642,13 +642,13 @@ class MaterialOrderController extends Controller
             }
 
             //Check if Supplier is assigned
-            $assigned_supplier = MaterialOrder::whereNotNull('supplier_id')->first();
-            if(!$assigned_supplier) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Supplier Not Yet Assigned'
-                ], 422);
-            }
+            // $assigned_supplier = MaterialOrder::whereNotNull('supplier_id')->first();
+            // if(!$assigned_supplier) {
+            //     return response()->json([
+            //         'status' => 422,
+            //         'message' => 'Supplier Not Yet Assigned'
+            //     ], 422);
+            // }
 
             //Check Supplier
             $supplier = User::where('id', $material_order->supplier_id)->where('role_id', 4)->first();
