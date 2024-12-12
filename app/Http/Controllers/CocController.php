@@ -45,7 +45,8 @@ class CocController extends Controller
             'released_to' => 'nullable|string',
             'conclusion' => 'nullable|string',
             'sincerely' => 'nullable|string',
-            'status' => 'nullable'
+            'status' => 'nullable',
+            'notes' => 'nullable',
         ]);
 
         try {
@@ -87,7 +88,8 @@ class CocController extends Controller
                 'released_to' => $request->released_to,
                 'conclusion' => $request->conclusion,
                 'sincerely' => $request->sincerely,
-                'status' => $request->status
+                'status' => $request->status,
+                'notes' => $request->notes,
             ]);
             
             //Update Status
@@ -126,128 +128,6 @@ class CocController extends Controller
         }
     }
 
-    public function updateStatusCoc(Request $request, $jobId)
-    {
-        //Validate Rules
-        $this->validate($request, [
-            'status' => 'nullable|boolean'
-        ]);
-
-        try {
-
-            //Check Job
-            $job = CompanyJob::whereId($jobId)->with('summary')->first();
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Job Not Found'
-                ], 422);
-            }
-
-            //Update QC Inspection
-            $coc = Coc::updateOrCreate([
-                'company_job_id' => $jobId,
-            ],[
-                'company_job_id' => $jobId,
-                'status' => $request->status
-            ]);
-            
-            //Update Status
-            if(isset($request->status) && $request->status == true) {
-                $job->status_id = 13;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-
-                   //current stage save
-                $coc->current_stage="yes";
-                $coc->save();
-            } elseif(isset($request->status) && $request->status == false) {
-                $job->status_id = 12;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-
-                   //current stage save
-                $coc->current_stage="no";
-                $coc->save();
-            }
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'COC Status Updated Successfully',
-                'data' => $coc,
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-    }
-
-
-    public function getCoc1($jobId) //currently not used alternate fun made
-    {
-        try {
-
-            //Check Job
-            $job = CompanyJob::whereId($jobId)->with('summary','aggrement','readyBuild')->first();
-
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Job Not Found'
-                ], 422);
-            }
-
-            $get_coc = Coc::where('company_job_id', $jobId)->first();
-            if(is_null($get_coc)) {
-                // Create a new stdClass object
-                $coc = new \stdClass();
-                $coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
-                $coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
-                $coc->homeowner_address = $job->address;
-                $coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
-                $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
-                $coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
-                $coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
-            // Check if aggrement is not null before accessing its properties
-                $coc->street = !is_null($job->aggrement) && !is_null($job->aggrement->street) 
-                ? $job->aggrement->street 
-                : '';
-                $coc->city = !is_null($job->aggrement) && !is_null($job->aggrement->city) 
-                ? $job->aggrement->city 
-                : '';
-                $coc->state = !is_null($job->aggrement) && !is_null($job->aggrement->state) 
-                ? $job->aggrement->state 
-                : '';
-                $coc->zip_code = !is_null($job->aggrement) && !is_null($job->aggrement->zip_code) 
-                ? $job->aggrement->zip_code 
-                : '';
-
-                return response()->json([
-                    'status' => 200,
-                    'message' => 'COC Not Found',
-                    'data' => $coc
-                ], 200);
-            }
-            
-            //Update COC
-            $get_coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
-            $get_coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
-            $get_coc->homeowner_address = $job->address;
-            $get_coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
-            $get_coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
-            $get_coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
-            $get_coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'COC Found Successfully',
-                'data' => $get_coc
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-    }
 
     public function getCoc($jobId)
     {
@@ -352,12 +232,70 @@ class CocController extends Controller
                     'coc_insurance_email_sent' => $get_coc->coc_insurance_email_sent,
                     'created_at' =>$get_coc->created_at,
                     'updated_at' => $get_coc->updated_at,
+                    'notes' => $get_coc->notes,
                 ]
             ], 200);
             
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    
+    public function updateStatusCoc(Request $request, $jobId)
+    {
+        //Validate Rules
+        $this->validate($request, [
+            'status' => 'nullable|boolean'
+        ]);
+
+        try {
+
+            //Check Job
+            $job = CompanyJob::whereId($jobId)->with('summary')->first();
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Update QC Inspection
+            $coc = Coc::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'status' => $request->status
+            ]);
+            
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 13;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+
+                   //current stage save
+                $coc->current_stage="yes";
+                $coc->save();
+            } elseif(isset($request->status) && $request->status == false) {
+                $job->status_id = 12;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+
+                   //current stage save
+                $coc->current_stage="no";
+                $coc->save();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'COC Status Updated Successfully',
+                'data' => $coc,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
 

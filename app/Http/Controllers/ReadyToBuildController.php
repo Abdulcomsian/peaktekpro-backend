@@ -8,10 +8,13 @@ use App\Models\CompanyJob;
 use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
 use App\Models\MaterialOrder;
+use App\Jobs\MaterialOrderJob;
 use App\Models\CustomerAgreement;
 use App\Models\ReadyToBuildMedia;
 use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
+use PDF;
+use Log;
 
 class ReadyToBuildController extends Controller
 {
@@ -150,6 +153,93 @@ class ReadyToBuildController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    ///sedn email to supplier///
+    public function EmailToSupplier($jobId)
+    {
+        try {
+
+            //Check Job
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            //Check Material Order
+            $material_order = MaterialOrder::with('materialSelection')->where('company_job_id', $jobId)->with('job','materials')->first();
+            $materialSelection = $material_order->materialSelection;
+            // return response($material_order);
+            if(!$material_order) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Material Order Not Found'
+                ], 422);
+            }
+
+            //Check if Supplier is assigned
+            // $assigned_supplier = ReadyToBuild::whereNotNull('supplier_id')->first();
+            // if(!$assigned_supplier) {
+            //     return response()->json([
+            //         'status' => 422,
+            //         'message' => 'Supplier Not Yet Assigned'
+            //     ], 422);
+            // }
+
+            //in rady to build check supplier
+            $ready_to_build = ReadyToBuild::where('company_job_id', $jobId)->first();
+            if(!$ready_to_build)
+            {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Build is Not Found'
+                ], 422);
+            }
+            //Check Supplier
+            $supplier = User::where('id', $ready_to_build->supplier_id)->where('role_id', 4)->first();
+            // dd($supplier);
+            if(!$supplier) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Supplier Not Found'
+                ], 422);
+            }
+
+            //Generate PDF
+            $pdf = PDF::loadView('pdf.material-order', [
+                'materialSelection'=>$materialSelection,
+                'data' => $material_order]);
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
+            // Check if the old PDF exists and delete it
+            if ($material_order->sign_pdf_url) {
+                $oldPdfPath = public_path($material_order->sign_pdf_url);
+                if (file_exists($oldPdfPath)) {
+                    unlink($oldPdfPath);
+                }
+            }
+            // Save the new PDF
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+
+            //Save PDF Path
+            $material_order->sign_pdf_url = '/storage/' . $pdf_filePath;
+            $material_order->save();
+
+            //Dispatch Email Through Queue
+            dispatch(new MaterialOrderJob($supplier,$material_order));
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Sent successfully',
+                'data' => $material_order
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
 

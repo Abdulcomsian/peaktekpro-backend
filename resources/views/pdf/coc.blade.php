@@ -253,20 +253,42 @@
         </tr>
       </tbody>
     </table>
+
+    <table style="max-width: 1200px; margin: auto">
+      <tbody>
+        <tr>
+          <td>
+            <h2 style="text-align: left">Notes</h2>
+            <p style="line-height: 1.6">    
+              {{$coc->notes}}
+              
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+
     <table style="width: 1200px; margin: auto">
       <tbody>
         <tr>
           <td>
-            <span class="label">Company Representative:</span>
-            <span class="value">{{$coc->company_representative ?? ''}}</span>
+            <span class="label"><h3><strong>Company Representative:</strong></h3></span>
+            <span style="border-bottom: 1px dashed lightslategray"
+                ><p>{{$coc->company_representative ?? ''}}</p></span
+              >
           </td>
           <td>
-            <span class="label">Printed Name:</span>
-            <span class="value">{{$coc->company_printed_name ?? ''}}</span>
+            <span class="label"><h3><strong>Printed Name:</strong></h3></span>
+            <span style="border-bottom: 1px dashed lightslategray"
+                ><p>{{$coc->company_printed_name ?? ''}}</p></span
+              >
           </td>
           <td>
-            <span class="label">Date Signed:</span>
-            <span class="value">{{$coc->company_signed_date ?? ''}}</span>
+            <span class="label"><h3><strong>Date Signed:</strong></h3></span>
+            <span style="border-bottom: 1px dashed lightslategray"
+                ><p>{{$coc->company_signed_date ?? ''}}</p></span
+              >
           </td>
         </tr>
       </tbody>
