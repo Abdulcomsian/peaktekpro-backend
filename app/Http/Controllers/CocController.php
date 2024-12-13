@@ -47,6 +47,8 @@ class CocController extends Controller
             'sincerely' => 'nullable|string',
             'status' => 'nullable',
             'notes' => 'nullable',
+            'customer_signature' => 'nullable',
+            'company_representative_signature' => 'nullable'
         ]);
 
         try {
@@ -60,6 +62,7 @@ class CocController extends Controller
                 ], 422);
             }
 
+            
             //Update QC Inspection
             $coc = Coc::updateOrCreate([
                 'company_job_id' => $jobId,
@@ -90,7 +93,17 @@ class CocController extends Controller
                 'sincerely' => $request->sincerely,
                 'status' => $request->status,
                 'notes' => $request->notes,
+
             ]);
+
+            //handle signatures
+             // Handle Base64 Signatures
+             if ($request->customer_signature) {
+                $coc->customer_signature = $this->saveBase64Image($request->customer_signature, 'coc_signature');
+            }
+            if ($request->company_representative_signature) {
+                $coc->company_representative_signature = $this->saveBase64Image($request->company_representative_signature, 'company_representative_signature');
+            }
             
             //Update Status
             // if(isset($request->status) && $request->status == true) {
@@ -128,6 +141,19 @@ class CocController extends Controller
         }
     }
 
+    private function saveBase64Image($base64Image, $directory)
+    {
+        $data = substr($base64Image, strpos($base64Image, ',') + 1);
+        $decodedImage = base64_decode($data);
+
+        // Generate a unique filename
+        $filename = 'image_' . time() . '.png';
+
+        // Save the new image
+        Storage::disk('public')->put($directory . '/' . $filename, $decodedImage);
+
+        return '/storage/' . $directory . '/' . $filename;
+    }
 
     public function getCoc($jobId)
     {

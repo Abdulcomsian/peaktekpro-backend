@@ -73,9 +73,11 @@
         </tr>
       </tbody>
     </table>
+    <!-- section 1 -->
     <table style="width: 1200px; margin: auto">
       <tbody>
         <tr>
+        <h2 style="text-align: left">Customer Information</h2>
           <td>
             <span class="label">Name:</span>
             <span class="value">{{$coc->name ?? ''}}</span>
@@ -88,14 +90,14 @@
             <span class="label">Phone:</span>
             <span class="value">{{$coc->phone ?? ''}}</span>
           </td>
-          <td>
+          <!-- <td>
             <span class="label">Supplier:</span>
             <span class="value">XYZ</span>
           </td>
           <td>
             <span class="label">Supplier Id:</span>
             <span class="value">XYZ</span>
-          </td>
+          </td> -->
         </tr>
         <tr>
           <td>
@@ -114,7 +116,7 @@
             <span class="label">Zip:</span>
             <span class="value">{{$coc->zip_code ?? ''}}</span>
           </td>
-          <td>
+          <!-- <td>
             <span class="label">Insurance:</span>
             <span class="value">{{$coc->insurance ?? ''}}</span>
           </td>
@@ -139,10 +141,12 @@
           <td>
             <span class="label">Material:</span>
             <span class="value">XYZ</span>
-          </td>
+          </td> -->
         </tr>
       </tbody>
     </table>
+
+
     <!-- section4 -->
     <table style="max-width: 1200px; margin: auto">
       <tbody>
@@ -269,29 +273,79 @@
     </table>
 
 
-    <table style="width: 1200px; margin: auto">
-      <tbody>
-        <tr>
-          <td>
-            <span class="label"><h3><strong>Company Representative:</strong></h3></span>
-            <span style="border-bottom: 1px dashed lightslategray"
-                ><p>{{$coc->company_representative ?? ''}}</p></span
-              >
-          </td>
-          <td>
-            <span class="label"><h3><strong>Printed Name:</strong></h3></span>
-            <span style="border-bottom: 1px dashed lightslategray"
-                ><p>{{$coc->company_printed_name ?? ''}}</p></span
-              >
-          </td>
-          <td>
-            <span class="label"><h3><strong>Date Signed:</strong></h3></span>
-            <span style="border-bottom: 1px dashed lightslategray"
-                ><p>{{$coc->company_signed_date ?? ''}}</p></span
-              >
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <table style="width: 1200px; border-collapse: collapse;">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top; padding-right: 20px;">
+        <h2 style="text-align: left; margin: 0 0 15px;">Digital Signatures</h2>
+        <span style="display: inline-block; vertical-align: top;">Company Representative Signature:</span>
+        <span
+          style="
+            width: 250px;
+            display: inline-block;
+            vertical-align: top;
+            margin-left: 10px;
+          "
+        >
+          <img
+            src="{{ public_path($coc->company_representative_signature) }}"
+            style="max-width: 100%; height: auto;"
+            alt="Company Representative Signature"
+          />
+        </span>
+      </td>
+      <td style="vertical-align: top; padding-left: 20px;">
+        <span class="label">
+          <h3 style="margin: 0;"><strong>Printed Name:</strong></h3>
+        </span>
+        <span
+          style="
+            display: inline-block;
+            border-bottom: 1px dashed lightslategray;
+            padding-bottom: 5px;
+            margin-top: 5px;
+          "
+        >
+          <p style="margin: 0;">{{$coc->company_printed_name ?? ''}}</p>
+        </span>
+      </td>
+      <td style="vertical-align: top; padding-left: 20px;">
+        <span class="label">
+          <h3 style="margin: 0;"><strong>Date Signed:</strong></h3>
+        </span>
+        <span
+          style="
+            display: inline-block;
+            border-bottom: 1px dashed lightslategray;
+            padding-bottom: 5px;
+            margin-top: 5px;
+          "
+        >
+          <p style="margin: 0;">{{$coc->company_signed_date ?? ''}}</p>
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; padding-top: 20px;">
+        <span style="display: inline-block; vertical-align: top;">Customer Signature:</span>
+        <span
+          style="
+            width: 250px;
+            display: inline-block;
+            vertical-align: top;
+            margin-left: 10px;
+          "
+        >
+          <img
+            src="{{ public_path($coc->customer_signature) }}"
+            style="max-width: 100%; height: auto;"
+            alt="Customer Signature"
+          />
+        </span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
   </body>
 </html>
