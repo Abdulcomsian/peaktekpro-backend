@@ -94,24 +94,7 @@
     </table>
   </div>
 
-  <!-- Saved Photos -->
-  <div class="section">
-    <h3 class="section-title">Saved Photos</h3>
-    <table>
-      @foreach ($saved_photos as $photo)
-        <tr>
-          <th>Label:</th>
-          <td>{{ $photo['labels'] }}</td>
-        </tr>
-        <tr>
-          <th>Image:</th>
-          <td class="photo">
-            <img src="{{ public_path($photo['image_paths']) }}" alt="Photo">
-          </td>
-        </tr>
-      @endforeach
-    </table>
-  </div>
+ 
 
   <!-- Signatures -->
   <div class="section">

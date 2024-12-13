@@ -22,92 +22,26 @@ class InprogressController extends Controller
             'build_end_date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable',
             'status' => 'nullable',
-            'labels' => 'nullable|array',
-            'labels.*' => 'nullable|string',
-            'photos' => 'nullable|array',
-            'photos.*' => 'nullable|image'
-        ]);
-        
-        try {
-            
-            //Check Job
-            $job = CompanyJob::find($jobId);
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Job not found'
-                ], 422);
-            }
-            
-            //Update Inprogress
-            $in_progress = Inprogress::updateOrCreate([
-                'company_job_id' => $jobId,
-            ],[
-                'company_job_id' => $jobId,
-                'build_start_date' => $request->build_start_date,
-                'build_end_date' => $request->build_end_date,
-                'notes' => $request->notes,
-                'status' => $request->status,
-            ]);
 
-            $savedPhotos=[];
-            if($request->hasFile('photos'))
-            {
-                $images= $request->file('photos');
-                foreach($images as $index => $image)
-                {
-                    $image_filename = time(). '.' .$image->getClientOriginalName();
-                    $image_filePath = $image->storeAS('inprogressPhotos',$image_filename,'public');
+            'images' => 'nullable|array',
 
-                    $media = new InprogressMedia();
-                    $media->company_job_id = $jobId;
-                    $media->labels = $request->labels[$index]??null;
-                    $media->image_path = Storage::url($image_filePath);
+            'images.morningPhotos' => 'nullable|array',
+            'images.morningPhotos.*.label' => 'nullable|string',
+            'images.morningPhotos.*.image' => 'nullable',
 
-                    $media->save();
+            'images.compliancePhotos' => 'nullable|array',
+            'images.compliancePhotos.*.label' => 'nullable|string',
+            'images.compliancePhotos.*.image' => 'nullable',
 
-                    $savedPhotos[]=[
-                        'id' => $media->id,
-                        'company_job_id' => $media->company_job_id,
-                        'labels' => $media->labels,
-                        'image_paths' => $media->image_path,
+            'images.completionPhotos' => 'nullable|array',
+            'images.completionPhotos.*.label' => 'nullable|string',
+            'images.completionPhotos.*.image' => 'nullable|url',
 
-                    ];
-                }
+            // 'labels' => 'nullable|array',
+            // 'labels.*' => 'nullable|string',
+            // 'photos' => 'nullable|array',
+            // 'photos.*' => 'nullable|image',
 
-            }
-            
-            if(isset($request->status) && $request->status == true) {
-                $job->status_id = 11;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-            }
-            
-            return response()->json([
-                'status' => 200,
-                'message' => 'Inprogress Build Updated Successfully',
-                'data' => $in_progress,
-                'saved_photos' => $savedPhotos,
-
-            ], 200);
-            
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
-    }
-
-    public function updateInprogress(Request $request, $jobId)
-    {
-        //Validate Request
-        $this->validate($request, [
-            'build_start_date' => 'nullable|date_format:m/d/Y',
-            'build_end_date' => 'nullable|date_format:m/d/Y',
-            'notes' => 'nullable',
-            'status' => 'nullable',
-            'labels' => 'nullable|array',
-            'labels.*' => 'nullable|string',
-            'photos' => 'nullable|array',
-            'photos.*' => 'nullable|image',
             'production_sign_url' => 'nullable',
             'homeowner_signature' => 'nullable'
         ]);
@@ -249,6 +183,159 @@ class InprogressController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function updateInprogress(Request $request, $jobId)
+    {
+        // Validate Request
+        $this->validate($request, [
+            'build_start_date' => 'nullable|date_format:m/d/Y',
+            'build_end_date' => 'nullable|date_format:m/d/Y',
+            'notes' => 'nullable',
+            'status' => 'nullable',
+
+            'images' => 'nullable|array',
+            'images.morningPhotos' => 'nullable|array',
+            'images.morningPhotos.*.label' => 'nullable|string',
+            'images.morningPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
+
+            'images.compliancePhotos' => 'nullable|array',
+            'images.compliancePhotos.*.label' => 'nullable|string',
+            'images.compliancePhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
+
+            'images.completionPhotos' => 'nullable|array',
+            'images.completionPhotos.*.label' => 'nullable|string',
+            'images.completionPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
+
+            'production_sign_url' => 'nullable|string',
+            'homeowner_signature' => 'nullable|string'
+        ]);
+
+        try {
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json(['status' => 422, 'message' => 'Job not found'], 422);
+            }
+
+            // Update Inprogress
+            $in_progress = Inprogress::updateOrCreate(
+                ['company_job_id' => $jobId],
+                [
+                    'company_job_id' => $jobId,
+                    'build_start_date' => $request->build_start_date,
+                    'build_end_date' => $request->build_end_date,
+                    'notes' => $request->notes,
+                    'status' => $request->status,
+                ]
+            );
+
+            // Save Binary Images
+        // Save photos and store in their respective categories
+            $morningPhotos = [];
+            $compliancePhotos = [];
+            $completionPhotos = [];
+
+            $imageCategories = ['morningPhotos', 'compliancePhotos', 'completionPhotos'];
+            foreach ($imageCategories as $category) {
+                if (isset($request->images[$category]) && is_array($request->images[$category])) {
+                    foreach ($request->images[$category] as $imageData) {
+                        if (isset($imageData['image']) && $imageData['image']->isValid()) {
+                            $filePath = $imageData['image']->store('public/inprogress_media');
+                            $url = str_replace('public/', '/storage/', $filePath);
+
+                            $media = new InprogressMedia();
+                            $media->company_job_id = $jobId;
+                            $media->labels = $imageData['label'] ?? null;
+                            $media->image_path = $url;
+                            $media->category = $category;
+                            $media->save();
+
+                            // Add to specific category arrays
+                            if ($category == 'morningPhotos') {
+                                $morningPhotos[] = [
+                                    'labels' => $media->labels,
+                                    'image_paths' => $url,
+                                ];
+                            } elseif ($category == 'compliancePhotos') {
+                                $compliancePhotos[] = [
+                                    'labels' => $media->labels,
+                                    'image_paths' => $url,
+                                ];
+                            } elseif ($category == 'completionPhotos') {
+                                $completionPhotos[] = [
+                                    'labels' => $media->labels,
+                                    'image_paths' => $url,
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+            // Handle Base64 Signatures
+            if ($request->production_sign_url) {
+                $in_progress->production_sign_url = $this->saveBase64Image($request->production_sign_url, 'inprogress_signature');
+            }
+            if ($request->homeowner_signature) {
+                $in_progress->homeowner_signature = $this->saveBase64Image($request->homeowner_signature, 'inprogress_signature');
+            }
+
+            // Generate and Save PDF
+            $pdf = PDF::loadView('pdf.inprogress', ['data' => $in_progress, 'saved_photos' => $completionPhotos]);
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'inprogress_pdf/' . $pdf_fileName;
+
+            if ($in_progress->pdf_url) {
+                Storage::delete('public/' . str_replace('/storage/', '', $in_progress->pdf_url));
+            }
+
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+            $in_progress->pdf_url = '/storage/' . $pdf_filePath;
+            $in_progress->save();
+
+            // Update Job Status
+            if (isset($request->status) && $request->status == true) {
+                $job->status_id = 11;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inprogress Build Updated Successfully',
+                'data' => $in_progress,
+                'morningPhotos' => $morningPhotos,
+                'compliancePhotos' => $compliancePhotos,
+                'completionPhotos' => $completionPhotos,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+
+/**
+ * Save Base64 Encoded Image
+ *
+ * @param string $base64Image
+ * @param string $directory
+ * @return string
+ */
+    private function saveBase64Image($base64Image, $directory)
+    {
+        $data = substr($base64Image, strpos($base64Image, ',') + 1);
+        $decodedImage = base64_decode($data);
+
+        // Generate a unique filename
+        $filename = 'image_' . time() . '.png';
+
+        // Save the new image
+        Storage::disk('public')->put($directory . '/' . $filename, $decodedImage);
+
+        return '/storage/' . $directory . '/' . $filename;
+    }
+
 
     public function addInprogressPhotos($jobId, Request $request)
     {
