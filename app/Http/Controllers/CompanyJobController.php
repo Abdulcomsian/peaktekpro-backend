@@ -28,6 +28,7 @@ use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
+use App\Models\Payment;
 use Illuminate\Support\Facades\DB as FacadesDB;
 
 class CompanyJobController extends Controller
@@ -585,6 +586,8 @@ class CompanyJobController extends Controller
                 'final_payment' => $request->final_payment,
                 'final_payment_cheque_number' => $request->final_payment_cheque_number,
                 'balance' => $request->balance,
+                'is_fully_paid' => 'no',
+                'full_payment_date' => null
                 // 'invoice_number' => $request->invoice_number,
                 // 'market' => $request->market,
                 // 'lead_source' => $request->lead_source,
@@ -593,6 +596,14 @@ class CompanyJobController extends Controller
                 // 'email' => $request->email,
                 // 'insurance_representative' => $request->insurance_representative
             ]);
+
+            // $job_payment = Payment::updateOrCreate([
+            //     'company_job_id' => $id
+            // ],
+            // [
+            //     'company_job_id' => $id,
+            //     'payment_amount' 
+            // ])
 
             // Assign Job To Users
             // if(isset($request->user_ids) && count($request->user_ids) > 0) {
