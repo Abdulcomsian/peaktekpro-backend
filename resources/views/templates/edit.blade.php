@@ -9,7 +9,6 @@
     <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
 
     <style>
-
         .dropzone .dz-preview .dz-details .dz-filename {
             display: none;
         }
@@ -159,7 +158,7 @@
                         name: fileData.file_name,
                         size: fileData.size,
                         url: fileData.path,
-                        type : type,
+                        type: type,
                         file_id: fileData.file_id,
                     };
 
@@ -522,8 +521,6 @@
 
     {{-- repairability or compatibility photosjs js --}}
     <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
-    {{-- quote details js --}}
-    <script src="{{ asset('assets/js/templates/quote_details.js') }}"></script>
 
     {{-- save data --}}
     <script type="text/javascript">
@@ -574,6 +571,13 @@
             });
 
         }, 500)
+
+        // generate key
+        function generateBase64Key(length) {
+            const array = new Uint8Array(length);
+            window.crypto.getRandomValues(array);
+            return btoa(String.fromCharCode(...array)).slice(0, length);
+        }
     </script>
 @endpush
 
