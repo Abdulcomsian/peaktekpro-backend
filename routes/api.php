@@ -79,6 +79,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //setting apis
     Route::post('updateProfile/{id}', [ProfileController::class, 'updateProfile']);
     Route::post('changePassword', [ProfileController::class, 'changePassword']);
+    Route::post('add-overhead/percentage', [ProfileController::class, 'addOverheadPercentage']);
+
 
 
     //Company Api's
