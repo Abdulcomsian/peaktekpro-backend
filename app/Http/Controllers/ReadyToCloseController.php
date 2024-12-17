@@ -202,11 +202,12 @@ class ReadyToCloseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Close Found Successfully',
-                'data' => $ready_to_close
+                'data' => $ready_to_close->load('media')
             ], 200); 
             
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
 }
