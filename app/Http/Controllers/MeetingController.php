@@ -173,6 +173,15 @@ class MeetingController extends Controller
             'exteriorPhotos_front_right' => 'nullable|image',
         ]);
 
+        $adjustor_meeting = AdjustorMeeting::where('id', $Id)->first();
+        if(!$adjustor_meeting)
+        {
+            return response()->json([
+                'message' => 'Adjustor Meeting Does not Exist',
+                'status' => 404, 
+                'data' => [],
+            ]);
+        }
         // Handle file uploads (if needed) and store file paths
         $data = [
             'adjustor_meeting_id' => $Id,
