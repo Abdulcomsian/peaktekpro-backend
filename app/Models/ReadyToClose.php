@@ -15,4 +15,9 @@ class ReadyToClose extends Model
     {
         return $value == 0 ? false : true;
     }
+
+    public function media()
+    {
+        return $this->hasMany(ReadyToCloseMedia::class,'ready_close_id');
+    }
 }
