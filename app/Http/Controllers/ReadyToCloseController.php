@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Models\CompanyJob;
 use App\Models\ReadyToClose;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
+use App\Models\ReadyToCloseMedia;
+use Illuminate\Support\Facades\Storage;
 
 class ReadyToCloseController extends Controller
 {
@@ -18,15 +20,18 @@ class ReadyToCloseController extends Controller
             'material_costs' => 'nullable', 
             'costs_of_goods' => 'nullable', 
             'market' => 'nullable', 
+            'additional_costs'=> 'nullable',
             'sales_rep1_commission_percentage' => 'nullable', 
             'sales_rep2_commission_percentage' => 'nullable',
             'status' => 'nullable',
             'sales_rep1' => 'nullable|integer|exists:users,id',
             'sales_rep2' => 'nullable|integer|exists:users,id',
+            'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+            'notes' => 'nullable',
+
         ]);
         
         try {
-            
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -36,6 +41,7 @@ class ReadyToCloseController extends Controller
                 ], 422);
             }
             
+
             $ready_to_close = ReadyToClose::updateOrCreate([
                 'company_job_id' => $jobId
             ],[
@@ -46,11 +52,28 @@ class ReadyToCloseController extends Controller
                 'labor_costs' => $request->labor_costs,
                 'material_costs' => $request->material_costs,
                 'costs_of_goods' => $request->costs_of_goods,
-                'market' => $request->market,
+                'market' => $request->market, //
+                'additional_costs' => $request->additional_costs,
                 'status' => (isset($request->status)) ? $request->status : false,
+                'notes' => $request->notes,
             ]);
             
             $user_ids = [];
+
+               //store attachements here
+               if(isset($request->attachements) && count($request->attachements) > 0) {
+                foreach($request->attachements as $documents)
+                {
+                    $fileName = time() . '_' . $documents->getClientOriginalName();
+                    $filePath = $documents->storeAs('public/ready_to_close', $fileName);
+                    // Store Path
+                    $media = new ReadyToCloseMedia();
+                    $media->ready_close_id = $ready_to_close->id;
+                    $media->image_url = Storage::url($filePath);
+                    $media->file_name = $request->file_name;
+                    $media->save();
+                }
+            }
 
             if (isset($request->sales_rep1)) {
                 $user_ids[] = $request->sales_rep1;
@@ -74,7 +97,7 @@ class ReadyToCloseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Close Updated Successfully',
-                'data' => $ready_to_close
+                'data' => $ready_to_close->load('media')
             ], 200); 
             
         } catch (\Exception $e) {
@@ -91,7 +114,6 @@ class ReadyToCloseController extends Controller
         ]);
         
         try {
-            
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -101,6 +123,8 @@ class ReadyToCloseController extends Controller
                 ], 422);
             }
             
+            //add aditional Documents
+            $documents = 
             $ready_to_close = ReadyToClose::updateOrCreate([
                 'company_job_id' => $jobId
             ],[

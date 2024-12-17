@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\OverheadPercentage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -103,6 +104,21 @@ class ProfileController extends Controller
 
     public function addOverheadPercentage(Request $request)
     {
+        $request->validate([
+            'overhead_percentage'=> 'nullable'
+        ]);
+
+        $percentage = OverheadPercentage::query()->update(
+        [
+        'overhead_percentage'=> $request->overhead_percentage,
+        ]);
         
+        $updatedData = OverheadPercentage::first();
+        $message = 'Data Saved Successfully';
+        return response()->json([
+            'status'=> 200,
+            'message' => $message,
+            'data' => $updatedData
+        ]);
     }
 }

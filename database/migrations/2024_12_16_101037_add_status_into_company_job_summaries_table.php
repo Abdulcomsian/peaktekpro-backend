@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::table('company_job_summaries', function (Blueprint $table) {
             $table->string('is_fully_paid')->after('balance')->default('no');
             $table->date('full_payment_date')->after('is_fully_paid')->nullable();
-            $table->string('overhead_percentage')->after('full_payment_date')->default('15');
+            // $table->string('overhead_percentage')->after('full_payment_date')->default('15');
         });
     }
 
