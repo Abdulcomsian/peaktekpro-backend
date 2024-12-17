@@ -14,7 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::table('ready_to_closes', function (Blueprint $table) {
-            $table->longText('notes')->after('additional_costs')->nullable();
+            $table->string('net_revenue')->after('additional_costs')->nullable();
+            $table->string('net_profit')->after('net_revenue')->nullable();
+            $table->longText('notes')->after('net_profit')->nullable();
+
         });
     }
 
@@ -27,6 +30,9 @@ return new class extends Migration
     {
         Schema::table('ready_to_closes', function (Blueprint $table) {
             $table->dropColumn('notes');
+            $table->dropColumn('net_revenue');
+            $table->dropColumn('net_profit');
+
         });
     }
 };

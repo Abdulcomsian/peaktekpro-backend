@@ -7,6 +7,7 @@ use App\Models\CompanyJob;
 use App\Models\ReadyToClose;
 use Illuminate\Http\Request;
 use App\Models\ReadyToCloseMedia;
+use App\Models\OverheadPercentage;
 use Illuminate\Support\Facades\Storage;
 
 class ReadyToCloseController extends Controller
@@ -41,6 +42,7 @@ class ReadyToCloseController extends Controller
                 ], 422);
             }
             
+           
 
             $ready_to_close = ReadyToClose::updateOrCreate([
                 'company_job_id' => $jobId
@@ -74,6 +76,41 @@ class ReadyToCloseController extends Controller
                     $media->save();
                 }
             }
+            
+            //auto calculation for net revence and profit calculation
+            $overhead_percentage = OverheadPercentage::select('overhead_percentage')->first();
+            $job_total = $ready_to_close->deal_value;
+            $job_total = (float) preg_replace('/[^0-9.]/', '', $job_total);
+            $overhead_percentage = (float) $overhead_percentage->overhead_percentage;
+            $value_overhead_deduction = ($job_total * $overhead_percentage) / 100;
+            $net_revenue = $job_total - $value_overhead_deduction;
+
+            $ready_to_close->net_revenue = $net_revenue;
+            $ready_to_close->save();
+
+            //profit calculation
+            $material_cost =  (float) preg_replace('/[^0-9.]/','',$ready_to_close->material_costs);
+            $labor_cost =  (float) preg_replace('/[^0-9.]/','',$ready_to_close->labor_costs);
+            $additional_costs =  (float) preg_replace('/[^0-9.]/','',$ready_to_close->additional_costs);
+            $costs_of_goods =  (float) preg_replace('/[^0-9.]/','',$ready_to_close->costs_of_goods);
+            $total_expense = $material_cost + $labor_cost + $additional_costs + $costs_of_goods + $value_overhead_deduction;
+
+            $profit = $job_total-$total_expense;
+
+            $ready_to_close->net_profit = $profit;
+            $ready_to_close->save();
+
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'Ready To Close Updated Successfully',
+            //     'material_cost' => $material_cost,
+            //     'labor_costs' => $labor_cost,
+            //     'overhead_value' => $value_overhead_deduction,
+            //     'additional_cost' => $additional_costs,
+            //     'costs_of_goods' => $costs_of_goods,
+            //     'total_expense' => $total_expense,
+            //     'profit' => $profit
+            // ], 200); 
 
             if (isset($request->sales_rep1)) {
                 $user_ids[] = $request->sales_rep1;
