@@ -141,7 +141,7 @@ class SupplierController extends Controller
             if($suppliers->isEmpty())
             {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 200,
                     'message' => 'Suppliers not Found',
                     'data' =>[],
                 ], 404);
