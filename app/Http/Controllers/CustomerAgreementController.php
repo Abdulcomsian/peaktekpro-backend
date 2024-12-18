@@ -370,7 +370,7 @@ class CustomerAgreementController extends Controller
         try {
 
             //Check Agreement
-            $agreement = CustomerAgreement::find($id);
+            $agreement = CustomerAgreement::where('company_job_id',$id)->first();
             if(!$agreement) {
                 return response()->json([
                     'status' => 422,
