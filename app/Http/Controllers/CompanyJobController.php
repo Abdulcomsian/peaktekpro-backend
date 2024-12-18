@@ -61,7 +61,6 @@ class CompanyJobController extends Controller
             $user = Auth::user();
             $company= $user->company_id;
             $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
-
              //here We will check that this mail exist in users table and if it is in users table then add the job with it if we have no email then create a new customer
             $user=User::where('email',$request->email)->first();
             if(!$user)
@@ -2561,18 +2560,27 @@ class CompanyJobController extends Controller
     public function claimDetails($jobId, ClaimDetailRequest $request)
     {
         try{
+            $job = CompanyJob::where('id',$jobId)->first();
+            if(!$job)
+            {
+                return response()->json([
+                    'status'=>200,
+                    'message'=> 'Company not Found',
+                    'data'=>[]
+                ]);
+            }
              $request->validated();
-            $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
+            // $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
 
-            if($ClaimDetail){
-                $ClaimDetail->claim_number = $request->claim_number;
-                $ClaimDetail->status = $request->status;
-                $ClaimDetail->supplement_amount = $request->supplement_amount;
-                $ClaimDetail->notes = $request->notes;
-                $ClaimDetail->last_update_date = $request->last_update_date;
-                $ClaimDetail->save();
-                $message = "Claim Details Updated";
-            }else{
+            // if($ClaimDetail){
+            //     $ClaimDetail->claim_number = $request->claim_number;
+            //     $ClaimDetail->status = $request->status;
+            //     $ClaimDetail->supplement_amount = $request->supplement_amount;
+            //     $ClaimDetail->notes = $request->notes;
+            //     $ClaimDetail->last_update_date = $request->last_update_date;
+            //     $ClaimDetail->save();
+            //     $message = "Claim Details Updated";
+            // }else{
                 $ClaimDetail = new ClaimDetail();
                 $ClaimDetail->company_job_id = $jobId;
                 $ClaimDetail->claim_number = $request->claim_number;
@@ -2583,7 +2591,7 @@ class CompanyJobController extends Controller
                 $ClaimDetail->save();
                 $message = "Claim Details Created";
 
-            }
+            // }
 
             return response()->json([
                 'status_code' =>200,
@@ -2603,12 +2611,12 @@ class CompanyJobController extends Controller
 
     public function getclaimDetails($jobId)
     {
-        $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
+        $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->get();
         if($ClaimDetail)
         {
             return response()->json([
                 'status_code' =>200,
-                'message' => 'Claim Details Found Successfully',
+                'message' => 'Claim Details Fetched Successfully',
                 'data' => $ClaimDetail
             ]);
         }

@@ -272,6 +272,7 @@ class CustomerAgreementController extends Controller
     {
         //Check Job
         $job = CompanyJob::find($id);
+        // dd($job);
         if(!$job) {
             return response()->json([
                 'status' => 404,
