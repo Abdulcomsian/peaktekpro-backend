@@ -19,7 +19,7 @@ class PaymentController extends Controller
                 'payment_amount' => 'nullable',
                 'payment_type' => 'nullable|in:cheque,credit_card,ACH,cash',
                 'check_number' => 'nullable',
-                'remaining_balance' => 'nullable',
+                // 'remaining_balance' => 'nullable',
     
             ]);
 
@@ -36,10 +36,26 @@ class PaymentController extends Controller
 
                 $paid_amount = $request->payment_amount;
                 $job_balance = CompanyJobSummary::where('company_job_id', $jobId)->first();
+                if (!$job_balance) {
+                    return response()->json([
+                        'status_code' =>401,
+                        'message' => 'Jon Summary Not Found',
+                    ]);                
+                }
                 $job_total = $job_balance->balance;
-                $remaining_balance = $job_total-$paid_amount;
+                $job_total_value = $job_balance->job_total;
 
-                $payment->remaining_balance = $remaining_balance;
+                if(!$job_total_value)
+                {
+                    return response()->json([
+                        'status_code' =>401,
+                        'message' => 'Job total value Not Found',
+                    ]);  
+                }
+                // dd($job_total);
+              
+                $remaining_balance = $job_total-$paid_amount;
+                // $payment->remaining_balance = $remaining_balance;
                 $payment->save();
 
                 if ($remaining_balance < 0) {
@@ -82,7 +98,7 @@ class PaymentController extends Controller
                     'payment_amount'=> $payment->payment_amount,
                     'payment_type' => $payment->payment_type,
                     'check_number' => $payment->check_number,
-                    'remaining_balance' => $payment->remaining_balance,
+                    // 'remaining_balance' => $payment->remaining_balance,
                     'is_fully_paid' => $conpany_job_summaries->is_fully_paid,
                     'full_payment_date' => $conpany_job_summaries->full_payment_date,
                 ];
