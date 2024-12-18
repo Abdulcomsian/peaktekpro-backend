@@ -132,6 +132,7 @@ class PaymentController extends Controller
                 'data' => $payment
             ]);
         }
+        
         $message = "Payment data Not Found";
 
         return response()->json([
