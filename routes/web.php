@@ -41,6 +41,11 @@ Route::post('/templates/page/save-data', [TemplateController::class, 'savePageDa
 Route::post('/templates/page/save-file', [TemplateController::class, 'savePageFile'])->name('templates.page.save-file');
 Route::delete('/templates/page/delete-file', [TemplateController::class, 'deletePageFile'])->name('templates.page.delete-file');
 Route::post('/templates/page/save-files', [TemplateController::class, 'savePageMultipleFiles'])->name('templates.page.save-multiple-files');
+
+// repariablity-combatibility
+Route::post('/templates/page/repariablity-combatibility/save', [TemplateController::class, 'saveRepairibility'])->name('templates.repariablity-combatibility.update');
+Route::post('/templates/page/repariablity-combatibility/ordering', [TemplateController::class, 'updateRepairibilitySectionsOrdering'])->name('templates.page.repariablity-combatibility-ordering.update');
+
 // quote
 Route::post('/templates/page/quote-section/save', [TemplateController::class, 'saveQuoteSectionDetails'])->name('templates.quote-section.update');
 Route::delete('/templates/page/quote-section/destroy', [TemplateController::class, 'removeQuoteSection'])->name('template.quote.remove-section');
@@ -55,10 +60,11 @@ Route::post('/templates/page/authorization-section/ordering', [TemplateControlle
 
 // repairibility assessment
 Route::post('/templates/repairibility-assessment', function () {
-
     return response()->json(['url' => asset('assets/pdf_header.png')], 200);
     // return true;
 });
+
+// Route::post('/templates/repairibility-assessment', [TemplateController::class, 'saveRepairibility']);
 
 // reports
 Route::get('/reports', [ReportLayoutController::class, 'index'])->name('reports.index');

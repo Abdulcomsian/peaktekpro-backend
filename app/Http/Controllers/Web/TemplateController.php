@@ -238,7 +238,6 @@ class TemplateController extends Controller
 
     public function savePageData(Request $request)
     {
-
         try {
 
             $pageId = $request->input('page_id');
@@ -469,7 +468,6 @@ class TemplateController extends Controller
 
     public function saveQuoteSectionDetails(Request $request)
     {
-
         try {
 
             $pageId = $request->input('page_id');
@@ -589,7 +587,6 @@ class TemplateController extends Controller
 
                 // Save updated JSON to the database
                 $quote->update(['json_data' => json_encode($quoteDetails, true)]);
-
             }
 
             return response()->json(['status' => true, 'message' => 'Ordering saved successfully']);
@@ -652,8 +649,6 @@ class TemplateController extends Controller
             return response()->json(['status' => true, 'message' => 'Data saved successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
-            // return response()->json(['status' => false, 'message' => 'An error occurred while updating the page data'], 500);
-
         }
     }
 
@@ -727,12 +722,116 @@ class TemplateController extends Controller
 
                 // Save updated JSON to the database
                 $authorization->update(['json_data' => json_encode($authorizationDetails, true)]);
-
             }
 
             return response()->json(['status' => true, 'message' => 'Ordering saved successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred while update ordering'], 400);
+        }
+    }
+
+    public function saveRepairibility(Request $request)
+    {
+        try {
+            $pageId = $request->input('page_id');
+            $repairabilityCompatibilitySection = $request->input('repairabilityCompatibilitySection');
+            $items = $request->input('items', []);
+
+            if (!$pageId || !$repairabilityCompatibilitySection || !is_array($items)) {
+                return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
+            }
+
+            $processedItems = !empty($items) ? array_map(function ($item) {
+                return [
+                    'id' => str_replace('item_', '', $item['id']),
+                    'order' => $item['order'],
+                    'content' => strip_tags($item['content'], '<p><b><i><u><br>'),
+                    'image' => $item['image'] ?? null,
+                ];
+            }, $items) : [];
+
+            $quote = TemplatePageData::where('template_page_id', $pageId)->first();
+
+            if (!$quote) {
+                $quote = TemplatePageData::create([
+                    'template_page_id' => $pageId,
+                    'json_data' => json_encode(['comparision_sections' => []], true),
+                ]);
+            }
+
+            $quoteDetails = $quote->json_data
+                ? (is_array($quote->json_data) ? $quote->json_data : json_decode($quote->json_data, true))
+                : ['comparision_sections' => []];
+
+            $sectionIndex = collect($quoteDetails['comparision_sections'])->search(function ($section) use ($repairabilityCompatibilitySection) {
+                return $section['id'] === $repairabilityCompatibilitySection['id'];
+            });
+
+            if ($sectionIndex !== false) {
+                // Update existing section
+                $quoteDetails['comparision_sections'][$sectionIndex] = [
+                    'id' => $repairabilityCompatibilitySection['id'],
+                    'title' => $repairabilityCompatibilitySection['title'],
+                    'order' => $repairabilityCompatibilitySection['sectionOrder'],
+                    'items' => $processedItems ?: null
+                ];
+            } else {
+                // Add new section
+                $quoteDetails['comparision_sections'][] = [
+                    'id' => $repairabilityCompatibilitySection['id'],
+                    'title' => $repairabilityCompatibilitySection['title'],
+                    'order' => $repairabilityCompatibilitySection['sectionOrder'],
+                    'items' => $processedItems ?: null
+                ];
+            }
+
+            $quote->update(['json_data' => json_encode($quoteDetails, true)]);
+
+            return response()->json(['status' => true, 'message' => 'Data saved successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getmessage()], 500);
+        }
+    }
+
+    public function updateRepairibilitySectionsOrdering(Request $request)
+    {
+        try {
+            $pageId = $request->input('page_id');
+            $sectionsOrder = $request->input('sections_order');
+
+            if (!$pageId || !$sectionsOrder || !is_array($sectionsOrder)) {
+                return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
+            }
+
+            $repairibility = TemplatePageData::where('template_page_id', $pageId)->first();
+            if ($repairibility) {
+                $repairibilityDetails = is_array($repairibility->json_data) ? $repairibility->json_data : json_decode($repairibility->json_data, true);
+
+                if (isset($repairibilityDetails['comparision_sections'])) {
+                    $updatedSections = collect($repairibilityDetails['comparision_sections'])->map(function ($section) use ($sectionsOrder) {
+                        $sectionId = $section['id'];
+
+                        $newOrder = array_search($sectionId, $sectionsOrder);
+                        if ($newOrder !== false) {
+                            $section['order'] = (string)$newOrder;
+                        }
+                        return $section;
+                    });
+
+                    $updatedSections = $updatedSections->sortBy(function ($section) {
+                        return (string)$section['order'];
+                    })->values()->all();
+
+                    $repairibilityDetails['comparision_sections'] = $updatedSections;
+
+                    $repairibility->json_data = json_encode($repairibilityDetails, JSON_PRETTY_PRINT);
+                    $repairibility->save();
+                }
+            }
+
+            return response()->json(['status' => true, 'message' => 'Ordering saved successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while updating ordering', 'error' => $e->getMessage()], 400);
         }
     }
 }

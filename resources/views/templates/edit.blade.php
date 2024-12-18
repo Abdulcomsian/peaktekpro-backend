@@ -520,7 +520,7 @@
     </script>
 
     {{-- repairability or compatibility photosjs js --}}
-    <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script>
+    <!-- <script src="{{ asset('assets/js/templates/repairability_or_compatibility_photos.js') }}"></script> -->
 
     {{-- save data --}}
     <script type="text/javascript">
