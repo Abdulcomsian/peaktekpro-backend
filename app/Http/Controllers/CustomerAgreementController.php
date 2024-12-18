@@ -55,49 +55,49 @@ class CustomerAgreementController extends Controller
             /////////////////
             $companyRepresentativeSignUrl = null;
             $customerSignatureUrl = null; 
-        if($request->has('company_signature')) {
-            $base64Image = $request->input('company_signature');
-            $data = substr($base64Image, strpos($base64Image, ',') + 1);
-            $decodedImage = base64_decode($data);
+            if($request->has('company_signature')) {
+                $base64Image = $request->input('company_signature');
+                $data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $decodedImage = base64_decode($data);
 
-            // Generate a unique filename
-            $filename = 'image_' . time() . '.png';
+                // Generate a unique filename
+                $filename = 'image_' . time() . '.png';
 
-            // Check and delete old image
-            $oldImage = CustomerAgreement::where('company_job_id', $id)->value('company_signature');
-            if ($oldImage) {
-                $oldImagePath = public_path($oldImage);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
+                // Check and delete old image
+                $oldImage = CustomerAgreement::where('company_job_id', $id)->value('company_signature');
+                if ($oldImage) {
+                    $oldImagePath = public_path($oldImage);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
                 }
+
+                // Save the new image
+                Storage::disk('public')->put('company_representative_signature/' . $filename, $decodedImage);
+                $companyRepresentativeSignUrl = '/storage/company_representative_signature/' . $filename;
             }
 
-            // Save the new image
-            Storage::disk('public')->put('company_representative_signature/' . $filename, $decodedImage);
-            $companyRepresentativeSignUrl = '/storage/company_representative_signature/' . $filename;
-        }
+            if($request->has('customer_signature')) {
+                $base64Image = $request->input('customer_signature');
+                $data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $decodedImage = base64_decode($data);
 
-        if($request->has('customer_signature')) {
-            $base64Image = $request->input('customer_signature');
-            $data = substr($base64Image, strpos($base64Image, ',') + 1);
-            $decodedImage = base64_decode($data);
+                // Generate a unique filename
+                $filename = 'image_' . time() . '.png';
 
-            // Generate a unique filename
-            $filename = 'image_' . time() . '.png';
-
-            // Check and delete old image
-            $oldImage = CustomerAgreement::where('company_job_id', $id)->value('customer_signature');
-            if ($oldImage) {
-                $oldImagePath = public_path($oldImage);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
+                // Check and delete old image
+                $oldImage = CustomerAgreement::where('company_job_id', $id)->value('customer_signature');
+                if ($oldImage) {
+                    $oldImagePath = public_path($oldImage);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
                 }
-            }
 
-            // Save the new image
-            Storage::disk('public')->put('customer_signature/' . $filename, $decodedImage);
-            $customerSignatureUrl = '/storage/customer_signature/' . $filename;
-        }
+                // Save the new image
+                Storage::disk('public')->put('customer_signature/' . $filename, $decodedImage);
+                $customerSignatureUrl = '/storage/customer_signature/' . $filename;
+            }
 
 
             //Update Agreement
@@ -125,6 +125,19 @@ class CustomerAgreementController extends Controller
                 'customer_signature'=>$customerSignatureUrl
 
             ]);
+
+            //Get Job
+            $job = CompanyJob::find($agreement->company_job_id);
+            if($job) {
+                $agreement->name = $job->name;
+                $agreement->email = $job->email;
+                $agreement->phone = $job->phone;
+                if($agreement->isComplete()) {
+                    $agreement->is_complete = true;
+                } else {
+                    $agreement->is_complete = false;
+                }
+            }
 
             // Store values in project_design_titles because it will used in design meeting pdf making
             $projectDesignTitle = ProjectDesignTitle::updateOrCreate(
