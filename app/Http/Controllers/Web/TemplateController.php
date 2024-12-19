@@ -901,7 +901,7 @@ class TemplateController extends Controller
             }
 
             // Check if the 'comparision_sections' exist in the JSON data
-            if($sectionId) {
+            if ($sectionId) {
                 if (isset($jsonData['comparision_sections']) && is_array($jsonData['comparision_sections'])) {
                     // Filter out the section with the given section_id
                     $jsonData['comparision_sections'] = array_filter($jsonData['comparision_sections'], function ($section) use ($sectionId) {
@@ -942,6 +942,73 @@ class TemplateController extends Controller
             return response()->json(['status' => false, 'message' => 'Section ID not found.'], 404);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred while removing section: ' . $e->getMessage()], 400);
+        }
+    }
+
+    public function saveImageRepairibility(Request $request, $itemId, $pageId)
+    {
+        try {
+            if ($request->hasFile('file')) {
+
+                // Retrieve additional data from the request
+                $type = $request->input('type');
+                $folder = $request->input('folder');
+
+                // Find the report by template_page_id (pageId)
+                $repairibility = TemplatePageData::where('template_page_id', $pageId)->first();
+
+                if (!$repairibility) {
+                    return response()->json(['status' => false, 'message' => 'Item not found'], 404);
+                }
+
+                // File upload logic
+                $file = $request->file('file');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('item-files/' . $folder, $filename, 'public');
+                $fileSize = $file->getSize();  // Size in bytes
+
+                // Prepare the image data
+                $imageData = [
+                    'file_name' => $filename,
+                    'path' => $path,
+                    'size' => $fileSize
+                ];
+
+                // Decode the current json_data to modify it
+                $jsonData = $repairibility->json_data;
+
+            if (is_string($jsonData)) {
+                $jsonData = json_decode($jsonData, true); // Decode if it's a string
+            }
+
+                // Iterate through comparison sections to find the item to update
+                foreach ($jsonData['comparision_sections'] as &$section) {
+                    foreach ($section['items'] as &$item) {
+                        if ($item['id'] == $itemId) {
+                            // Add the image data to the item's "image" field
+                            $item['image'] = $imageData;
+                            break 2;  // Exit both loops once the item is found and updated
+                        }
+                    }
+                }
+
+                // Save the updated json_data back to the database
+                $repairibility->json_data = json_encode($jsonData);
+                $repairibility->save();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'File uploaded and image added to the item successfully',
+                    'file_name' => $filename,
+                    'file_size' => $fileSize,
+                    'file_url' => asset('storage/' . $path),
+                    'file_path' => $path
+                ]);
+            }
+
+            return response()->json(['status' => false, 'message' => 'No file uploaded'], 400);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while uploading file', 'error' => $e->getMessage()], 400);
         }
     }
 }

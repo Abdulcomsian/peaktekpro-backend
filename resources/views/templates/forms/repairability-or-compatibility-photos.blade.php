@@ -185,71 +185,49 @@
 
     // Function to initialize Dropzone for each new item
     function initializeCompatibilityDropzone(itemId) {
-        var myDropzone = new Dropzone(`#compatibility-dropzone-${itemId}`, {
-            url: '/templates/repairibility-assessment',
-            paramName: 'file',
-            maxFiles: 1,
-            acceptedFiles: ".jpeg,.jpg,.png",
-            dictDefaultMessage: "Drop an image here or click to upload",
-            addRemoveLinks: true, // Show remove link
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Manually add CSRF token from the meta tag
-            },
-            init: function() {
+    console.log('itemId', itemId);
+    console.log('pageId', pageId);
 
-                // When a file is added, check if it's valid based on accepted file types
-                this.on("addedfile", function(file) {
-                    // Immediately hide the Dropzone when an image is selected
-                    $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).addClass('hidden');
-
-                    // You can process the image before uploading, for example, preview it
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        // Create image preview HTML
-                        var imagePreviewHtml = `
-                        <div class="image-preview lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] flex justify-center items-center relative">
-                            <img src="${e.target.result}" alt="Uploaded Image" class="object-cover">
-                            <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute">Remove</button>
-                        </div>
-                    `;
-                        // Add preview to the image container
-                        $(`.item[data-id='item_${itemId}'] .image-preview-container`).html(imagePreviewHtml).removeClass("hidden");
-
-                    };
-                    reader.readAsDataURL(file);
-                });
-                this.on("success", function(file, response) {
-
-                    console.log('sucess')
-                    // // Hide the entire Dropzone container and show the custom image preview
-                    // $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).addClass('hidden');
-                    // // Handle successful upload
-                    // var imageUrl = response.url; // Assuming the response contains the image URL
-                    // var imagePreviewHtml = `
-                    // <div class="image-preview w-full flex justify-center items-center relative">
-                    //     <img src="${imageUrl}" alt="Uploaded Image" class="w-full h-auto object-cover">
-                    //     <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute top-2 right-2">Remove</button>
-                    // </div>
-                    // `;
-                    // $(`.item[data-id='item_${itemId}'] .image-preview-container`).html(imagePreviewHtml).removeClass("hidden");
-                    // $(`.item[data-id='item_${itemId}'] .remove-compatibility-item-btn`).removeClass("hidden");
-                });
-
-                // When a file is removed, reset the container
-                this.on("removedfile", function(file) {
-                    $(`.item[data-id='item_${itemId}'] .image-preview-container`).html("").addClass("hidden"); // Hide preview container
-                    $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).removeClass('hidden'); // Show Dropzone again
-                });
-            }
-        });
-
-        // Remove image functionality (custom button)
-        $(document).on("click", `.item[data-id='item_${itemId}'] .remove-image-btn`, function() {
-            myDropzone.removeAllFiles(true); // Remove all files from Dropzone
-            $(`.item[data-id='item_${itemId}'] .image-preview-container`).html("").addClass("hidden"); // Hide preview container
-            $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).removeClass('hidden'); // Show Dropzone again
-        });
+    // Ensure the element exists before initializing Dropzone
+    const dropzoneElement = $(`#compatibility-dropzone-${itemId}`);
+    if (dropzoneElement.length === 0) {
+        console.error('Dropzone element not found for itemId:', itemId);
+        return;
     }
+
+    var myDropzone = new Dropzone(`#compatibility-dropzone-${itemId}`, {
+        url: `/templates/repairibility-assessment/${itemId}/3`,
+        paramName: 'file',
+        maxFiles: 1,
+        acceptedFiles: ".jpeg,.jpg,.png",
+        dictDefaultMessage: "Drop an image here or click to upload",
+        addRemoveLinks: true, // Show remove link
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Manually add CSRF token from the meta tag
+        },
+        init: function() {
+            this.on("addedfile", function(file) {
+                $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).addClass('hidden');
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var imagePreviewHtml = `
+                    <div class="image-preview lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] flex justify-center items-center relative">
+                        <img src="${e.target.result}" alt="Uploaded Image" class="object-cover">
+                        <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute">Remove</button>
+                    </div>
+                    `;
+                    $(`.item[data-id='item_${itemId}'] .image-preview-container`).html(imagePreviewHtml).removeClass("hidden");
+                };
+                reader.readAsDataURL(file);
+            });
+
+            this.on("removedfile", function(file) {
+                $(`.item[data-id='item_${itemId}'] .image-preview-container`).html("").addClass("hidden");
+                $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).removeClass('hidden');
+            });
+        }
+    });
+}
 
     // Debounce function to delay execution
     function debounce(func, delay) {
@@ -372,11 +350,11 @@
             </div>
         `;
         $(this).siblings('.compatibility-items-container').append(newCompatibilityItem);
+        initializeCompatibilityDropzone(uniqueKey);
         initializeRepariabilityOrCompatibilityPhotosQuill(
             `#repairability-or-compatibility-text-quill-${uniqueKey}`,
             `#repairability-or-compatibility-text-${uniqueKey}`
         );
-        initializeCompatibilityDropzone(uniqueKey);
     });
 
     // Remove section
@@ -442,7 +420,9 @@
     @endif
 
     // initialize Dropzone for the default item
+    @if (empty($pageData->json_data['comparision_sections'] ?? null))
     initializeCompatibilityDropzone(1);
+@endif
 
     // Drag and Drop Initialization on sections
     $('#compatibility-sections-container').sortable({
