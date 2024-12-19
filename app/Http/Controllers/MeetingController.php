@@ -150,25 +150,18 @@ class MeetingController extends Controller
         $request->validate([
             // 'front' => 'nullable|string',
             'exteriorPhotos_front' => 'nullable|image',
-
             // 'front_left' => 'nullable|string',
             'exteriorPhotos_front_left' => 'nullable|image',
-
             // 'left' => 'nullable|string',
             'exteriorPhotos_left' => 'nullable|image',
-
             // 'back_left' => 'nullable|string',
             'exteriorPhotos_back_left' => 'nullable|image',
-
             // 'back' => 'nullable|string',
             'exteriorPhotos_back' => 'nullable|image',
-
             // 'back_right' => 'nullable|string',
             'exteriorPhotos_back_right' => 'nullable|image',
-
             // 'right' => 'nullable|string',
             'exteriorPhotos_right' => 'nullable|image',
-
             // 'front_right' => 'nullable|string',
             'exteriorPhotos_front_right' => 'nullable|image',
         ]);
@@ -235,6 +228,7 @@ class MeetingController extends Controller
             'data' => [],
         ]);
     }
+    
     public function AdjustorMeetingStatus(Request $request, $jobId)
     {
         //Validate Rules
