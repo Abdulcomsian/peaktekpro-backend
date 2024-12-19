@@ -649,6 +649,7 @@ class MaterialOrderController extends Controller
             //         'message' => 'Supplier Not Yet Assigned'
             //     ], 422);
             // }
+            
 
             //Check Supplier
             $supplier = User::where('id', $material_order->supplier_id)->where('role_id', 4)->first();
