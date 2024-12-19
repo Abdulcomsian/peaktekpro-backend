@@ -22,7 +22,6 @@ class TemplateController extends Controller
     }
     public function create()
     {
-
         dd('create');
         $pages = Page::all();
 
@@ -31,7 +30,6 @@ class TemplateController extends Controller
 
     public function store(StoreRequest $request)
     {
-
         try {
 
             $template = Template::create([
@@ -465,7 +463,6 @@ class TemplateController extends Controller
         }
     }
 
-
     public function saveQuoteSectionDetails(Request $request)
     {
         try {
@@ -743,7 +740,7 @@ class TemplateController extends Controller
 
             $processedItems = !empty($items) ? array_map(function ($item) {
                 return [
-                    'id' => str_replace('item_', '', $item['id']),
+                    'id' => $item['id'],
                     'order' => $item['order'],
                     'content' => strip_tags($item['content'], '<p><b><i><u><br>'),
                     'image' => $item['image'] ?? null,
@@ -832,6 +829,119 @@ class TemplateController extends Controller
             return response()->json(['status' => true, 'message' => 'Ordering saved successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred while updating ordering', 'error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function updateRepairibilityItemsSectionsOrdering(Request $request)
+    {
+        try {
+            $pageId = $request->input('page_id');
+            $items = $request->input('items', []);
+
+            // Validate page_id and items
+            if (!$pageId || !is_array($items)) {
+                return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
+            }
+
+            $repairibility = TemplatePageData::where('template_page_id', $pageId)->first();
+
+            if (!$repairibility) {
+                return response()->json(['status' => false, 'message' => 'Page data not found.'], 404);
+            }
+
+            $repairibilityDetails = $repairibility->json_data
+                ? (is_array($repairibility->json_data) ? $repairibility->json_data : json_decode($repairibility->json_data, true))
+                : ['comparision_sections' => []];
+
+            foreach ($repairibilityDetails['comparision_sections'] as &$section) {
+                if (!empty($section['items'])) {
+                    foreach ($section['items'] as &$item) {
+                        $incomingItem = collect($items)->firstWhere('id', $item['id']);
+                        if ($incomingItem) {
+                            $item['order'] = $incomingItem['order'];
+                        }
+                    }
+                    // Sort items by order
+                    $section['items'] = collect($section['items'])->sortBy('order')->values()->toArray();
+                }
+            }
+
+            $repairibility->update(['json_data' => json_encode($repairibilityDetails, true)]);
+
+            return response()->json(['status' => true, 'message' => 'Item orders updated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function removeRepairibilitySection(Request $request)
+    {
+        try {
+            $pageId = $request->input('page_id');
+            $sectionId = $request->input('section_id');
+            $itemId = $request->input('item_id');
+
+            // Validate inputs
+            if (!$pageId || (!$sectionId && !$itemId)) {
+                return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
+            }
+
+            // Retrieve the template page data
+            $repairibility = TemplatePageData::where('template_page_id', $pageId)->first();
+
+            if (!$repairibility) {
+                return response()->json(['status' => false, 'message' => 'Page not found.'], 404);
+            }
+
+            // Decode the JSON data
+            $jsonData = $repairibility->json_data;
+
+            if (is_string($jsonData)) {
+                $jsonData = json_decode($jsonData, true); // Decode if it's a string
+            }
+
+            // Check if the 'comparision_sections' exist in the JSON data
+            if($sectionId) {
+                if (isset($jsonData['comparision_sections']) && is_array($jsonData['comparision_sections'])) {
+                    // Filter out the section with the given section_id
+                    $jsonData['comparision_sections'] = array_filter($jsonData['comparision_sections'], function ($section) use ($sectionId) {
+                        return $section['id'] !== $sectionId;
+                    });
+
+                    // Re-index the array to ensure keys are reset after removal
+                    $jsonData['comparision_sections'] = array_values($jsonData['comparision_sections']);
+
+                    // Update the template page data with the modified JSON
+                    $repairibility->update(['json_data' => json_encode($jsonData, JSON_PRETTY_PRINT)]);
+
+                    return response()->json(['status' => true, 'message' => 'Section removed successfully']);
+                }
+            } elseif ($itemId) {
+                // If an itemId is provided, remove the item from the sections
+                if (isset($jsonData['comparision_sections']) && is_array($jsonData['comparision_sections'])) {
+                    // Iterate through each section to find the item by item_id
+                    foreach ($jsonData['comparision_sections'] as &$section) {
+                        if (isset($section['items']) && is_array($section['items'])) {
+                            // Filter out the item with the given item_id
+                            $section['items'] = array_filter($section['items'], function ($item) use ($itemId) {
+                                return $item['id'] !== $itemId;
+                            });
+
+                            // Re-index the array to ensure keys are reset after removal
+                            $section['items'] = array_values($section['items']);
+                        }
+                    }
+
+                    // Update the template page data with the modified JSON
+                    $repairibility->update(['json_data' => json_encode($jsonData, JSON_PRETTY_PRINT)]);
+
+                    return response()->json(['status' => true, 'message' => 'Item removed successfully']);
+                }
+            }
+
+            return response()->json(['status' => false, 'message' => 'Section ID not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred while removing section: ' . $e->getMessage()], 400);
         }
     }
 }

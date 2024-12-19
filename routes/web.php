@@ -44,6 +44,8 @@ Route::post('/templates/page/save-files', [TemplateController::class, 'savePageM
 
 // repariablity-combatibility
 Route::post('/templates/page/repariablity-combatibility/save', [TemplateController::class, 'saveRepairibility'])->name('templates.repariablity-combatibility.update');
+Route::delete('/templates/page/repariablity/destroy', [TemplateController::class, 'removeRepairibilitySection'])->name('template.repariablity.remove-section');
+Route::post('/templates/page/repariablity-combatibility-items/ordering', [TemplateController::class, 'updateRepairibilityItemsSectionsOrdering'])->name('templates.page.repariablity-combatibility-items-ordering.update');
 Route::post('/templates/page/repariablity-combatibility/ordering', [TemplateController::class, 'updateRepairibilitySectionsOrdering'])->name('templates.page.repariablity-combatibility-ordering.update');
 
 // quote
