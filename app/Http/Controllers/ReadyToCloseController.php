@@ -8,8 +8,9 @@ use App\Models\ReadyToClose;
 use Illuminate\Http\Request;
 use App\Models\ReadyToCloseMedia;
 use App\Models\OverheadPercentage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-
+use Exception;
 class ReadyToCloseController extends Controller
 {
     public function updateReadyToClose(Request $request, $jobId)
@@ -172,7 +173,7 @@ class ReadyToCloseController extends Controller
             //Update Job Status
             if(isset($request->status) && $request->status == true)
             {
-                $job->status_id = 16;
+                $job->status_id = 17;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
@@ -219,7 +220,6 @@ class ReadyToCloseController extends Controller
             
             $ready_to_close = ReadyToClose::where('company_job_id', $jobId)->first();
             if(is_null($ready_to_close)) {
-                
                 $object = new \StdClass();
                 $object->sales_rep1 = isset($userIds[0]) ? $userIds[0] : null;
                 $object->sales_rep2 = isset($userIds[1]) ? $userIds[1] : null;
@@ -244,6 +244,46 @@ class ReadyToCloseController extends Controller
             
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function jobSearch(Request $request)
+    {
+        $this->validate($request, [
+            'search_term' => 'required|string|max:255',
+        ]);
+
+        try {
+            $searchTerm = $request->input('search_term');
+            $user = Auth::user();
+            
+            $jobs = CompanyJob::where('status_id',17)
+            ->where(function($query) use ($searchTerm) {
+                $query->where('name', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('address', 'LIKE', "%{$searchTerm}%");
+            })->get();
+            
+
+            // if (in_array($user->role_id, [1, 2,8,9])) {
+            //     $users = $jobs->get();
+            // } elseif ($user->role_id == 7) {
+            //     $users = $jobs->whereNotIn('role_id', [7])->get();
+            // } else {
+            //     $users = collect(); // Return an empty collection if no roles match
+            // }
+            
+            return response()->json([
+                'status_code' => 200,
+                'status' => true,
+                'data' => $jobs,
+            ]);
+            
+        } catch (Exception $e) {
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 

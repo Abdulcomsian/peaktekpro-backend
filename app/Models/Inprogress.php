@@ -15,4 +15,9 @@ class Inprogress extends Model
     {
         return $value == 0 ? false : true;
     }
+
+    // public function media()
+    // {
+    //     return $this->hasMany(InprogressMedia::class,'')
+    // }
 }

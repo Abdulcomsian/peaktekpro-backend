@@ -363,6 +363,7 @@ class CustomerAgreementController extends Controller
     //when the user sign then the pdf generate
     public function updateCustomerAgreement(Request $request, $id)
     {
+        // dd();
         //Validate Request
         $this->validate($request, [
             'sign_image' => 'nullable',
@@ -399,6 +400,10 @@ class CustomerAgreementController extends Controller
             //Save Image Path
             $agreement->sign_image_url = $imageUrl;
             $agreement->save();
+
+            // return response()->json(
+            //    [ 'aggrement'=> $agreement]
+            // );
 
             //Generate PDF
             $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);

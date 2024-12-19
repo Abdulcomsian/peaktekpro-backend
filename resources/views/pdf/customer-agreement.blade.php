@@ -125,7 +125,7 @@
             />
           </td>
         </tr>
-        <tr>
+        <!-- <tr>
           <td>
             <label for="">Insurance:</label>
             <input
@@ -150,7 +150,7 @@
               value="{{$data->policy_number}}"
             />
           </td>
-        </tr>
+        </tr> -->
       </tbody>
     </table>
     <!-- section4 -->
@@ -285,7 +285,7 @@
       <thead>
         <tr>
           <th colspan="6">
-            <h2 style="text-align: left">Customer Information</h2>
+            <h2 style="text-align: left">Signatures</h2>
           </th>
         </tr>
       </thead>
@@ -293,11 +293,13 @@
         <tr>
           <td>
             <label for="">Customer Signature:</label>
-            <input
-              style="width: 100%"
-              type="text"
-              value="{{$data->customer_signature}}"
-            />
+            <span
+            style="
+              width: 250px;
+              display: inline-block;
+            "
+            ><img src="{{ public_path($data->customer_signature) }}"
+          /></span>
           </td>
           <td>
             <label for="">Printed Name:</label>
@@ -319,12 +321,15 @@
         <tr>
           <td>
             <label for="">Company Representative Signature:</label>
-            <input
-              style="width: 100%"
-              type="text"
-              value="{{$data->company_signature}}"
-            />
+            <span
+            style="
+              width: 250px;
+              display: inline-block;
+            "
+            ><img src="{{ public_path($data->company_signature) }}"
+          /></span>
           </td>
+    
           <td>
             <label for="">Printed Name:</label>
             <input
@@ -346,7 +351,7 @@
     </table>
 
     <!-- Page Break -->
-    <div class="page-break"></div>
+    <!-- <div class="page-break"></div> -->
     <!-- End -->
 
     <table style="max-width: 1200px; margin: auto">
