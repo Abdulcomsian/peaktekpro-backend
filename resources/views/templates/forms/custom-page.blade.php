@@ -57,7 +57,7 @@
         Dropzone.autoDiscover = false;
 
             const customPageDropZone = new Dropzone("#custom-page-dropzone", {
-                url: saveMultipleFilesFromDropZoneRoute,
+                url: saveFileFromDropZoneRoute,
                 maxFiles: 1,
                 acceptedFiles: ".pdf",
                 addRemoveLinks: true,
