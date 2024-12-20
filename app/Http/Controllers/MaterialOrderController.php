@@ -719,7 +719,7 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+            // $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
@@ -728,8 +728,10 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'build_time' => $request->build_time,
-                'homeowner' => $readyBuild->home_owner ?? '',
-                'homeowner_email' => $readyBuild->home_owner_email ?? '',
+                // 'homeowner' => $readyBuild->home_owner ?? '',
+                // 'homeowner_email' => $readyBuild->home_owner_email ?? '',
+                'homeowner' => $request->homeowner,
+                'homeowner_email' => $request->homeowner_email,
                 'contractor' => $request->contractor,
                 'contractor_email' => $request->contractor_email,
                 'supplier' => $request->supplier,
@@ -738,14 +740,14 @@ class MaterialOrderController extends Controller
             ]);
 
             //i am adding the supplier in material order from here
-            $supplier = User::where('email',$request->supplier_email)->where('role_id',4)->first();
-            $supplier_id = $supplier->id;
-            $build_detail = MaterialOrder::updateOrCreate([
-                'company_job_id' => $jobId
-            ],[
-                'company_job_id' => $jobId,
-                'supplier_id' => $supplier_id,
-            ]);
+            // $supplier = User::where('email',$request->supplier_email)->where('role_id',4)->first();
+            // $supplier_id = $supplier->id;
+            // $build_detail = MaterialOrder::updateOrCreate([
+            //     'company_job_id' => $jobId
+            // ],[
+            //     'company_job_id' => $jobId,
+            //     'supplier_id' => $supplier_id,
+            // ]);
 
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
@@ -837,7 +839,7 @@ class MaterialOrderController extends Controller
              //get Build Detail
              $build_detail = BuildDetail::where('company_job_id',$jobId)->first();
              //get Ready to Build
-             $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+            //  $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
             //  if (!$build_detail) {
             //     return response()->json([
@@ -852,8 +854,8 @@ class MaterialOrderController extends Controller
                 'message' => 'Build Details Found Successfully',
                 'data' =>
                 [
-                        'homeowner' => $readyBuild->home_owner ?? '',
-                        'homeowner_email' => $readyBuild->home_owner_email ?? '',
+                        'homeowner' => $build_detail->homeowner ?? '',
+                        'homeowner_email' => $build_detail->homeowner_email ?? '',
                         'id' => $build_detail->id ?? '',
                         'company_job_id' => $build_detail->company_job_id ?? '',
                         'build_date' => $build_detail->build_date ?? '',
@@ -869,7 +871,7 @@ class MaterialOrderController extends Controller
                         'updated_at' => $build_detail->updated_at ?? '',                    
                 ]
             ], 200);
-        }catch(Exception $e){
+        }catch(\Exception $e){
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
