@@ -91,7 +91,7 @@ class CocController extends Controller
                 'released_to' => $request->released_to,
                 'conclusion' => $request->conclusion,
                 'sincerely' => $request->sincerely,
-                'status' => $request->status,
+                // 'status' => $request->status,
                 'notes' => $request->notes,
 
             ]);
