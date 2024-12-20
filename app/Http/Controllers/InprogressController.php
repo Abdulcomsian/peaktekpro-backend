@@ -21,7 +21,7 @@ class InprogressController extends Controller
             'build_start_date' => 'nullable|date_format:m/d/Y',
             'build_end_date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable',
-            'status' => 'nullable',
+            // 'status' => 'nullable',
 
             //this is required photos section
             'images' => 'nullable|array',
@@ -38,10 +38,10 @@ class InprogressController extends Controller
             'images.completionPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
 
             //this is photo upload Fields Section
-            'photos'=> 'nullable|array',
-            'photos.*' => 'nullable|image',
-            'labels' => 'nullable|array',
-            'labels.*' => 'nullable|string',
+            // 'photos'=> 'nullable|array',
+            // 'photos.*' => 'nullable|image',
+            // 'labels' => 'nullable|array',
+            // 'labels.*' => 'nullable|string',
 
             'production_sign_url' => 'nullable|string',
             'homeowner_signature' => 'nullable|string'
@@ -61,36 +61,36 @@ class InprogressController extends Controller
                     'build_start_date' => $request->build_start_date,
                     'build_end_date' => $request->build_end_date,
                     'notes' => $request->notes,
-                    'status' => $request->status,
+                    // 'status' => $request->status,
                 ]
             );
 
-            $savedPhotos = [];
-            $photos = $request->photos ?? [];
+            // $savedPhotos = [];
+            // $photos = $request->photos ?? [];
 
-            foreach($photos as $index => $image)
-            {
-                $image_filename = time().'.'.$image->getClientOriginalName();
-                $image_filePath = $image->storeAS('ProgressPhotos',$image_filename,'public');
+            // foreach($photos as $index => $image)
+            // {
+            //     $image_filename = time().'.'.$image->getClientOriginalName();
+            //     $image_filePath = $image->storeAS('ProgressPhotos',$image_filename,'public');
 
-                $media = new InprogressMedia;
-                $media->company_job_id = $jobId;
-                $media->labels = $request->labels[$index] ?? null;
-                $media->image_path = Storage::url($image_filePath);
-                $media->category = "photo";
-                $media->save();
+            //     $media = new InprogressMedia;
+            //     $media->company_job_id = $jobId;
+            //     $media->labels = $request->labels[$index] ?? null;
+            //     $media->image_path = Storage::url($image_filePath);
+            //     $media->category = "photo";
+            //     $media->save();
 
-                $savedPhotos[] = [
-                    'id' => $media->id,
-                    'company_job_id' => $media->company_job_id,
-                    'labels' =>$media->labels,
-                    'image_path'=> $media->image_path,
-                    'created_at' => $media->created_at,
-                    'updated_at' => $media->updated_at,
-                    'category' => $media->category,
-                ];
+            //     $savedPhotos[] = [
+            //         'id' => $media->id,
+            //         'company_job_id' => $media->company_job_id,
+            //         'labels' =>$media->labels,
+            //         'image_path'=> $media->image_path,
+            //         'created_at' => $media->created_at,
+            //         'updated_at' => $media->updated_at,
+            //         'category' => $media->category,
+            //     ];
                
-            }
+            // }
         // Save photos and store in their respective categories
             $morningPhotos = [];
             $compliancePhotos = [];
@@ -170,7 +170,7 @@ class InprogressController extends Controller
                 'morningPhotos' => $morningPhotos,
                 'compliancePhotos' => $compliancePhotos,
                 'completionPhotos' => $completionPhotos,
-                'Photos' => $savedPhotos,
+                // 'Photos' => $savedPhotos,
 
             ], 200);
         } catch (\Exception $e) {
