@@ -21,44 +21,42 @@
                         </div>
                     </div>
 
-                    <!-- Items Container -->
-                    <div class="compatibility-items-container flex flex-wrap items-center gap-1">
-                @if (is_array($section['items']) && count($section['items']) > 0)
-                @foreach ($section['items'] as $item)
-                <div class="item flex flex-row gap-2" data-id="{{ $item['id'] }}">
-                    <!-- Drag Handle -->
+<!-- Compatibility Items Container -->
+<div class="compatibility-items-container flex flex-wrap items-center gap-1">
+    @if (is_array($section['items']) && count($section['items']) > 0)
+        @foreach ($section['items'] as $item)
+            <div class="item flex flex-row gap-2" data-id="{{ $item['id'] }}">
+                <!-- Drag Handle -->
+                <div class="mb-2">
+                    <span class="item-drag-handle cursor-pointer">⇄</span>
+                </div>
+                <div class="flex flex-col flex-wrap">
+                    <!-- Image Upload -->
                     <div class="mb-2">
-                        <span class="item-drag-handle cursor-pointer">⇄</span>
-                    </div>
-                    <div class="flex flex-col flex-wrap">
-                        <!-- Image Upload -->
-                        <div class="mb-2">
-                            <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
-                                id="compatibility-dropzone-1">
-                                <div class="dz-message text-center text-gray-600">Drop an image here or click to upload
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Image Preview (Outside Dropzone) -->
-                        <div
-                            class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4">
-                        </div>
-                        <!-- Quill Editor -->
-                        <div class="mb-14">
-                            <div id="repairability-or-compatibility-text-quill-{{ $item['id'] }}" class="item-editor bg-white"></div>
-                            <textarea class="hidden" id="repairability-or-compatibility-text-{{ $item['id'] }}" name="repairability_or_compatibility_text[]"
-                                required>{{ $item['content'] }}</textarea>
+                        <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
+                            id="compatibility-dropzone-{{ $item['id'] }}">
+                            <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
                         </div>
                     </div>
-                    <!-- Remove Button -->
-                    <div class="mb-2">
-                        <button
-                            class="remove-compatibility-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+                    <!-- Image Preview -->
+                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4"></div>
+                    <!-- Quill Editor -->
+                    <div class="mb-14">
+                        <div id="repairability-or-compatibility-text-quill-{{ $item['id'] }}" class="item-editor bg-white"></div>
+                        <textarea class="hidden" id="repairability-or-compatibility-text-{{ $item['id'] }}" name="repairability_or_compatibility_text[]"
+                            required>{{ $item['content'] }}</textarea>
                     </div>
                 </div>
-                @endforeach
-                @endif
+                <!-- Remove Button -->
+                <div class="mb-2">
+                    <button
+                        class="remove-compatibility-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+                </div>
             </div>
+        @endforeach
+    @endif
+</div>
+
 
             <!-- Add Item Button -->
             <button class="add-compatibility-item-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">+ Add
@@ -179,124 +177,155 @@
                     '#repairability-or-compatibility-text-quill-{{ $item['id'] }}',
                     '#repairability-or-compatibility-text-{{ $item['id'] }}'
                 );
+                initializeCompatibilityDropzone('{{ $item['id'] }}');
             @endforeach
         @endif
     });
 
     // Function to initialize Dropzone for each new item
     function initializeCompatibilityDropzone(itemId) {
-    console.log('itemId', itemId);
-    console.log('pageId', pageId);
-
-    // Ensure the element exists before initializing Dropzone
     const dropzoneElement = $(`#compatibility-dropzone-${itemId}`);
-    if (dropzoneElement.length === 0) {
-        console.error('Dropzone element not found for itemId:', itemId);
-        return;
+    // if (dropzoneElement.length === 0) {
+    //     console.error('Dropzone element not found for itemId:', itemId);
+    //     return;
+    // }
+
+    const dropzone = new Dropzone(`#compatibility-dropzone-${itemId}`, {
+    url: "/templates/repairibility-assessment", // Make sure this matches the route
+    paramName: 'image', // Ensure this matches the backend input name
+    maxFiles: 1,
+    acceptedFiles: ".jpeg,.jpg,.png",
+    dictDefaultMessage: "Drop an image here or click to upload",
+    addRemoveLinks: true,
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    init: function() {
+        const repairabilityAssessmentImages = {
+        files: JSON.parse(`{!! json_encode($pageData->json_data['comparision_sections'] ?? []) !!}`),
+        file_url: "{{ $pageData->file_url ?? '' }}"
+    };
+
+    // Find the relevant image for the current item
+    const section = repairabilityAssessmentImages.files.find(section =>
+        section.items.some(item => item.id === itemId)
+    );
+
+    // Preload images from the backend if available
+    if (section) {
+    const item = section.items.find(item => item.id === itemId);
+
+    if (item && item.image && item.image.path) {
+        // Generate the image preview HTML
+        const imagePreviewHtml = `
+            <div class="image-preview lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] flex justify-center items-center relative">
+                <img src="${item.image.path}" alt="Preloaded Image" class="object-cover w-full h-full">
+                <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute">Remove</button>
+            </div>
+        `;
+
+        // Update the Dropzone container
+        const dropzoneContainer = $(`#compatibility-dropzone-${itemId}`);
+        dropzoneContainer.html(imagePreviewHtml); // Replace Dropzone's default content
+
+        // Add event listener for the remove button
+        dropzoneContainer.on("click", ".remove-image-btn", function () {
+            dropzoneContainer.html('<div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>'); // Restore the default message
+        });
     }
+}
+this.on("addedfile", function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        const imagePreviewHtml = `
+            <div class="image-preview lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] flex justify-center items-center relative">
+                <img src="${e.target.result}" alt="Preloaded Image" class="object-cover w-full h-full">
+                <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute">Remove</button>
+            </div>
+        `;
+        // Append image preview inside the Dropzone container
+        $(`#compatibility-dropzone-${itemId}`).html(imagePreviewHtml).removeClass("hidden");
+    };
+    reader.readAsDataURL(file);
+});
 
-    var myDropzone = new Dropzone(`#compatibility-dropzone-${itemId}`, {
-        url: `/templates/repairibility-assessment/${itemId}/3`,
-        paramName: 'file',
-        maxFiles: 1,
-        acceptedFiles: ".jpeg,.jpg,.png",
-        dictDefaultMessage: "Drop an image here or click to upload",
-        addRemoveLinks: true, // Show remove link
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Manually add CSRF token from the meta tag
+        this.on("removedfile", function() {
+            $(`.item[data-id='${itemId}'] .image-preview-container`).html("").addClass("hidden");
+            sendDataToAjax(dropzoneElement.closest('.compatibility-section'));
+        });
+
+        this.on("success", function(file, response) {
+            console.log('Upload successful:', response);
+            sendDataToAjax(dropzoneElement.closest('.compatibility-section'));
+        });
+
+        this.on("error", function(file, errorMessage) {
+            console.error('Error uploading file:', errorMessage);
+        });
+    }
+});
+
+    return dropzone;
+}
+
+// Debounce function for sending data to the server
+function debounce(func, delay) {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function sendDataToAjax(element) {
+    const sectionContainer = $(element).closest('.compatibility-section');
+    const sectionId = sectionContainer.data('id');
+    const sectionTitle = sectionContainer.find('.section-title').val();
+    const sectionOrder = sectionContainer.index();
+
+    const repairabilityCompatibilitySection = {
+        id: sectionId,
+        title: sectionTitle,
+        sectionOrder: sectionOrder
+    };
+
+    const itemData = [];
+    sectionContainer.find('.item').each(function(index) {
+        const itemId = $(this).data('id');
+        const imageUrl = $(this).find('.image-preview img').attr('src') || null;
+        const editorContent = $(this).find('.item-editor').html();
+
+        itemData.push({
+            id: itemId,
+            order: index,
+            image: imageUrl,
+            content: editorContent
+        });
+    });
+
+    const requestData = {
+        page_id: pageId,
+        repairabilityCompatibilitySection: repairabilityCompatibilitySection,
+        items: itemData
+    };
+console.log(requestData)
+    $.ajax({
+        url: "{{ route('templates.repariablity-combatibility.update') }}",
+        method: "POST",
+        data: requestData,
+        success: function(response) {
+            showSuccessNotification(response.message);
         },
-        init: function() {
-            this.on("addedfile", function(file) {
-                $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).addClass('hidden');
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var imagePreviewHtml = `
-                    <div class="image-preview lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] flex justify-center items-center relative">
-                        <img src="${e.target.result}" alt="Uploaded Image" class="object-cover">
-                        <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute">Remove</button>
-                    </div>
-                    `;
-                    $(`.item[data-id='item_${itemId}'] .image-preview-container`).html(imagePreviewHtml).removeClass("hidden");
-                };
-                reader.readAsDataURL(file);
-            });
-
-            this.on("removedfile", function(file) {
-                $(`.item[data-id='item_${itemId}'] .image-preview-container`).html("").addClass("hidden");
-                $(`.item[data-id='item_${itemId}'] .compatibility-dropzone`).removeClass('hidden');
-            });
+        error: function(error) {
+            showErrorNotification(response.message);
         }
     });
 }
 
-    // Debounce function to delay execution
-    function debounce(func, delay) {
-        let timer;
-        return function(...args) {
-            clearTimeout(timer);
-            timer = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
-
-    function sendDataToAjax(element) {
-        // Find the closest section container to get section data
-        let sectionContainer = $(element).closest('.compatibility-section');
-        let sectionId = sectionContainer.data('id');
-        let sectionTitle = sectionContainer.find('.section-title').val(); // Title from input
-        let sectionOrder = sectionContainer.index();
-
-        // Prepare data for the section
-        let repairabilityCompatibilitySection = {
-            id: sectionId,
-            title: sectionTitle,
-            sectionOrder: sectionOrder // Include section order
-        };
-
-        // Find the item data within the section
-        let itemData = [];
-
-        sectionContainer.find('.item').each(function(index) {
-            let itemId = $(this).data('id');
-
-            // Get the image from Dropzone (if any)
-            let imageUrl = $(this).find('.image-preview img').attr('src'); // Image URL (if uploaded)
-            let editorContent = $(this).find('.item-editor').html(); // Content from the Quill editor
-
-            // Store the item data in an array
-            itemData.push({
-                id: itemId,
-                order: index,
-                image: imageUrl,
-                content: editorContent
-            });
-        });
-
-        // Prepare the request data
-        let requestData = {
-            page_id: pageId, // Or any other page identifier you want
-            repairabilityCompatibilitySection: repairabilityCompatibilitySection,
-            items: itemData
-        };
-
-        // AJAX request
-        $.ajax({
-            url: "{{ route('templates.repariablity-combatibility.update') }}", // Your route URL
-            method: "POST",
-            data: requestData,
-            success: function(response) {
-                showSuccessNotification(response.message);
-                console.log('Data saved successfully:', response);
-            },
-            error: function(error) {
-                console.error('Error saving data:', error);
-            }
-        });
-    }
-
-    // Attach the event listener with debounce
-    $(document).on('input', '.section-title, .item-editor', debounce(function() {
-        sendDataToAjax(this);
-    }, 500));
+// Attach the event listener with debounce
+$(document).on('input', '.section-title, .item-editor', debounce(function() {
+    sendDataToAjax(this);
+}, 500));
 
 
     // Add new section
@@ -350,13 +379,17 @@
             </div>
         `;
         $(this).siblings('.compatibility-items-container').append(newCompatibilityItem);
-        initializeCompatibilityDropzone(uniqueKey);
+    initializeCompatibilityDropzone(uniqueKey);
+
         initializeRepariabilityOrCompatibilityPhotosQuill(
             `#repairability-or-compatibility-text-quill-${uniqueKey}`,
             `#repairability-or-compatibility-text-${uniqueKey}`
         );
     });
 
+    // @if (isset($section['items']) && count($section['items']) > 0)
+    // initializeCompatibilityDropzone(generateBase64Key(8));
+    // @endif
     // Remove section
     $(document).on('click', '.remove-compatibility-section-btn', function() {
         // $(this).closest('.compatibility-section').remove();
@@ -419,9 +452,11 @@
     );
     @endif
 
-    // initialize Dropzone for the default item
     @if (empty($pageData->json_data['comparision_sections'] ?? null))
-    initializeCompatibilityDropzone(1);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('there')
+            initializeCompatibilityDropzone(1);
+        });
 @endif
 
     // Drag and Drop Initialization on sections

@@ -738,55 +738,113 @@ class TemplateController extends Controller
                 return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
             }
 
-            $processedItems = !empty($items) ? array_map(function ($item) {
+            // Process items
+            $processedItems = !empty($items) ? array_map(function ($item) use ($request) {
+                // Initialize image data
+                $imageData = null;
+
+                // Check if the image field contains a base64 encoded string
+                if (isset($item['image']) && strpos($item['image'], 'data:image') === 0) {
+                    // Extract the base64 string from the "data:image/png;base64,..."
+                    $imageData = explode(',', $item['image'])[1];  // The actual base64 encoded string
+                    // Decode the base64 string
+                    $decodedImage = base64_decode($imageData);
+
+                    // Generate a unique filename for the image
+                    $filename = time() . '_' . uniqid() . '.png';
+
+                    // Define the path to save the image
+                    $path = 'item-files/' . $filename;
+
+                    // Save the decoded image to storage
+                    Storage::disk('public')->put($path, $decodedImage);
+
+                    // Prepare the image object with file name, path, and size
+                    $imageData = [
+                        'file_name' => $filename,
+                        'path' => asset('storage/' . $path),
+                        'size' => Storage::disk('public')->size($path),  // Get the size of the image file in bytes
+                    ];
+                }
+
+                // Return the processed item with the image object (if available)
                 return [
                     'id' => $item['id'],
                     'order' => $item['order'],
                     'content' => strip_tags($item['content'], '<p><b><i><u><br>'),
-                    'image' => $item['image'] ?? null,
+                    'image' => $imageData,  // Save the image object for this item, if it's new or changed
                 ];
             }, $items) : [];
 
-            $quote = TemplatePageData::where('template_page_id', $pageId)->first();
+            // Get or create repairability data
+            $repairibility = TemplatePageData::where('template_page_id', $pageId)->first();
 
-            if (!$quote) {
-                $quote = TemplatePageData::create([
+            if (!$repairibility) {
+                $repairibility = TemplatePageData::create([
                     'template_page_id' => $pageId,
                     'json_data' => json_encode(['comparision_sections' => []], true),
                 ]);
             }
 
-            $quoteDetails = $quote->json_data
-                ? (is_array($quote->json_data) ? $quote->json_data : json_decode($quote->json_data, true))
+            // Decode JSON data
+            $repairibilityDetails = $repairibility->json_data
+                ? (is_array($repairibility->json_data) ? $repairibility->json_data : json_decode($repairibility->json_data, true))
                 : ['comparision_sections' => []];
 
-            $sectionIndex = collect($quoteDetails['comparision_sections'])->search(function ($section) use ($repairabilityCompatibilitySection) {
+            // Search for the section
+            $sectionIndex = collect($repairibilityDetails['comparision_sections'])->search(function ($section) use ($repairabilityCompatibilitySection) {
                 return $section['id'] === $repairabilityCompatibilitySection['id'];
             });
 
+            // Update or add new section
             if ($sectionIndex !== false) {
-                // Update existing section
-                $quoteDetails['comparision_sections'][$sectionIndex] = [
+                // Update items in the section, preserving image data for non-matching items
+                $updatedItems = collect($repairibilityDetails['comparision_sections'][$sectionIndex]['items'])->map(function ($existingItem) use ($processedItems) {
+                    // Find matching item by ID
+                    $matchingItem = collect($processedItems)->firstWhere('id', $existingItem['id']);
+
+                    if ($matchingItem) {
+                        // If the item has a new image, update it; otherwise, keep the existing image
+                        $existingItem['image'] = $matchingItem['image'] ?: $existingItem['image'];
+                        // If other properties like content or order have changed, update them
+                        $existingItem['content'] = $matchingItem['content'] ?: $existingItem['content'];
+                        $existingItem['order'] = $matchingItem['order'] ?: $existingItem['order'];
+                    }
+
+                    return $existingItem;
+                })->toArray();
+
+                // Add any new items that don't exist in the section
+                $newItems = collect($processedItems)->filter(function ($processedItem) use ($repairibilityDetails, $sectionIndex) {
+                    return !collect($repairibilityDetails['comparision_sections'][$sectionIndex]['items'])->contains('id', $processedItem['id']);
+                })->toArray();
+
+                // Merge updated and new items
+                $updatedItems = array_merge($updatedItems, $newItems);
+
+                // Update the section with new or unchanged items
+                $repairibilityDetails['comparision_sections'][$sectionIndex] = [
                     'id' => $repairabilityCompatibilitySection['id'],
                     'title' => $repairabilityCompatibilitySection['title'],
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
-                    'items' => $processedItems ?: null
+                    'items' => $updatedItems ?: null,
                 ];
             } else {
-                // Add new section
-                $quoteDetails['comparision_sections'][] = [
+                // Add new section with processed items
+                $repairibilityDetails['comparision_sections'][] = [
                     'id' => $repairabilityCompatibilitySection['id'],
                     'title' => $repairabilityCompatibilitySection['title'],
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
-                    'items' => $processedItems ?: null
+                    'items' => $processedItems ?: null,
                 ];
             }
 
-            $quote->update(['json_data' => json_encode($quoteDetails, true)]);
+            // Save updated data without image
+            $repairibility->update(['json_data' => json_encode($repairibilityDetails, true)]);
 
             return response()->json(['status' => true, 'message' => 'Data saved successfully']);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => $e->getmessage()], 500);
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -942,73 +1000,6 @@ class TemplateController extends Controller
             return response()->json(['status' => false, 'message' => 'Section ID not found.'], 404);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred while removing section: ' . $e->getMessage()], 400);
-        }
-    }
-
-    public function saveImageRepairibility(Request $request, $itemId, $pageId)
-    {
-        try {
-            if ($request->hasFile('file')) {
-
-                // Retrieve additional data from the request
-                $type = $request->input('type');
-                $folder = $request->input('folder');
-
-                // Find the report by template_page_id (pageId)
-                $repairibility = TemplatePageData::where('template_page_id', $pageId)->first();
-
-                if (!$repairibility) {
-                    return response()->json(['status' => false, 'message' => 'Item not found'], 404);
-                }
-
-                // File upload logic
-                $file = $request->file('file');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('item-files/' . $folder, $filename, 'public');
-                $fileSize = $file->getSize();  // Size in bytes
-
-                // Prepare the image data
-                $imageData = [
-                    'file_name' => $filename,
-                    'path' => $path,
-                    'size' => $fileSize
-                ];
-
-                // Decode the current json_data to modify it
-                $jsonData = $repairibility->json_data;
-
-            if (is_string($jsonData)) {
-                $jsonData = json_decode($jsonData, true); // Decode if it's a string
-            }
-
-                // Iterate through comparison sections to find the item to update
-                foreach ($jsonData['comparision_sections'] as &$section) {
-                    foreach ($section['items'] as &$item) {
-                        if ($item['id'] == $itemId) {
-                            // Add the image data to the item's "image" field
-                            $item['image'] = $imageData;
-                            break 2;  // Exit both loops once the item is found and updated
-                        }
-                    }
-                }
-
-                // Save the updated json_data back to the database
-                $repairibility->json_data = json_encode($jsonData);
-                $repairibility->save();
-
-                return response()->json([
-                    'status' => true,
-                    'message' => 'File uploaded and image added to the item successfully',
-                    'file_name' => $filename,
-                    'file_size' => $fileSize,
-                    'file_url' => asset('storage/' . $path),
-                    'file_path' => $path
-                ]);
-            }
-
-            return response()->json(['status' => false, 'message' => 'No file uploaded'], 400);
-        } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'An error occurred while uploading file', 'error' => $e->getMessage()], 400);
         }
     }
 }

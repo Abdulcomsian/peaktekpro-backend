@@ -61,12 +61,12 @@ Route::post('/templates/page/authorization-section/ordering', [TemplateControlle
 
 
 // repairibility assessment
-// Route::post('/templates/repairibility-assessment', function () {
-//     return response()->json(['url' => asset('assets/pdf_header.png')], 200);
-//     // return true;
-// })->name('templates/repairibility-assessment');
+Route::post('/templates/repairibility-assessment', function () {
+    return response()->json(['url' => asset('assets/pdf_header.png')], 200);
+    // return true;
+})->name('templates/repairibility-assessment');
 
-Route::post('/templates/repairibility-assessment/{item_id}/{page_id}', [TemplateController::class, 'saveImageRepairibility'])->name('templates/repairibility-assessment');
+// Route::post('/templates/repairibility-assessment/{item_id}/{page_id}', [TemplateController::class, 'saveImageRepairibility'])->name('templates/repairibility-assessment');
 
 // reports
 Route::get('/reports', [ReportLayoutController::class, 'index'])->name('reports.index');
