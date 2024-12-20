@@ -331,6 +331,7 @@ class TemplateController extends Controller
 
             return response()->json(['status' => false, 'message' => 'No file uploaded'], 400);
         } catch (\Exception $e) {
+            dd($e);
             return response()->json(['status' => false, 'message' => 'An error occurred while uploading file'], 400);
         }
     }

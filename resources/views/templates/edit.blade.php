@@ -71,36 +71,42 @@
         ];
         // Re-initialize Quill for the newly added content
         $('.custom-page-quill-editor').each(function() {
-            if (!$(this).hasClass('quill-initialized')) {
-                var customQuill = new Quill($(this)[0], {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: customPageTextQuillOptions
-                    }
-                });
-                $(this).addClass('quill-initialized'); // Mark as initialized
-                customQuill.root.style.height = '200px';
-                // Reference to the associated textarea (assumes it's the next sibling)
-                var $textarea = $(this).next('textarea');
-                customQuill.on('text-change', function() {
-                    $(this).next().val(customQuill.root.innerHTML);
-
-                    // Update the value of the textarea with Quill's content
-                    $textarea.val(customQuill.root.innerHTML);
-
-                    // Optionally trigger change event on the textarea if needed
-                    // $textarea.trigger('change');
-                    saveTemplatePageTextareaData($textarea);
-
-                });
+    if (!$(this).hasClass('quill-initialized')) {
+        var customQuill = new Quill($(this)[0], {
+            theme: 'snow',
+            modules: {
+                toolbar: customPageTextQuillOptions
             }
         });
+        $(this).addClass('quill-initialized'); // Mark as initialized
+        customQuill.root.style.height = '200px';
+
+        // Reference to the associated textarea (assumes it's the next sibling)
+        var $textarea = $(this).next('textarea');
+
+        // Parse the JSON data passed from the backend
+        var existingContent = $textarea.val();
+            if (existingContent) {
+                customQuill.root.innerHTML = existingContent; // Set content from textarea to Quill
+            }
+            // If no content exists, initialize the Quill editor and set up the 'text-change' event
+            customQuill.on('text-change', function() {
+                // Sync content with the associated textarea
+                $textarea.val(customQuill.root.innerHTML);
+
+                // Optionally trigger change event on the textarea if needed
+                // $textarea.trigger('change');
+                saveTemplatePageTextareaData($textarea);
+            });
+    }
+});
+
     }
 
     // Initialize Dropzone
     const customPageInitializeDropzone = () => {
         // Re-initialize Dropzone for the newly added elements
-        $('.custom-page-dropzone').each(function() {
+        $('.custom-page-dropzone1').each(function() {
             if (!$(this).hasClass('dropzone-initialized')) {
                 new Dropzone($(this)[0], {
                     url: '/your-upload-endpoint',
