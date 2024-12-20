@@ -55,7 +55,7 @@ class PaymentController extends Controller
                 // dd($job_total);
               
                 $remaining_balance = $job_total-$paid_amount;
-                // $payment->remaining_balance = $remaining_balance;
+                $payment->remaining_balance = $remaining_balance;
                 $payment->save();
 
                 if ($remaining_balance < 0) {
