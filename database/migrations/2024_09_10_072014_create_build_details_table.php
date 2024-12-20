@@ -25,7 +25,6 @@ return new class extends Migration
             $table->string('supplier')->nullable();
             $table->string('supplier_email')->nullable();
             $table->string('confirmed')->default('false');
-
             $table->timestamps();
         });
     }
