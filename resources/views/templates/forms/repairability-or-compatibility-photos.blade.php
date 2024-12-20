@@ -148,8 +148,6 @@
 
     // Initialize Quill Editor
     function initializeRepariabilityOrCompatibilityPhotosQuill(container, textareaId) {
-        console.log('container', container);
-        console.log('textareaId', textareaId);
         var quill = new Quill(container, {
             theme: 'snow',
         });
