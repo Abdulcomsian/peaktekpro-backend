@@ -98,7 +98,7 @@ class PaymentController extends Controller
                     'payment_amount'=> $payment->payment_amount,
                     'payment_type' => $payment->payment_type,
                     'check_number' => $payment->check_number,
-                    // 'remaining_balance' => $payment->remaining_balance,
+                    'remaining_balance' => $remaining_balance,
                     'is_fully_paid' => $conpany_job_summaries->is_fully_paid,
                     'full_payment_date' => $conpany_job_summaries->full_payment_date,
                 ];
