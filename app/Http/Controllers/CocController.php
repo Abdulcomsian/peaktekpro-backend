@@ -216,7 +216,7 @@ class CocController extends Controller
             $get_coc->zip_code = $coc->zip_code;
 
             // Save the updated COC
-            $get_coc->save();
+            // $get_coc->save();
 
             // return response()->json([
             //     'status' => 200,
