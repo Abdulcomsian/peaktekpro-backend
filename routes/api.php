@@ -80,7 +80,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('updateProfile/{id}', [ProfileController::class, 'updateProfile']);
     Route::post('changePassword', [ProfileController::class, 'changePassword']);
     Route::post('add-overhead/percentage', [ProfileController::class, 'addOverheadPercentage']);
-    Route::post('add-overhead/percentage', [ProfileController::class, 'addOverheadPercentage']);
+    Route::get('get-overhead/percentage', [ProfileController::class, 'getOverheadPercentage']);
 
     //Company Api's
     Route::post('create/company', [CompanyController::class, 'createCompany']);
