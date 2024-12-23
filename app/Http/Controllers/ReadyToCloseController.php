@@ -86,7 +86,7 @@ class ReadyToCloseController extends Controller
             $value_overhead_deduction = ($job_total * $overhead_percentage) / 100;
             $net_revenue = $job_total - $value_overhead_deduction;
 
-            $ready_to_close->net_revenue = $net_revenue;
+            $ready_to_close->net_revenue = $net_revenue ?? null;
             $ready_to_close->save();
 
             //profit calculation
