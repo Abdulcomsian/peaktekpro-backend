@@ -146,6 +146,7 @@ class MeetingController extends Controller
 
     public function AddExteriorPhotoSection(Request $request, $Id)
     {
+        // dd($request->all());
         // Validate request
         $request->validate([
             // 'front' => 'nullable|string',
@@ -176,6 +177,17 @@ class MeetingController extends Controller
             ]);
         }
         // Handle file uploads (if needed) and store file paths
+        // $data = [
+        //     'adjustor_meeting_id' => $Id,
+        //     'front' => "front",
+        //     'front_left' => "frontleft",
+        //     'left' => "left",
+        //     'back_left' => "backleft",
+        //     'back' => "back",
+        //     'back_right' => "backright",
+        //     'right' => "right",
+        //     'front_right' => "frontright",
+        // ];
         $data = [
             'adjustor_meeting_id' => $Id,
             'front' => "front",
@@ -186,23 +198,53 @@ class MeetingController extends Controller
             'back_right' => "backright",
             'right' => "right",
             'front_right' => "frontright",
+            'exteriorPhotos_front' => null,
+            'exteriorPhotos_front_left' => null,
+            'exteriorPhotos_left' => null,
+            'exteriorPhotos_back_left' => null,
+            'exteriorPhotos_back' => null,
+            'exteriorPhotos_back_right' => null,
+            'exteriorPhotos_right' => null,
+            'exteriorPhotos_front_right' => null,
         ];
+        
 
         // Process image files
-        foreach (['exterior_front', 'exterior_front_left', 'exterior_left', 'exterior_back_left', 'exterior_back', 'exterior_back_right', 'exterior_right', 'exterior_front_right'] as $imageField) {
-            if ($request->hasFile($imageField)) {
-                // $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
-                  // Generate a unique file name
-                $image_fileName = time() . '_' . $request->file($imageField)->getClientOriginalName();
+        // foreach (['exterior_front', 'exterior_front_left', 'exterior_left', 'exterior_back_left', 'exterior_back', 'exterior_back_right', 'exterior_right', 'exterior_front_right'] as $imageField) {
+        //     if ($request->hasFile($imageField)) {
+        //         // $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
+        //           // Generate a unique file name
+        //         $image_fileName = time() . '_' . $request->file($imageField)->getClientOriginalName();
                 
-                // Store the file in the desired directory
-                $image_filePath = $request->file($imageField)->storeAs('AdjustorMeetinPhotosSections', $image_fileName, 'public');
+        //         // Store the file in the desired directory
+        //         $image_filePath = $request->file($imageField)->storeAs('AdjustorMeetinPhotosSections', $image_fileName, 'public');
                 
-                // Store the public URL of the file in the $data array
-                $data[$imageField] = Storage::url($image_filePath); 
+        //         // Store the public URL of the file in the $data array
+        //         $data[$imageField] = Storage::url($image_filePath); 
 
+        //            // Save image details in the database
+    
+
+        //     }
+        // }
+
+        foreach ([
+            'exterior_front' => 'exteriorPhotos_front',
+            'exterior_front_left' => 'exteriorPhotos_front_left',
+            'exterior_left' => 'exteriorPhotos_left',
+            'exterior_back_left' => 'exteriorPhotos_back_left',
+            'exterior_back' => 'exteriorPhotos_back',
+            'exterior_back_right' => 'exteriorPhotos_back_right',
+            'exterior_right' => 'exteriorPhotos_right',
+            'exterior_front_right' => 'exteriorPhotos_front_right',
+        ] as $requestField => $dbField) {
+            if ($request->hasFile($requestField)) {
+                $image_fileName = time() . '_' . $request->file($requestField)->getClientOriginalName();
+                $image_filePath = $request->file($requestField)->storeAs('AdjustorMeetinPhotosSections', $image_fileName, 'public');
+                $data[$dbField] = Storage::url($image_filePath);
             }
         }
+        
 
         // Update or create the record
         $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate(
@@ -211,24 +253,43 @@ class MeetingController extends Controller
         );
 
         // Return response
+        // return response()->json([
+        //     'message' => 'Added successfully',
+        //     'status' => 200,
+        //     'data' => [
+        //         'id'=> $adjustor_meeting_photos->id,
+        //             'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+        //             'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+        //             'exterior_front_left' =>$adjustor_meeting_photos->exteriorPhotos_front_left,
+        //             'exterior_left'=>$adjustor_meeting_photos->exteriorPhotos_left,
+        //             'exterior_back_left'=>$adjustor_meeting_photos->exteriorPhotos_back_left,
+        //             'exterior_back'=>$adjustor_meeting_photos->exteriorPhotos_back,
+        //             'exterior_back_right'=>$adjustor_meeting_photos->exteriorPhotos_back_right,
+        //             'exterior_right'=>$adjustor_meeting_photos->exteriorPhotos_right,
+        //             'exterior_front_right' =>$adjustor_meeting_photos->exteriorPhotos_front_right,
+        //             'created_at'=> $adjustor_meeting_photos->created_at,
+        //             'updated_at' => $adjustor_meeting_photos->updated_at,
+        //     ]
+        // ]);
         return response()->json([
             'message' => 'Added successfully',
             'status' => 200,
             'data' => [
-                'id'=> $adjustor_meeting_photos->id,
-                    'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
-                    'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
-                    'exterior_front_left' =>$adjustor_meeting_photos->exteriorPhotos_front_left,
-                    'exterior_left'=>$adjustor_meeting_photos->exteriorPhotos_left,
-                    'exterior_back_left'=>$adjustor_meeting_photos->exteriorPhotos_back_left,
-                    'exterior_back'=>$adjustor_meeting_photos->exteriorPhotos_back,
-                    'exterior_back_right'=>$adjustor_meeting_photos->exteriorPhotos_back_right,
-                    'exterior_right'=>$adjustor_meeting_photos->exteriorPhotos_right,
-                    'exterior_front_right' =>$adjustor_meeting_photos->exteriorPhotos_front_right,
-                    'created_at'=> $adjustor_meeting_photos->created_at,
-                    'updated_at' => $adjustor_meeting_photos->updated_at,
+                'id' => $adjustor_meeting_photos->id,
+                'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+                'exterior_front_left' => $adjustor_meeting_photos->exteriorPhotos_front_left,
+                'exterior_left' => $adjustor_meeting_photos->exteriorPhotos_left,
+                'exterior_back_left' => $adjustor_meeting_photos->exteriorPhotos_back_left,
+                'exterior_back' => $adjustor_meeting_photos->exteriorPhotos_back,
+                'exterior_back_right' => $adjustor_meeting_photos->exteriorPhotos_back_right,
+                'exterior_right' => $adjustor_meeting_photos->exteriorPhotos_right,
+                'exterior_front_right' => $adjustor_meeting_photos->exteriorPhotos_front_right,
+                'created_at' => $adjustor_meeting_photos->created_at,
+                'updated_at' => $adjustor_meeting_photos->updated_at,
             ]
         ]);
+        
     }
 
 
