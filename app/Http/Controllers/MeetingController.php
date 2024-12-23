@@ -191,7 +191,16 @@ class MeetingController extends Controller
         // Process image files
         foreach (['exteriorPhotos_front', 'exteriorPhotos_front_left', 'exteriorPhotos_left', 'exteriorPhotos_back_left', 'exteriorPhotos_back', 'exteriorPhotos_back_right', 'exteriorPhotos_right', 'exteriorPhotos_front_right'] as $imageField) {
             if ($request->hasFile($imageField)) {
-                $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
+                // $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
+                  // Generate a unique file name
+                $image_fileName = time() . '_' . $request->file($imageField)->getClientOriginalName();
+                
+                // Store the file in the desired directory
+                $image_filePath = $request->file($imageField)->storeAs('AdjustorMeetinPhotosSections', $image_fileName, 'public');
+                
+                // Store the public URL of the file in the $data array
+                $data[$imageField] = Storage::url($image_filePath); 
+
             }
         }
 
