@@ -51,9 +51,7 @@ class PaymentController extends Controller
                         'status_code' =>401,
                         'message' => 'Job total value Not Found',
                     ]);  
-                }
-                // dd($job_total);
-              
+                }              
                 $remaining_balance = $job_total-$paid_amount;
                 $payment->remaining_balance = $remaining_balance;
                 $payment->save();
