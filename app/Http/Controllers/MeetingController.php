@@ -149,21 +149,21 @@ class MeetingController extends Controller
         // Validate request
         $request->validate([
             // 'front' => 'nullable|string',
-            'exteriorPhotos_front' => 'nullable|image',
+            'exterior_front' => 'nullable|image',
             // 'front_left' => 'nullable|string',
-            'exteriorPhotos_front_left' => 'nullable|image',
+            'exterior_front_left' => 'nullable|image',
             // 'left' => 'nullable|string',
-            'exteriorPhotos_left' => 'nullable|image',
+            'exterior_left' => 'nullable|image',
             // 'back_left' => 'nullable|string',
-            'exteriorPhotos_back_left' => 'nullable|image',
+            'exterior_back_left' => 'nullable|image',
             // 'back' => 'nullable|string',
-            'exteriorPhotos_back' => 'nullable|image',
+            'exterior_back' => 'nullable|image',
             // 'back_right' => 'nullable|string',
-            'exteriorPhotos_back_right' => 'nullable|image',
+            'exterior_back_right' => 'nullable|image',
             // 'right' => 'nullable|string',
-            'exteriorPhotos_right' => 'nullable|image',
+            'exterior_right' => 'nullable|image',
             // 'front_right' => 'nullable|string',
-            'exteriorPhotos_front_right' => 'nullable|image',
+            'exterior_front_right' => 'nullable|image',
         ]);
 
         $adjustor_meeting = AdjustorMeeting::where('id', $Id)->first();
@@ -219,7 +219,21 @@ class MeetingController extends Controller
             return response()->json([
                 'message' => 'Fetched successfully',
                 'status' => 200,
-                'data' => $adjustor_meeting_photos,
+                'data' =>[
+                    'id'=> $adjustor_meeting_photos->id,
+                    'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                    'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+                    'exterior_front_left' =>$adjustor_meeting_photos->exteriorPhotos_front_left,
+                    'exterior_left'=>$adjustor_meeting_photos->exteriorPhotos_left,
+                    'exterior_back_left'=>$adjustor_meeting_photos->exteriorPhotos_back_left,
+                    'exterior_back'=>$adjustor_meeting_photos->exteriorPhotos_back,
+                    'exterior_back_right'=>$adjustor_meeting_photos->exteriorPhotos_back_right,
+                    'exterior_right'=>$adjustor_meeting_photos->exteriorPhotos_right,
+                    'exterior_front_right' =>$adjustor_meeting_photos->exteriorPhotos_front_right,
+                    'created_at'=> $adjustor_meeting_photos->created_at,
+                    'updated_at' => $adjustor_meeting_photos->updated_at,
+
+                ],
             ]);
         }
         return response()->json([
@@ -231,7 +245,6 @@ class MeetingController extends Controller
     
     public function AdjustorMeetingStatus(Request $request, $jobId)
     {
-        //Validate Rules
         $rules = [
             'sent' => 'nullable',
         ];
@@ -335,7 +348,6 @@ class MeetingController extends Controller
             'labels' => 'nullable|array',         
             'labels.*' => 'nullable|string',      
         ]);
-
         try {
             $savedPhotos = []; 
             $squarePhotos = $request->square_photos ?? [];
