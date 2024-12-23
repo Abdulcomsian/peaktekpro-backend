@@ -205,7 +205,20 @@ class MeetingController extends Controller
         return response()->json([
             'message' => 'Added successfully',
             'status' => 200,
-            'data' => $adjustor_meeting_photos,
+            'data' => [
+                'id'=> $adjustor_meeting_photos->id,
+                    'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                    'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+                    'exterior_front_left' =>$adjustor_meeting_photos->exteriorPhotos_front_left,
+                    'exterior_left'=>$adjustor_meeting_photos->exteriorPhotos_left,
+                    'exterior_back_left'=>$adjustor_meeting_photos->exteriorPhotos_back_left,
+                    'exterior_back'=>$adjustor_meeting_photos->exteriorPhotos_back,
+                    'exterior_back_right'=>$adjustor_meeting_photos->exteriorPhotos_back_right,
+                    'exterior_right'=>$adjustor_meeting_photos->exteriorPhotos_right,
+                    'exterior_front_right' =>$adjustor_meeting_photos->exteriorPhotos_front_right,
+                    'created_at'=> $adjustor_meeting_photos->created_at,
+                    'updated_at' => $adjustor_meeting_photos->updated_at,
+            ]
         ]);
     }
 

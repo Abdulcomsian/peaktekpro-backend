@@ -259,6 +259,8 @@ class CocController extends Controller
                     'created_at' =>$get_coc->created_at,
                     'updated_at' => $get_coc->updated_at,
                     'notes' => $get_coc->notes,
+                    'customer_signature' => $get_coc->customer_signature,
+                    'company_representative_signature'=> $get_coc->company_representative_signature
                 ]
             ], 200);
             
