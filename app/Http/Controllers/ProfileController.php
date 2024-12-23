@@ -104,7 +104,7 @@ class ProfileController extends Controller
 
     public function addOverheadPercentage(Request $request)
     {
-        $request->validate([
+        $request->validate([//
             'overhead_percentage'=> 'nullable'
         ]);
 
@@ -120,5 +120,26 @@ class ProfileController extends Controller
             'message' => $message,
             'data' => $updatedData
         ]);
+    }
+
+    public function getOverheadPercentage()
+    {   
+        $updatedData = OverheadPercentage::first();
+        if($updatedData)
+        {
+            $message = 'Data Fetched Successfully';
+            return response()->json([
+                'status'=> 200,
+                'message' => $message,
+                'data' => $updatedData
+            ]);
+        }
+        $message = 'Data Not Found ';
+        return response()->json([
+            'status'=> 200,
+            'message' => $message,
+            'data' => []
+        ]);
+       
     }
 }
