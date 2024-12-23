@@ -189,7 +189,7 @@ class MeetingController extends Controller
         ];
 
         // Process image files
-        foreach (['exteriorPhotos_front', 'exteriorPhotos_front_left', 'exteriorPhotos_left', 'exteriorPhotos_back_left', 'exteriorPhotos_back', 'exteriorPhotos_back_right', 'exteriorPhotos_right', 'exteriorPhotos_front_right'] as $imageField) {
+        foreach (['exterior_front', 'exterior_front_left', 'exterior_left', 'exterior_back_left', 'exterior_back', 'exterior_back_right', 'exterior_right', 'exterior_front_right'] as $imageField) {
             if ($request->hasFile($imageField)) {
                 // $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
                   // Generate a unique file name
