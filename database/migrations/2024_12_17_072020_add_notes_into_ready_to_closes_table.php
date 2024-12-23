@@ -29,9 +29,9 @@ return new class extends Migration
     public function down()
     {
         Schema::table('ready_to_closes', function (Blueprint $table) {
-            $table->dropColumn('notes');
             $table->dropColumn('net_revenue');
             $table->dropColumn('net_profit');
+            $table->dropColumn('notes');
 
         });
     }
