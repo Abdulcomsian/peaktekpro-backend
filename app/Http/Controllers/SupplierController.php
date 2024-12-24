@@ -223,4 +223,24 @@ class SupplierController extends Controller
         ], 200);
 
     }
+
+    public function deleteSupplier($id)
+    {
+        $user = User::where('id',$id)->first();
+        if(!$user)
+        {
+            return response()->json([
+                'status' => 200,
+                'message' => 'Supplier Not Found',
+                'user' => [],
+            ], 200);
+        }
+        $user->delete();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Supplier Deleted',
+            'user' => [],
+        ], 200);
+
+    }
 }
