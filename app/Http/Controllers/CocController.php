@@ -149,7 +149,7 @@ class CocController extends Controller
                     'status' => $coc->status,
                     'policy_number' => $coc->policy_number,
                     'company_repreesentative' => $coc->company_repreesentative,
-                    'company_representative_signature'=> $coc->company_representative_signature,
+                    'company_signature'=> $coc->company_representative_signature,
                     'compnay_printed_name' => $coc->compnay_printed_name,
                     'company_signed_date' => $coc->company_signed_date,
                     'job_total' => $coc->job_total,
