@@ -100,6 +100,7 @@ class CocController extends Controller
              // Handle Base64 Signatures
              if ($request->customer_signature) {
                 $coc->customer_signature = $this->saveBase64Image($request->customer_signature, 'coc_signature');
+
             }
             if ($request->company_representative_signature) {
                 $coc->company_representative_signature = $this->saveBase64Image($request->company_representative_signature, 'company_representative_signature');
@@ -133,7 +134,43 @@ class CocController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'COC Added Successfully',
-                'data' => $coc
+                'data' => [
+                    'id'=> $coc->id,
+                    'company_job_id' => $coc->company_job_id,
+                    'name' => $coc->name,
+                    'email' => $coc->email,
+                    'phone' => $coc->phone,
+                    'street' => $coc->street,
+                    'city' => $coc->city,
+                    'state' => $coc->state,
+                    'zip_code' => $coc->zip_code,
+                    'insurance' => $coc->insurance,
+                    'claim_number' => $coc->claim_number,
+                    'status' => $coc->status,
+                    'policy_number' => $coc->policy_number,
+                    'company_repreesentative' => $coc->company_repreesentative,
+                    'company_representative_signature'=> $coc->company_representative_signature,
+                    'compnay_printed_name' => $coc->compnay_printed_name,
+                    'company_signed_date' => $coc->company_signed_date,
+                    'job_total' => $coc->job_total,
+                    'customer_paid_upgrades' => $coc->customer_paid_upgrades,
+                    'deductible' => $coc->deductible,
+                    'acv_check' => $coc->acv_check,
+                    'rcv_check' => $coc->rcv_check,
+                    'supplemental_items' => $coc->supplemental_items,
+                    "awarded_to" =>$coc->awarded_to,
+                    "released_to" => $coc->released_to,
+                    "conclusion" => $coc->conclusion,
+                    "sincerely" => $coc->sincerely,
+                    "pdf_url" => $coc->pdf_url,
+                    "notes" => $coc->notes,
+                    "customer_signature" => $coc->customer_signature,
+                    "coc_insurance_email_sent" => $coc->coc_insurance_email_sent,
+                    "created_at" =>$coc->created_at,
+                    "updated_at" =>  $coc->updated_at,
+                    "current_stage" => $coc->current_stage,
+
+                ]
             ], 200);
 
         } catch (\Exception $e) {
@@ -260,7 +297,7 @@ class CocController extends Controller
                     'updated_at' => $get_coc->updated_at,
                     'notes' => $get_coc->notes,
                     'customer_signature' => $get_coc->customer_signature,
-                    'company_representative_signature'=> $get_coc->company_representative_signature
+                    'company_signature'=> $get_coc->company_representative_signature
                 ]
             ], 200);
             

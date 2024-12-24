@@ -157,4 +157,51 @@ class SupplierController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function updateSupplier(Request $request, $id)
+    {
+         //Validate Request
+         $this->validate($request, [
+            'name' => 'nullable|string',
+            'email' => 'nullable|email|unique:users,email',
+            'password' => 'nullable|string|min:8',
+            'location'=> 'nullable|string'
+        ]);
+
+        try {   
+
+            $user = Auth::user();
+            $created_by = $user->company_id; //here we save the company id
+            $name = explode(' ', $request->name, 2);
+            $firstName = $name[0];
+            $lastName = isset($name[1]) ? $name[1] : '';
+            // Create a new user
+            $user = User::where('id',$id)->first();
+            $user->role_id = 4;
+            $user->first_name = $firstName ?? $user->first_name;
+            $user->last_name = $lastName ?? $user->last_name;
+            $user->email = $request->email ?? $user->email;
+            $user->password = $request->password ?? $user->password;
+            $user->company_id = $user->company_id;
+            $user->created_by = $created_by;
+            $user->location = $request->location ?? $user->location;
+            $user->status = $request->status ?? $user->status;
+            $user->save();
+
+            //Assign Role
+            $user_role = new UserRole;
+            $user_role->user_id = $user->id;
+            $user_role->company_id = $user->company_id;
+            $user_role->save();
+
+            return response()->json([
+                'status' => 201,
+                'message' => 'Supplier Updated Successfully',
+                'user' => $user,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
 }
