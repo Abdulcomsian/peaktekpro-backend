@@ -418,7 +418,6 @@ class CustomerAgreementController extends Controller
             }
             // Save the new PDF
             Storage::put('public/' . $pdf_filePath, $pdf->output());
-
             //Save PDF Path
             $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
             $agreement->save();
