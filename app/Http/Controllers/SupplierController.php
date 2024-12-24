@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\UserRole;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -163,7 +164,12 @@ class SupplierController extends Controller
          //Validate Request
          $this->validate($request, [
             'name' => 'nullable|string',
-            'email' => 'nullable|email|unique:users,email',
+            // 'email' => 'nullable|email|unique:users,email',
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('users', 'email')->ignore($id),
+            ],
             'password' => 'nullable|string|min:8',
             'location'=> 'nullable|string'
         ]);
