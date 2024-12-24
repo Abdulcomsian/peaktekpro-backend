@@ -211,15 +211,20 @@ class CocController extends Controller
             $coc = new \stdClass();
             $coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
             $coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
-            $coc->homeowner_address = $job->address;
-            $coc->insurance = !is_null($job->aggrement) ? $job->aggrement->insurance : '';
+            // $coc->homeowner_address = $job->address;
+            $homeownerAddress = json_encode($job->address, true); // Decode the JSON string to an array
+            // $homeownerAddress = is_string($job->address) ? json_decode($job->address, true) : [];
+
+            $coc->homeowner_address = json_decode($job->address, true)['formatedAddress'] ?? null;
+            // $coc->homeowner_address = json_encode($job->address);
+            $coc->insurance = !is_null($job->summary) ? $job->summary->insurance : '';
             $coc->insurance_email = !is_null($job->summary) ? $job->summary->email : '';
-            $coc->policy_number = !is_null($job->aggrement) ? $job->aggrement->policy_number : '';
-            $coc->claim_number = !is_null($job->aggrement) ? $job->aggrement->claim_number : '';
+            $coc->policy_number = !is_null($job->summary) ? $job->summary->policy_number : '';
+            $coc->claim_number = !is_null($job->summary) ? $job->summary->claim_number : '';
 
             // Check if aggrement is not null before accessing its properties
             if (!is_null($job->aggrement)) {
-                $coc->street = !is_null($job->aggrement->street) ? $job->aggrement->street : '';
+                $coc->street = $homeownerAddress['street'] ? $homeownerAddress['street'] : '';
                 $coc->city = !is_null($job->aggrement->city) ? $job->aggrement->city : '';
                 $coc->state = !is_null($job->aggrement->state) ? $job->aggrement->state : '';
                 $coc->zip_code = !is_null($job->aggrement->zip_code) ? $job->aggrement->zip_code : '';
