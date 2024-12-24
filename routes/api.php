@@ -320,6 +320,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('send/email/supplier/{jobId}', [ReadyToBuildController::class, 'EmailToSupplier']); //send mail to supplier
 
     //Supplier Api's
+    Route::get('get/suppliers-list', [SupplierController::class, 'getAllSuppliers']);
     Route::get('get/suppliers/{Id}', [SupplierController::class, 'getSuppliers']);
     Route::post('store/supplier', [SupplierController::class, 'storeSupplier']);
     Route::post('update/supplier/{id}', [SupplierController::class, 'updateSupplier']);
