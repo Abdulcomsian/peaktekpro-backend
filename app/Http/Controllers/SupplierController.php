@@ -204,4 +204,23 @@ class SupplierController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    public function getAllSuppliers()
+    {
+        $users = User::where('role_id',4)->get();
+        if($users)
+        {
+            return response()->json([
+                'status' => 200,
+                'message' => 'Supplier Updated Successfully',
+                'user' => $users,
+            ], 200);
+        }
+        return response()->json([
+            'status' => 200,
+            'message' => 'Supplier Not Found',
+            'user' => $users,
+        ], 200);
+
+    }
 }
