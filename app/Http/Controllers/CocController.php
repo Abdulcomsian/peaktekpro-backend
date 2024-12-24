@@ -211,9 +211,9 @@ class CocController extends Controller
             $coc = new \stdClass();
             $coc->homeowner_name = !is_null($job->readyBuild) ? $job->readyBuild->home_owner : '';
             $coc->homeowner_email = !is_null($job->readyBuild) ? $job->readyBuild->home_owner_email : '';
-            // $coc->homeowner_address = $job->address;
-            $homeownerAddress = json_encode($job->address, true); // Decode the JSON string to an array
-            // $homeownerAddress = is_string($job->address) ? json_decode($job->address, true) : [];
+            $coc->homeowner_address = $job->address;
+            // $homeownerAddress = json_encode($job->address, true); // Decode the JSON string to an array
+            $homeownerAddress = is_string($job->address) ? json_decode($job->address, true) : [];
 
             $coc->homeowner_address = json_decode($job->address, true)['formatedAddress'] ?? null;
             // $coc->homeowner_address = json_encode($job->address);
