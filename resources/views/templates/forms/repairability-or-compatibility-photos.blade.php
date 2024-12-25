@@ -21,41 +21,41 @@
                         </div>
                     </div>
 
-<!-- Compatibility Items Container -->
-<div class="compatibility-items-container flex flex-wrap items-center gap-1">
-    @if (is_array($section['items']) && count($section['items']) > 0)
-        @foreach ($section['items'] as $item)
-            <div class="item flex flex-row gap-2" data-id="{{ $item['id'] }}">
-                <!-- Drag Handle -->
-                <div class="mb-2">
-                    <span class="item-drag-handle cursor-pointer">⇄</span>
+                <!-- Compatibility Items Container -->
+                <div class="compatibility-items-container flex flex-wrap items-center gap-1">
+                    @if (is_array($section['items']) && count($section['items']) > 0)
+                        @foreach ($section['items'] as $item)
+                            <div class="item flex flex-row gap-2" data-id="{{ $item['id'] }}">
+                                <!-- Drag Handle -->
+                                <div class="mb-2">
+                                    <span class="item-drag-handle cursor-pointer">⇄</span>
+                                </div>
+                                <div class="flex flex-col flex-wrap">
+                                    <!-- Image Upload -->
+                                    <div class="mb-2">
+                                        <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
+                                            id="compatibility-dropzone-{{ $item['id'] }}">
+                                            <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
+                                        </div>
+                                    </div>
+                                    <!-- Image Preview -->
+                                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4"></div>
+                                    <!-- Quill Editor -->
+                                    <div class="mb-14">
+                                        <div id="repairability-or-compatibility-text-quill-{{ $item['id'] }}" class="item-editor bg-white"></div>
+                                        <textarea class="hidden" id="repairability-or-compatibility-text-{{ $item['id'] }}" name="repairability_or_compatibility_text[]"
+                                            required>{{ $item['content'] }}</textarea>
+                                    </div>
+                                </div>
+                                <!-- Remove Button -->
+                                <div class="mb-2">
+                                    <button
+                                        class="remove-compatibility-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
-                <div class="flex flex-col flex-wrap">
-                    <!-- Image Upload -->
-                    <div class="mb-2">
-                        <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
-                            id="compatibility-dropzone-{{ $item['id'] }}">
-                            <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
-                        </div>
-                    </div>
-                    <!-- Image Preview -->
-                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4"></div>
-                    <!-- Quill Editor -->
-                    <div class="mb-14">
-                        <div id="repairability-or-compatibility-text-quill-{{ $item['id'] }}" class="item-editor bg-white"></div>
-                        <textarea class="hidden" id="repairability-or-compatibility-text-{{ $item['id'] }}" name="repairability_or_compatibility_text[]"
-                            required>{{ $item['content'] }}</textarea>
-                    </div>
-                </div>
-                <!-- Remove Button -->
-                <div class="mb-2">
-                    <button
-                        class="remove-compatibility-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
-                </div>
-            </div>
-        @endforeach
-    @endif
-</div>
 
 
             <!-- Add Item Button -->
@@ -169,27 +169,28 @@
 
     // Initialize all Quill editors after page load
     document.addEventListener("DOMContentLoaded", function() {
-        @if (isset($section['items']) && count($section['items']) > 0)
-            @foreach($section['items'] as $item)
-                initializeRepariabilityOrCompatibilityPhotosQuill(
-                    '#repairability-or-compatibility-text-quill-{{ $item['id'] }}',
-                    '#repairability-or-compatibility-text-{{ $item['id'] }}'
-                );
-                initializeCompatibilityDropzone('{{ $item['id'] }}');
-            @endforeach
-        @endif
-    });
+            let comparisionSectionsData = @json($pageData->json_data['comparision_sections'] ?? []);
+            if (comparisionSectionsData.length > 0) {
+                comparisionSectionsData.forEach(function(section) {
+                    if (section.items?.length > 0) {
+                        section.items.forEach(function(item) {
+                            initializeRepariabilityOrCompatibilityPhotosQuill(
+                                '#repairability-or-compatibility-text-quill-' + item.id,
+                                '#repairability-or-compatibility-text-' + item.id
+                            );
+                            initializeCompatibilityDropzone(item.id);
+                        })
+                    }
+                })
+            }
+        });
 
     // Function to initialize Dropzone for each new item
     function initializeCompatibilityDropzone(itemId) {
     const dropzoneElement = $(`#compatibility-dropzone-${itemId}`);
-    // if (dropzoneElement.length === 0) {
-    //     console.error('Dropzone element not found for itemId:', itemId);
-    //     return;
-    // }
 
     const dropzone = new Dropzone(`#compatibility-dropzone-${itemId}`, {
-    url: "/templates/repairibility-assessment", // Make sure this matches the route
+    url: "{{ route('templates-repairibility-image') }}",
     paramName: 'image', // Ensure this matches the backend input name
     maxFiles: 1,
     acceptedFiles: ".jpeg,.jpg,.png",
@@ -228,6 +229,10 @@
 
         // Add event listener for the remove button
         dropzoneContainer.on("click", ".remove-image-btn", function () {
+            deleteFileFromRepairablityDropzone(deleteFileFromRepairablityDropZoneRoute, {
+                page_id: pageId,
+                'item_id': itemId
+            });
             dropzoneContainer.html('<div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>'); // Restore the default message
         });
     }
@@ -266,15 +271,7 @@ this.on("addedfile", function(file) {
     return dropzone;
 }
 
-// Debounce function for sending data to the server
-function debounce(func, delay) {
-    let timer;
-    return function(...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(this, args), delay);
-    };
-}
-
+// Save form data
 function sendDataToAjax(element) {
     const sectionContainer = $(element).closest('.compatibility-section');
     const sectionId = sectionContainer.data('id');
@@ -306,7 +303,7 @@ function sendDataToAjax(element) {
         repairabilityCompatibilitySection: repairabilityCompatibilitySection,
         items: itemData
     };
-console.log(requestData)
+
     $.ajax({
         url: "{{ route('templates.repariablity-combatibility.update') }}",
         method: "POST",
@@ -320,10 +317,10 @@ console.log(requestData)
     });
 }
 
-// Attach the event listener with debounce
-$(document).on('input', '.section-title, .item-editor', debounce(function() {
-    sendDataToAjax(this);
-}, 500));
+    // Attach the event listener with debounce
+    $(document).on('input', '.section-title, .item-editor', debounce(function() {
+        sendDataToAjax(this);
+    }, 500));
 
 
     // Add new section
