@@ -792,10 +792,9 @@ class MaterialOrderController extends Controller
             ],[
                 'confirmed' => $request->confirmed,
             ]);
-
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
-                $job->status_id = 11;
+                $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
