@@ -559,38 +559,34 @@
         </td>
       </tr>
     </table>
-    <table style="width: 1200px; margin: auto">
-      <tr>
-      <td>
-  <span
-    style="
-      text-decoration: underline;
-      margin-top: 50px;
-    "
-  >{{ $data->customer_name }}</span>
-  <span> the undersigned, hereby cancel this transaction as of </span>
-  <span
-    style="
-      text-decoration: underline;
-    "
-  >{{ $data->agreement_date }}</span>
-</td>
+    <table style="width: 1200px; margin: auto; border-collapse: collapse;">
+  <tr>
+    <td style="text-align: center; padding: 20px;">
+      <span style="text-decoration: underline; display: inline-block; margin-top: 50px;">
+        {{ $data->customer_name }}
+      </span>
+      <span>
+        the undersigned, hereby cancel this transaction as of
+      </span>
+      <span style="text-decoration: underline;">
+        {{ $data->agreement_date }}
+      </span>
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align: center; padding: 20px;">
+      <span style="margin-top: 20px; display: inline-block;">
+        Customer Signature:
+      </span>
+      <span style="width: 250px; display: inline-block; vertical-align: middle;">
+        <img 
+          src="{{ public_path($data->sign_image_url) }}" 
+          style="max-width: 100%; max-height: 100px; display: block; margin: auto;" 
+        />
+      </span>
+    </td>
+  </tr>
+</table>
 
-      </tr>
-      <tr>
-        <td>
-          <span style="margin-top: 20px; display: inline-block"
-            >Customer Signature:</span
-          >
-          <span
-            style="
-              width: 250px;
-              display: inline-block;
-            "
-            ><img src="{{ public_path($data->sign_image_url) }}"
-          /></span>
-        </td>
-      </tr>
-    </table>
   </body>
 </html>
