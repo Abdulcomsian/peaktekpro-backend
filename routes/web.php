@@ -40,6 +40,7 @@ Route::put('/templates/page-title/{id}', [TemplateController::class, 'updatePage
 Route::post('/templates/page/save-data', [TemplateController::class, 'savePageData'])->name('templates.page.save-data');
 Route::post('/templates/page/save-file', [TemplateController::class, 'savePageFile'])->name('templates.page.save-file');
 Route::delete('/templates/page/delete-file', [TemplateController::class, 'deletePageFile'])->name('templates.page.delete-file');
+Route::delete('/templates/page/repairability/delete-file', [TemplateController::class, 'deleteRepairabilityPageFile'])->name('templates.page.repairability.delete-file');
 Route::post('/templates/page/save-files', [TemplateController::class, 'savePageMultipleFiles'])->name('templates.page.save-multiple-files');
 
 // repariablity-combatibility
@@ -63,10 +64,7 @@ Route::post('/templates/page/authorization-section/ordering', [TemplateControlle
 // repairibility assessment
 Route::post('/templates/repairibility-assessment', function () {
     return response()->json(['url' => asset('assets/pdf_header.png')], 200);
-    // return true;
-})->name('templates/repairibility-assessment');
-
-// Route::post('/templates/repairibility-assessment/{item_id}/{page_id}', [TemplateController::class, 'saveImageRepairibility'])->name('templates/repairibility-assessment');
+})->name('templates-repairibility-image');
 
 // reports
 Route::get('/reports', [ReportLayoutController::class, 'index'])->name('reports.index');
