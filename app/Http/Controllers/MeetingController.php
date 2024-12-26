@@ -139,14 +139,14 @@ class MeetingController extends Controller
     {
         // Validate request (fields can be optional and null, or must be valid images if provided)
         $request->validate([
-            'exterior_front' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'exterior_front_left' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'exterior_left' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'exterior_back_left' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'exterior_back' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'exterior_back_right' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'exterior_right' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'exterior_front_right' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_front' => 'nullable',
+            'exterior_front_left' => 'nullable',
+            'exterior_left' => 'nullable',
+            'exterior_back_left' => 'nullable',
+            'exterior_back' => 'nullable',
+            'exterior_back_right' => 'nullable',
+            'exterior_right' => 'nullable',
+            'exterior_front_right' => 'nullable',
         ]);
 
         // Check if Adjustor Meeting exists
