@@ -782,8 +782,7 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
-
+            
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
                 'company_job_id' => $jobId
@@ -792,7 +791,7 @@ class MaterialOrderController extends Controller
             ]);
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
-                $job->status_id = 2;
+                $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
