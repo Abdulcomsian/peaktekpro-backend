@@ -355,7 +355,8 @@ class MeetingController extends Controller
     }
 
 
-    public function AdjustorMeetingSquarePhotos($id, Request $request)
+
+    public function AdjustorMeetingSquarePhotos1($id, Request $request)//not used old
     {
         $request->validate([
             'square_photos' => 'nullable|array', 
@@ -409,19 +410,85 @@ class MeetingController extends Controller
         }
     }
 
+    public function AdjustorMeetingSquarePhotos($id, Request $request)
+    {
+        $request->validate([
+            'square_photos' => 'nullable|array', 
+            'square_photos.*' => 'nullable|image', 
+            'labels' => 'nullable|array',         
+            'labels.*' => 'nullable|string',      
+        ]);
 
-    public function getAdjustorMeetingSquarePhotos($Id,Request $request)
-    { 
-        $adjustor = AdjustorMeeting::find($Id);
-            if(!$adjustor)
-            {
+        try {
+            $adjustor = AdjustorMeeting::find($id);
+            if (!$adjustor) {
                 return response()->json([
                     'status' => 404,
                     'message' => 'Adjustor Meeting Not Found',
                 ]);
             }
-        $photos = AdjustorSquarePhotos::where('adjustor_meeting_id',$Id)->get();
 
+            // Step 1: Delete existing images
+            $existingPhotos = AdjustorSquarePhotos::where('adjustor_meeting_id', $id)->get();
+            foreach ($existingPhotos as $photo) {
+                // Delete file from storage
+                $filePath = str_replace('/storage/', 'public/', $photo->square_photos); // Convert storage path to public disk path
+                Storage::delete($filePath);
+                $photo->delete(); // Delete the record from the database
+            }
+
+            // Step 2: Upload new images
+            $savedPhotos = []; // To store successfully saved photos
+            $squarePhotos = $request->square_photos ?? [];
+            foreach ($squarePhotos as $index => $image) {
+                $image_fileName = time() . '_' . $image->getClientOriginalName();
+                $image_filePath = $image->storeAs('AdjustorSquarePhotos', $image_fileName, 'public');
+
+                // Save new photo in database
+                $media = new AdjustorSquarePhotos();
+                $media->adjustor_meeting_id = $id;
+                $media->label = $request->labels[$index] ?? null;
+                $media->square_photos = Storage::url($image_filePath);
+                $media->save();
+
+                // Collect saved photo details
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'adjustor_meeting_id' => $media->adjustor_meeting_id,
+                    'label' => $media->label,
+                    'square_photos' => $media->square_photos,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Square Photos Updated Successfully',
+                'data' => $savedPhotos,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+        }
+    }
+
+
+    public function getAdjustorMeetingSquarePhotos($Id,Request $request)
+    { 
+        $adjustor = AdjustorMeeting::find($Id);
+        if(!$adjustor)
+        {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Adjustor Meeting Not Found',
+            ]);
+        }
+
+        $photos = AdjustorSquarePhotos::where('adjustor_meeting_id',$Id)->get();
         if($photos){
             return response()->json([
                 'status' => 200,
@@ -429,7 +496,6 @@ class MeetingController extends Controller
                 'date' => $photos
             ]);
         }
-
         return response()->json([
             'status' => 500,
             'message' => 'Not Found',

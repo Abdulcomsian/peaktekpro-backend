@@ -71,22 +71,44 @@ class ReadyToBuildController extends Controller
                 'supplier_email' => $request->supplier_email
             ]);
 
+              // Step 1: Delete old attachments
+            $existingAttachments = ReadyToBuildMedia::where('ready_build_id', $ready_to_build->id)->get();
+            foreach ($existingAttachments as $attachment) {
+                // Delete file from storage
+                $filePath = str_replace('/storage/', 'public/', $attachment->image_url);
+                Storage::delete($filePath);
+                $attachment->delete(); // Delete the record from the database
+            }
 
             //store attachements here
-            if(isset($request->attachements) && count($request->attachements) > 0) {
-                foreach($request->attachements as $documents)
-                {
+            // if(isset($request->attachements) && count($request->attachements) > 0) {
+            //     foreach($request->attachements as $documents)
+            //     {
+            //         $fileName = time() . '_' . $documents->getClientOriginalName();
+            //         $filePath = $documents->storeAs('public/ready_to_build', $fileName);
+            //         // Store Path
+            //         $media = new ReadyToBuildMedia();
+            //         $media->ready_build_id = $ready_to_build->id;
+            //         $media->image_url = Storage::url($filePath);
+            //         $media->file_name = $request->filename;
+            //         $media->save();
+            //     }
+            // }
+
+              // Step 2: Store new attachments
+            if (isset($request->attachements) && count($request->attachements) > 0) {
+                foreach ($request->attachements as $documents) {
                     $fileName = time() . '_' . $documents->getClientOriginalName();
                     $filePath = $documents->storeAs('public/ready_to_build', $fileName);
+
                     // Store Path
                     $media = new ReadyToBuildMedia();
                     $media->ready_build_id = $ready_to_build->id;
                     $media->image_url = Storage::url($filePath);
-                    $media->file_name = $request->filename;
+                    $media->file_name = $documents->getClientOriginalName();
                     $media->save();
                 }
             }
-
             //Generate PO number
             $poNumber = $this->generatePONumber();
             

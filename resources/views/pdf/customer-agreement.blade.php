@@ -492,7 +492,6 @@
     </table>
   
     <!-- signature part -->
-
 <table style="width: 100%; max-width: 1200px; margin: auto; border-collapse: collapse;">
   <thead>
     <tr>
