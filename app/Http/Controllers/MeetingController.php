@@ -135,8 +135,90 @@ class MeetingController extends Controller
         }
     }
 
-
     public function AddExteriorPhotoSection(Request $request, $Id)
+    {
+        // Validate request (fields can be optional and null, or must be valid images if provided)
+        $request->validate([
+            'exterior_front' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_front_left' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_left' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_back_left' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_back' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_back_right' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_right' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'exterior_front_right' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // Check if Adjustor Meeting exists
+        $adjustor_meeting = AdjustorMeeting::find($Id);
+        if (!$adjustor_meeting) {
+            return response()->json([
+                'message' => 'Adjustor Meeting Does not Exist',
+                'status' => 404,
+                'data' => [],
+            ]);
+        }
+
+        // Prepare data array with default null values
+        $data = [
+            'adjustor_meeting_id' => $Id,
+            'exteriorPhotos_front' => null,
+            'exteriorPhotos_front_left' => null,
+            'exteriorPhotos_left' => null,
+            'exteriorPhotos_back_left' => null,
+            'exteriorPhotos_back' => null,
+            'exteriorPhotos_back_right' => null,
+            'exteriorPhotos_right' => null,
+            'exteriorPhotos_front_right' => null,
+        ];
+
+        // Handle file uploads for each field if present
+        foreach ([
+            'exterior_front' => 'exteriorPhotos_front',
+            'exterior_front_left' => 'exteriorPhotos_front_left',
+            'exterior_left' => 'exteriorPhotos_left',
+            'exterior_back_left' => 'exteriorPhotos_back_left',
+            'exterior_back' => 'exteriorPhotos_back',
+            'exterior_back_right' => 'exteriorPhotos_back_right',
+            'exterior_right' => 'exteriorPhotos_right',
+            'exterior_front_right' => 'exteriorPhotos_front_right',
+        ] as $requestField => $dbField) {
+            if ($request->hasFile($requestField)) {
+                $image_fileName = time() . '_' . $request->file($requestField)->getClientOriginalName();
+                $image_filePath = $request->file($requestField)->storeAs('AdjustorMeetinPhotosSections', $image_fileName, 'public');
+                $data[$dbField] = Storage::url($image_filePath);
+            }
+        }
+
+        // Update or create the record in the database
+        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate(
+            ['adjustor_meeting_id' => $Id],
+            $data
+        );
+
+        // Return the response with the updated data
+        return response()->json([
+            'message' => 'Added successfully',
+            'status' => 200,
+            'data' => [
+                'id' => $adjustor_meeting_photos->id,
+                'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+                'exterior_front_left' => $adjustor_meeting_photos->exteriorPhotos_front_left,
+                'exterior_left' => $adjustor_meeting_photos->exteriorPhotos_left,
+                'exterior_back_left' => $adjustor_meeting_photos->exteriorPhotos_back_left,
+                'exterior_back' => $adjustor_meeting_photos->exteriorPhotos_back,
+                'exterior_back_right' => $adjustor_meeting_photos->exteriorPhotos_back_right,
+                'exterior_right' => $adjustor_meeting_photos->exteriorPhotos_right,
+                'exterior_front_right' => $adjustor_meeting_photos->exteriorPhotos_front_right,
+                'created_at' => $adjustor_meeting_photos->created_at,
+                'updated_at' => $adjustor_meeting_photos->updated_at,
+            ],
+        ]);
+    }
+
+
+    public function AddExteriorPhotoSection1(Request $request, $Id)
     {
         // Validate request
         $request->validate([
