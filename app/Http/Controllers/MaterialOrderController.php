@@ -769,13 +769,11 @@ class MaterialOrderController extends Controller
 
     public function updateBuildDetailStatus(Request $request, $jobId)
     {
-        //Validate Request
         $this->validate($request, [
             'confirmed' => 'nullable|in:true,false',
         ]);
         
         try {
-            
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -794,7 +792,7 @@ class MaterialOrderController extends Controller
             ]);
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
-                $job->status_id = 6;
+                $job->status_id = 2;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
