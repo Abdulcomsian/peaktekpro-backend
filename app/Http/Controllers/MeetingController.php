@@ -364,6 +364,14 @@ class MeetingController extends Controller
             'labels.*' => 'nullable|string',      
         ]);
         try {
+            $adjustor = AdjustorMeeting::find($id);
+            if(!$adjustor)
+            {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Adjustor Meeting Not Found',
+                ]);
+            }
             $savedPhotos = []; 
             $squarePhotos = $request->square_photos ?? [];
 
@@ -404,6 +412,14 @@ class MeetingController extends Controller
 
     public function getAdjustorMeetingSquarePhotos($Id,Request $request)
     { 
+        $adjustor = AdjustorMeeting::find($Id);
+            if(!$adjustor)
+            {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Adjustor Meeting Not Found',
+                ]);
+            }
         $photos = AdjustorSquarePhotos::where('adjustor_meeting_id',$Id)->get();
 
         if($photos){
