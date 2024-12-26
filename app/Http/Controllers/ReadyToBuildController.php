@@ -359,17 +359,26 @@ class ReadyToBuildController extends Controller
                 ], 200);
             }
 
-            $material_order = MaterialOrder::select('id','square_count','total_perimeter','ridge_lf')->where('company_job_id',$jobId)->first();
+            $material_order = MaterialOrder::select('id', 'square_count', 'total_perimeter', 'ridge_lf')
+            ->where('company_job_id', $jobId)
+            ->first();
+        
+            // Check if material order exists
+            if ($material_order) {
+                $material_order->load('materials');
+            }
+            
             // Return response with Ready To Build details
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Found Successfully',
                 'data' => [
-                    'readybuild'=> $readyToBuild,
+                    'readybuild' => $readyToBuild,
                     'customer_info' => $customer_info,
-                    'material_order'=> $material_order->load('materials')
+                    'material_order' => $material_order, // This will return null if not found
                 ],
             ], 200);
+        
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

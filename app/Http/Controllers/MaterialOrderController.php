@@ -782,7 +782,7 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            
+
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
                 'company_job_id' => $jobId
@@ -804,7 +804,7 @@ class MaterialOrderController extends Controller
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
-                  //current stage save
+                  //current stage save 
                 $build_detail->current_stage="no";
                 $build_detail->save();
             }
