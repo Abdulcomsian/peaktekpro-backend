@@ -213,7 +213,7 @@
             })
 
             $.ajax({
-                url: "{{ route('templates.quote-section.update') }}",
+                url: "{{ route('reports.quote-section.update') }}",
                 method: 'POST',
                 data: {
                     page_id: pageId,
@@ -231,7 +231,7 @@
         }, 500); // Delay in milliseconds
 
         // update on section title and toggle
-        $('#sections-container').on('keyup change', '.quote-section-title , .section-toggle', function() {
+        $(document).on('keyup change', '.quote-section-title , .section-toggle', function() {
             saveQuoteSectionData($(this))
         });
 
@@ -352,7 +352,7 @@
             const sectionId = section.data("id");
 
             $.ajax({
-                url: "{{ route('template.quote.remove-section') }}",
+                url: "{{ route('report.quote.remove-section') }}",
                 method: "DELETE",
                 data: {
                     page_id: pageId,
@@ -414,7 +414,7 @@
                         return $(this).data("id");
                     }).get();
                     $.ajax({
-                        url: "{{ route('templates.page.quote-sections-ordering.update') }}",
+                        url: "{{ route('reports.page.quote-sections-ordering.update') }}",
                         method: 'POST',
                         data: {
                             page_id: pageId,
