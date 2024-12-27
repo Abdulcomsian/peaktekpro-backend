@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>coc pdf</title>
     <style>
       * {
         padding: 0;
@@ -264,7 +264,7 @@
           <td>
             <h2 style="text-align: left">Notes</h2>
             <p style="line-height: 1.6">    
-              {{$coc->notes}}
+              {{$coc->notes ?? ''}}
               
             </p>
           </td>
