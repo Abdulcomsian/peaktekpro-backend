@@ -48,7 +48,7 @@ class CocController extends Controller
             'status' => 'nullable',
             'notes' => 'nullable',
             'customer_signature' => 'nullable',
-            'company_representative_signature' => 'nullable'
+            'company_signature' => 'nullable'
         ]);
 
         try {
@@ -102,8 +102,8 @@ class CocController extends Controller
                 $coc->customer_signature = $this->saveBase64Image($request->customer_signature, 'coc_signature');
 
             }
-            if ($request->company_representative_signature) {
-                $coc->company_representative_signature = $this->saveBase64Image($request->company_representative_signature, 'company_representative_signature');
+            if ($request->company_signature) {
+                $coc->company_representative_signature = $this->saveBase64Image($request->company_signature, 'company_signature');
             }
             
             //Update Status
@@ -113,6 +113,10 @@ class CocController extends Controller
             //     $job->save();
                 
                 //Generate PDF
+                // return response()->json([
+                //     'coc'=> $coc,
+                //     'job' => $job
+                // ]);
                 $pdf = PDF::loadView('pdf.coc', ['coc' => $coc, 'job' => $job]);
                 $pdf_fileName = time() . '.pdf';
                 $pdf_filePath = 'coc_pdf/' . $pdf_fileName;
