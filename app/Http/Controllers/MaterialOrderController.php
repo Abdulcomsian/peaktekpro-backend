@@ -411,9 +411,28 @@ class MaterialOrderController extends Controller
         try {
             // $customer_agreement = CustomerAgreement::select('street','city','state','zip_code','insurance','claim_number','policy_number')->where('company_job_id', $id)->first();
             $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id',$id)->select('id','name','email','phone','address')->first();
-            if ($customer_agreement && $customer_agreement->address) {
+            if ($customer_agreement) {
+                $decodedAddress = json_decode($customer_agreement->address, true);
+
                 // Decode the address JSON string into a PHP array
-                $customer_agreement->address = json_decode($customer_agreement->address, true);
+                // $customer_agreement->address = json_decode($customer_agreement->address, true);
+                $customer_agreement->city = $decodedAddress['city'] ?? null;
+                $customer_agreement->postalCode = $decodedAddress['postalCode'] ?? null;
+                $customer_agreement->street = $decodedAddress['street'] ?? null;
+                $customer_agreement->state = $decodedAddress['state'] ?? null;
+                $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
+            
+                unset($customer_agreement->address);
+
+                  // Separate summary values
+                if ($customer_agreement->summary) {
+                    $customer_agreement->insurance = $customer_agreement->summary->insurance;
+                    $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
+                    $customer_agreement->claim_number = $customer_agreement->summary->claim_number;
+
+                    unset($customer_agreement->summary);
+                }
+
             }
             // return response($customer_agreement->toArray());
             $job = CompanyJob::select('name', 'email', 'phone')->find($id);
