@@ -34,7 +34,7 @@ class CocController extends Controller
             'policy_number' => 'nullable',
             'company_representative' => 'nullable',
             'company_printed_name' => 'nullable',
-            'company_date' => 'nullable|date_format:m/d/Y',
+            'company_signed_date' => 'nullable|date_format:m/d/Y',
             'job_total' => 'nullable',
             'customer_paid_upgrades' => 'nullable',
             'deductible' => 'nullable',
@@ -48,7 +48,7 @@ class CocController extends Controller
             'status' => 'nullable',
             'notes' => 'nullable',
             'customer_signature' => 'nullable',
-            'company_representative_signature' => 'nullable'
+            'company_signature' => 'nullable'
         ]);
 
         try {
@@ -80,7 +80,7 @@ class CocController extends Controller
                 'policy_number' => $request->policy_number,
                 'company_representative' => $request->company_representative,
                 'company_printed_name' => $request->company_printed_name,
-                'company_signed_date' => $request->company_date,
+                'company_signed_date' => $request->company_signed_date,
                 'job_total' => $request->job_total,
                 'customer_paid_upgrades' => $request->customer_paid_upgrades,
                 'deductible' => $request->deductible,
@@ -102,8 +102,8 @@ class CocController extends Controller
                 $coc->customer_signature = $this->saveBase64Image($request->customer_signature, 'coc_signature');
 
             }
-            if ($request->company_representative_signature) {
-                $coc->company_representative_signature = $this->saveBase64Image($request->company_representative_signature, 'company_representative_signature');
+            if ($request->company_signature) {
+                $coc->company_representative_signature = $this->saveBase64Image($request->company_signature, 'company_signature');
             }
             
             //Update Status
@@ -113,6 +113,10 @@ class CocController extends Controller
             //     $job->save();
                 
                 //Generate PDF
+                // return response()->json([
+                //     'coc'=> $coc,
+                //     'job' => $job
+                // ]);
                 $pdf = PDF::loadView('pdf.coc', ['coc' => $coc, 'job' => $job]);
                 $pdf_fileName = time() . '.pdf';
                 $pdf_filePath = 'coc_pdf/' . $pdf_fileName;

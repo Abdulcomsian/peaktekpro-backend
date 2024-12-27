@@ -371,11 +371,11 @@ class CustomerAgreementController extends Controller
         try {
 
             //Check Agreement
-            $agreement = CustomerAgreement::find($id);
+            $agreement = CustomerAgreement::where('company_job_id',$id)->first();
             if(!$agreement) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Agreement Not Found'
+                    'message' => 'Agreement Not Found for this job'
                 ], 422);
             }
 
@@ -535,7 +535,7 @@ class CustomerAgreementController extends Controller
                 'status' => 200,
                 'message' => 'Customer Agreement Found Successfully',
                 'data' => [ 
-                   'agreement' => $agreement,
+                'agreement' => $agreement,
                 'jobsummary' => $job_summary,
                 ]
                 
