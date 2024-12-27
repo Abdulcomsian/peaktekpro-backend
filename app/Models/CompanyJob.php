@@ -23,7 +23,7 @@ class CompanyJob extends Model
 
     public function summary()
     {
-        return $this->hasOne(CompanyJobSummary::class);
+        return $this->hasOne(CompanyJobSummary::class,'company_job_id');
     }
 
     public function aggrement()
