@@ -72,7 +72,7 @@
         ];
         // Re-initialize Quill for the newly added content
         $('.custom-page-quill-editor').each(function() {
-    if (!$(this).hasClass('quill-initialized')) {
+        if (!$(this).hasClass('quill-initialized')) {
         var customQuill = new Quill($(this)[0], {
             theme: 'snow',
             modules: {
@@ -92,18 +92,17 @@
             }
 
             // If no content exists, initialize the Quill editor and set up the 'text-change' event
-                customQuill.on('text-change', function() {
-                    // Sync content with the associated textarea
-                    $textarea.val(customQuill.root.innerHTML);
+            customQuill.on('text-change', function() {
+                // Sync content with the associated textarea
+                $textarea.val(customQuill.root.innerHTML);
 
-                    // Optionally trigger change event on the textarea if needed
-                    // $textarea.trigger('change');
-                    saveTemplatePageTextareaData($textarea);
-                });
+                // Optionally trigger change event on the textarea if needed
+                // $textarea.trigger('change');
+                saveTemplatePageTextareaData($textarea);
+            });
 
-    }
-});
-
+            }
+        });
     }
 
     // Initialize Dropzone
@@ -125,23 +124,23 @@
                     init: function() {
                     // Check if there's an existing file and initialize Dropzone with the file data
                     let jsonData = JSON.parse(`{!! json_encode($pageData->json_data ?? []) !!}`)
-            // Check if there's an existing file in the parsed JSON
-            let customPageFileData = {
-                name: jsonData['custom_page_file']?.file_name ?? '',
-                size: jsonData['custom_page_file']?.size ?? '',
-                url: jsonData['custom_page_file']?.path ? "{{ asset('storage') }}/" + jsonData['custom_page_file'].path : '',
-                path: jsonData['custom_page_file']?.path ?? '',
-                type: 'custom_page_file'
-            };
+                    // Check if there's an existing file in the parsed JSON
+                    let customPageFileData = {
+                        name: jsonData['custom_page_file']?.file_name ?? '',
+                        size: jsonData['custom_page_file']?.size ?? '',
+                        url: jsonData['custom_page_file']?.path ? "{{ asset('storage') }}/" + jsonData['custom_page_file'].path : '',
+                        path: jsonData['custom_page_file']?.path ?? '',
+                        type: 'custom_page_file'
+                    };
 
-            if (customPageFileData.name) {
-                // If there is an existing file, show it in the Dropzone
-                this.emit("addedfile", customPageFileData);
-                // Emitting the correct full path for the thumbnail
-                this.emit("thumbnail", customPageFileData, customPageFileData.url); // Use the URL from jsonData
-                this.emit("complete", customPageFileData);
-                this.files.push(customPageFileData);
-            }
+                    if (customPageFileData.name) {
+                        // If there is an existing file, show it in the Dropzone
+                        this.emit("addedfile", customPageFileData);
+                        // Emitting the correct full path for the thumbnail
+                        this.emit("thumbnail", customPageFileData, customPageFileData.url); // Use the URL from jsonData
+                        this.emit("complete", customPageFileData);
+                        this.files.push(customPageFileData);
+                    }
 
                     // When a file is sent, add additional form data
                     this.on("sending", function(file, xhr, formData) {
@@ -261,7 +260,7 @@
                 error: function() {
                     showErrorNotification('Error deleting the file.');
                 }
-            });
+        });
     }
 
 
@@ -421,85 +420,85 @@
         });
 
         // Handle "Create Page" button click
-$('#createPageBtn').on('click', function() {
-    $.ajax({
-        url: "{{ route('templates.create-page', $template->id) }}",
-        method: 'POST',
-        data: {
-            title: 'Custom Page',
-            _token: $('meta[name=csrf-token]').attr('content')
-        },
-        success: function(response) {
-            if (response.status) {
-                // Generate unique random values for new IDs
-                let firstrandom = Math.random().toString(36).substr(2, 8);
-                let secondRandom = Math.random().toString(36).substr(2, 8);
-                let thirdRandom = Math.random().toString(36).substr(2, 8);
+        $('#createPageBtn').on('click', function() {
+            $.ajax({
+                url: "{{ route('templates.create-page', $template->id) }}",
+                method: 'POST',
+                data: {
+                    title: 'Custom Page',
+                    _token: $('meta[name=csrf-token]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        // Generate unique random values for new IDs
+                        let firstrandom = Math.random().toString(36).substr(2, 8);
+                        let secondRandom = Math.random().toString(36).substr(2, 8);
+                        let thirdRandom = Math.random().toString(36).substr(2, 8);
 
-                // Append the new page to the list dynamically
-                $('#tabsList').append(`
-<li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
-    data-target="#tab${response.page.id}" data-id="${response.page.id}">
-    <span>${response.page.name}</span>
-    <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
-        <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}"
-            ${response.page.is_active === 1 ? 'checked' : ''} />
-        <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
-            <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
-        </span>
-    </label>
-</li>
-`);
+                        // Append the new page to the list dynamically
+                        $('#tabsList').append(`
+                        <li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
+                            data-target="#tab${response.page.id}" data-id="${response.page.id}">
+                            <span>${response.page.name}</span>
+                            <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}"
+                                    ${response.page.is_active === 1 ? 'checked' : ''} />
+                                <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
+                                    <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
+                                </span>
+                            </label>
+                        </li>
+                        `);
 
-                // Append the new page content
-                $('#tabContent').append(`
-<div id="tab${response.page.id}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
-    <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
-    <p>Content for ${response.page.name}</p>
-    <div class="w-full mx-auto p-6 bg-white shadow rounded-lg custom-page-container">
-        <div class="mb-6">
-            <div class="flex flex-col justify-start">
-                <div>
-                    <input type="radio" id="custom-page-single-pdf-${firstrandom}" name="custom_page_type_${thirdRandom}" value="single_pdf" class="mr-2 custom_page_type">
-                    <label for="custom-page-single-pdf-${firstrandom}" class="text-gray-700 text-md cursor-pointer">Single Use PDF</label>
-                </div>
-                <div>
-                    <input type="radio" id="custom-page-text-${secondRandom}" name="custom_page_type_${thirdRandom}" value="single_text" class="mr-2 custom_page_type">
-                    <label for="custom-page-text-${secondRandom}" class="text-gray-700 text-md cursor-pointer">Text Page</label>
-                </div>
-            </div>
-        </div>
-        <div id="custom-page-single-pdf-section-${firstrandom}" class="hidden" data-selected="single_pdf">
-            <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone custom-page-dropzone">
-                <div class="dz-message text-gray-600">
-                    <span class="block text-lg font-semibold">Drag & Drop or Click to Upload PDF</span>
-                    <small class="text-gray-500">Only PDF file are allowed</small>
-                </div>
-            </form>
-        </div>
-        <div id="custom-page-text-section-${secondRandom}" class="hidden" data-selected="single_text">
-            <div class="bg-white custom-page-quill-editor"></div>
-            <textarea class="custom-page-text hidden" name="custom_page_text" required>{{ $pageData->json_data['custom_page_text'] ?? '' }}</textarea>
-        </div>
-    </div>
-</div>
-`);
+                        // Append the new page content
+                        $('#tabContent').append(`
+                        <div id="tab${response.page.id}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
+                            <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
+                            <p>Content for ${response.page.name}</p>
+                            <div class="w-full mx-auto p-6 bg-white shadow rounded-lg custom-page-container">
+                                <div class="mb-6">
+                                    <div class="flex flex-col justify-start">
+                                        <div>
+                                            <input type="radio" id="custom-page-single-pdf-${firstrandom}" name="custom_page_type_${thirdRandom}" value="single_pdf" class="mr-2 custom_page_type">
+                                            <label for="custom-page-single-pdf-${firstrandom}" class="text-gray-700 text-md cursor-pointer">Single Use PDF</label>
+                                        </div>
+                                        <div>
+                                            <input type="radio" id="custom-page-text-${secondRandom}" name="custom_page_type_${thirdRandom}" value="single_text" class="mr-2 custom_page_type">
+                                            <label for="custom-page-text-${secondRandom}" class="text-gray-700 text-md cursor-pointer">Text Page</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="custom-page-single-pdf-section-${firstrandom}" class="hidden" data-selected="single_pdf">
+                                    <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone custom-page-dropzone">
+                                        <div class="dz-message text-gray-600">
+                                            <span class="block text-lg font-semibold">Drag & Drop or Click to Upload PDF</span>
+                                            <small class="text-gray-500">Only PDF file are allowed</small>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div id="custom-page-text-section-${secondRandom}" class="hidden" data-selected="single_text">
+                                    <div class="bg-white custom-page-quill-editor"></div>
+                                    <textarea class="custom-page-text hidden" name="custom_page_text" required>{{ $pageData->json_data['custom_page_text'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        `);
 
-customPageInitializeQuill();
-customPageInitializeDropzone();
+                        customPageInitializeQuill();
+                        customPageInitializeDropzone();
 
 
-                showSuccessNotification(response.message);
+                        showSuccessNotification(response.message);
 
-            } else {
-                showErrorNotification('Error creating page.');
-            }
-        },
-        error: function() {
-            showErrorNotification('An error occurred while creating the page.');
-        }
-    });
-});
+                    } else {
+                        showErrorNotification('Error creating page.');
+                    }
+                },
+                error: function() {
+                    showErrorNotification('An error occurred while creating the page.');
+                }
+            });
+        });
 
 
         // Handle toggle change (to update page status)
