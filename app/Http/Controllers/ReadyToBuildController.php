@@ -39,6 +39,158 @@ class ReadyToBuildController extends Controller
             'materials.*.color' => 'nullable',
             'materials.*.order_key' => 'nullable',
             //supplier selection
+            'supplier_id' => 'nullable',
+        ]);
+        
+        try {
+            // Check Job
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found',
+                ], 422);
+            }
+
+            $customer_info = CompanyJob::select('name','phone','address')->where('id',$jobId)->first();
+            if($customer_info)
+            {
+                $customer_info->address = json_decode($customer_info->address, true);
+            }
+
+            // Update Ready To Build
+            $ready_to_build = ReadyToBuild::updateOrCreate([
+                'company_job_id' => $jobId,
+            ], [
+                'company_job_id' => $jobId,
+                'home_owner' => $request->home_owner,
+                'home_owner_email' => $request->home_owner_email,
+                'date' => $request->date,
+                'notes' => $request->notes,
+                'status' => $request->status,
+                'supplier_id' => $request->supplier_id
+            ]);
+
+            if (isset($request->attachements) && count($request->attachements) > 0) {
+                // New attachments are present in the request
+                // Step 1: Delete old attachments
+                $existingAttachments = ReadyToBuildMedia::where('ready_build_id', $ready_to_build->id)->get();
+                foreach ($existingAttachments as $attachment) {
+                    // Delete file from storage
+                    $filePath = str_replace('/storage/', 'public/', $attachment->image_url);
+                    Storage::delete($filePath);
+                    $attachment->delete(); // Delete the record from the database
+                }
+            
+                // Step 2: Store new attachments
+                foreach ($request->attachements as $documents) {
+                    $fileName = time() . '_' . $documents->getClientOriginalName();
+                    $filePath = $documents->storeAs('public/ready_to_build', $fileName);
+            
+                    // Store Path
+                    $media = new ReadyToBuildMedia();
+                    $media->ready_build_id = $ready_to_build->id;
+                    $media->image_url = Storage::url($filePath);
+                    $media->file_name = $documents->getClientOriginalName();
+                    $media->save();
+                }
+            } else {
+                // No new attachments in the request, retain existing attachments
+                $existingAttachments = ReadyToBuildMedia::where('ready_build_id', $ready_to_build->id)->get();
+            
+                // If you need to return the existing attachments, format them
+                $attachments = $existingAttachments->map(function ($attachment) {
+                    return [
+                        'id' => $attachment->id,
+                        'image_url' => $attachment->image_url,
+                        'file_name' => $attachment->file_name,
+                    ];
+                });
+            }            
+       
+            //Generate PO number
+            $poNumber = $this->generatePONumber();
+            
+            //here add  square count of material order
+            $material_order = MaterialOrder::updateOrCreate([
+                'company_job_id' => $jobId,
+            ],[
+                'company_job_id' => $jobId,
+                'po_number' => $poNumber, 
+                'square_count' => $request->square_count,
+                'total_perimeter' => $request->total_perimeter,
+                'ridge_lf' => $request->ridge_lf,
+            ]);
+
+            if($material_order)
+            {
+               $materialOrder =  MaterialOrder::select('id','po_number','square_count','total_perimeter','ridge_lf')->where('company_job_id',$jobId)->first();
+            }
+
+            MaterialOrderMaterial::where('material_order_id', $material_order->id)->delete();
+
+            ///material order quanity and color add
+            if($request->materials)
+            {
+                // Step 1: Delete old materials
+
+            // Step 2: Insert new materials
+            // if ($request->materials) {
+                foreach ($request->materials as $material) {
+                    $add_material = new MaterialOrderMaterial;
+                    $add_material->material_order_id = $material_order->id;
+                    $add_material->material = $material['material'];
+                    $add_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                    $add_material->color = isset($material['color']) ? $material['color'] : null;
+                    $add_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
+                    $add_material->save();
+                }
+            }
+            
+            // Update Status
+            if (isset($request->status) && $request->status == 'true') {
+                $job->status_id = 8;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Ready To Build Added Successfully',
+                'data' => [
+                    'customer_info' => $customer_info,
+                    'readybuild'=>$ready_to_build->load('documents'), 
+                     'material_order' => $materialOrder->load('materials')
+                    // 'material_order'=>$materialOrder
+                ],
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    public function storeReadyToBuild1(Request $request, $jobId)
+    {
+        // Validation Request
+        $this->validate($request, [
+            'home_owner' => 'nullable|string|max:255',
+            'home_owner_email' => 'nullable|email',
+            'date' => 'nullable|date_format:m/d/Y',
+            'notes' => 'nullable|string',
+            'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+            'status' => 'nullable|in:true,false',
+            //material order square count//
+            'square_count' => 'nullable',
+            'total_perimeter' => 'nullable',
+            'ridge_lf' => 'nullable',
+            //quantity and color
+            'materials' => 'nullable|array',
+            'materials.*.material' => 'nullable|string',
+            'materials.*.quantity' => 'nullable',
+            'materials.*.color' => 'nullable',
+            'materials.*.order_key' => 'nullable',
+            //supplier selection
             'supplier_email' => 'nullable',
         ]);
         
@@ -80,21 +232,7 @@ class ReadyToBuildController extends Controller
                 $attachment->delete(); // Delete the record from the database
             }
 
-            //store attachements here
-            // if(isset($request->attachements) && count($request->attachements) > 0) {
-            //     foreach($request->attachements as $documents)
-            //     {
-            //         $fileName = time() . '_' . $documents->getClientOriginalName();
-            //         $filePath = $documents->storeAs('public/ready_to_build', $fileName);
-            //         // Store Path
-            //         $media = new ReadyToBuildMedia();
-            //         $media->ready_build_id = $ready_to_build->id;
-            //         $media->image_url = Storage::url($filePath);
-            //         $media->file_name = $request->filename;
-            //         $media->save();
-            //     }
-            // }
-
+     
               // Step 2: Store new attachments
             if (isset($request->attachements) && count($request->attachements) > 0) {
                 foreach ($request->attachements as $documents) {
@@ -128,31 +266,48 @@ class ReadyToBuildController extends Controller
                $materialOrder =  MaterialOrder::select('id','po_number','square_count','total_perimeter','ridge_lf')->where('company_job_id',$jobId)->first();
             }
 
+            MaterialOrderMaterial::where('material_order_id', $material_order->id)->delete();
+
             ///material order quanity and color add
             if($request->materials)
             {
-                foreach($request->materials as $material) {
-                    if(isset($material['id'])) {
-                        // Update existing material
-                        $get_material = MaterialOrderMaterial::find($material['id']);
-                        if ($get_material) {
-                            $get_material->material = $material['material'];
-                            $get_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
-                            $get_material->color = isset($material['color']) ? $material['color'] : null;
-                            $get_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
-                            $get_material->save();
-                        }
-                    } else {
-                        //Store New Material
-                        $add_material = new MaterialOrderMaterial;
-                        $add_material->material_order_id = $material_order->id;
-                        $add_material->material = $material['material'];
-                        $add_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
-                        $add_material->color = isset($material['color']) ? $material['color'] : null;
-                        $add_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
-                        $add_material->save();
-                    }
+                // Step 1: Delete old materials
+
+            // Step 2: Insert new materials
+            // if ($request->materials) {
+                foreach ($request->materials as $material) {
+                    $add_material = new MaterialOrderMaterial;
+                    $add_material->material_order_id = $material_order->id;
+                    $add_material->material = $material['material'];
+                    $add_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                    $add_material->color = isset($material['color']) ? $material['color'] : null;
+                    $add_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
+                    $add_material->save();
                 }
+            // }
+
+                // foreach($request->materials as $material) {
+                //     if(isset($material['id'])) {
+                //         // Update existing material
+                //         $get_material = MaterialOrderMaterial::find($material['id']);
+                //         if ($get_material) {
+                //             $get_material->material = $material['material'];
+                //             $get_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                //             $get_material->color = isset($material['color']) ? $material['color'] : null;
+                //             $get_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
+                //             $get_material->save();
+                //         }
+                //     } else {
+                //         //Store New Material
+                //         $add_material = new MaterialOrderMaterial;
+                //         $add_material->material_order_id = $material_order->id;
+                //         $add_material->material = $material['material'];
+                //         $add_material->quantity = isset($material['quantity']) ? $material['quantity'] : null;
+                //         $add_material->color = isset($material['color']) ? $material['color'] : null;
+                //         $add_material->order_key = isset($material['order_key']) ? $material['order_key'] : null;
+                //         $add_material->save();
+                //     }
+                // }
             }
             
             // Update Status
