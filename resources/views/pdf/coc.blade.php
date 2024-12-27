@@ -258,7 +258,7 @@
       </tbody>
     </table>
 
-    <table style="max-width: 1200px; margin: auto">
+    <table style="width: 1200px; border-collapse: collapse;">
       <tbody>
         <tr>
           <td>
@@ -273,79 +273,75 @@
     </table>
 
 
-    <table style="width: 1200px; border-collapse: collapse;">
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
   <tbody>
+    <!-- Row for Company Representative Signature, Printed Name, and Date Signed -->
     <tr>
-      <td style="vertical-align: top; padding-right: 20px;">
-        <h2 style="text-align: left; margin: 0 0 15px;">Digital Signatures</h2>
-        <span style="display: inline-block; vertical-align: top;">Company Representative Signature:</span>
-        <span
-          style="
-            width: 250px;
-            display: inline-block;
-            vertical-align: top;
-            margin-left: 10px;
-          "
-        >
-          <img
-            src="{{ public_path($coc->company_representative_signature) }}"
-            style="max-width: 100%; height: auto;"
-            alt="Company Representative Signature"
-          />
-        </span>
+      <!-- Company Representative Signature -->
+      <td style="vertical-align: top; width: 40%; padding-right: 20px;">
+        <h2 style="margin: 0 0 15px;">Digital Signatures</h2>
+        <div style="margin-bottom: 10px;">
+          <strong>Company Representative Signature:</strong>
+        </div>
+        <img
+          src="{{ public_path($coc->company_representative_signature) }}"
+          style="width: 200px; height: auto; border: 1px solid #ccc; padding: 5px;"
+          alt="Company Representative Signature"
+        />
       </td>
-      <td style="vertical-align: top; padding-left: 20px;">
-        <span class="label">
-          <h3 style="margin: 0;"><strong>Printed Name:</strong></h3>
-        </span>
-        <span
+
+      <!-- Printed Name -->
+      <td style="vertical-align: top; width: 30%; padding-left: 20px;">
+        <div style="margin-bottom: 10px;">
+          <strong>Printed Name:</strong>
+        </div>
+        <div
           style="
-            display: inline-block;
             border-bottom: 1px dashed lightslategray;
             padding-bottom: 5px;
-            margin-top: 5px;
+            font-size: 14px;
           "
         >
-          <p style="margin: 0;">{{$coc->company_printed_name ?? ''}}</p>
-        </span>
+          {{$coc->company_printed_name ?? ''}}
+        </div>
       </td>
-      <td style="vertical-align: top; padding-left: 20px;">
-        <span class="label">
-          <h3 style="margin: 0;"><strong>Date Signed:</strong></h3>
-        </span>
-        <span
+
+      <!-- Date Signed -->
+      <td style="vertical-align: top; width: 30%; padding-left: 20px;">
+        <div style="margin-bottom: 10px;">
+          <strong>Date Signed:</strong>
+        </div>
+        <div
           style="
-            display: inline-block;
             border-bottom: 1px dashed lightslategray;
             padding-bottom: 5px;
-            margin-top: 5px;
+            font-size: 14px;
           "
         >
-          <p style="margin: 0;">{{$coc->company_signed_date ?? ''}}</p>
-        </span>
+          {{$coc->company_signed_date ?? ''}}
+        </div>
       </td>
     </tr>
+
+    <!-- Row for Customer Signature -->
     <tr>
-      <td style="vertical-align: top; padding-top: 20px;">
-        <span style="display: inline-block; vertical-align: top;">Customer Signature:</span>
-        <span
-          style="
-            width: 250px;
-            display: inline-block;
-            vertical-align: top;
-            margin-left: 10px;
-          "
-        >
-          <img
-            src="{{ public_path($coc->customer_signature) }}"
-            style="max-width: 100%; height: auto;"
-            alt="Customer Signature"
-          />
-        </span>
+      <td style="vertical-align: top; width: 40%; padding-right: 20px; padding-top: 30px;">
+        <div style="margin-bottom: 10px;">
+          <strong>Customer Signature:</strong>
+        </div>
+        <img
+          src="{{ public_path($coc->customer_signature) }}"
+          style="width: 200px; height: auto; border: 1px solid #ccc; padding: 5px;"
+          alt="Customer Signature"
+        />
       </td>
+      <td colspan="2" style="vertical-align: top; padding-left: 20px; padding-top: 30px;"></td>
     </tr>
   </tbody>
 </table>
+
+
+
 
   </body>
 </html>

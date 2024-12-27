@@ -597,6 +597,37 @@
         />
       </td>
     </tr>
+    <tr>
+    
+      <td style="padding: 15px; text-align: left; width: 30%;">
+        <label for="">Customer Name:</label>
+        <input
+          style="
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+          "
+          type="text"
+          value="{{$data->customer_name}}"
+        />
+      </td>
+      <td style="padding: 15px; text-align: left; width: 30%;">
+        <label for="">Aggrement Signed Date:</label>
+        <input
+          style="
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+          "
+          type="text"
+          value="{{$data->aggrement_date}}"
+        />
+      </td>
+    </tr>
   </tbody>
 </table>
 
