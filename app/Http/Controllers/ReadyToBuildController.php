@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Log;
+use PDF;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\CompanyJob;
@@ -9,12 +11,11 @@ use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
+use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ReadyToBuildMedia;
 use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
-use PDF;
-use Log;
 
 class ReadyToBuildController extends Controller
 {
@@ -496,7 +497,10 @@ class ReadyToBuildController extends Controller
             }
 
             //here i will get customer information
-            $customer_info = CompanyJob::select('name','phone','address')->where('id',$jobId)->first();
+            $customer_info = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id',$jobId)->select('id','name','email','phone','address')->first();
+            // return response()->json([
+            //     'data'=> $customer_info
+            // ]);
             if($customer_info)
             {
                 $customer_info->address = json_decode($customer_info->address, true);
