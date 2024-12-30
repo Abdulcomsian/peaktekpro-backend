@@ -35,8 +35,9 @@ return [
     
     'pdf' => [
         'enabled' => true,
-        // 'binary' => base_path('vendor/h4cc/wkhtmltopdf-amd64/bin/wkhtmltopdf-amd64'), //for production
-        'binary' => '"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"', //for local
+        'binary' => base_path('vendor/h4cc/wkhtmltopdf-amd64/bin/wkhtmltopdf-amd64.exe'), //for production
+        // 'binary' => '"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"', //for local
+
 
         'timeout' => false,
         'options' => [
