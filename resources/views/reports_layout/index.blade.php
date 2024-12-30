@@ -22,6 +22,7 @@
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">S.No</th>
                             <th class="py-3 px-6 text-left">Title</th>
+                            <th class="py-3 px-6 text-left">File</th>
                             <th class="py-3 px-6 text-left">Status</th>
                             <th class="py-3 px-6 text-center">Actions</th>
                         </tr>
@@ -31,6 +32,12 @@
                             <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-6 text-left">{{ $report->title }}</td>
+                                <td class="py-3 px-6 text-left">
+                                <a id="downloadReportPDF" data-id="{{ $report->id }}"
+                                class="text-blue-500 hover:text-blue-600 cursor-pointer">
+                                    Download PDF
+                                </a>
+                                </td>
                                 <td class="py-3 px-6 text-left">{{ $report->status === 'draft'  ? 'Draft' : 'Published' }}</td>
                                 <td class="py-3 px-6 text-center">
                                     <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
@@ -217,5 +224,38 @@
         }
     });
 }
+
+document.getElementById('downloadReportPDF').addEventListener('click', function () {
+    const reportId = this.getAttribute('data-id');
+    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+    const url = downloadPdfUrl.replace(':id', reportId);
+
+    // Download PDF via Fetch
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.blob(); // Convert the response to a Blob for the file
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `report-${reportId}.pdf`; // Specify the filename
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link); // Clean up
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+});
 </script>
 @endpush

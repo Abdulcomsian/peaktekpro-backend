@@ -72,6 +72,7 @@ Route::get('/reports/edit/{id}', [ReportLayoutController::class, 'edit'])->name(
 Route::put('/reports/update-title/{id}', [ReportLayoutController::class, 'updateTitle'])->name('reports.update.title');
 Route::post('/reports/update-status/{id}', [ReportLayoutController::class, 'updateStatus'])->name('reports.update-status');
 Route::get('/reports/download-pdf/{id}', [ReportLayoutController::class, 'downloadPdf'])->name('reports.download-pdf');
+Route::post('/reports/copy-template/', [ReportLayoutController::class, 'copyTemplate'])->name('reports.copy-template');
 
 Route::post('/update-report-page-ordering/{id}', [ReportLayoutController::class, 'updateReportPagesOrdering'])->name('reports.page-ordering.update');
 Route::post('/reports/create-page/{id}', [ReportLayoutController::class, 'createPage'])->name('reports.create-page');
