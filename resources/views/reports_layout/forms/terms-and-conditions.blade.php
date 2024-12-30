@@ -68,7 +68,7 @@
             $('#terms-and-conditions-text').val(termsAndConditionsQuill.root.innerHTML);
 
             //save textarea data
-            saveTemplatePageTextareaData('#terms-and-conditions-text');
+            saveReportPageTextareaData('#terms-and-conditions-text');
 
         });
     </script>

@@ -1,10 +1,10 @@
 <div class="w-full mx-auto p-6 bg-white shadow rounded-lg">
     <form action="/submit-report" method="POST">
 
-        <!-- Description -->
+        <!-- Text -->
         <div class="mb-4">
-            <div id="terms-and-conditions-quill" class="bg-white"></div>
-            <textarea class="hidden" id="terms-and-conditions-text" name="terms_and_conditions_text" required>{{ $pageData->json_data['terms_and_conditions_text'] ?? '' }}</textarea>
+            <div id="applicable-code-guidelines-text-quill" class="bg-white"></div>
+            <textarea class="hidden" id="applicable-code-guidelines-text" name="applicable_code_guidelines_text" required>{{ $pageData->json_data['applicable_code_guidelines_text'] ?? '' }}</textarea>
         </div>
 
     </form>
@@ -12,7 +12,7 @@
 @push('scripts')
     <script type="text/javascript">
         // quill
-        const termsAndConditionsQuillOptions = [
+        const applicableCodeGuidelinesQuillOptions = [
             ['bold', 'italic', 'underline', 'strike'], // toggled buttons
             ['blockquote', 'code-block'],
             ['link'],
@@ -50,26 +50,25 @@
             }],
             ['clean'] // remove formatting button
         ];
-        var termsAndConditionsQuill = new Quill('#terms-and-conditions-quill', {
+        var applicableCodeGuidelinesQuill = new Quill('#applicable-code-guidelines-text-quill', {
             theme: 'snow',
             modules: {
-                toolbar: termsAndConditionsQuillOptions
+                toolbar: applicableCodeGuidelinesQuillOptions
             }
         });
         // Set the height dynamically via JavaScript
-        termsAndConditionsQuill.root.style.height = '200px';
+        applicableCodeGuidelinesQuill.root.style.height = '200px';
 
-        // old value
-        let oldTermsAndConditionsTextValue = "{!! $pageData->json_data['terms_and_conditions_text'] ?? '' !!}";
+        // old text value
+        let oldApplicableCodeGuidelinesValue = "{!! $pageData->json_data['applicable_code_guidelines_text'] ?? '' !!}";
 
         // Load the saved content into the editor
-        termsAndConditionsQuill.clipboard.dangerouslyPasteHTML(oldTermsAndConditionsTextValue);
-        termsAndConditionsQuill.on('text-change', function() {
-            $('#terms-and-conditions-text').val(termsAndConditionsQuill.root.innerHTML);
+        applicableCodeGuidelinesQuill.clipboard.dangerouslyPasteHTML(oldApplicableCodeGuidelinesValue);
+        applicableCodeGuidelinesQuill.on('text-change', function() {
+            $('#applicable-code-guidelines-text').val(applicableCodeGuidelinesQuill.root.innerHTML);
 
             //save textarea data
-            saveTemplatePageTextareaData('#terms-and-conditions-text');
-
-        });
+            saveReportPageTextareaData('#applicable-code-guidelines-text');
+        })
     </script>
 @endpush

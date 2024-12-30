@@ -212,7 +212,7 @@
             })
 
             $.ajax({
-                url: "{{ route('templates.authorization-section.update') }}",
+                url: "{{ route('reports.authorization-section.update') }}",
                 method: 'POST',
                 data: {
                     page_id: pageId,
@@ -286,7 +286,7 @@
             $('#authorization-footer-text').val(authorizationFooterTextQuill.root.innerHTML);
 
             //save textarea data
-            saveTemplatePageTextareaData('#authorization-footer-text');
+            saveReportPageTextareaData('#authorization-footer-text');
         });
 
         // Update Grand Total
@@ -398,7 +398,7 @@
             const sectionId = section.data("id");
 
             $.ajax({
-                url: "{{ route('template.authorization.remove-section') }}",
+                url: "{{ route('report.authorization.remove-section') }}",
                 method: "DELETE",
                 data: {
                     page_id: pageId,
@@ -462,7 +462,7 @@
                         return $(this).data("id");
                     }).get();
                 $.ajax({
-                    url: "{{ route('templates.page.authorization-sections-ordering.update') }}",
+                    url: "{{ route('reports.page.authorization-sections-ordering.update') }}",
                     method: 'POST',
                     data: {
                         page_id: pageId,

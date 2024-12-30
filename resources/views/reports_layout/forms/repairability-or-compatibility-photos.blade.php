@@ -190,7 +190,7 @@
     const dropzoneElement = $(`#compatibility-dropzone-${itemId}`);
 
     const dropzone = new Dropzone(`#compatibility-dropzone-${itemId}`, {
-    url: "{{ route('templates-repairibility-image') }}",
+    url: "{{ route('reports-repairibility-image') }}",
     paramName: 'image', // Ensure this matches the backend input name
     maxFiles: 1,
     acceptedFiles: ".jpeg,.jpg,.png",
@@ -305,7 +305,7 @@ function sendDataToAjax(element) {
     };
 
     $.ajax({
-        url: "{{ route('templates.repariablity-combatibility.update') }}",
+        url: "{{ route('reports.repariablity-combatibility.update') }}",
         method: "POST",
         data: requestData,
         success: function(response) {
@@ -388,6 +388,9 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
         );
     });
 
+    // @if (isset($section['items']) && count($section['items']) > 0)
+    // initializeCompatibilityDropzone(generateBase64Key(8));
+    // @endif
     // Remove section
     $(document).on('click', '.remove-compatibility-section-btn', function() {
         // $(this).closest('.compatibility-section').remove();
@@ -395,7 +398,7 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
         const sectionId = section.data("id");
 
         $.ajax({
-            url: "{{ route('template.repariablity.remove-section') }}",
+            url: "{{ route('report.repariablity.remove-section') }}",
             method: "DELETE",
             data: {
                 page_id: pageId,
@@ -422,7 +425,7 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
         const itemId = Item.data("id");
 
         $.ajax({
-            url: "{{ route('template.repariablity.remove-section') }}",
+            url: "{{ route('report.repariablity.remove-section') }}",
             method: "DELETE",
             data: {
                 page_id: pageId,
@@ -474,7 +477,7 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
                     return $(this).data("id");
                 }).get();
             $.ajax({
-                url: "{{ route('templates.page.repariablity-combatibility-ordering.update') }}",
+                url: "{{ route('reports.page.repariablity-combatibility-ordering.update') }}",
                 method: 'POST',
                 data: {
                     page_id: pageId,
@@ -518,7 +521,7 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
                 }).get();
 
                 $.ajax({
-                    url: "{{ route('templates.page.repariablity-combatibility-items-ordering.update') }}",
+                    url: "{{ route('reports.page.repariablity-combatibility-items-ordering.update') }}",
                     method: 'POST',
                     data: {
                         page_id: pageId,

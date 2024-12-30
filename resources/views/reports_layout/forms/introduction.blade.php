@@ -175,7 +175,7 @@
             $('#intro-text').val(introTextQuill.root.innerHTML);
 
             //save textarea data
-            saveTemplatePageTextareaData('#intro-text');
+            saveReportPageTextareaData('#intro-text');
         });
 
         // dropzone

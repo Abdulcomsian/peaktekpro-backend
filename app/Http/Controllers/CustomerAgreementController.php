@@ -439,11 +439,17 @@ class CustomerAgreementController extends Controller
             //Fire an Event
             // event(new JobStatusUpdateEvent('Refresh Pgae'));
 
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'Signature Image Added Successfully',
+            //     'agreement' => $agreement
+            // ], 200);
             return response()->json([
                 'status' => 200,
-                'message' => 'Signature Image Added Successfully',
+                'message' => 'Agreement Created Successfully',
                 'agreement' => $agreement
-            ], 200);
+            ], 200, [], JSON_UNESCAPED_SLASHES);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }

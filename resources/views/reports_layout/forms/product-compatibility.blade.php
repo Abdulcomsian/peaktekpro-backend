@@ -178,7 +178,7 @@
             $('#product-compatibility-text').val(productCompatibilityQuill.root.innerHTML);
 
             //save textarea data
-            saveTemplatePageTextareaData('#product-compatibility-text');
+            saveReportPageTextareaData('#product-compatibility-text');
 
         });
     </script>
