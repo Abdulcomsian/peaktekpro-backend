@@ -105,77 +105,6 @@
     });
 }
 
-    // Initialize Dropzone
-    const customPageInitializeDropzone = () => {
-        // Re-initialize Dropzone for the newly added elements
-        $('.custom-page-dropzone').each(function() {
-            if (!$(this).hasClass('dropzone-initialized')) {
-                new Dropzone($(this)[0], {
-                    url: saveFileFromDropZoneRoute,
-                    paramName: 'file',
-                    maxFiles: 1,
-                    acceptedFiles: '.pdf',
-                    addRemoveLinks: true,
-                    dictRemoveFile: "Remove",
-                    dictDefaultMessage: "Drag & Drop or Click to Upload",
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    init: function() {
-                    // Check if there's an existing file and initialize Dropzone with the file data
-                    let jsonData = JSON.parse(`{!! json_encode($pageData->json_data ?? []) !!}`)
-                    // Check if there's an existing file in the parsed JSON
-                    let customPageFileData = {
-                        name: jsonData['custom_page_file']?.file_name ?? '',
-                        size: jsonData['custom_page_file']?.size ?? '',
-                        url: jsonData['custom_page_file']?.path ? "{{ asset('storage') }}/" + jsonData['custom_page_file'].path : '',
-                        path: jsonData['custom_page_file']?.path ?? '',
-                        type: 'custom_page_file'
-                    };
-                    if (customPageFileData.name) {
-                        // If there is an existing file, show it in the Dropzone
-                        this.emit("addedfile", customPageFileData);
-                        // Emitting the correct full path for the thumbnail
-                        this.emit("thumbnail", customPageFileData, customPageFileData.url); // Use the URL from jsonData
-                        this.emit("complete", customPageFileData);
-                        this.files.push(customPageFileData);
-                    }
-
-                    // When a file is sent, add additional form data
-                    this.on("sending", function(file, xhr, formData) {
-                        formData.append('type', 'custom_page_file');
-                        formData.append('page_id', pageId);
-                        formData.append('folder', 'custom_page_file');
-                    });
-
-                    // When a file is added, check if it's valid based on accepted file types
-                    this.on("addedfile", function(file) {
-                        if (!file.type.match('application/pdf')) {
-                            // If the file type doesn't match, remove the file from preview
-                            this.removeFile(file);
-                            showErrorNotification('Only PDF files are allowed.');
-                        }
-                    });
-
-                    // On success, show a success notification
-                    this.on("success", function(file, response) {
-                        showSuccessNotification(response.message);
-                    });
-
-                    // When a file is removed, delete it from the Dropzone
-                    this.on("removedfile", function(file) {
-                        deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
-                            page_id: pageId,
-                            file_key: 'custom_page_file',
-                        });
-                    });
-                }
-                });
-                $(this).addClass('dropzone-initialized'); // Mark as initialized
-            }
-        });
-    }
-
     // show file on load in dropzone
     function showFileOnLoadInDropzone(dropzoneInstance, fileData) {
         if (fileData.name && fileData.size && fileData.url && fileData.path && fileData.type) {
@@ -688,21 +617,26 @@ customPageInitializeDropzone();
 
     // AJAX Request
     fetch(url, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-    },
-    body: JSON.stringify({ status: newStatus }),
-})
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({ status: newStatus }),
+    })
     .then(response => response.json())
     .then(data => {
         if (data.status) {  // Check for 'status' instead of 'success'
             console.log('data', data);
             // Update the button text and data-status attribute dynamically
+            console.log(newStatus)
             this.setAttribute('data-status', newStatus);
-            this.textContent = `Update to ${newStatus === 'draft' ? 'Published' : 'Draft'}`;
+            this.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
             showSuccessNotification(data.message);
+            // if(newStatus == 'published') {
+            //     document.getElementById('downloadReportPDF').style.display = 'block'
+            // }
+            
         } else {
             showErrorNotification(data.message || 'An error occurred while updating the status.');
         }
@@ -713,10 +647,14 @@ customPageInitializeDropzone();
     });
 });
 
+
 document.getElementById('downloadReportPDF').addEventListener('click', function () {
     const reportId = this.getAttribute('data-id');
     const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
     const url = downloadPdfUrl.replace(':id', reportId);
+
+    // Show the loader before starting the download
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     // Download PDF via Fetch
     fetch(url, {
@@ -743,7 +681,53 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred. Please try again.');
+        })
+        .finally(() => {
+            // Hide the loader after the download is done
+            document.getElementById('loadingSpinner').style.display = 'none';
         });
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const url = "{{ route('reports.copy-template') }}";
+    const reportId = @json($report->id ?? '');
+
+    // Handle dropdown change
+    document.getElementById('templateDropdown').addEventListener('change', function () {
+        const selectedTemplateId = this.value;
+
+        // Show confirmation alert
+        if(selectedTemplateId) {
+            if (confirm('Are you sure you want to copy the template code?')) {
+                // If user confirms, send the AJAX request
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({ 
+                        template_id: selectedTemplateId, 
+                        report_id: reportId 
+                    }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                    showSuccessNotification(data.message); // Display success notification
+                    setTimeout(() => {
+                        document.getElementById('templateDropdown').value = '';
+                        window.location.reload(); // Reload the page after a delay
+                    }, 2000); // Delay of 2000 milliseconds (2 seconds)
+                })
+                    .catch(error => {
+                        // Handle error
+                        console.error('Error:', error);
+                        showErrorNotification('Only PDF files are allowed.');
+                    });
+            }
+        }
+    });
 });
 </script>
 @endpush
@@ -751,6 +735,8 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
 
 @section('content')
 <section class="h-screen flex">
+<img id="loadingSpinner" src="{{ asset('assets/images/loader.gif') }}" alt="Loading" 
+style="display: none; position: fixed; top: 50%; left: 60%; transform: translate(-50%, -50%); z-index: 9999; width: 250px; height: 200px;" />
     <!-- Sidebar with Tabs -->
     <aside
         class="w-1/4 p-4 bg-white shadow overflow-y-auto h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">
@@ -781,76 +767,89 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
     </aside>
 
 
-
     <!-- Main Content Area -->
     <section class="w-3/4 p-6">
-        <!-- Heading at the top of the right side -->
-        <div class="bg-white shadow p-4 rounded-lg mb-4">
-        <div class="flex items-center justify-between">
-    <h2 class="text-xl font-semibold" id="reportTitleText">{{ $report->title }}</h2>
-    <div>
-        <button 
-            class="text-blue-500 hover:text-blue-600 update-status-button" 
-            id="updateToPublishedBtn" style="margin-right:100px;"
-            data-id="{{ $report->id }}"
-            data-status="{{ $report->status }}">
-            Click to {{ $report->status === 'draft' ? 'Published' : 'Draft' }}
-        </button>
-        <button 
-            class="text-blue-500 hover:text-blue-600 update-status-button" 
-            id="downloadReportPDF" style="margin-right:100px;"
-            data-id="{{ $report->id }}">
-            Download PDF
-        </button>
-        <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
+    <!-- Template dropdown positioned above the content area -->
+    <div class="flex justify-end w-full">
+        <label for="layout-select" class="font-bold lg:w-2/12 md:w-4/12 w-full" style="margin-top: 8px;">Copy Template:</label>
+                    <select id="templateDropdown" class="layout-select border p-2 lg:w-2/12 md:w-4/12 w-full">
+                    <option selected value="">Choose a Template</option>
+            @forelse ($templates as $template)
+                <option value="{{ $template->id }}">{{ $template->title }}</option>
+            @empty
+                <option disabled>No templates available</option>
+            @endforelse
+                    </select>
     </div>
-</div>
 
-            <!-- Edit input (initially hidden) -->
-            <div id="editTitleContainer" class="hidden mt-2">
-                <input type="text" id="reportTitleInput" value="{{ $report->title }}"
-                    class="border p-2 rounded w-full" name="title" />
-                <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
-                <button id="saveTitleBtn" class="bg-blue-500 text-white text-sm p-2 rounded mt-2">Save</button>
-                <button id="cancelEditBtn" class="bg-gray-300 text-black text-sm p-2 rounded mt-2 ml-2">Cancel</button>
+    <!-- Content area with a card-like design for report and actions -->
+    <div class="bg-white shadow p-4 rounded-lg mt-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold" id="reportTitleText">{{ $report->title }}</h2>
+            <div>
+            <button 
+    class="text-blue-500 hover:text-blue-600 update-status-button" 
+    id="updateToPublishedBtn" 
+    style="margin-right:100px;"
+    data-id="{{ $report->id }}"
+    data-status="{{ $report->status }}">
+    {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
+</button>
+                @if($report->status === 'published')
+                <button 
+                    class="text-blue-500 hover:text-blue-600 update-status-button" 
+                    id="downloadReportPDF" style="margin-right:100px;"
+                    data-id="{{ $report->id }}">
+                    Download PDF
+                </button>
+                @endif
+                <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
             </div>
         </div>
 
+        <!-- Edit input (initially hidden) -->
+        <div id="editTitleContainer" class="hidden mt-2">
+            <input type="text" id="reportTitleInput" value="{{ $report->title }}"
+                class="border p-2 rounded w-full" name="title" />
+            <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
+            <button id="saveTitleBtn" class="bg-blue-500 text-white text-sm p-2 rounded mt-2">Save</button>
+            <button id="cancelEditBtn" class="bg-gray-300 text-black text-sm p-2 rounded mt-2 ml-2">Cancel</button>
+        </div>
+    </div>
 
-        <!-- Content area with tabs and corresponding content -->
-        <div class="flex">
-            <!-- Right side for tab content -->
-            <div class="w-full" id="tabContent">
-                @forelse ($report->reportPages as $page)
+    <!-- Content area with tabs and corresponding content -->
+    <div class="flex">
+        <!-- Right side for tab content -->
+        <div class="w-full" id="tabContent">
+            @forelse ($report->reportPages as $page)
                 <div id="tab{{ $page->id }}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
                     <div class="flex items-center justify-between">
-                        <h3 id="pageName-{{ $page->id }}" class="text-lg font-medium mb-2">{{ $page->name }}
-                        </h3>
+                        <h3 id="pageName-{{ $page->id }}" class="text-lg font-medium mb-2">{{ $page->name }}</h3>
                         <button class="text-blue-500 hover:text-blue-600 edit-button" data-id="{{ $page->id }}"
-                            data-name="{{ $page->name }}">Edit</button>
+                                data-name="{{ $page->name }}">Edit</button>
                     </div>
 
                     <div id="editPageForm-{{ $page->id }}" class="edit-form hidden mb-2">
                         <input type="text" id="editInput-{{ $page->id }}" class="border rounded p-2 w-full"
-                            value="{{ $page->name }}" />
+                               value="{{ $page->name }}" />
                         <div class="flex space-x-2 mt-2">
                             <button class="bg-blue-500 text-white text-sm px-4 py-2 rounded update-button"
-                                data-id="{{ $page->id }}">Update</button>
+                                    data-id="{{ $page->id }}">Update</button>
                             <button class="bg-gray-500 text-white text-sm px-4 py-2 rounded cancel-button"
-                                data-id="{{ $page->id }}">Cancel</button>
+                                    data-id="{{ $page->id }}">Cancel</button>
                         </div>
                     </div>
+
                     @includeIf(
-                    'reports_layout.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
-                    ['pageData' => $page->pageData]
+                        'reports_layout.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
+                        ['pageData' => $page->pageData]
                     )
                 </div>
-                @empty
+            @empty
                 <p class="text-gray-500">No content available</p>
-                @endforelse
-            </div>
+            @endforelse
         </div>
-    </section>
+    </div>
 </section>
 
 {{-- custom page content --}}

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Models\Template;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Support\Facades\Storage;
@@ -67,7 +69,8 @@ class ReportLayoutController extends Controller
     {
         try {
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
-            return view('reports_layout.edit', compact('report'));
+            $templates = Template::latest()->get();
+            return view('reports_layout.edit', compact('report','templates'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');
         }
@@ -132,6 +135,66 @@ class ReportLayoutController extends Controller
         // Return the PDF for download
         return $pdf->download("report-{$id}.pdf");
     }
+
+    public function copyTemplate(Request $request)
+    {
+        // Validate the input
+         $request->validate([
+            'template_id' => 'required|exists:templates,id',
+            'report_id' => 'required|exists:reports,id',
+        ]);
+
+        $templateId = $request->template_id;
+        $reportId = $request->report_id;
+    
+        // Fetch the template and report
+        $template = Template::with('templatePages.pageData')->findOrFail($templateId);
+        $report = Report::findOrFail($reportId);
+    
+        // Begin database transaction
+        DB::beginTransaction();
+    
+        try {
+            // Remove existing report pages and their data
+            $report->reportPages()->each(function ($reportPage) {
+                $reportPage->pageData()->delete(); // Delete associated page data
+                $reportPage->delete(); // Delete the report page
+            });
+    
+            // Copy template pages to report pages
+            foreach ($template->templatePages as $templatePage) {
+                // Create a new ReportPage
+                $reportPage = $report->reportPages()->create([
+                    'name' => $templatePage->name,
+                    'slug' => $templatePage->slug,
+                    'is_active' => $templatePage->is_active,
+                    'order_no' => $templatePage->order_no,
+                ]);
+    
+                // Copy the template page data to the report page data
+                if ($templatePage->pageData) {
+                    $reportPage->pageData()->create([
+                        'json_data' => json_encode($templatePage->pageData->json_data),
+                    ]);
+                }
+            }
+    
+            // Commit the transaction
+            DB::commit();
+    
+            return response()->json([
+                'message' => 'Template copied successfully!',
+            ], 200);
+        } catch (\Exception $e) {
+            // Rollback transaction if there is an error
+            DB::rollBack();
+    
+            return response()->json([
+                'message' => 'An error occurred while copying the template.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }    
 
 
     public function destroy($reportId)
