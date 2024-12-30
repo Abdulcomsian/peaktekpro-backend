@@ -146,7 +146,7 @@
             $('#roof-repair-limitations-text').val(roofRepairLimitationsQuill.root.innerHTML);
 
             //save textarea data
-            saveTemplatePageTextareaData('#roof-repair-limitations-text');
+            saveReportPageTextareaData('#roof-repair-limitations-text');
         });
     </script>
 @endpush

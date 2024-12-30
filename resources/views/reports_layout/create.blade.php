@@ -1,6 +1,6 @@
-@extends('layouts.template-layout')
+@extends('layouts.report-layout')
 
-@section('title', 'Create Template')
+@section('title', 'Create Report')
 
 @section('content')
     <section class="h-screen flex">
@@ -66,7 +66,7 @@
                     }).get();
 
                     $.ajax({
-                        url: "{{ route('templates.page-ordering.update') }}", // Define this route in your web.php
+                        url: "{{ route('reports.page-ordering.update') }}", // Define this route in your web.php
                         method: 'POST',
                         data: {
                             order: order,
