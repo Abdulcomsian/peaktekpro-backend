@@ -165,16 +165,16 @@ class CustomerAgreementController extends Controller
                 $job->save();    
             }
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Agreement Created Successfully',
-                'agreement' => $agreement
-            ], 200);
             // return response()->json([
             //     'status' => 200,
             //     'message' => 'Agreement Created Successfully',
             //     'agreement' => $agreement
-            // ], 200, [], JSON_UNESCAPED_SLASHES);
+            // ], 200);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Agreement Created Successfully',
+                'agreement' => $agreement
+            ], 200, [], JSON_UNESCAPED_SLASHES);
             
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
