@@ -48,8 +48,8 @@ return [
     
     'image' => [
         'enabled' => true,
-        // 'binary' => base_path('vendor/wemersonjanuario/wkhtmltopdf-windows/bin/64bit/wkhtmltoimage.exe'),
-        'binary' => '"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"',
+        'binary' => base_path('vendor/wemersonjanuario/wkhtmltopdf-windows/bin/64bit/wkhtmltoimage.exe'),
+        // 'binary' => '"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"',
         'timeout' => false,
         'options' => [],
         'env'     => [],

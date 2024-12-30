@@ -1296,8 +1296,13 @@ class CompanyJobController extends Controller
 
 
     
-    public function getJobWithStatus($statusId)
+    public function getJobWithStatus($statusId, Request $request)
     {
+        $request->validate([
+            'job_type'=>'nullable',
+            'market' => 'nullable'
+        ]);
+
         try {
             // Check Status
             $task = Status::find($statusId);
@@ -1351,7 +1356,72 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-    
+    public function getJobWithStatus1($statusId, Request $request)
+{
+    $request->validate([
+        'job_type' => 'nullable',
+        'market' => 'nullable'
+    ]);
+
+    try {
+        // Check Status
+        $task = Status::find($statusId);
+        if (!$task) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Task Not Found'
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+        $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+        // Initialize query builder
+        $query = CompanyJob::query();
+
+        if ($user->role_id == 1 || $user->role_id == 2) {
+            $query->where('created_by', $created_by);
+        } else {
+            $query->whereIn('id', $assigned_jobs);
+        }
+
+        $query->where('status_id', $statusId);
+
+        // Apply filters if provided
+        $query->whereHas('summary', function ($q) use ($request) {
+            if ($request->filled('job_type')) {
+                $q->where('job_type', $request->job_type);
+            }
+            if ($request->filled('market')) {
+                $q->where('market', $request->market);
+            }
+        });
+
+        // Fetch jobs with necessary relationships and fields
+        $jobs = $query->with('summary:company_job_id,balance')
+            ->orderBy('status_id', 'asc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($job) {
+                $job->amount = $job->summary->balance ?? 0;
+                return $job;
+            });
+
+        $task->jobs = $jobs;
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Jobs Found Successfully',
+            'data' => $task
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
+        ], 500);
+    }
+}
+
     public function dashboardStats()
     {
         try { 
@@ -2167,6 +2237,18 @@ class CompanyJobController extends Controller
             $sortField = 'updated_at';
             $sortOrder = 'desc';
 
+               // Tables with stages
+            $tables = [
+                'customer_agreements',
+                'estimate_prepareds',
+                'adjustor_meetings',
+                'ready_to_builds',
+                'build_details',
+                'inprogresses',
+                'cocs',
+                'final_payment_dues',
+                'ready_to_closes',
+            ];
             // Determine sorting based on request
             if (!empty($request->sort_by)) {
                 switch ($request->sort_by) {
@@ -2375,6 +2457,50 @@ class CompanyJobController extends Controller
                     }
                 ])
                 ->get();
+
+
+                // Calculate progress for each job
+            // $tables = [
+            //     'customer_agreements',
+            //     'estimate_prepareds',
+            //     'adjustor_meetings',
+            //     'ready_to_builds',
+            //     'build_details',
+            //     'inprogresses',
+            //     'cocs',
+            //     'final_payment_dues',
+            //     'ready_to_closes',
+            // ];
+
+        // $jobsWithProgress = $$tasks->map(function ($job) use ($tables) {
+        //     $completedSteps = 0;
+        //     $totalSteps = count($tables) + 1;
+
+        //     $customerAgreement = DB::table('customer_agreements')
+        //         ->where('company_job_id', $job->id)
+        //         ->select('current_stage')
+        //         ->first();
+
+        //     if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
+        //         $completedSteps++;
+        //     }
+
+        //     foreach ($tables as $table) {
+        //         $currentStage = DB::table($table)
+        //             ->where('company_job_id', $job->id)
+        //             ->select('current_stage')
+        //             ->first();
+
+        //         if ($currentStage && $currentStage->current_stage === 'yes') {
+        //             $completedSteps++;
+        //         }
+        //     }
+
+        //     $completedPercentage = ($completedSteps / $totalSteps) * 100;
+        //     $job->completed_percentage = round($completedPercentage, 2);
+
+        //     return $job;
+        // });
 
             // Transform tasks data to include 'job_total' and 'claim_number' in 'summary' and sum up 'job_total' for each status
             $tasks->each(function ($status) {
