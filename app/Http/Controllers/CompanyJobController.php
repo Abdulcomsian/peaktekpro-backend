@@ -2736,7 +2736,7 @@ class CompanyJobController extends Controller
                 $ClaimDetail->claim_number = $request->claim_number;
                 $ClaimDetail->status = $request->status;
                 $ClaimDetail->supplement_amount = $request->supplement_amount;
-                $ClaimDetail->notes = $request->notes;
+                $ClaimDetail->notes = $request->notes ?? "";
                 $ClaimDetail->last_update_date = $request->last_update_date;
                 $ClaimDetail->save();
                 $message = "Claim Details Created";
