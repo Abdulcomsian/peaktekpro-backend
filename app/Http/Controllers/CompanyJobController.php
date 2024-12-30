@@ -1316,11 +1316,25 @@ class CompanyJobController extends Controller
             $user = Auth::user();
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
             $created_by = $user->created_by == 0 ? 1 : $user->created_by;
-            
+            $market = $request->input('market'); // Get the market filter from the request
+            $jobType = $request->input('job_type'); // Get the job_type filter from the request
+
             if($user->role_id == 1 || $user->role_id == 2) {
+
                 $jobs = CompanyJob::where('created_by', $created_by)
                 ->where('status_id', $statusId)
-                ->with('summary:company_job_id,balance') // Load only necessary fields from the summary
+                ->when($market, function ($query) use ($market) {
+                    // Apply market filter if provided
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType, function ($query) use ($jobType) {
+                    $query->whereHas('summary', function ($q) use ($jobType) {
+                        $q->where('job_type', $jobType);
+                    });     
+                           })
+                ->with('summary') // Load only necessary fields from the summary
                 ->orderBy('status_id', 'asc')
                 ->orderBy('id', 'desc')
                 ->get()
@@ -1332,8 +1346,18 @@ class CompanyJobController extends Controller
                 
                 
             } else {
-                $jobs = CompanyJob::whereIn('id', $assigned_jobs)->where('status_id', $statusId)
-                ->with('summary:company_job_id,balance') // Load only necessary fields from the summary
+                $jobs = CompanyJob::whereIn('id', $assigned_jobs)
+                ->where('status_id', $statusId)
+                ->when($market, function ($query) use ($market) {
+                    // Apply market filter if provided
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType, function ($query) use ($jobType) {
+                    $query->where('job_type', $jobType);
+                })
+                ->with('summary') // Load only necessary fields from the summary
                 ->orderBy('status_id', 'asc')
                 ->orderBy('id', 'desc')
                 ->get()
