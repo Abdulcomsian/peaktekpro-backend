@@ -25,6 +25,7 @@ use App\Models\MaterialOrderConfirmation;
 use App\Jobs\MaterialOrderConfirmationJob;
 use App\Models\MaterialOrderDeliveryInformation;
 use App\Notifications\MaterialOrderConfirmationNotification;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 class MaterialOrderController extends Controller
 {
@@ -40,13 +41,13 @@ class MaterialOrderController extends Controller
         //Validate Request
         $this->validate($request, [
             // 'supplier_id' => 'required|integer',
-            'street' => 'nullable',
-            'city' => 'nullable',
-            'state' => 'nullable',
-            'zip_code' => 'nullable',
-            'insurance' => 'nullable',
-            'claim_number' => 'nullable',
-            'policy_number' => 'nullable',
+            // 'street' => 'nullable',
+            // 'city' => 'nullable',
+            // 'state' => 'nullable',
+            // 'zip_code' => 'nullable',
+            // 'insurance' => 'nullable',
+            // 'claim_number' => 'nullable',
+            // 'policy_number' => 'nullable',
             'date_needed' => 'nullable|date_format:m/d/Y',
             'square_count' => 'nullable',
             'total_perimeter' => 'nullable',
@@ -82,6 +83,35 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
 
+
+            /////////////get previous details////////////
+            $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id',$id)->select('id','name','email','phone','address')->first();
+            // return response()->json([
+            //     'data'=> $customer_agreement
+            // ]);
+          
+            if ($customer_agreement) {
+                $decodedAddress = json_decode($customer_agreement->address, true);
+
+                // Decode the address JSON string into a PHP array
+                $customer_agreement->city = $decodedAddress['city'] ?? null;
+                $customer_agreement->postalCode = $decodedAddress['postalCode'] ?? null;
+                $customer_agreement->street = $decodedAddress['street'] ?? null;
+                $customer_agreement->state = $decodedAddress['state'] ?? null;
+                $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
+            
+                unset($customer_agreement->address);
+
+                  // Separate summary values
+                if ($customer_agreement->summary) {
+                    $customer_agreement->insurance = $customer_agreement->summary->insurance;
+                    $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
+                    $customer_agreement->claim_number = $customer_agreement->summary->claim_number;
+
+                    unset($customer_agreement->summary);
+                }
+
+            }
             //Generate PO number
             $poNumber = $this->generatePONumber();
 
@@ -95,19 +125,29 @@ class MaterialOrderController extends Controller
             // }
 
             //Store Material Order
+            $city = $decodedAddress['city'] ?? null;
+            $postalCode = $decodedAddress['postalCode'] ?? null;
+            $street = $decodedAddress['street'] ?? null;
+            $state = $decodedAddress['state'] ?? null;
+            $formatedAddress = $decodedAddress['formatedAddress'] ?? null;
+        
+            $insurance = $customer_agreement->summary->insurance ?? null;
+            $claimnumber = $customer_agreement->summary->claim_number ?? null;
+            $policynumber = $customer_agreement->summary->policy_number ?? null;
+
             $material_order = MaterialOrder::updateOrCreate([
                 'company_job_id' => $id,
             ],[
                 'company_job_id' => $id,
                 'po_number' => $poNumber, 
-                // 'supplier_id' => $request->supplier_id,
-                'street' => $request->street,
-                'city' => $request->city,
-                'state' => $request->state,
-                'zip_code' => $request->zip_code,
-                'insurance' => $request->insurance,
-                'claim_number' => $request->claim_number,
-                'policy_number' => $request->policy_number,
+                'supplier_id' => $request->supplier_id,
+                'street' => $street,
+                'city' =>  $city,
+                'state' => $state,
+                'zip_code' => $postalCode,
+                'insurance' => $insurance,
+                'claim_number' => $claimnumber,
+                'policy_number' => $policynumber,
                 'date_needed' => $request->date_needed,
                 'square_count' => $request->square_count,
                 'total_perimeter' => $request->total_perimeter,
@@ -145,11 +185,7 @@ class MaterialOrderController extends Controller
                     'created_at' => $media->created_at,
                     'updated_at' => $media->updated_at,
                 ];
-
             }
-
-           
-
 
             ///end document and notes logic////
 
@@ -443,10 +479,20 @@ class MaterialOrderController extends Controller
             $response_data = [];
 
             // Always include job data in the response at the same level
+            $decodedAddress = json_decode($customer_agreement->address, true);
+
             if ($job) {
                 $response_data['name'] = $job->name;
                 $response_data['email'] = $job->email;
                 $response_data['phone'] = $job->phone;
+                $response_data['city'] = $decodedAddress['city'] ?? null;;
+                $response_data['street'] = $decodedAddress['street'] ?? null;;
+                $response_data['state'] = $decodedAddress['state'] ?? null;
+                $response_data['postalCode'] = $decodedAddress['postalCode'] ?? null;
+                $response_data['insurance'] = $customer_agreement->summary->insurance ?? null;
+                $response_data['policy_number'] = $customer_agreement->summary->policy_number ?? null;
+                $response_data['claim_number'] = $customer_agreement->summary->claim_number ?? null;
+
             }
 
             if ($material_order) {
