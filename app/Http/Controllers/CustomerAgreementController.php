@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignTitle;
+use Illuminate\Support\Facades\DB;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -169,6 +170,12 @@ class CustomerAgreementController extends Controller
                 'message' => 'Agreement Created Successfully',
                 'agreement' => $agreement
             ], 200);
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'Agreement Created Successfully',
+            //     'agreement' => $agreement
+            // ], 200, [], JSON_UNESCAPED_SLASHES);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
@@ -405,6 +412,7 @@ class CustomerAgreementController extends Controller
             //    [ 'aggrement'=> $agreement]
             // );
 
+            // dd($agreement);
             //Generate PDF
             $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
             $pdf_fileName = time() . '.pdf';
@@ -429,7 +437,7 @@ class CustomerAgreementController extends Controller
             $job->save();
 
             //Fire an Event
-            event(new JobStatusUpdateEvent('Refresh Pgae'));
+            // event(new JobStatusUpdateEvent('Refresh Pgae'));
 
             return response()->json([
                 'status' => 200,
@@ -441,6 +449,7 @@ class CustomerAgreementController extends Controller
         }
 
     }
+
 
     public function signCustomerAgreementByEmail(Request $request, $id)
     {
