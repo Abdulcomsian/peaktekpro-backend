@@ -60,12 +60,12 @@ class MeetingController extends Controller
                 'company_job_id' => $jobId,
             ],[
                 'company_job_id' => $jobId,
-                'email' => $request->email,
+                'email' => $request->email ?? "",
                 'date' => $request->date,
                 'time' => $request->time,
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'notes' => $request->notes,
+                'name' => $request->name ?? "",
+                'phone' => $request->phone ?? "",
+                'notes' => $request->notes ?? "",
                 'status' => isset($request->status) ? $request->status : 'pending',
                 'sent' => $request->sent
             ]);
