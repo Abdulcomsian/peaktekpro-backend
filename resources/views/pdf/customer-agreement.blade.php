@@ -624,7 +624,7 @@
             margin-top: 5px;
           "
           type="text"
-          value="{{$data->aggrement_date}}"
+          value="{{$data->agreement_date}}"
         />
       </td>
     </tr>
