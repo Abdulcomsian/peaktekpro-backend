@@ -1295,8 +1295,90 @@ class CompanyJobController extends Controller
     }
 
 
-    
     public function getJobWithStatus($statusId, Request $request)
+{
+    $request->validate([
+        'job_type' => 'nullable',
+        'market' => 'nullable',
+    ]);
+
+    try {
+        // Check Status
+        $task = Status::find($statusId);
+        if (!$task) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Task Not Found',
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+        $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+        $market = $request->input('market'); // Get the market filter from the request
+        $jobType = $request->input('job_type'); // Get the job_type filter from the request
+
+        if ($user->role_id == 1 || $user->role_id == 2) {
+            $jobs = CompanyJob::where('created_by', $created_by)
+                ->where('status_id', $statusId)
+                ->when($market && $market !== 'all', function ($query) use ($market) {
+                    // Apply market filter only if it's not "all"
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType && $jobType !== 'all', function ($query) use ($jobType) {
+                    // Apply job_type filter only if it's not "all"
+                    $query->whereHas('summary', function ($q) use ($jobType) {
+                        $q->where('job_type', $jobType);
+                    });
+                })
+                ->with('summary') // Load only necessary fields from the summary
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($job) {
+                    // Assign amount based on the summary balance or set it to 0 if summary is null
+                    $job->amount = $job->summary->balance ?? 0;
+                    return $job;
+                });
+        } else {
+            $jobs = CompanyJob::whereIn('id', $assigned_jobs)
+                ->where('status_id', $statusId)
+                ->when($market && $market !== 'all', function ($query) use ($market) {
+                    // Apply market filter only if it's not "all"
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType && $jobType !== 'all', function ($query) use ($jobType) {
+                    // Apply job_type filter only if it's not "all"
+                    $query->where('job_type', $jobType);
+                })
+                ->with('summary') // Load only necessary fields from the summary
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($job) {
+                    $job->amount = $job->summary->balance ?? 0;
+                    return $job;
+                });
+        }
+
+        $task->jobs = $jobs;
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Jobs Found Successfully',
+            'data' => $task,
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+    }
+}
+
+    
+    public function getJobWithStatus22($statusId, Request $request)
     {
         $request->validate([
             'job_type'=>'nullable',
@@ -1380,71 +1462,6 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-    public function getJobWithStatus1($statusId, Request $request)
-{
-    $request->validate([
-        'job_type' => 'nullable',
-        'market' => 'nullable'
-    ]);
-
-    try {
-        // Check Status
-        $task = Status::find($statusId);
-        if (!$task) {
-            return response()->json([
-                'status' => 422,
-                'message' => 'Task Not Found'
-            ], 422);
-        }
-
-        $user = Auth::user();
-        $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
-        $created_by = $user->created_by == 0 ? 1 : $user->created_by;
-
-        // Initialize query builder
-        $query = CompanyJob::query();
-
-        if ($user->role_id == 1 || $user->role_id == 2) {
-            $query->where('created_by', $created_by);
-        } else {
-            $query->whereIn('id', $assigned_jobs);
-        }
-
-        $query->where('status_id', $statusId);
-
-        // Apply filters if provided
-        $query->whereHas('summary', function ($q) use ($request) {
-            if ($request->filled('job_type')) {
-                $q->where('job_type', $request->job_type);
-            }
-            if ($request->filled('market')) {
-                $q->where('market', $request->market);
-            }
-        });
-
-        // Fetch jobs with necessary relationships and fields
-        $jobs = $query->with('summary:company_job_id,balance')
-            ->orderBy('status_id', 'asc')
-            ->orderBy('id', 'desc')
-            ->get()
-            ->map(function ($job) {
-                $job->amount = $job->summary->balance ?? 0;
-                return $job;
-            });
-
-        $task->jobs = $jobs;
-
-        return response()->json([
-            'status' => 200,
-            'message' => 'Jobs Found Successfully',
-            'data' => $task
-        ], 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
-        ], 500);
-    }
-}
 
     public function dashboardStats()
     {
@@ -2646,7 +2663,6 @@ class CompanyJobController extends Controller
             'job_type' => 'nullable|string',
             'location' => 'nullable|string',
         ]);
-
         try {
             // Check Status
             $task = Status::find($statusId);
