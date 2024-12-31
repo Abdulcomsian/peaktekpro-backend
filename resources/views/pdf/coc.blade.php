@@ -253,33 +253,24 @@
             <span style="border-bottom: 1px dashed lightslategray"
               >Sincerely <strong>{{$coc->sincerely ?? ''}}</strong></span
             >
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <table style="max-width: 1200px; margin: auto">
-      <tbody>
-        <tr>
-          <td>
-            <h2 style="text-align: left">Notes</h2>
-            <p style="line-height: 1.6">
+            <br/><br>
+            <div style="display: flex; justify-content: left; max-width: 1200px;">
+              <h2 style="text-align: left">Notes</h2>
+                <p>
                 {!! $coc->notes ?? '' !!}
-            </p>
+                </p>
+            </div>
 
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-
-    <table style="max-width: 1200px; margin: auto">
+            <br><br>
+            <div>
+            <table >
   <tbody>
     <!-- Row for Company Representative Signature, Printed Name, and Date Signed -->
     <tr>
+    <h2 style="text-align: left">Digital Signatures</h2>
+
       <!-- Company Representative Signature -->
-      <td style="vertical-align: top; width: 40%; padding-right: 20px;">
-        <h2 style="margin: 0 0 15px;">Digital Signatures</h2>
+      <td style="vertical-align: top; width: 40%; padding-right: 20px; margin-right:auto; ">
         <div style="margin-bottom: 10px;">
           <strong>Company Representative Signature:</strong>
         </div>
@@ -339,9 +330,11 @@
     </tr>
   </tbody>
 </table>
-
-
-
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
   </body>
 </html>
