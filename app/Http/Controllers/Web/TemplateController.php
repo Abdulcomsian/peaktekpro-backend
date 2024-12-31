@@ -783,7 +783,7 @@ class TemplateController extends Controller
 
                         // Generate a unique filename for the image
                         $filename = time() . '_' . uniqid() . '.png';
-                        $path = 'repairability-photos/' . $filename;
+                        $path = 'template-files/repairability-photos/' . $filename;
 
                         // Save the image to storage
                         Storage::disk('public')->put($path, $decodedImage);

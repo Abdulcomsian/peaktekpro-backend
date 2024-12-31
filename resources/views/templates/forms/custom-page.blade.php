@@ -1,4 +1,4 @@
-<div class="w-full mx-auto p-6 bg-white shadow rounded-lg custom-page-container">
+<div class="w-full mx-auto p-6 bg-white shadow rounded-lg custom-page-container" data-id="{{ $page->id }}">
     <!-- First Card with Radio Buttons -->
     @php
         $uniquePageId = \Str::uuid(); // Unique identifier for this page
@@ -27,11 +27,11 @@
         </div>
     </div>
 
-    <div id="custom-page-single-pdf-section-{{ $uniquePageId }}-{{ $firstrandom }}"
+    <div id="custom-page-single-pdf-section-{{ $page->id }}"
          class="hidden"
          data-selected="single_pdf_{{ $uniquePageId }}-{{ $firstrandom }}">
         <!-- Form for PDF Upload (Dropzone) -->
-        <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone custom-page-dropzone">
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone custom-page-dropzone" data-json="{{ json_encode($pageData->json_data['custom_page_file'] ?? '', true) }}">
             <div class="dz-message text-gray-600">
                 <span class="block text-lg font-semibold">Drag & Drop or Click to Upload PDF</span>
                 <small class="text-gray-500">Only PDF file are allowed</small>
@@ -68,6 +68,5 @@
 
         // initialize Quill and Dropzone after appending content
         customPageInitializeQuill();
-        customPageInitializeDropzone();
     </script>
 @endpush

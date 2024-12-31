@@ -107,39 +107,58 @@
 
     // Initialize Dropzone
     const customPageInitializeDropzone = () => {
-        // Re-initialize Dropzone for the newly added elements
-        $('.custom-page-dropzone').each(function() {
-            if (!$(this).hasClass('dropzone-initialized')) {
-                new Dropzone($(this)[0], {
-                    url: saveFileFromDropZoneRoute,
-                    paramName: 'file',
-                    maxFiles: 1,
-                    acceptedFiles: '.pdf',
-                    addRemoveLinks: true,
-                    dictRemoveFile: "Remove",
-                    dictDefaultMessage: "Drag & Drop or Click to Upload",
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    init: function() {
-                    // Check if there's an existing file and initialize Dropzone with the file data
-                    let jsonData = JSON.parse(`{!! json_encode($pageData->json_data ?? []) !!}`)
-                    // Check if there's an existing file in the parsed JSON
-                    let customPageFileData = {
-                        name: jsonData['custom_page_file']?.file_name ?? '',
-                        size: jsonData['custom_page_file']?.size ?? '',
-                        url: jsonData['custom_page_file']?.path ? "{{ asset('storage') }}/" + jsonData['custom_page_file'].path : '',
-                        path: jsonData['custom_page_file']?.path ?? '',
-                        type: 'custom_page_file'
-                    };
+    // Re-initialize Dropzone for the newly added elements
+    $('.custom-page-dropzone').each(function() {
 
-                    if (customPageFileData.name) {
+        let customPageDropzoneJsonData = '';
+        let dataJson = $(this).attr('data-json');
+
+        if (dataJson && dataJson !== '') {
+        try {
+            // Attempt to parse the JSON data
+            customPageDropzoneJsonData = JSON.parse(dataJson);
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+        }
+    }
+
+        // Ensure Dropzone is not re-initialized
+        if (!$(this).hasClass('dropzone-initialized')) {
+            new Dropzone($(this)[0], {
+                url: saveFileFromDropZoneRoute,
+                paramName: 'file',
+                maxFiles: 1,
+                acceptedFiles: '.pdf',
+                addRemoveLinks: true,
+                dictRemoveFile: "Remove",
+                dictDefaultMessage: "Drag & Drop or Click to Upload",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                init: function() {
+                    // Initialize customPageFileData outside of the if block
+                    let customPageFileData = null;  // Start with null as default value
+
+                    // Ensure jsonData is available and correctly formatted
+                    let jsonData = customPageDropzoneJsonData;
+                    if (jsonData) {
+                        customPageFileData = {
+                            name: jsonData.file_name ?? '',
+                            size: jsonData.size ?? '',
+                            url: jsonData.path ? "{{ asset('storage') }}/" + jsonData.path : '',
+                            path: jsonData.path ?? '',
+                            type: 'custom_page_file'
+                        };
+                    }
+
+                    // Check if the file name exists and show the file in the Dropzone
+                    if (customPageFileData && customPageFileData.name) {
                         // If there is an existing file, show it in the Dropzone
                         this.emit("addedfile", customPageFileData);
                         // Emitting the correct full path for the thumbnail
                         this.emit("thumbnail", customPageFileData, customPageFileData.url); // Use the URL from jsonData
                         this.emit("complete", customPageFileData);
-                        this.files.push(customPageFileData);
+                        this.files.push(customPageFileData); // Add to the Dropzone files array
                     }
 
                     // When a file is sent, add additional form data
@@ -151,6 +170,7 @@
 
                     // When a file is added, check if it's valid based on accepted file types
                     this.on("addedfile", function(file) {
+                        // Ensure only PDF files are allowed
                         if (!file.type.match('application/pdf')) {
                             // If the file type doesn't match, remove the file from preview
                             this.removeFile(file);
@@ -171,11 +191,14 @@
                         });
                     });
                 }
-                });
-                $(this).addClass('dropzone-initialized'); // Mark as initialized
-            }
-        });
-    }
+            });
+            $(this).addClass('dropzone-initialized'); // Mark as initialized
+        }
+    });
+}
+
+// Initialize Dropzone for each page dynamically
+customPageInitializeDropzone();
 
     // show file on load in dropzone
     function showFileOnLoadInDropzone(dropzoneInstance, fileData) {
