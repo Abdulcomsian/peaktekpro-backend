@@ -62,25 +62,25 @@ class CompanyJobController extends Controller
             $company= $user->company_id;
             $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
              //here We will check that this mail exist in users table and if it is in users table then add the job with it if we have no email then create a new customer
-            $user=User::where('email',$request->email)->first();
-            if(!$user)
-            {
-                //here I am making a new customer/client
-                $user=new User();
-                $user->name = $request->name;
-                $names = explode(' ', $request->name, 2); // Split into two parts
-                $user->first_name = $names[0] ?? null;
-                $user->last_name = $names[1] ?? null;
-                $user->email = $request->email;
-                $user->phone = $request->phone;
-                // $user->password = Hash::make(Str::random(8));
-                $user->password = Hash::make('12345678');
-                $user->status = 'active';
-                $user->role_id = 10;
-                $user->created_by = $created_by;
-                $user->company_id = $company;
-                $user->save();
-            }
+            // $user=User::where('email',$request->email)->first();
+            // if(!$user)
+            // {
+            //     //here I am making a new customer/client
+            //     $user=new User();
+            //     $user->name = $request->name;
+            //     $names = explode(' ', $request->name, 2); // Split into two parts
+            //     $user->first_name = $names[0] ?? null;
+            //     $user->last_name = $names[1] ?? null;
+            //     $user->email = $request->email;
+            //     $user->phone = $request->phone;
+            //     // $user->password = Hash::make(Str::random(8));
+            //     $user->password = Hash::make('12345678');
+            //     $user->status = 'active';
+            //     $user->role_id = 10;
+            //     $user->created_by = $created_by;
+            //     $user->company_id = $company;
+            //     $user->save();
+            // }
 
             //Create Job
             $job = new CompanyJob;
@@ -2335,7 +2335,6 @@ class CompanyJobController extends Controller
             $specificStatuses =
                 ['New Leads',
                 'Customer Agreement',
-                // 'Estimate Prepared', //excluded
                 'Adjuster Scheduled',
                 'Ins Under Review', 
                 'Overturn',
@@ -2353,9 +2352,9 @@ class CompanyJobController extends Controller
                 'Lost',
                 'Unqualified', ];
 
-            // $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
-
+                // dd($specificStatuses);
             $tasks = Status::select('id', 'name')
+                ->whereIn('name', $specificStatuses)
                 ->when(!empty($request->stages), function ($query) use ($request) {
                     $query->whereIn('name', $request->stages);
                 })
