@@ -24,6 +24,142 @@ class InprogressController extends Controller
             // 'status' => 'nullable',
 
             //this is required photos section
+            // 'images' => 'nullable|array',
+            'morningPhotos' => 'nullable|array',
+            'morningPhotos.*.label' => 'nullable|string',
+            'morningPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
+
+            'compliancePhotos' => 'nullable|array',
+            'compliancePhotos.*.label' => 'nullable|string',
+            'compliancePhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
+
+            'completionPhotos' => 'nullable|array',
+            'completionPhotos.*.label' => 'nullable|string',
+            'completionPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
+
+            //this is photo upload Fields Section
+            // 'photos'=> 'nullable|array',
+            // 'photos.*' => 'nullable|image',
+            // 'labels' => 'nullable|array',
+            // 'labels.*' => 'nullable|string',
+
+            'production_sign_url' => 'nullable|string',
+            'homeowner_signature' => 'nullable|string'
+        ]);
+
+        try {
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json(['status' => 422, 'message' => 'Job not found'], 422);
+            }
+
+            // Update Inprogress
+            $in_progress = Inprogress::updateOrCreate(
+                ['company_job_id' => $jobId],
+                [
+                    'company_job_id' => $jobId,
+                    'build_start_date' => $request->build_start_date,
+                    'build_end_date' => $request->build_end_date,
+                    'notes' => $request->notes,
+                    // 'status' => $request->status,
+                ]
+            );
+
+        // Save photos and store in their respective categories
+            $morningPhotos = [];
+            $compliancePhotos = [];
+            $completionPhotos = [];
+
+            $imageCategories = ['morningPhotos', 'compliancePhotos', 'completionPhotos'];
+            foreach ($imageCategories as $category) {
+                if (isset($request->$category) && is_array($request->$category)) {
+                    foreach ($request->$category as $imageData) {
+                        if (isset($imageData['image']) && $imageData['image']->isValid()) {
+                            $filePath = $imageData['image']->store('public/inprogress_media');
+                            $url = str_replace('public/', '/storage/', $filePath);
+
+                            $media = new InprogressMedia();
+                            $media->company_job_id = $jobId;
+                            $media->labels = $imageData['label'] ?? null;
+                            $media->image_path = $url;
+                            $media->category = $category;
+                            $media->save();
+
+                            // Add to specific category arrays
+                            if ($category == 'morningPhotos') {
+                                $morningPhotos[] = [
+                                    'labels' => $media->labels,
+                                    'image_paths' => $url,
+                                ];
+                            } elseif ($category == 'compliancePhotos') {
+                                $compliancePhotos[] = [
+                                    'labels' => $media->labels,
+                                    'image_paths' => $url,
+                                ];
+                            } elseif ($category == 'completionPhotos') {
+                                $completionPhotos[] = [
+                                    'labels' => $media->labels,
+                                    'image_paths' => $url,
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Handle Base64 Signatures
+            if ($request->production_sign_url) {
+                $in_progress->production_sign_url = $this->saveBase64Image($request->production_sign_url, 'inprogress_signature');
+            }
+            if ($request->homeowner_signature) {
+                $in_progress->homeowner_signature = $this->saveBase64Image($request->homeowner_signature, 'inprogress_signature');
+            }
+
+            // Generate and Save PDF
+            $pdf = PDF::loadView('pdf.inprogress', ['data' => $in_progress, 'saved_photos' => $completionPhotos]);
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'inprogress_pdf/' . $pdf_fileName;
+
+            if ($in_progress->pdf_url) {
+                Storage::delete('public/' . str_replace('/storage/', '', $in_progress->pdf_url));
+            }
+
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+            $in_progress->pdf_url = '/storage/' . $pdf_filePath;
+            $in_progress->save();
+
+            // Update Job Status
+            if (isset($request->status) && $request->status == true) {
+                $job->status_id = 11;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inprogress Build Updated Successfully',
+                'data' => $in_progress,
+                'morningPhotos' => $morningPhotos,
+                'compliancePhotos' => $compliancePhotos,
+                'completionPhotos' => $completionPhotos,
+                // 'Photos' => $savedPhotos,
+
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
+    public function updateInprogress1(Request $request, $jobId)
+    {
+        // Validate Request
+        $this->validate($request, [
+            'build_start_date' => 'nullable|date_format:m/d/Y',
+            'build_end_date' => 'nullable|date_format:m/d/Y',
+            'notes' => 'nullable',
+            // 'status' => 'nullable',
+
+            //this is required photos section
             'images' => 'nullable|array',
             'images.morningPhotos' => 'nullable|array',
             'images.morningPhotos.*.label' => 'nullable|string',
