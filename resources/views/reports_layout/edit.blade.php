@@ -72,26 +72,26 @@
         ];
         // Re-initialize Quill for the newly added content
         $('.custom-page-quill-editor').each(function() {
-    if (!$(this).hasClass('quill-initialized')) {
-        var customQuill = new Quill($(this)[0], {
-            theme: 'snow',
-            modules: {
-                toolbar: customPageTextQuillOptions
-            }
-        });
-        $(this).addClass('quill-initialized'); // Mark as initialized
-        customQuill.root.style.height = '200px';
+            if (!$(this).hasClass('quill-initialized')) {
+                var customQuill = new Quill($(this)[0], {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: customPageTextQuillOptions
+                    }
+                });
+                $(this).addClass('quill-initialized'); // Mark as initialized
+                customQuill.root.style.height = '200px';
 
-        // Reference to the associated textarea (assumes it's the next sibling)
-        var $textarea = $(this).next('textarea');
+                // Reference to the associated textarea (assumes it's the next sibling)
+                var $textarea = $(this).next('textarea');
 
-        // Parse the JSON data passed from the backend
-        var existingContent = $textarea.val();
-            if (existingContent) {
-        customQuill.clipboard.dangerouslyPasteHTML(existingContent);
-            }
+                // Parse the JSON data passed from the backend
+                var existingContent = $textarea.val();
+                if (existingContent) {
+                    customQuill.clipboard.dangerouslyPasteHTML(existingContent);
+                }
 
-            // If no content exists, initialize the Quill editor and set up the 'text-change' event
+                // If no content exists, initialize the Quill editor and set up the 'text-change' event
                 customQuill.on('text-change', function() {
                     // Sync content with the associated textarea
                     $textarea.val(customQuill.root.innerHTML);
@@ -101,44 +101,63 @@
                     saveReportPageTextareaData($textarea);
                 });
 
-        }
-    });
-}
+            }
+        });
+    }
 
-    // Initialize Dropzone
     const customPageInitializeDropzone = () => {
-        // Re-initialize Dropzone for the newly added elements
-        $('.custom-page-dropzone').each(function() {
-            if (!$(this).hasClass('dropzone-initialized')) {
-                new Dropzone($(this)[0], {
-                    url: saveFileFromDropZoneRoute,
-                    paramName: 'file',
-                    maxFiles: 1,
-                    acceptedFiles: '.pdf',
-                    addRemoveLinks: true,
-                    dictRemoveFile: "Remove",
-                    dictDefaultMessage: "Drag & Drop or Click to Upload",
-                    headers: {
+    // Re-initialize Dropzone for the newly added elements
+    $('.custom-page-dropzone').each(function() {
+
+        let customPageDropzoneJsonData = '';
+        let dataJson = $(this).attr('data-json');
+
+        if (dataJson && dataJson !== '') {
+        try {
+            // Attempt to parse the JSON data
+            customPageDropzoneJsonData = JSON.parse(dataJson);
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+        }
+    }
+
+        // Ensure Dropzone is not re-initialized
+        if (!$(this).hasClass('dropzone-initialized')) {
+            new Dropzone($(this)[0], {
+                url: saveFileFromDropZoneRoute,
+                paramName: 'file',
+                maxFiles: 1,
+                acceptedFiles: '.pdf',
+                addRemoveLinks: true,
+                dictRemoveFile: "Remove",
+                dictDefaultMessage: "Drag & Drop or Click to Upload",
+                headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    init: function() {
-                    // Check if there's an existing file and initialize Dropzone with the file data
-                    let jsonData = JSON.parse(`{!! json_encode($pageData->json_data ?? []) !!}`)
-                    // Check if there's an existing file in the parsed JSON
-                    let customPageFileData = {
-                        name: jsonData['custom_page_file']?.file_name ?? '',
-                        size: jsonData['custom_page_file']?.size ?? '',
-                        url: jsonData['custom_page_file']?.path ? "{{ asset('storage') }}/" + jsonData['custom_page_file'].path : '',
-                        path: jsonData['custom_page_file']?.path ?? '',
-                        type: 'custom_page_file'
-                    };
-                    if (customPageFileData.name) {
+                },
+                init: function() {
+                    // Initialize customPageFileData outside of the if block
+                    let customPageFileData = null;  // Start with null as default value
+
+                    // Ensure jsonData is available and correctly formatted
+                    let jsonData = customPageDropzoneJsonData;
+                    if (jsonData) {
+                        customPageFileData = {
+                            name: jsonData.file_name ?? '',
+                            size: jsonData.size ?? '',
+                            url: jsonData.path ? "{{ asset('storage') }}/" + jsonData.path : '',
+                            path: jsonData.path ?? '',
+                            type: 'custom_page_file'
+                        };
+                    }
+
+                    // Check if the file name exists and show the file in the Dropzone
+                    if (customPageFileData && customPageFileData.name) {
                         // If there is an existing file, show it in the Dropzone
                         this.emit("addedfile", customPageFileData);
                         // Emitting the correct full path for the thumbnail
                         this.emit("thumbnail", customPageFileData, customPageFileData.url); // Use the URL from jsonData
                         this.emit("complete", customPageFileData);
-                        this.files.push(customPageFileData);
+                        this.files.push(customPageFileData); // Add to the Dropzone files array
                     }
 
                     // When a file is sent, add additional form data
@@ -150,6 +169,7 @@
 
                     // When a file is added, check if it's valid based on accepted file types
                     this.on("addedfile", function(file) {
+                        // Ensure only PDF files are allowed
                         if (!file.type.match('application/pdf')) {
                             // If the file type doesn't match, remove the file from preview
                             this.removeFile(file);
@@ -170,11 +190,14 @@
                         });
                     });
                 }
-                });
-                $(this).addClass('dropzone-initialized'); // Mark as initialized
-            }
-        });
-    }
+            });
+            $(this).addClass('dropzone-initialized'); // Mark as initialized
+        }
+    });
+}
+
+// Initialize Dropzone for each page dynamically
+customPageInitializeDropzone();
 
     // show file on load in dropzone
     function showFileOnLoadInDropzone(dropzoneInstance, fileData) {
@@ -237,29 +260,29 @@
     }
 
     function deleteFileFromRepairablityDropzone(deleteUrl, params) {
-            $.ajax({
-                url: deleteUrl,
-                type: 'DELETE',
-                data: params,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                // Call the success callback to update the UI
-                if (typeof successCallback === "function") {
-                    successCallback();
+        $.ajax({
+            url: deleteUrl,
+            type: 'DELETE',
+            data: params,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Call the success callback to update the UI
+                    if (typeof successCallback === "function") {
+                        successCallback();
+                    }
+                    showSuccessNotification('File deleted successfully');
+                } else {
+                    console.error('Error:', response.message || 'An error occurred');
                 }
-                showSuccessNotification('File deleted successfully');
-            } else {
-                console.error('Error:', response.message || 'An error occurred');
-            }
 
-                },
-                error: function() {
-                    showErrorNotification('Error deleting the file.');
-                }
-            });
+            },
+            error: function() {
+                showErrorNotification('Error deleting the file.');
+            }
+        });
     }
 
     $(document).ready(function() {
@@ -417,23 +440,23 @@
         });
 
         // Handle "Create Page" button click
-$('#createPageBtn').on('click', function() {
-    $.ajax({
-        url: "{{ route('reports.create-page', $report->id) }}",
-        method: 'POST',
-        data: {
-            title: 'Custom Page',
-            _token: $('meta[name=csrf-token]').attr('content')
-        },
-        success: function(response) {
-            if (response.status) {
-                // Generate unique random values for new IDs
-                let firstrandom = Math.random().toString(36).substr(2, 8);
-                let secondRandom = Math.random().toString(36).substr(2, 8);
-                let thirdRandom = Math.random().toString(36).substr(2, 8);
+        $('#createPageBtn').on('click', function() {
+            $.ajax({
+                url: "{{ route('reports.create-page', $report->id) }}",
+                method: 'POST',
+                data: {
+                    title: 'Custom Page',
+                    _token: $('meta[name=csrf-token]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        // Generate unique random values for new IDs
+                        let firstrandom = Math.random().toString(36).substr(2, 8);
+                        let secondRandom = Math.random().toString(36).substr(2, 8);
+                        let thirdRandom = Math.random().toString(36).substr(2, 8);
 
-                // Append the new page to the list dynamically
-                $('#tabsList').append(`
+                        // Append the new page to the list dynamically
+                        $('#tabsList').append(`
 <li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
     data-target="#tab${response.page.id}" data-id="${response.page.id}">
     <span>${response.page.name}</span>
@@ -447,8 +470,8 @@ $('#createPageBtn').on('click', function() {
 </li>
 `);
 
-                // Append the new page content
-                $('#tabContent').append(`
+                        // Append the new page content
+                        $('#tabContent').append(`
 <div id="tab${response.page.id}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
     <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
     <p>Content for ${response.page.name}</p>
@@ -481,21 +504,21 @@ $('#createPageBtn').on('click', function() {
 </div>
 `);
 
-customPageInitializeQuill();
-customPageInitializeDropzone();
+                        customPageInitializeQuill();
+                        customPageInitializeDropzone();
 
 
-                showSuccessNotification(response.message);
+                        showSuccessNotification(response.message);
 
-            } else {
-                showErrorNotification('Error creating page.');
-            }
-        },
-        error: function() {
-            showErrorNotification('An error occurred while creating the page.');
-        }
-    });
-});
+                    } else {
+                        showErrorNotification('Error creating page.');
+                    }
+                },
+                error: function() {
+                    showErrorNotification('An error occurred while creating the page.');
+                }
+            });
+        });
 
 
         // Handle toggle change (to update page status)
@@ -675,75 +698,183 @@ customPageInitializeDropzone();
         return base64Key.slice(0, length);
     }
 
-    document.getElementById('updateToPublishedBtn').addEventListener('click', function () {
-    const reportId = this.getAttribute('data-id');
-    const currentStatus = this.getAttribute('data-status');
-    const newStatus = currentStatus === 'draft' ? 'published' : 'draft';
-    const updateStatusUrl = "{{ route('reports.update-status', ':id') }}";
+    document.getElementById('updateToPublishedBtn').addEventListener('click', function() {
+        const reportId = this.getAttribute('data-id');
+        const currentStatus = this.getAttribute('data-status');
+        const newStatus = currentStatus === 'draft' ? 'published' : 'draft';
 
-    // Confirm action with the user
-    if (!confirm(`Are you sure you want to update this report to ${newStatus === 'published' ? 'Published' : 'Draft'}?`)) return;
-
-    const url = updateStatusUrl.replace(':id', reportId);
-
-    // AJAX Request
-    fetch(url, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-    },
-    body: JSON.stringify({ status: newStatus }),
-})
-    .then(response => response.json())
-    .then(data => {
-        if (data.status) {  // Check for 'status' instead of 'success'
-            console.log('data', data);
-            // Update the button text and data-status attribute dynamically
-            this.setAttribute('data-status', newStatus);
-            this.textContent = `Update to ${newStatus === 'draft' ? 'Published' : 'Draft'}`;
-            showSuccessNotification(data.message);
+        // Show the appropriate modal based on the current status
+        if (newStatus === 'published') {
+            document.getElementById('publishReportModal').classList.remove('hidden');
         } else {
-            showErrorNotification(data.message || 'An error occurred while updating the status.');
+            document.getElementById('draftReportModal').classList.remove('hidden');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+
+        // Handle confirm action for publishing
+        document.getElementById('confirmPublishBtn').addEventListener('click', function() {
+            updateReportStatus(reportId, newStatus);
+            document.getElementById('publishReportModal').classList.add('hidden');
+        });
+
+        // Handle confirm action for saving as draft
+        document.getElementById('confirmDraftBtn').addEventListener('click', function() {
+            updateReportStatus(reportId, newStatus);
+            document.getElementById('draftReportModal').classList.add('hidden');
+        });
+
+        // Handle cancel actions for both modals
+        document.getElementById('cancelPublishBtn').addEventListener('click', function() {
+            document.getElementById('publishReportModal').classList.add('hidden');
+        });
+        document.getElementById('cancelDraftBtn').addEventListener('click', function() {
+            document.getElementById('draftReportModal').classList.add('hidden');
+        });
     });
-});
 
-document.getElementById('downloadReportPDF').addEventListener('click', function () {
-    const reportId = this.getAttribute('data-id');
-    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
-    const url = downloadPdfUrl.replace(':id', reportId);
+    // Function to update report status
+    function updateReportStatus(reportId, newStatus) {
+        const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
 
-    // Download PDF via Fetch
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.blob(); // Convert the response to a Blob for the file
+        // AJAX Request to update the status
+        fetch(updateStatusUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: JSON.stringify({
+                status: newStatus
+            }),
         })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `report-${reportId}.pdf`; // Specify the filename
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link); // Clean up
+        .then(response => response.json())
+        .then(data => {
+            if (data.status) { // Check for success
+                console.log('data', data);
+                // Update the button text and data-status attribute dynamically
+                const button = document.getElementById('updateToPublishedBtn');
+                button.setAttribute('data-status', newStatus);
+                button.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
+                showSuccessNotification(data.message);
+                setTimeout(() => {
+                        window.location.reload();  // Reload the page after a short delay
+                    }, 2000);  // Delay of 2 seconds
+            } else {
+                showErrorNotification(data.message || 'An error occurred while updating the status.');
+            }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            showErrorNotification('An error occurred. Please try again.');
         });
+    }
+
+
+    document.getElementById('downloadReportPDF').addEventListener('click', function() {
+        const reportId = this.getAttribute('data-id');
+        const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+        const url = downloadPdfUrl.replace(':id', reportId);
+
+        // Show the loader before starting the download
+        document.getElementById('loadingSpinner').style.display = 'block';
+
+        // Download PDF via Fetch
+        fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob(); // Convert the response to a Blob for the file
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `report-${reportId}.pdf`; // Specify the filename
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link); // Clean up
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            })
+            .finally(() => {
+                // Hide the loader after the download is done
+                document.getElementById('loadingSpinner').style.display = 'none';
+            });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+    const url = "{{ route('reports.copy-template') }}";
+    const reportId = @json($report->id ?? '');
+
+    const confirmationModal = document.getElementById('confirmationModal');
+    const errorModal = document.getElementById('errorModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const closeErrorModalBtn = document.getElementById('closeErrorModal');
+
+    // Handle button click for template copy
+    document.getElementById('templateDropdown').addEventListener('click', function() {
+        const selectedTemplateId = document.getElementById('templateDropdownSelect').value;
+
+        // Check if template is selected
+        if (!selectedTemplateId) {
+            // Show the error modal if no template is selected
+            errorModal.classList.remove('hidden');
+            return; // Do not proceed if no template is selected
+        }
+
+        // Show the confirmation modal
+        confirmationModal.classList.remove('hidden');
+
+        // Handle confirmation button click
+        confirmBtn.addEventListener('click', () => {
+            fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({
+                        template_id: selectedTemplateId,
+                        report_id: reportId
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showSuccessNotification(data.message);  // Display success notification
+                    setTimeout(() => {
+                        document.getElementById('templateDropdownSelect').value = '';  // Reset dropdown
+                        window.location.reload();  // Reload the page after a short delay
+                    }, 2000);  // Delay of 2 seconds
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorNotification('An error occurred while copying the template.');
+                });
+
+            // Close the modal after action is taken
+            confirmationModal.classList.add('hidden');
+        });
+
+        // Handle cancel button click
+        cancelBtn.addEventListener('click', () => {
+            // Close the modal without doing anything
+            confirmationModal.classList.add('hidden');
+        });
+    });
+
+    // Close the error modal when close button is clicked
+    closeErrorModalBtn.addEventListener('click', () => {
+        errorModal.classList.add('hidden');
+    });
 });
 </script>
 @endpush
@@ -751,6 +882,8 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
 
 @section('content')
 <section class="h-screen flex">
+    <img id="loadingSpinner" src="{{ asset('assets/images/loader.gif') }}" alt="Loading"
+        style="display: none; position: fixed; top: 50%; left: 60%; transform: translate(-50%, -50%); z-index: 9999; width: 250px; height: 200px;" />
     <!-- Sidebar with Tabs -->
     <aside
         class="w-1/4 p-4 bg-white shadow overflow-y-auto h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">
@@ -781,30 +914,91 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
     </aside>
 
 
-
     <!-- Main Content Area -->
     <section class="w-3/4 p-6">
-        <!-- Heading at the top of the right side -->
-        <div class="bg-white shadow p-4 rounded-lg mb-4">
-        <div class="flex items-center justify-between">
-    <h2 class="text-xl font-semibold" id="reportTitleText">{{ $report->title }}</h2>
-    <div>
-        <button 
-            class="text-blue-500 hover:text-blue-600 update-status-button" 
-            id="updateToPublishedBtn" style="margin-right:100px;"
-            data-id="{{ $report->id }}"
-            data-status="{{ $report->status }}">
-            Click to {{ $report->status === 'draft' ? 'Published' : 'Draft' }}
-        </button>
-        <button 
-            class="text-blue-500 hover:text-blue-600 update-status-button" 
-            id="downloadReportPDF" style="margin-right:100px;"
-            data-id="{{ $report->id }}">
-            Download PDF
-        </button>
-        <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
+        <!-- Template dropdown positioned above the content area -->
+        <div class="flex justify-end w-full">
+            <label for="layout-select" class="font-bold lg:w-2/12 md:w-4/12 w-full" style="margin-top: 8px;">Copy Template:</label>
+            <select id="templateDropdownSelect" class="layout-select border p-2 lg:w-2/12 md:w-4/12 w-full" style="margin-right: 60px;">
+                <option selected value="">Choose a Template</option>
+                @forelse ($templates as $template)
+                <option value="{{ $template->id }}">{{ $template->title }}</option>
+                @empty
+                <option disabled>No templates available</option>
+                @endforelse
+            </select>
+            <button id="templateDropdown" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Submit</button>
+        </div>
+            <!-- Modal for confirmation -->
+            <!-- Modal for confirmation (small version) -->
+            <div id="confirmationModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
+                    <h2 class="text-lg font-semibold mb-4">Confirm Template Copy</h2>
+                    <p>Are you sure you want to copy the template code?</p>
+                    <div class="flex justify-end mt-4">
+                        <button id="cancelBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+                        <button id="confirmBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Modal for no template selected -->
+        <div id="errorModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+            <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
+                <p>Please select a template first.</p>
+                <div class="flex justify-end mt-4">
+                    <button id="closeErrorModal" class="bg-gray-500 text-white px-4 py-2 rounded-lg">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content area with a card-like design for report and actions -->
+        <div class="bg-white shadow p-4 rounded-lg mt-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold" id="reportTitleText">{{ $report->title }}</h2>
+                <div>
+                    <button
+                        class="text-blue-500 hover:text-blue-600 update-status-button"
+                        id="updateToPublishedBtn"
+                        style="margin-right:100px;"
+                        data-id="{{ $report->id }}"
+                        data-status="{{ $report->status }}">
+                        {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
+                    </button>
+                    <div id="publishReportModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
+            <h2 class="text-lg font-semibold mb-4">Publish Report</h2>
+            <p>Are you sure you want to update this report to Published?</p>
+            <div class="flex justify-end mt-4">
+                <button id="cancelPublishBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+                <button id="confirmPublishBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
+            </div>
+        </div>
     </div>
-</div>
+
+    <!-- Modal for saving report as draft -->
+    <div id="draftReportModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
+            <h2 class="text-lg font-semibold mb-4">Draft Report</h2>
+            <p>Are you sure you want to update this report to Draft?</p>
+            <div class="flex justify-end mt-4">
+                <button id="cancelDraftBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+                <button id="confirmDraftBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+                    @if($report->status === 'published')
+                    <button
+                        class="text-blue-500 hover:text-blue-600 update-status-button"
+                        id="downloadReportPDF" style="margin-right:100px;"
+                        data-id="{{ $report->id }}">
+                        Download PDF
+                    </button>
+                    @endif
+                    <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
+                </div>
+            </div>
 
             <!-- Edit input (initially hidden) -->
             <div id="editTitleContainer" class="hidden mt-2">
@@ -816,7 +1010,6 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
             </div>
         </div>
 
-
         <!-- Content area with tabs and corresponding content -->
         <div class="flex">
             <!-- Right side for tab content -->
@@ -824,8 +1017,7 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
                 @forelse ($report->reportPages as $page)
                 <div id="tab{{ $page->id }}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
                     <div class="flex items-center justify-between">
-                        <h3 id="pageName-{{ $page->id }}" class="text-lg font-medium mb-2">{{ $page->name }}
-                        </h3>
+                        <h3 id="pageName-{{ $page->id }}" class="text-lg font-medium mb-2">{{ $page->name }}</h3>
                         <button class="text-blue-500 hover:text-blue-600 edit-button" data-id="{{ $page->id }}"
                             data-name="{{ $page->name }}">Edit</button>
                     </div>
@@ -840,6 +1032,7 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
                                 data-id="{{ $page->id }}">Cancel</button>
                         </div>
                     </div>
+
                     @includeIf(
                     'reports_layout.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
                     ['pageData' => $page->pageData]
@@ -851,11 +1044,10 @@ document.getElementById('downloadReportPDF').addEventListener('click', function 
             </div>
         </div>
     </section>
-</section>
 
-{{-- custom page content --}}
-<template id="custom-page-content">
-    @includeIf('reports_layout.forms.custom-page')
-</template>
+    {{-- custom page content --}}
+    <template id="custom-page-content">
+        @includeIf('reports_layout.forms.custom-page')
+    </template>
 
-@endsection
+    @endsection
