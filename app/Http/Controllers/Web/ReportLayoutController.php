@@ -146,21 +146,21 @@ class ReportLayoutController extends Controller
 
         $templateId = $request->template_id;
         $reportId = $request->report_id;
-    
+
         // Fetch the template and report
         $template = Template::with('templatePages.pageData')->findOrFail($templateId);
         $report = Report::findOrFail($reportId);
-    
+
         // Begin database transaction
         DB::beginTransaction();
-    
+
         try {
             // Remove existing report pages and their data
             $report->reportPages()->each(function ($reportPage) {
                 $reportPage->pageData()->delete(); // Delete associated page data
                 $reportPage->delete(); // Delete the report page
             });
-    
+
             // Copy template pages to report pages
             foreach ($template->templatePages as $templatePage) {
                 // Create a new ReportPage
@@ -170,7 +170,7 @@ class ReportLayoutController extends Controller
                     'is_active' => $templatePage->is_active,
                     'order_no' => $templatePage->order_no,
                 ]);
-    
+
                 // Copy the template page data to the report page data
                 if ($templatePage->pageData) {
                     $reportPage->pageData()->create([
@@ -178,23 +178,23 @@ class ReportLayoutController extends Controller
                     ]);
                 }
             }
-    
+
             // Commit the transaction
             DB::commit();
-    
+
             return response()->json([
                 'message' => 'Template copied successfully!',
             ], 200);
         } catch (\Exception $e) {
             // Rollback transaction if there is an error
             DB::rollBack();
-    
+
             return response()->json([
                 'message' => 'An error occurred while copying the template.',
                 'error' => $e->getMessage(),
             ], 500);
         }
-    }    
+    }
 
 
     public function destroy($reportId)
@@ -386,7 +386,7 @@ class ReportLayoutController extends Controller
                 $filename = time() . '_' . $file->getClientOriginalName();
 
                 // Store the file in 'storage/app/public/uploads'
-                $path = $file->storeAs('report-files/' . $folder, $filename, 'public');
+                $path = $file->storeAs('template-files/' . $folder, $filename, 'public');
 
                 // Get the file size
                 $fileSize = $file->getSize();  // Size in bytes
@@ -525,7 +525,7 @@ class ReportLayoutController extends Controller
                 foreach ($files as $file) {
                     // Generate unique filename and store the file
                     $filename = time() . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('report-files/' . $folder, $filename, 'public');
+                    $path = $file->storeAs('template-files/' . $folder, $filename, 'public');
 
                     // Get the file size
                     $fileSize = $file->getSize();  // Size in bytes
@@ -876,7 +876,7 @@ class ReportLayoutController extends Controller
 
                         // Generate a unique filename for the image
                         $filename = time() . '_' . uniqid() . '.png';
-                        $path = 'repairability-photos/' . $filename;
+                        $path = 'template-files/repairability-photos/' . $filename;
 
                         // Save the image to storage
                         Storage::disk('public')->put($path, $decodedImage);
