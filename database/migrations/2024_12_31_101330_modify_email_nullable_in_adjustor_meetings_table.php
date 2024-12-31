@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('adjustor_meeting', function (Blueprint $table) {
+        Schema::table('adjustor_meetings', function (Blueprint $table) {
             $table->string('email')->nullable()->unique(false)->change();
 
         });
@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('adjustor_meeting', function (Blueprint $table) {
+        Schema::table('adjustor_meetings', function (Blueprint $table) {
             $table->string('email')->unique()->nullable(false)->change();
 
         });
