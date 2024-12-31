@@ -258,7 +258,7 @@
       </tbody>
     </table>
 
-    <table style="width: 1200px; border-collapse: collapse;">
+    <table style="max-width: 1200px; margin: auto">
       <tbody>
         <tr>
           <td>
