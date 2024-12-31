@@ -306,7 +306,7 @@ class CompanyJobController extends Controller
                 'COC Required',
                 'Final Payment Due',
                 'Ready to Close',
-                'Supplement Submitted',
+                // 'Supplement Submitted',
                 'Won and Closed',
                 'Lost',
                 'Unqualified', 
@@ -1175,7 +1175,7 @@ class CompanyJobController extends Controller
                             'COC Required',
                             'Final Payment Due',
                             'Ready to Close',
-                            'Supplement Submitted',
+                            // 'Supplement Submitted',
                             'Won and Closed',
                             'Lost',
                             'Unqualified',
@@ -2029,7 +2029,7 @@ class CompanyJobController extends Controller
             $created_by = $user->created_by == 0 ? 1 : $user->created_by; 
             // dd($created_by);
 
-            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close','Won and Closed'];
+            $specificStatuses = ['New Leads', 'Customer Agreement', 'Adjuster Scheduled','Ins Under Review','Overturn','Appraisal','Approved', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete','COC Required', 'Final Payment Due', 'Ready to Close','Won and Closed','Lost','Unqualified'];
 
             if ($user->role_id == 1 || $user->role_id == 2) {
                 $tasks = Status::whereIn('name', $specificStatuses)
@@ -2334,9 +2334,9 @@ class CompanyJobController extends Controller
 
             $specificStatuses =
                 ['New Leads',
-                'Signed Deals',
+                'Customer Agreement',
                 // 'Estimate Prepared', //excluded
-                'Adjuster',
+                'Adjuster Scheduled',
                 'Ins Under Review', 
                 'Overturn',
                 'Appraisal',  
@@ -2348,7 +2348,7 @@ class CompanyJobController extends Controller
                 'COC Required',
                 'Final Payment Due',
                 'Ready to Close',
-                'Supplement Submitted',
+                // 'Supplement Submitted',
                 'Won and Closed',
                 'Lost',
                 'Unqualified', ];
@@ -2594,7 +2594,7 @@ class CompanyJobController extends Controller
             $companyId = $user->company_id;
             // dd($companyId);
 
-            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Adjuster','Ins Under Review', 'Overturn','Appraisal','Approved','Ready To Build','Build Scheduled', 'In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Supplement Submitted','Won and Closed','Lost','Unqualified'])
+            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Customer Agreement','Adjuster Scheduled','Ins Under Review', 'Overturn','Appraisal','Approved','Ready To Build','Build Scheduled', 'In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Won and Closed','Lost','Unqualified'])
                  ->get();
             if (in_array($user->role_id, [1, 2,5,8,9])) {
                 // Role 1 or 2: Fetch users with the same company_id as the logged-in user
