@@ -263,17 +263,17 @@
         <tr>
           <td>
             <h2 style="text-align: left">Notes</h2>
-            <p style="line-height: 1.6">    
-              {{$coc->notes ?? ''}}
-              
+            <p style="line-height: 1.6">
+                {!! $coc->notes ?? '' !!}
             </p>
+
           </td>
         </tr>
       </tbody>
     </table>
 
 
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <table style="max-width: 1200px; margin: auto">
   <tbody>
     <!-- Row for Company Representative Signature, Printed Name, and Date Signed -->
     <tr>
