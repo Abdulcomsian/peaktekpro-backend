@@ -60,7 +60,7 @@ class MeetingController extends Controller
                 'company_job_id' => $jobId,
             ],[
                 'company_job_id' => $jobId,
-                'email' => $request->email ?? "",
+                'email' => $request->email ?: null,
                 'date' => $request->date,
                 'time' => $request->time,
                 'name' => $request->name ?? "",
@@ -124,11 +124,22 @@ class MeetingController extends Controller
                 $job->save();   
             }
 
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'Adjustor Meeting Created Successfully',
+            //     'data' => $adjustor_meeting
+            // ], 200); 
             return response()->json([
                 'status' => 200,
                 'message' => 'Adjustor Meeting Created Successfully',
-                'data' => $adjustor_meeting
-            ], 200); 
+                'data' => collect($adjustor_meeting)->map(function ($value, $key) {
+                    if ($key === 'email' && $value === null) {
+                        return '';
+                    }
+                    return $value;
+                })
+            ], 200);
+            
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
@@ -931,11 +942,22 @@ class MeetingController extends Controller
                 $data['documents'] = $data['attachments'];
                 unset($data['attachments']); // Remove the old key
 
+                // return response()->json([
+                //     'status' => 200,
+                //     'message' => 'Adjustor Meeting Found Successfully',
+                //     'data' => $data,
+                // ]);
                 return response()->json([
                     'status' => 200,
-                    'message' => 'Adjustor Meeting Found Successfully',
-                    'data' => $data,
-                ]);
+                    'message' => 'Adjustor Meeting Created Successfully',
+                    'data' => collect($data)->map(function ($value, $key) {
+                        if ($key === 'email' && $value === null) {
+                            return '';
+                        }
+                        return $value;
+                    })
+                ], 200);
+                
             } else {
                 return response()->json([
                     'status' => 404,
