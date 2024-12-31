@@ -2600,7 +2600,7 @@ class CompanyJobController extends Controller
                 $representatives = User::
                     // whereHas('companyJobUsers')
                     where('created_by', $companyId)
-                    ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
+                    ->select('id', 'name', 'first_name', 'last_name', 'email','company_id', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
                     ->get();
                 $location = Location::whereIn('created_by',[$companyId,0])->get();
 
