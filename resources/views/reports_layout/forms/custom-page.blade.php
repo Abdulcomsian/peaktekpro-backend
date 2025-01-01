@@ -1,4 +1,4 @@
-<div class="w-full mx-auto p-6 bg-white shadow rounded-lg custom-page-container" data-id="{{ $page->id }}">
+<div class="w-full mx-auto p-6 bg-white shadow rounded-lg custom-page-container">
     <!-- First Card with Radio Buttons -->
     @php
         $uniquePageId = \Str::uuid(); // Unique identifier for this page
