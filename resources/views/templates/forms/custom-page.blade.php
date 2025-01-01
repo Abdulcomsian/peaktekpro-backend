@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    <div id="custom-page-single-pdf-section-{{ $page->id }}"
+    <div id="custom-page-single-pdf-section"
          class="hidden"
          data-selected="single_pdf_{{ $uniquePageId }}-{{ $firstrandom }}">
         <!-- Form for PDF Upload (Dropzone) -->
