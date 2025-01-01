@@ -452,30 +452,30 @@ class MaterialOrderController extends Controller
             if ($customer_agreement) {
                 $decodedAddress = json_decode($customer_agreement->address, true);
 
-                $customer_agreement->my_address = $customer_agreement->address;
+                // $customer_agreement->my_address = $customer_agreement->address;
 
                 // return response()->json([
                 //     'data'=>  $decodedAddress
                 // ]);
                 // Decode the address JSON string into a PHP array
                 // $customer_agreement->address = json_decode($customer_agreement->address, true);
-                $customer_agreement->city = $decodedAddress['city'] ?? null;
+                // $customer_agreement->city = $decodedAddress['city'] ?? null;
                 // dd($decodedAddress['city']);
-                $customer_agreement->postalCode = $decodedAddress['postalCode'] ?? null;
-                $customer_agreement->street = $decodedAddress['street'] ?? null;
-                $customer_agreement->state = $decodedAddress['state'] ?? null;
-                $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
+                // $customer_agreement->postalCode = $decodedAddress['postalCode'] ?? null;
+                // $customer_agreement->street = $decodedAddress['street'] ?? null;
+                // $customer_agreement->state = $decodedAddress['state'] ?? null;
+                // $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
             
                 // unset($customer_agreement->address);
 
                   // Separate summary values
-                if ($customer_agreement->summary) {
-                    $customer_agreement->insurance = $customer_agreement->summary->insurance;
-                    $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
-                    $customer_agreement->claim_number = $customer_agreement->summary->claim_number;
+                // if ($customer_agreement->summary) {
+                //     $customer_agreement->insurance = $customer_agreement->summary->insurance;
+                //     $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
+                //     $customer_agreement->claim_number = $customer_agreement->summary->claim_number;
 
-                    // unset($customer_agreement->summary);
-                }
+                //     // unset($customer_agreement->summary);
+                // }
 
             }
             // return response($customer_agreement->toArray());
@@ -487,7 +487,7 @@ class MaterialOrderController extends Controller
             $response_data = [];
 
             // Always include job data in the response at the same level
-            $decodedAddress = json_decode($customer_agreement->address, true);
+            // $decodedAddress = json_decode($customer_agreement->address, true);
 
             if ($job) {
                 $response_data['name'] = $job->name;
@@ -500,8 +500,6 @@ class MaterialOrderController extends Controller
                 $response_data['insurance'] = $customer_agreement->summary->insurance ?? null;
                 $response_data['policy_number'] = $customer_agreement->summary->policy_number ?? null;
                 $response_data['claim_number'] = $customer_agreement->summary->claim_number ?? null;
-                $response_data['address'] =$customer_agreement->my_address?? null;
-
                 
 
             }
