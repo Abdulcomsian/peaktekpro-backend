@@ -2370,13 +2370,13 @@ class CompanyJobController extends Controller
 
                         if ($request->location) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('market', $request->location);
+                                $q->whereIn('market', $request->location);
                             });
                         }
 
                         if ($request->lead_source) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('lead_source', $request->lead_source);
+                                $q->whereIn('lead_source', $request->lead_source);
                             });
                         }
 
@@ -2419,7 +2419,7 @@ class CompanyJobController extends Controller
                         //filter fir location
                         if ($request->location) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('market', $request->location);
+                                $q->whereIn('market', $request->location);
                             });
                         }
 
