@@ -35,6 +35,10 @@ Route::get('user-logout', function() {
     dd('Logout successfully done and session cleared!');
 });
 
+Route::get('/test-config', function () {
+    dd(config('app.url'));
+});
+
 Route::get('download-report-pdf/{report_id}',[ReportLayoutController::class, 'downloadReportPdf'])->name('download-report-pdf');
 
 
