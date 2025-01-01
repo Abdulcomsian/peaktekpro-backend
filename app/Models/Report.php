@@ -11,7 +11,13 @@ class Report extends Model
 
     protected $fillable = [
         'title',
-        'status'
+        'job_id',
+        'status',
+        'file_path'
+    ];
+
+    public $appends = [
+        'pdf_path'
     ];
 
     public function reportPages()
@@ -22,5 +28,10 @@ class Report extends Model
     public function getAllReportData()
     {
         return $this->load(['reportPages.pageData']);
+    }
+
+    public function getPdfPathAttribute()
+    {
+        return $this->file_path ? asset('storage/' . $this->file_path) : null;
     }
 }

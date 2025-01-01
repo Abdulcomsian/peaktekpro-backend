@@ -17,7 +17,8 @@ class ReportLayoutController extends Controller
     public function index(Request $request)
     {
         try {
-            $reports = Report::paginate(5);
+            $jobId = session('job_id');
+            $reports = Report::where('job_id', $jobId)->paginate(5);
             return view('reports_layout.index', compact('reports'));
         } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching reports.');
@@ -35,8 +36,11 @@ class ReportLayoutController extends Controller
     public function store(StoreRequest $request)
     {
         try {
+            $jobId = session('job_id');
+
             $report = Report::create([
-                'title' => $request->title
+                'title' => $request->title,
+                'job_id' => $jobId,
             ]);
             // sync pages with report pages
             $pages = Page::all();
@@ -70,7 +74,7 @@ class ReportLayoutController extends Controller
         try {
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
             $templates = Template::latest()->get();
-            return view('reports_layout.edit', compact('report','templates'));
+            return view('reports_layout.edit', compact('report', 'templates'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');
         }
@@ -132,14 +136,34 @@ class ReportLayoutController extends Controller
 
         // Generate the PDF
         $pdf = SnappyPdf::loadView('pdf.report-pdf', ['report' => $report]);
-        // Return the PDF for download
-        return $pdf->download("report-{$id}.pdf");
+
+        $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
+        $fileName = "report-{$id}_{$timestamp}.pdf";
+        $folder = "pdf-files";
+        $filePath = "{$folder}/{$fileName}"; // Correctly concatenate folder and file name
+
+        // Save the PDF to the storage directory (public disk)
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        // Update the report with the file path
+        $reportModel = Report::find($id); // Reload the model
+        $reportModel->update(['file_path' => $filePath]);
+
+        // Construct the full URL to access the saved file
+        $url = Storage::url($filePath);
+
+        // Return the URL to the client so it can open the PDF in a new tab
+        return response()->json([
+            'status' => true,
+            'message' => 'PDF saved successfully.',
+            'file_url' => url($url), // Full URL to open in the browser
+        ], 200);
     }
 
     public function copyTemplate(Request $request)
     {
         // Validate the input
-         $request->validate([
+        $request->validate([
             'template_id' => 'required|exists:templates,id',
             'report_id' => 'required|exists:reports,id',
         ]);
@@ -1174,5 +1198,44 @@ class ReportLayoutController extends Controller
         $repairibility->update(['json_data' => json_encode($repairibilityDetails)]);
 
         return response()->json(['success' => 'File deleted successfully']);
+    }
+
+    public function downloadReportPdf($id)
+    {
+        try {
+            // Find the report by its ID
+            $report = Report::findOrFail($id);
+
+            // Get the full path of the file to download (ensure it's stored in the public disk)
+            $filePath = public_path('storage/' . $report->file_path);
+
+            // Check if the file exists
+            if (file_exists($filePath)) {
+                // Return the file as a download response
+                $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
+
+                // Generate the file name with timestamp
+                $fileName = "report-{$id}_{$timestamp}.pdf";
+
+                // Return the file as a download response with the updated file name
+                return response()->download($filePath, $fileName, [
+                    'Content-Type' => 'application/pdf',
+                ]);
+            } else {
+                // If the file doesn't exist, return an error response
+                return response()->json([
+                    'status_code' => 404,
+                    'status' => false,
+                    'message' => 'File not found.'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            // Handle any exceptions that occur
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'message' => 'An error occurred while downloading the file: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -50,6 +50,7 @@ use App\Http\Controllers\PaymentController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+Route::get('get-report-pdfs/{job_id}',[ReportController::class, 'getReportPdf']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -159,22 +160,22 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('summary-filter', [CompanyJobController::class, 'summaryFilter']);  //Summary and Key Metrics api
 
     //progress Line
-    Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']); 
+    Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']);
 
     //new Notes section api
-    Route::post('job-notes-add/{jobId}', [CompanyJobController::class, 'notesAdd']); 
-    Route::get('job-notes/{jobId}', [CompanyJobController::class, 'getNotes']); 
+    Route::post('job-notes-add/{jobId}', [CompanyJobController::class, 'notesAdd']);
+    Route::get('job-notes/{jobId}', [CompanyJobController::class, 'getNotes']);
 
     //claim Information summary
-    Route::post('claim/information-summary/{jobId}', [CompanyJobController::class, 'claimInformationSummary']); 
-    Route::get('get/claim/information-summary/{jobId}', [CompanyJobController::class, 'getClaimInformationSummary']); 
+    Route::post('claim/information-summary/{jobId}', [CompanyJobController::class, 'claimInformationSummary']);
+    Route::get('get/claim/information-summary/{jobId}', [CompanyJobController::class, 'getClaimInformationSummary']);
 
     ////Pyment History Section
     Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
     Route::get('get/payment-history/{jobId}', [PaymentController::class, 'getPaymentHistory']);
 
 
-    //company Location 
+    //company Location
     Route::post('add/company_location', [CompanyLocationController::class, 'addCompanyLocation']);
     Route::get('get/company_location', [CompanyLocationController::class, 'getCompanyLocation']);
     Route::get('edit/company_location/{id}', [CompanyLocationController::class, 'editCompanyLocation']);
@@ -182,7 +183,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('delete/company_location/{id}', [CompanyLocationController::class, 'deleteCompanyLocation']);
 
 
-    //Inprogress Api's 
+    //Inprogress Api's
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
     Route::post('add/in-progress/photos/{jobId}', [InprogressController::class, 'addInprogressPhotos']);
     Route::get('get/in-progress/photos/{jobId}', [InprogressController::class, 'getInprogressPhotos']);
@@ -319,7 +320,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
     Route::get('send/email/supplier/{jobId}', [ReadyToBuildController::class, 'EmailToSupplier']); //send mail to supplier
 
-    //Supplier Api's 
+    //Supplier Api's
     Route::get('get/suppliers-list', [SupplierController::class, 'getAllSuppliers']);
     Route::get('get/suppliers/{Id}', [SupplierController::class, 'getSuppliers']);
     Route::post('delete/supplier/{Id}', [SupplierController::class, 'deleteSupplier']);
@@ -327,7 +328,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/supplier/{id}', [SupplierController::class, 'updateSupplier']);
     Route::post('delete/supplier/{id}', [SupplierController::class, 'deleteSupplier']);
 
-    
+
     //Sub Contractor Api's
     Route::post('store/sub-contractor/{jobId}', [SubContractorController::class, 'storeSubContractor']);
     Route::get('get/sub-contractors/{jobId}', [SubContractorController::class, 'getSubContractors']);
@@ -372,5 +373,4 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('user-reports', [ReportController::class, 'userReports']); //performance api
     Route::get('get-pipeline-data', [ReportController::class, 'getPipelineData']);  //pipeline api
     Route::get('get-own-pipeline-data', [ReportController::class, 'getOwnPipelineData']);  //when click on my job pipeline api
-
 });
