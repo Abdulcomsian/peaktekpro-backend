@@ -633,7 +633,7 @@ customPageInitializeDropzone();
 
 {{-- save data --}}
 <script type="text/javascript">
-    const saveTemplatePageData = "https://peaktekcrm.com/backend/templates/page/save-data"; //url use asd
+    const saveTemplatePageData = "{{ route('templates.page.save-data') }}";
 
     // save inputs data
     const saveTemplatePageInputData = debounce(function() {
