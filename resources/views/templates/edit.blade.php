@@ -633,7 +633,7 @@ customPageInitializeDropzone();
 
 {{-- save data --}}
 <script type="text/javascript">
-    const saveTemplatePageData = "{{ url('templates/page/save-data') }}"; //url use
+    const saveTemplatePageData = "{{ url('templates/page/save-data') }}"; //url use asd
 
     // save inputs data
     const saveTemplatePageInputData = debounce(function() {
