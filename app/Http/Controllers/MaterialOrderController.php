@@ -442,54 +442,8 @@ class MaterialOrderController extends Controller
         }
 
     }
+
     public function getMaterialOrder($id)
-{
-    try {
-        $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')
-            ->where('id', $id)
-            ->select('id', 'name', 'email', 'phone', 'address')
-            ->first();
-
-        $response_data = [];
-
-        if ($customer_agreement) {
-            $decodedAddress = !empty($customer_agreement->address) ? json_decode($customer_agreement->address, true) : [];
-
-            $response_data['city'] = $decodedAddress['city'] ?? null;
-            $response_data['street'] = $decodedAddress['street'] ?? null;
-            $response_data['state'] = $decodedAddress['state'] ?? null;
-            $response_data['postalCode'] = $decodedAddress['postalCode'] ?? null;
-            $response_data['insurance'] = $customer_agreement->summary->insurance ?? null;
-            $response_data['policy_number'] = $customer_agreement->summary->policy_number ?? null;
-            $response_data['claim_number'] = $customer_agreement->summary->claim_number ?? null;
-        }
-
-        $material_order = MaterialOrder::where('company_job_id', $id)
-            ->with('materials', 'supplier')
-            ->first();
-
-        if ($material_order) {
-            $response_data = array_merge($response_data, $material_order->toArray());
-            $response_message = 'Material Order Found successfully';
-        } elseif ($customer_agreement) {
-            $response_message = 'No Material Order found, Customer Agreement returned';
-        } else {
-            $response_message = 'No Material Order or Customer Agreement found for this Job';
-        }
-
-        return response()->json([
-            'status' => 200,
-            'message' => $response_message,
-            'data' => $response_data,
-        ], 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
-        ], 500);
-    }
-}
-
-    public function getMaterialOrder1($id)
     {
         try {
             // $customer_agreement = CustomerAgreement::select('street','city','state','zip_code','insurance','claim_number','policy_number')->where('company_job_id', $id)->first();
@@ -509,7 +463,7 @@ class MaterialOrderController extends Controller
                 $customer_agreement->state = $decodedAddress['state'] ?? null;
                 $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
             
-                unset($customer_agreement->address);
+                // unset($customer_agreement->address);
 
                   // Separate summary values
                 if ($customer_agreement->summary) {
@@ -517,7 +471,7 @@ class MaterialOrderController extends Controller
                     $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
                     $customer_agreement->claim_number = $customer_agreement->summary->claim_number;
 
-                    unset($customer_agreement->summary);
+                    // unset($customer_agreement->summary);
                 }
 
             }
