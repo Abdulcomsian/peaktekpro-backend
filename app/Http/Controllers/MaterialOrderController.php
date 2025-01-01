@@ -500,6 +500,9 @@ class MaterialOrderController extends Controller
                 $response_data['insurance'] = $customer_agreement->summary->insurance ?? null;
                 $response_data['policy_number'] = $customer_agreement->summary->policy_number ?? null;
                 $response_data['claim_number'] = $customer_agreement->summary->claim_number ?? null;
+                $response_data['address'] =$customer_agreement->my_address?? null;
+
+                
 
             }
 
