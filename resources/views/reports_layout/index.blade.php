@@ -22,7 +22,9 @@
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">S.No</th>
                             <th class="py-3 px-6 text-left">Title</th>
+                            @if($reports->where('status', 'published')->count() > 0)
                             <th class="py-3 px-6 text-left">File</th>
+                            @endif
                             <th class="py-3 px-6 text-left">Status</th>
                             <th class="py-3 px-6 text-center">Actions</th>
                         </tr>
@@ -32,13 +34,21 @@
                             <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-6 text-left">{{ $report->title }}</td>
+                                @if($report->status == 'published')
                                 <td class="py-3 px-6 text-left">
                                 <a id="downloadReportPDF" data-id="{{ $report->id }}"
                                 class="text-blue-500 hover:text-blue-600 cursor-pointer">
                                     Download PDF
                                 </a>
                                 </td>
-                                <td class="py-3 px-6 text-left">{{ $report->status === 'draft'  ? 'Draft' : 'Published' }}</td>
+                                @endif
+                                <td class="py-3 px-6 text-left">
+                                @if($report->status === 'draft')
+                                    <span class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
+                                @else
+                                    <span class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
+                                @endif
+                                </td>
                                 <td class="py-3 px-6 text-center">
                                     <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
                                         class="text-blue-500 hover:text-blue-600">Edit</a>

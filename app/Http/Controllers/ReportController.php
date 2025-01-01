@@ -5,17 +5,19 @@ namespace App\Http\Controllers;
 use DB;
 use Auth;
 use App\Models\User;
+use App\Models\Report;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Resources\ReportResource;
+use App\Http\Resources\ReportPdfResource;
 
 class ReportController extends Controller
 {
     public function userReports(Request $request)
     {
         $request->validate([
-            'startDate' => 'nullable|date_format:Y-m-d',  
-            'endDate' => 'nullable|date_format:Y-m-d|after_or_equal:startDate', 
+            'startDate' => 'nullable|date_format:Y-m-d',
+            'endDate' => 'nullable|date_format:Y-m-d|after_or_equal:startDate',
         ]);
 
         $user = Auth::user();
@@ -95,7 +97,7 @@ class ReportController extends Controller
 
         $query = CompanyJob::with('companyJobSummaries')
             ->whereIn('status_id', $statusIds);
-        
+
         if ($role_id != 7) {
             $query->where('created_by', $company_id);
         }
@@ -119,8 +121,8 @@ class ReportController extends Controller
         });
 
         return response()->json([
-            'status_code'=> 200,
-            'status' =>true,
+            'status_code' => 200,
+            'status' => true,
             'message' => 'Pipeline Data fetched Successfully',
             'data' => $jobCountsAndTotal,
         ]);
@@ -136,7 +138,8 @@ class ReportController extends Controller
             4 => 'Adjustor',
             8 => 'Ready To Build',
             9 => 'Build Scheduled',
-            10 => 'In Progress',1,
+            10 => 'In Progress',
+            1,
             11 => 'Build Complete',
             12 => 'COC Required',
             13 => 'Final Payment Due',
@@ -151,7 +154,7 @@ class ReportController extends Controller
 
         $jobSummary = CompanyJob::with('companyJobSummaries')
             ->whereIn('status_id', $statusIds)
-            ->where('user_id',$user_id)
+            ->where('user_id', $user_id)
             ->get();
 
         // Prepare response data with counts and sums for each status
@@ -171,18 +174,32 @@ class ReportController extends Controller
         });
 
         return response()->json([
-            'status_code'=> 200,
-            'status' =>true,
+            'status_code' => 200,
+            'status' => true,
             'message' => 'Data fetched Successfully',
             'data' => $jobCountsAndTotal,
         ]);
     }
 
+    public function getReportPdf($jobId)
+    {
+        try {
+            // Attempt to fetch reports based on the jobId
+            $reports = Report::where('job_id', $jobId)->get();
 
-
-
-
-
-    
-
+            // Return a success response with the transformed reports using the ReportResource
+            return ReportPdfResource::collection($reports)->additional([
+                'status_code' => 200,
+                'status' => true,
+                'message' => 'Data fetched successfully',
+            ]);
+        } catch (\Exception $e) {
+            // If an error occurs, catch the exception and return an error response
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'message' => 'An error occurred while fetching the data: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

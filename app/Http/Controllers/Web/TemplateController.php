@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Template\{StoreRequest, UpdateRequest};
-use Illuminate\Http\Request;
-use App\Models\{Page, Role, Template, TemplatePage, TemplatePageData};
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\Template\{StoreRequest, UpdateRequest};
+use App\Models\{Page, Role, Template, TemplatePage, TemplatePageData};
 
 class TemplateController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $templates = Template::paginate(5);
+            $companyId = Auth::user()->company_id;
+
+            $templates = Template::where('company_id',$companyId)->paginate(5);
             return view('templates.index', compact('templates'));
         } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching templates.');
@@ -31,10 +34,13 @@ class TemplateController extends Controller
     public function store(StoreRequest $request)
     {
         try {
+            $companyId = Auth::user()->company_id;
 
             $template = Template::create([
-                'title' => $request->title
+                'title' => $request->title,
+                'company_id' => $companyId,
             ]);
+
             // sync pages with template pages
             $pages = Page::all();
             $pages->each(function ($page, $index) use ($template) {
@@ -51,12 +57,11 @@ class TemplateController extends Controller
                 'redirect_to' => route('templates.edit', $template->id)
             ], 200);
         } catch (\Exception $e) {
-
             return response()->json(
                 [
                     'status' => false,
                     'message' => 'Something went wrong',
-                    'errors' => $th->getMessage()
+                    'errors' => $e->getMessage()
                 ]
             );
         }
@@ -272,7 +277,6 @@ class TemplateController extends Controller
 
     public function savePageFile(Request $request)
     {
-        // dd($request->all());
         try {
 
             if ($request->hasFile('file')) {

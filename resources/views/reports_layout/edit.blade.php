@@ -770,44 +770,43 @@ customPageInitializeDropzone();
 
 
     document.getElementById('downloadReportPDF').addEventListener('click', function() {
-        const reportId = this.getAttribute('data-id');
-        const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
-        const url = downloadPdfUrl.replace(':id', reportId);
+    const reportId = this.getAttribute('data-id');
+    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+    const url = downloadPdfUrl.replace(':id', reportId);
 
-        // Show the loader before starting the download
-        document.getElementById('loadingSpinner').style.display = 'block';
+    // Show the loader before starting the download
+    document.getElementById('loadingSpinner').style.display = 'block';
 
-        // Download PDF via Fetch
-        fetch(url, {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.blob(); // Convert the response to a Blob for the file
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `report-${reportId}.pdf`; // Specify the filename
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link); // Clean up
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            })
-            .finally(() => {
-                // Hide the loader after the download is done
-                document.getElementById('loadingSpinner').style.display = 'none';
-            });
-    });
+    // Fetch PDF URL
+    fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json(); // Parse the JSON response
+        })
+        .then(data => {
+            if (data.status) {
+                const fileUrl = data.file_url; // Get the full file URL
+                window.open(fileUrl, '_blank'); // Open the PDF in a new tab
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        })
+        .finally(() => {
+            // Hide the loader after the PDF is opened
+            document.getElementById('loadingSpinner').style.display = 'none';
+        });
+});
 
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -882,8 +881,8 @@ customPageInitializeDropzone();
 
 @section('content')
 <section class="h-screen flex">
-    <img id="loadingSpinner" src="{{ asset('assets/images/loader.gif') }}" alt="Loading"
-        style="display: none; position: fixed; top: 50%; left: 60%; transform: translate(-50%, -50%); z-index: 9999; width: 250px; height: 200px;" />
+    <img id="loadingSpinner" src="{{ asset('assets/images/loader2.gif') }}" alt="Loading"
+        style="display: none; position: fixed; top: 50%; left: 60%; transform: translate(-50%, -50%); z-index: 9999; width: 100px; height: 100px;" />
     <!-- Sidebar with Tabs -->
     <aside
         class="w-1/4 p-4 bg-white shadow overflow-y-auto h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">
