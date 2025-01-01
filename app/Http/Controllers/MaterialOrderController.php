@@ -490,16 +490,16 @@ class MaterialOrderController extends Controller
             // $decodedAddress = json_decode($customer_agreement->address, true);
 
             if ($job) {
-                $response_data['name'] = $job->name;
-                $response_data['email'] = $job->email;
-                $response_data['phone'] = $job->phone;
-                $response_data['city'] = $decodedAddress['city'] ?? null;
-                $response_data['street'] = $decodedAddress['street'] ?? null;
-                $response_data['state'] = $decodedAddress['state'] ?? null;
-                $response_data['postalCode'] = $decodedAddress['postalCode'] ?? null;
-                $response_data['insurance'] = $customer_agreement->summary->insurance ?? null;
-                $response_data['policy_number'] = $customer_agreement->summary->policy_number ?? null;
-                $response_data['claim_number'] = $customer_agreement->summary->claim_number ?? null;
+                $response_data['company_name'] = $job->name;
+                $response_data['company_email'] = $job->email;
+                $response_data['company_phone'] = $job->phone;
+                $response_data['company_city'] = $decodedAddress['city'] ?? null;
+                $response_data['company_street'] = $decodedAddress['street'] ?? null;
+                $response_data['company_state'] = $decodedAddress['state'] ?? null;
+                $response_data['company_postalCode'] = $decodedAddress['postalCode'] ?? null;
+                $response_data['company_insurance'] = $customer_agreement->summary->insurance ?? null;
+                $response_data['company_policy_number'] = $customer_agreement->summary->policy_number ?? null;
+                $response_data['company_claim_number'] = $customer_agreement->summary->claim_number ?? null;
                 
 
             }
