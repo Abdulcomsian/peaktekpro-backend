@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignTitle;
+use Illuminate\Support\Facades\DB;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -55,49 +56,49 @@ class CustomerAgreementController extends Controller
             /////////////////
             $companyRepresentativeSignUrl = null;
             $customerSignatureUrl = null; 
-        if($request->has('company_signature')) {
-            $base64Image = $request->input('company_signature');
-            $data = substr($base64Image, strpos($base64Image, ',') + 1);
-            $decodedImage = base64_decode($data);
+            if($request->has('company_signature')) {
+                $base64Image = $request->input('company_signature');
+                $data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $decodedImage = base64_decode($data);
 
-            // Generate a unique filename
-            $filename = 'image_' . time() . '.png';
+                // Generate a unique filename
+                $filename = 'image_' . time() . '.png';
 
-            // Check and delete old image
-            $oldImage = CustomerAgreement::where('company_job_id', $id)->value('company_signature');
-            if ($oldImage) {
-                $oldImagePath = public_path($oldImage);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
+                // Check and delete old image
+                $oldImage = CustomerAgreement::where('company_job_id', $id)->value('company_signature');
+                if ($oldImage) {
+                    $oldImagePath = public_path($oldImage);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
                 }
+
+                // Save the new image
+                Storage::disk('public')->put('company_representative_signature/' . $filename, $decodedImage);
+                $companyRepresentativeSignUrl = '/storage/company_representative_signature/' . $filename;
             }
 
-            // Save the new image
-            Storage::disk('public')->put('company_representative_signature/' . $filename, $decodedImage);
-            $companyRepresentativeSignUrl = '/storage/company_representative_signature/' . $filename;
-        }
+            if($request->has('customer_signature')) {
+                $base64Image = $request->input('customer_signature');
+                $data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $decodedImage = base64_decode($data);
 
-        if($request->has('customer_signature')) {
-            $base64Image = $request->input('customer_signature');
-            $data = substr($base64Image, strpos($base64Image, ',') + 1);
-            $decodedImage = base64_decode($data);
+                // Generate a unique filename
+                $filename = 'image_' . time() . '.png';
 
-            // Generate a unique filename
-            $filename = 'image_' . time() . '.png';
-
-            // Check and delete old image
-            $oldImage = CustomerAgreement::where('company_job_id', $id)->value('customer_signature');
-            if ($oldImage) {
-                $oldImagePath = public_path($oldImage);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
+                // Check and delete old image
+                $oldImage = CustomerAgreement::where('company_job_id', $id)->value('customer_signature');
+                if ($oldImage) {
+                    $oldImagePath = public_path($oldImage);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
                 }
-            }
 
-            // Save the new image
-            Storage::disk('public')->put('customer_signature/' . $filename, $decodedImage);
-            $customerSignatureUrl = '/storage/customer_signature/' . $filename;
-        }
+                // Save the new image
+                Storage::disk('public')->put('customer_signature/' . $filename, $decodedImage);
+                $customerSignatureUrl = '/storage/customer_signature/' . $filename;
+            }
 
 
             //Update Agreement
@@ -126,6 +127,19 @@ class CustomerAgreementController extends Controller
 
             ]);
 
+            //Get Job
+            $job = CompanyJob::find($agreement->company_job_id);
+            if($job) {
+                $agreement->name = $job->name;
+                $agreement->email = $job->email;
+                $agreement->phone = $job->phone;
+                if($agreement->isComplete()) {
+                    $agreement->is_complete = true;
+                } else {
+                    $agreement->is_complete = false;
+                }
+            }
+
             // Store values in project_design_titles because it will used in design meeting pdf making
             $projectDesignTitle = ProjectDesignTitle::updateOrCreate(
                 ['company_job_id' => $id],
@@ -151,17 +165,23 @@ class CustomerAgreementController extends Controller
                 $job->save();    
             }
 
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'Agreement Created Successfully',
+            //     'agreement' => $agreement
+            // ], 200);
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Created Successfully',
                 'agreement' => $agreement
-            ], 200);
+            ], 200, [], JSON_UNESCAPED_SLASHES);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
 
-    public function customerAgreementStatus(Request $request, $id)
+    public function customerAgreementStatus11(Request $request, $id) //currently not used because of we have elimite the estimate prepared stage and also not checking the job_type
     {
         try {
             //Validate Request
@@ -255,6 +275,62 @@ class CustomerAgreementController extends Controller
         }
     }
 
+    public function customerAgreementStatus(Request $request, $id)
+    {
+        //Check Job
+        $job = CompanyJob::find($id);
+        // dd($job);
+        if(!$job) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Job Not Found'
+            ], 404);
+        }
+
+        $this->validate($request, [
+            'status' => 'nullable|boolean'
+        ]);
+
+        try {
+            $agreement = CustomerAgreement::updateOrCreate(
+                ['company_job_id'=> $id],
+
+                [
+                    'company_job_id'=> $id,
+                    'status' => $request->status
+                ]
+            );
+
+            //Update Status
+            if(isset($request->status) && $request->status == true) {
+                $job->status_id = 4;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();   
+                
+                //current stage save
+                $agreement->current_stage="yes";
+                $agreement->save();
+            } elseif(isset($request->status) && $request->status == false) {
+                $job->status_id = 2;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save(); 
+                
+                //current stage save
+                $agreement->current_stage="no";
+                $agreement->save();
+            }
+       
+            return response()->json([
+                'status' => 200,
+                'message' => 'Agreement Status Updated Successfully',
+                'agreement' => $agreement
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
     public function getCustomerAgreement($id)
     {
         try {
@@ -294,6 +370,7 @@ class CustomerAgreementController extends Controller
     //when the user sign then the pdf generate
     public function updateCustomerAgreement(Request $request, $id)
     {
+        // dd();
         //Validate Request
         $this->validate($request, [
             'sign_image' => 'nullable',
@@ -301,11 +378,11 @@ class CustomerAgreementController extends Controller
         try {
 
             //Check Agreement
-            $agreement = CustomerAgreement::find($id);
+            $agreement = CustomerAgreement::where('company_job_id',$id)->first();
             if(!$agreement) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Agreement Not Found'
+                    'message' => 'Agreement Not Found for this job'
                 ], 422);
             }
 
@@ -331,6 +408,11 @@ class CustomerAgreementController extends Controller
             $agreement->sign_image_url = $imageUrl;
             $agreement->save();
 
+            // return response()->json(
+            //    [ 'aggrement'=> $agreement]
+            // );
+
+            // dd($agreement);
             //Generate PDF
             $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
             $pdf_fileName = time() . '.pdf';
@@ -344,7 +426,6 @@ class CustomerAgreementController extends Controller
             }
             // Save the new PDF
             Storage::put('public/' . $pdf_filePath, $pdf->output());
-
             //Save PDF Path
             $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
             $agreement->save();
@@ -356,18 +437,25 @@ class CustomerAgreementController extends Controller
             $job->save();
 
             //Fire an Event
-            event(new JobStatusUpdateEvent('Refresh Pgae'));
+            // event(new JobStatusUpdateEvent('Refresh Pgae'));
 
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'Signature Image Added Successfully',
+            //     'agreement' => $agreement
+            // ], 200);
             return response()->json([
                 'status' => 200,
-                'message' => 'Signature Image Added Successfully',
+                'message' => 'Agreement Created Successfully',
                 'agreement' => $agreement
-            ], 200);
+            ], 200, [], JSON_UNESCAPED_SLASHES);
+            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
 
     }
+
 
     public function signCustomerAgreementByEmail(Request $request, $id)
     {
@@ -462,7 +550,7 @@ class CustomerAgreementController extends Controller
                 'status' => 200,
                 'message' => 'Customer Agreement Found Successfully',
                 'data' => [ 
-                   'agreement' => $agreement,
+                'agreement' => $agreement,
                 'jobsummary' => $job_summary,
                 ]
                 
@@ -537,7 +625,7 @@ class CustomerAgreementController extends Controller
 
             //Save Image Path
             $agreement->sign_image_url = $imageUrl;
-            $agreement->save();
+            $agreement->save(); 
 
             //Generate PDF
             $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);

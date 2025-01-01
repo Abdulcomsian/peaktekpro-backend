@@ -46,7 +46,6 @@ class MeetingController extends Controller
         $validatedData = $request->validate($rules, []);
 
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -61,12 +60,12 @@ class MeetingController extends Controller
                 'company_job_id' => $jobId,
             ],[
                 'company_job_id' => $jobId,
-                'email' => $request->email,
+                'email' => $request->email ?: null,
                 'date' => $request->date,
                 'time' => $request->time,
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'notes' => $request->notes,
+                'name' => $request->name ?? "",
+                'phone' => $request->phone ?? "",
+                'notes' => $request->notes ?? "",
                 'status' => isset($request->status) ? $request->status : 'pending',
                 'sent' => $request->sent
             ]);
@@ -118,13 +117,6 @@ class MeetingController extends Controller
                     $media->save();
                 }
             } 
-            
-            //Update Status when select approved and nothing happen upon apprisal and overturn
-            // if(isset($request->completed) && $request->completed == 1 && isset($request->status) && $request->status == 'Approved') {
-            //     $job->status_id = 8;
-            //     $job->date = Carbon::now()->format('Y-m-d');
-            //     $job->save();   
-            // }
 
             if(isset($request->status) && $request->status == 'approved') {
                 $job->status_id = 8;
@@ -132,120 +124,172 @@ class MeetingController extends Controller
                 $job->save();   
             }
 
+            // return response()->json([
+            //     'status' => 200,
+            //     'message' => 'Adjustor Meeting Created Successfully',
+            //     'data' => $adjustor_meeting
+            // ], 200); 
             return response()->json([
                 'status' => 200,
                 'message' => 'Adjustor Meeting Created Successfully',
-                'data' => $adjustor_meeting
-            ], 200); 
+                'data' => collect($adjustor_meeting)->map(function ($value, $key) {
+                    if ($key === 'email' && $value === null) {
+                        return '';
+                    }
+                    return $value;
+                })
+            ], 200);
+            
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
 
-    public function AdjustorMeetingPhotoSection1(Request $request,$Id)
+    public function AddExteriorPhotoSection(Request $request, $Id)
     {
+        // Validate request (fields can be optional and null, or must be valid images if provided)
         $request->validate([
-            'front' => 'nullable|string',
-            'front_imagePath' => 'nullable|image',
-
-            'front_left' => 'nullable|string',
-            'front_left_imagePath' => 'nullable|image',
-
-            'left' => 'nullable|string',
-            'left_imagePath' => 'nullable|image',
-
-            'back_left' => 'nullable|string',
-            'back_left_imagePath' => 'nullable|image',
-
-            'back' => 'nullable|string',
-            'back_imagePath' => 'nullable|image',
-
-            'back_right' => 'nullable|string',
-            'back_right_imagePath' => 'nullable|image',
-
-            'right' => 'nullable|string',
-            'right_imagePath' => 'nullable|image',
-
-            'front_right' => 'nullable|string',
-            'front_right_imagePath' => 'nullable|image',
-
+            'exterior_front' => 'nullable',
+            'exterior_front_left' => 'nullable',
+            'exterior_left' => 'nullable',
+            'exterior_back_left' => 'nullable',
+            'exterior_back' => 'nullable',
+            'exterior_back_right' => 'nullable',
+            'exterior_right' => 'nullable',
+            'exterior_front_right' => 'nullable',
         ]);
 
-        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate([
-            [
-                'adjustor_meeting_id', $Id
-            ],
-            [
-                'adjustor_meeting_id', $Id,
-                'front' => $request->front,
-                'front_left' => $request->front_left,
-                'left' => $request->left,
-                'back_left' => $request->back_left,
-                'back' => $request->back,
-                'back_right' => $request->back_right,
-                'right' => $request->right,
-                'front_right' => $request->front_right,
-            ]
-        ]);
+        // Check if Adjustor Meeting exists
+        $adjustor_meeting = AdjustorMeeting::find($Id);
+        if (!$adjustor_meeting) {
+            return response()->json([
+                'message' => 'Adjustor Meeting Does not Exist',
+                'status' => 404,
+                'data' => [],
+            ]);
+        }
 
-        // $adjustor_meeting = AdjustorMeeting::where('id', $Id)->first();
+        // Prepare data array with default null values
+        $data = [
+            'adjustor_meeting_id' => $Id,
+            'exteriorPhotos_front' => null,
+            'exteriorPhotos_front_left' => null,
+            'exteriorPhotos_left' => null,
+            'exteriorPhotos_back_left' => null,
+            'exteriorPhotos_back' => null,
+            'exteriorPhotos_back_right' => null,
+            'exteriorPhotos_right' => null,
+            'exteriorPhotos_front_right' => null,
+        ];
+
+        // Handle file uploads for each field if present
+        foreach ([
+            'exterior_front' => 'exteriorPhotos_front',
+            'exterior_front_left' => 'exteriorPhotos_front_left',
+            'exterior_left' => 'exteriorPhotos_left',
+            'exterior_back_left' => 'exteriorPhotos_back_left',
+            'exterior_back' => 'exteriorPhotos_back',
+            'exterior_back_right' => 'exteriorPhotos_back_right',
+            'exterior_right' => 'exteriorPhotos_right',
+            'exterior_front_right' => 'exteriorPhotos_front_right',
+        ] as $requestField => $dbField) {
+            if ($request->hasFile($requestField)) {
+                $image_fileName = time() . '_' . $request->file($requestField)->getClientOriginalName();
+                $image_filePath = $request->file($requestField)->storeAs('AdjustorMeetinPhotosSections', $image_fileName, 'public');
+                $data[$dbField] = Storage::url($image_filePath);
+            }
+        }
+
+        // Update or create the record in the database
+        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate(
+            ['adjustor_meeting_id' => $Id],
+            $data
+        );
+
+        // Return the response with the updated data
         return response()->json([
-            'message' => 'added successfully',
-            'status' =>200,
-            'data' => $adjustor_meeting_photos
+            'message' => 'Added successfully',
+            'status' => 200,
+            'data' => [
+                'id' => $adjustor_meeting_photos->id,
+                'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+                'exterior_front_left' => $adjustor_meeting_photos->exteriorPhotos_front_left,
+                'exterior_left' => $adjustor_meeting_photos->exteriorPhotos_left,
+                'exterior_back_left' => $adjustor_meeting_photos->exteriorPhotos_back_left,
+                'exterior_back' => $adjustor_meeting_photos->exteriorPhotos_back,
+                'exterior_back_right' => $adjustor_meeting_photos->exteriorPhotos_back_right,
+                'exterior_right' => $adjustor_meeting_photos->exteriorPhotos_right,
+                'exterior_front_right' => $adjustor_meeting_photos->exteriorPhotos_front_right,
+                'created_at' => $adjustor_meeting_photos->created_at,
+                'updated_at' => $adjustor_meeting_photos->updated_at,
+            ],
         ]);
-
     }
 
-    public function AdjustorMeetingPhotoSection(Request $request, $Id)
+
+    public function AddExteriorPhotoSection1(Request $request, $Id)
     {
         // Validate request
         $request->validate([
-            'front' => 'nullable|string',
-            'front_imagePath' => 'nullable|image',
-
-            'front_left' => 'nullable|string',
-            'front_left_imagePath' => 'nullable|image',
-
-            'left' => 'nullable|string',
-            'left_imagePath' => 'nullable|image',
-
-            'back_left' => 'nullable|string',
-            'back_left_imagePath' => 'nullable|image',
-
-            'back' => 'nullable|string',
-            'back_imagePath' => 'nullable|image',
-
-            'back_right' => 'nullable|string',
-            'back_right_imagePath' => 'nullable|image',
-
-            'right' => 'nullable|string',
-            'right_imagePath' => 'nullable|image',
-
-            'front_right' => 'nullable|string',
-            'front_right_imagePath' => 'nullable|image',
+            'exterior_front' => 'nullable|image',
+            'exterior_front_left' => 'nullable|image',
+            'exterior_left' => 'nullable|image',
+            'exterior_back_left' => 'nullable|image',
+            'exterior_back' => 'nullable|image',
+            'exterior_back_right' => 'nullable|image',
+            'exterior_right' => 'nullable|image',
+            'exterior_front_right' => 'nullable|image',
         ]);
 
-        // Handle file uploads (if needed) and store file paths
+        $adjustor_meeting = AdjustorMeeting::where('id', $Id)->first();
+        if(!$adjustor_meeting)
+        {
+            return response()->json([
+                'message' => 'Adjustor Meeting Does not Exist',
+                'status' => 404, 
+                'data' => [],
+            ]);
+        }
+     
         $data = [
             'adjustor_meeting_id' => $Id,
-            'front' => $request->front,
-            'front_left' => $request->front_left,
-            'left' => $request->left,
-            'back_left' => $request->back_left,
-            'back' => $request->back,
-            'back_right' => $request->back_right,
-            'right' => $request->right,
-            'front_right' => $request->front_right,
+            'front' => "front",
+            'front_left' => "frontleft",
+            'left' => "left",
+            'back_left' => "backleft",
+            'back' => "back",
+            'back_right' => "backright",
+            'right' => "right",
+            'front_right' => "frontright",
+            'exteriorPhotos_front' => null,
+            'exteriorPhotos_front_left' => null,
+            'exteriorPhotos_left' => null,
+            'exteriorPhotos_back_left' => null,
+            'exteriorPhotos_back' => null,
+            'exteriorPhotos_back_right' => null,
+            'exteriorPhotos_right' => null,
+            'exteriorPhotos_front_right' => null,
         ];
 
-        // Process image files
-        foreach (['front_imagePath', 'front_left_imagePath', 'left_imagePath', 'back_left_imagePath', 'back_imagePath', 'back_right_imagePath', 'right_imagePath', 'front_right_imagePath'] as $imageField) {
-            if ($request->hasFile($imageField)) {
-                $data[$imageField] = $request->file($imageField)->store('AdjustorMeetinPhotosSections', 'public'); // Store  in the public disk
+        foreach ([
+            'exterior_front' => 'exteriorPhotos_front',
+            'exterior_front_left' => 'exteriorPhotos_front_left',
+            'exterior_left' => 'exteriorPhotos_left',
+            'exterior_back_left' => 'exteriorPhotos_back_left',
+            'exterior_back' => 'exteriorPhotos_back',
+            'exterior_back_right' => 'exteriorPhotos_back_right',
+            'exterior_right' => 'exteriorPhotos_right',
+            'exterior_front_right' => 'exteriorPhotos_front_right',
+        ] as $requestField => $dbField) {
+            if ($request->hasFile($requestField)) {
+                $image_fileName = time() . '_' . $request->file($requestField)->getClientOriginalName();
+                $image_filePath = $request->file($requestField)->storeAs('AdjustorMeetinPhotosSections', $image_fileName, 'public');
+                $data[$dbField] = Storage::url($image_filePath);
             }
         }
+        
 
         // Update or create the record
         $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate(
@@ -253,25 +297,51 @@ class MeetingController extends Controller
             $data                        
         );
 
-        // Return response
         return response()->json([
             'message' => 'Added successfully',
             'status' => 200,
-            'data' => $adjustor_meeting_photos,
+            'data' => [
+                'id' => $adjustor_meeting_photos->id,
+                'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+                'exterior_front_left' => $adjustor_meeting_photos->exteriorPhotos_front_left,
+                'exterior_left' => $adjustor_meeting_photos->exteriorPhotos_left,
+                'exterior_back_left' => $adjustor_meeting_photos->exteriorPhotos_back_left,
+                'exterior_back' => $adjustor_meeting_photos->exteriorPhotos_back,
+                'exterior_back_right' => $adjustor_meeting_photos->exteriorPhotos_back_right,
+                'exterior_right' => $adjustor_meeting_photos->exteriorPhotos_right,
+                'exterior_front_right' => $adjustor_meeting_photos->exteriorPhotos_front_right,
+                'created_at' => $adjustor_meeting_photos->created_at,
+                'updated_at' => $adjustor_meeting_photos->updated_at,
+            ]
         ]);
+        
     }
 
 
-    public function getAdjustorMeetingPhotoSection($Id)
+    public function getExteriorPhotoSection($Id)
     {
-        // dd($Id);
         $adjustor_meeting_photos = AdjustorMeetingPhotoSection::where('adjustor_meeting_id', $Id)->first();
         if($adjustor_meeting_photos)
         {
             return response()->json([
                 'message' => 'Fetched successfully',
                 'status' => 200,
-                'data' => $adjustor_meeting_photos,
+                'data' =>[
+                    'id'=> $adjustor_meeting_photos->id,
+                    'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                    'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
+                    'exterior_front_left' =>$adjustor_meeting_photos->exteriorPhotos_front_left,
+                    'exterior_left'=>$adjustor_meeting_photos->exteriorPhotos_left,
+                    'exterior_back_left'=>$adjustor_meeting_photos->exteriorPhotos_back_left,
+                    'exterior_back'=>$adjustor_meeting_photos->exteriorPhotos_back,
+                    'exterior_back_right'=>$adjustor_meeting_photos->exteriorPhotos_back_right,
+                    'exterior_right'=>$adjustor_meeting_photos->exteriorPhotos_right,
+                    'exterior_front_right' =>$adjustor_meeting_photos->exteriorPhotos_front_right,
+                    'created_at'=> $adjustor_meeting_photos->created_at,
+                    'updated_at' => $adjustor_meeting_photos->updated_at,
+
+                ],
             ]);
         }
         return response()->json([
@@ -280,9 +350,9 @@ class MeetingController extends Controller
             'data' => [],
         ]);
     }
+    
     public function AdjustorMeetingStatus(Request $request, $jobId)
     {
-        //Validate Rules
         $rules = [
             'sent' => 'nullable',
         ];
@@ -377,47 +447,141 @@ class MeetingController extends Controller
         }
     }
 
-    public function AdjustorMeetingSquarePhotos($id,Request $request)
+
+
+    public function AdjustorMeetingSquarePhotos1($id, Request $request)//not used old
     {
         $request->validate([
-            'square_photo'=>'nullable|image',
-            'label' => 'nullable|string'
+            'square_photos' => 'nullable|array', 
+            'square_photos.*' => 'nullable|image', 
+            'labels' => 'nullable|array',         
+            'labels.*' => 'nullable|string',      
         ]);
-
-        try{
-            if($request->hasFile('square_photo'))
+        try {
+            $adjustor = AdjustorMeeting::find($id);
+            if(!$adjustor)
             {
-                $image = $request->file('square_photo');
-                $imageName = time().'.'. $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('AdjustorSquarePhotos',$imageName,'public');
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Adjustor Meeting Not Found',
+                ]);
+            }
+            $savedPhotos = []; 
+            $squarePhotos = $request->square_photos ?? [];
+
+            foreach($squarePhotos as $index => $image) {
+                $image_fileName = time() . '_' . $image->getClientOriginalName();
+                $image_filePath = $image->storeAs('AdjustorSquarePhotos', $image_fileName, 'public');
+                // Store Path   
+                $media = new AdjustorSquarePhotos();
+                $media->adjustor_meeting_id = $id;
+                $media->label = $request->labels[$index] ?? null;
+                $media->square_photos = Storage::url($image_filePath);
+                $media->save();
+                 // Collect saved photo details
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'adjustor_meeting_id' => $media->adjustor_meeting_id,
+                    'label' => $media->label,
+                    'square_photos' => $media->square_photos,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
             }
 
-            $photos = new AdjustorSquarePhotos();
-            $photos->adjustor_meeting_id = $id;
-            $photos->square_photos = $imagePath;
-            $photos->label = $request->label;
-            $photos->save();
-    
             return response()->json([
                 'status' => 200,
-                'message' => 'Adjustor Sqaure Photos Added Successfully',
-                'date' => $photos
+                'message' => 'Adjustor Square Photos Added Successfully',
+                'data' => $savedPhotos,
             ]);
-            
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
-                'message' => 'Issue Occured',
-                'date' => []
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
             ]);
         }
-
     }
+
+    public function AdjustorMeetingSquarePhotos($id, Request $request)
+    {
+        $request->validate([
+            'square_photos' => 'nullable|array', 
+            'square_photos.*' => 'nullable|image', 
+            'labels' => 'nullable|array',         
+            'labels.*' => 'nullable|string',      
+        ]);
+
+        try {
+            $adjustor = AdjustorMeeting::find($id);
+            if (!$adjustor) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Adjustor Meeting Not Found',
+                ]);
+            }
+
+            // Step 1: Delete existing images
+            $existingPhotos = AdjustorSquarePhotos::where('adjustor_meeting_id', $id)->get();
+            foreach ($existingPhotos as $photo) {
+                // Delete file from storage
+                $filePath = str_replace('/storage/', 'public/', $photo->square_photos); // Convert storage path to public disk path
+                Storage::delete($filePath);
+                $photo->delete(); // Delete the record from the database
+            }
+
+            // Step 2: Upload new images
+            $savedPhotos = []; // To store successfully saved photos
+            $squarePhotos = $request->square_photos ?? [];
+            foreach ($squarePhotos as $index => $image) {
+                $image_fileName = time() . '_' . $image->getClientOriginalName();
+                $image_filePath = $image->storeAs('AdjustorSquarePhotos', $image_fileName, 'public');
+
+                // Save new photo in database
+                $media = new AdjustorSquarePhotos();
+                $media->adjustor_meeting_id = $id;
+                $media->label = $request->labels[$index] ?? null;
+                $media->square_photos = Storage::url($image_filePath);
+                $media->save();
+
+                // Collect saved photo details
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'adjustor_meeting_id' => $media->adjustor_meeting_id,
+                    'label' => $media->label,
+                    'square_photos' => $media->square_photos,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Adjustor Square Photos Updated Successfully',
+                'data' => $savedPhotos,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+        }
+    }
+
 
     public function getAdjustorMeetingSquarePhotos($Id,Request $request)
     { 
-        $photos = AdjustorSquarePhotos::where('adjustor_meeting_id',$Id)->get();
+        $adjustor = AdjustorMeeting::find($Id);
+        if(!$adjustor)
+        {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Adjustor Meeting Not Found',
+            ]);
+        }
 
+        $photos = AdjustorSquarePhotos::where('adjustor_meeting_id',$Id)->get();
         if($photos){
             return response()->json([
                 'status' => 200,
@@ -425,7 +589,6 @@ class MeetingController extends Controller
                 'date' => $photos
             ]);
         }
-
         return response()->json([
             'status' => 500,
             'message' => 'Not Found',
@@ -436,32 +599,35 @@ class MeetingController extends Controller
 
     public function CompleteAdjustorMeetingSquarePhotos($Id, Request $request)
     {
-        // dd($Id);
         $validator = $request->validate([
             'status'=> 'nullable|in:yes,no'
         ]);
 
-        // if($validator->fails())
-        // {
-        //     return response()->json([
-        //         'status' =>401,
-        //         'message' =>'please select the assigned Values of status',
-        //     ]);
-        // }
+        $job = CompanyJob::find($Id);
+        if(!$job)
+        {
+            return response()->json([
+                        'status' =>404,
+                        'message' =>'Job Not Found',
+                        'data'=>[]
+                    ]);
+        }
 
-
-        $job = CompanyJob::where('id',$Id)->first();
-        // dd($job);
-        if($job)
+        $adjustor = AdjustorMeeting::where('company_job_id',$Id)->first();
+        if($adjustor)
         {
             if($request->input('status') == "yes"){
                 $job->status_id = 5;
                 $job->save();
 
+               
+                $adjustor->is_complete = "yes";
+                $adjustor->save();
+
                 return response()->json([
                     'status' =>200,
                     'message' =>'Adjustor Meeting Marked as Completed',
-                    'data' => $job
+                    'data' => $adjustor
                 ]);
 
             } elseif($request->input('status') == "no"){
@@ -469,16 +635,57 @@ class MeetingController extends Controller
                 $job->status_id = 4;
                 $job->save();
 
+                $adjustor->is_complete = "no";
+                $adjustor->save();
+
                 return response()->json([
                     'status' =>200,
                     'message' =>'Adjustor Meeting Status Updated SuccessFully',
-                    'data' => $job
+                    'data' => $adjustor
                 ]);
             }
         }
         return response()->json([
             'status' =>200,
             'message' =>'Job Not Found',
+            'data' => []
+        ]);
+           
+    }
+
+    public function getCompleteAdjustorMeetingSquarePhotos($Id)
+    {
+        $job = CompanyJob::find($Id);
+        if(!$job)
+        {
+            return response()->json([
+                        'status' => 404,
+                        'message' => 'Job Not Found',
+                        'data'=> []
+            ]);
+        }
+
+        $adjustor = AdjustorMeeting::where('company_job_id',$Id)->first();
+        if($adjustor)
+        {
+            if ($adjustor->isComplete()) {
+                $adjustor->is_complete = "yes";
+            } else {
+                $adjustor->is_complete = "no";
+            }
+            $adjustor->save();
+            $adjustor->is_completed = $adjustor->isComplete() ? "yes" : "no";
+               
+            return response()->json([
+                'status' =>200,
+                'message' =>'Adjustor Meeting Marked as Completed',
+                'data' => $adjustor
+            ]);
+
+        }
+        return response()->json([
+            'status' =>200,
+            'message' =>'Adjustor Not Found',
             'data' => []
         ]);
            
@@ -493,7 +700,6 @@ class MeetingController extends Controller
         try {
             //Check Job
             $job = CompanyJob::find($jobId);
-            // dd($job);
             if(!$job) {
                 return response()->json([
                     'status' => 422,
@@ -556,7 +762,6 @@ class MeetingController extends Controller
         
         DB::beginTransaction();
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -565,7 +770,6 @@ class MeetingController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-
             //Update Overturn Meeting
             $adjustor_meeting = AdjustorMeeting::updateOrCreate([
                 'company_job_id' => $jobId,
@@ -667,7 +871,6 @@ class MeetingController extends Controller
         ]);
 
         try {
-
             //Check Adjustor Meeting
             $adjustor_meeting = AdjustorMeeting::find($id);
             if(!$adjustor_meeting) {
@@ -676,7 +879,6 @@ class MeetingController extends Controller
                     'message' => 'Meeting Not Found'
                 ], 422);
             }
-
             //Check Job
             $job = CompanyJob::find($id);
             if(!$job) {
@@ -720,7 +922,6 @@ class MeetingController extends Controller
     public function getAdjustorMeeting($jobId)
     {
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -731,29 +932,38 @@ class MeetingController extends Controller
             }
 
             $adjustor_meeting = AdjustorMeeting::where('company_job_id', $jobId)->with('images','attachments')->first();
-
             // Transform the response
             if ($adjustor_meeting) {
+                $adjustor_meeting->is_completed = $adjustor_meeting->isComplete();
                 $data = $adjustor_meeting->toArray(); // Convert the model to an array
                 // Rename the keys
                 $data['image_url'] = $data['images'];
                 unset($data['images']); // Remove the old key
-            
                 $data['documents'] = $data['attachments'];
                 unset($data['attachments']); // Remove the old key
-            
+
+                // return response()->json([
+                //     'status' => 200,
+                //     'message' => 'Adjustor Meeting Found Successfully',
+                //     'data' => $data,
+                // ]);
                 return response()->json([
                     'status' => 200,
-                    'message' => 'Adjustor Meeting Found Successfully',
-                    'data' => $data,
-                ]);
+                    'message' => 'Adjustor Meeting Created Successfully',
+                    'data' => collect($data)->map(function ($value, $key) {
+                        if ($key === 'email' && $value === null) {
+                            return '';
+                        }
+                        return $value;
+                    })
+                ], 200);
+                
             } else {
                 return response()->json([
                     'status' => 404,
                     'message' => 'Adjustor Meeting Not Found',
                 ]);
             }
-        
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
@@ -768,7 +978,6 @@ class MeetingController extends Controller
         ]);
         
         try {
-            
             //Check Adjustor Meeting Media
             $check_adjustor_media = AdjustorMeetingMedia::find($id);
             if(!$check_adjustor_media) {
@@ -799,9 +1008,8 @@ class MeetingController extends Controller
         $this->validate($request, [
             'image_url' => 'required|string'
         ]);
-        
+
         try {
-            
             //Check Adjustor Meeting Media
             $check_adjustor_media = AdjustorMeetingMedia::find($id);
             if(!$check_adjustor_media) {
@@ -850,7 +1058,6 @@ class MeetingController extends Controller
         $validatedData = $request->validate($rules, []);
 
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -895,7 +1102,6 @@ class MeetingController extends Controller
         
         DB::beginTransaction();
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -977,7 +1183,6 @@ class MeetingController extends Controller
     public function getOverturnMeeting($jobId)
     {
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -1009,7 +1214,6 @@ class MeetingController extends Controller
         ]);
 
         try {
-
             //Check Adjustor Meeting
             $overturn_meeting = OverturnMeeting::find($id);
             if(!$overturn_meeting) {
@@ -1018,7 +1222,6 @@ class MeetingController extends Controller
                     'message' => 'Meeting Not Found'
                 ], 422);
             }
-
             //Check Job
             $job = CompanyJob::find($id);
             if(!$job) {
@@ -1065,7 +1268,6 @@ class MeetingController extends Controller
         ]);
 
         try {
-
             //Check Overturn Meeting
             $check_overturn_meeting_media = OverturnMeetingMedia::find($id);
             if(!$check_overturn_meeting_media) {
@@ -1074,7 +1276,6 @@ class MeetingController extends Controller
                     'message' => 'Overturn Meeting Media Not Found'
                 ], 422);
             }
-
             //Update File Name
             $check_overturn_meeting_media->file_name = $request->file_name;
             $check_overturn_meeting_media->save();
@@ -1098,7 +1299,6 @@ class MeetingController extends Controller
         ]);
 
         try {
-
             //Check Media
             $check_media = OverturnMeetingMedia::find($id);
             if(!$check_media) {

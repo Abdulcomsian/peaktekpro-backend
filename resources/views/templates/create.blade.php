@@ -66,11 +66,10 @@
                     }).get();
 
                     $.ajax({
-                        url: '{{ route('templates.page-ordering.update') }}', // Define this route in your web.php
+                        url: "{{ route('templates.page-ordering.update') }}", // Define this route in your web.php
                         method: 'POST',
                         data: {
                             order: order,
-                            _token: $('meta[name=csrf-token]').attr('content')
                         },
                         success: function(response) {
                             console.log("Order updated successfully!");

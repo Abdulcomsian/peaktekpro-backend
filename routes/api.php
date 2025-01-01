@@ -50,6 +50,7 @@ use App\Http\Controllers\PaymentController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+Route::get('get-report-pdfs/{job_id}',[ReportController::class, 'getReportPdf']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -79,7 +80,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //setting apis
     Route::post('updateProfile/{id}', [ProfileController::class, 'updateProfile']);
     Route::post('changePassword', [ProfileController::class, 'changePassword']);
-
+    Route::post('add-overhead/percentage', [ProfileController::class, 'addOverheadPercentage']);
+    Route::get('get-overhead/percentage', [ProfileController::class, 'getOverheadPercentage']);
 
     //Company Api's
     Route::post('create/company', [CompanyController::class, 'createCompany']);
@@ -112,6 +114,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('create-job', [CompanyJobController::class, 'createJob']);
     Route::get('get/jobs', [CompanyJobController::class, 'getAllJobs']);
     Route::get('get-single/job/{id}', [CompanyJobController::class, 'getSingleJob']);
+    Route::get('customer/profile/{jobId}', [CompanyJobController::class, 'customerProfile']); //get customer details
+
     //Job Summary Api's
     Route::post('update/job-status/{id}', [CompanyJobController::class, 'updateJobStatus']);
     Route::post('update/job-summary/{id}', [CompanyJobController::class, 'updateJobSummary']);
@@ -156,17 +160,22 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('summary-filter', [CompanyJobController::class, 'summaryFilter']);  //Summary and Key Metrics api
 
     //progress Line
-    Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']); 
+    Route::get('progress-line/{jobId}', [CompanyJobController::class, 'progressLine']);
 
     //new Notes section api
-    Route::post('job-notes-add/{jobId}', [CompanyJobController::class, 'notesAdd']); 
-    Route::get('job-notes/{jobId}', [CompanyJobController::class, 'getNotes']); 
+    Route::post('job-notes-add/{jobId}', [CompanyJobController::class, 'notesAdd']);
+    Route::get('job-notes/{jobId}', [CompanyJobController::class, 'getNotes']);
+
+    //claim Information summary
+    Route::post('claim/information-summary/{jobId}', [CompanyJobController::class, 'claimInformationSummary']);
+    Route::get('get/claim/information-summary/{jobId}', [CompanyJobController::class, 'getClaimInformationSummary']);
 
     ////Pyment History Section
     Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
     Route::get('get/payment-history/{jobId}', [PaymentController::class, 'getPaymentHistory']);
 
-    //company Location 
+
+    //company Location
     Route::post('add/company_location', [CompanyLocationController::class, 'addCompanyLocation']);
     Route::get('get/company_location', [CompanyLocationController::class, 'getCompanyLocation']);
     Route::get('edit/company_location/{id}', [CompanyLocationController::class, 'editCompanyLocation']);
@@ -174,11 +183,20 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('delete/company_location/{id}', [CompanyLocationController::class, 'deleteCompanyLocation']);
 
 
-    //Inprogress Api's 
+    //Inprogress Api's
     Route::post('update/in-progress/{jobId}', [InprogressController::class, 'updateInprogress']);
+    Route::post('add/in-progress/photos/{jobId}', [InprogressController::class, 'addInprogressPhotos']);
+    Route::get('get/in-progress/photos/{jobId}', [InprogressController::class, 'getInprogressPhotos']);
     Route::post('update/in-progress-status/{jobId}', [InprogressController::class, 'updateInprogressStatus']);
     Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
     Route::get('get/in-progress/{jobId}', [InprogressController::class, 'getInprogress']);
+
+    //Build Packet template Sumo quote
+    Route::post('build-packet/sidebar/{jobId}', [InprogressController::class, 'buildPacketSidebar']);
+    Route::get('get/build-packet/sidebar/{jobId}', [InprogressController::class, 'getBuildPacketSidebar']);
+    Route::get('mark/build-packet-complete/{jobId}', [InprogressController::class, 'markBuildPacketComplete']);
+    Route::get('get/project-status/{jobId}', [InprogressController::class, 'getProjectStatus']);
+    Route::post('sign/build-packet/{jobId}', [InprogressController::class, 'signBuildPacket']);
 
     //Adjustor Meeting Api
     Route::post('create/adjustor-meeting/{jobId}', [MeetingController::class, 'createAdjustorMeeting']);
@@ -190,11 +208,12 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('delete/adjustor-meeting/media/{id}', [MeetingController::class, 'deleteAdjustorMeetingMedia']);
 
     //Adjustor meeting Photo section
-    Route::post('add/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'AdjustorMeetingPhotoSection']);
-    Route::get('get/adjustor-meeting/photo-section/{Id}', [MeetingController::class, 'getAdjustorMeetingPhotoSection']);
+    Route::post('add/exterior/photo-section/{Id}', [MeetingController::class, 'AddExteriorPhotoSection']);
+    Route::get('get/exterior/photo-section/{Id}', [MeetingController::class, 'getExteriorPhotoSection']);
     Route::post('add/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'AdjustorMeetingSquarePhotos']);
     Route::get('get/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'getAdjustorMeetingSquarePhotos']);
     Route::get('mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'CompleteAdjustorMeetingSquarePhotos']);
+    Route::get('get/mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'getCompleteAdjustorMeetingSquarePhotos']);
 
     //Overturn Meeting Api
     Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
@@ -213,6 +232,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('check/customer-agreement/{jobId}', [CustomerAgreementController::class, 'checkCustomerAgreement']);
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
+    Route::get('material-list', [MaterialOrderController::class, 'materialList']);
+    Route::post('material-selection/{id}', [MaterialOrderController::class, 'materialSelection']);
+    Route::get('get/material-selection/{id}', [MaterialOrderController::class, 'getMaterialSelection']);
     Route::post('generate-pdf/{jobId}', [MaterialOrderController::class, 'generatePdf']);
     Route::get('view-pdf', [MaterialOrderController::class, 'viewPdf']);
     Route::get('delete/material-order/material/{id}', [MaterialOrderController::class, 'deleteMaterialOrderMaterial']);
@@ -296,9 +318,17 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('change/ready-to-build/file-name/{id}', [ReadyToBuildController::class, 'changeReadyToBuildFileName']);
     Route::post('delete/ready-to-build/media/{id}', [ReadyToBuildController::class, 'deleteReadyToBuildMedia']);
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
+    Route::get('send/email/supplier/{jobId}', [ReadyToBuildController::class, 'EmailToSupplier']); //send mail to supplier
+
     //Supplier Api's
-    Route::post('store/supplier/{jobId}', [SupplierController::class, 'storeSupplier']);
-    Route::get('get/suppliers/{jobId}', [SupplierController::class, 'getSuppliers']);
+    Route::get('get/suppliers-list', [SupplierController::class, 'getAllSuppliers']);
+    Route::get('get/suppliers/{Id}', [SupplierController::class, 'getSuppliers']);
+    Route::post('delete/supplier/{Id}', [SupplierController::class, 'deleteSupplier']);
+    Route::post('store/supplier', [SupplierController::class, 'storeSupplier']);
+    Route::post('update/supplier/{id}', [SupplierController::class, 'updateSupplier']);
+    Route::post('delete/supplier/{id}', [SupplierController::class, 'deleteSupplier']);
+
+
     //Sub Contractor Api's
     Route::post('store/sub-contractor/{jobId}', [SubContractorController::class, 'storeSubContractor']);
     Route::get('get/sub-contractors/{jobId}', [SubContractorController::class, 'getSubContractors']);
@@ -336,10 +366,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/ready-to-close/{jobId}', [ReadyToCloseController::class, 'updateReadyToClose']);
     Route::post('update/ready-to-close-status/{jobId}', [ReadyToCloseController::class, 'updateReadyToCloseStatus']);
     Route::get('get/ready-to-close/{jobId}', [ReadyToCloseController::class, 'getReadyToClose']);
+    Route::get('jobSearch', [ReadyToCloseController::class, 'jobSearch']);
+
 
     //Report Apis
     Route::post('user-reports', [ReportController::class, 'userReports']); //performance api
     Route::get('get-pipeline-data', [ReportController::class, 'getPipelineData']);  //pipeline api
     Route::get('get-own-pipeline-data', [ReportController::class, 'getOwnPipelineData']);  //when click on my job pipeline api
-
 });

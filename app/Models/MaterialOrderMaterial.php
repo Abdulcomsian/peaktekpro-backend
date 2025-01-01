@@ -10,4 +10,9 @@ class MaterialOrderMaterial extends Model
     use HasFactory;
 
     protected $guarded = [];
+    public function materialOrder()
+    {
+        return $this->belongsTo(MaterialOrder::class, 'material_order_id');
+    }
+
 }

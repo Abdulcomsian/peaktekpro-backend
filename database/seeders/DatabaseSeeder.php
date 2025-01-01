@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->call(StatusSeeder::class);
         $this->call(ProjectDesignPagesSeeder::class);
         $this->call(LocationSeeder::class);
+        $this->call(OverHeadSeeder::class);
 
     }
 }

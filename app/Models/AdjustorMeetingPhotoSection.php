@@ -12,20 +12,20 @@ class AdjustorMeetingPhotoSection extends Model
     protected $fillable=[
         'adjustor_meeting_id',
         'front',
-        'front_imagePath',
+        'exteriorPhotos_front',
         'front_left',
-        'front_left_imagePath',
+        'exteriorPhotos_front_left',
         'left',
-        'left_imagePath',
+        'exteriorPhotos_left',
         'back_left',
-        'back_left_imagePath',
+        'exteriorPhotos_back_left',
         'back',
-        'back_imagePath',
+        'exteriorPhotos_back',
         'back_right',
-        'back_right_imagePath',
+        'exteriorPhotos_back_right',
         'right',
-        'right_imagePath',
+        'exteriorPhotos_right',
         'front_right',
-        'front_right_imagePath'
+        'exteriorPhotos_front_right'
     ];
 }

@@ -27,7 +27,8 @@ class User extends Authenticatable
         'created_by',
         'profile',
         'status',
-        'company_id'
+        'company_id',
+        'location'
     ];
 
     /**
@@ -73,4 +74,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(CompanyJobUser::class, 'company_job_id', 'id');
     }
+
+    public function companySummaries()
+    {
+        return $this->hasOne(CompanyJobSummary::class, 'company_id'); // Assuming company_id is the foreign key in company_summaries table
+    }
+
 }

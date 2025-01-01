@@ -16,6 +16,11 @@ class MaterialOrder extends Model
         return $this->hasMany(MaterialOrderMaterial::class);
     }
 
+    public function materialSelection()
+    {
+        return $this->hasMany(MaterialSelection::class,'material_order_id');
+    }
+
     public function job()
     {
         return $this->belongsTo(CompanyJob::class, 'company_job_id', 'id');
@@ -29,6 +34,11 @@ class MaterialOrder extends Model
     public function customerAggrement()
     {
         return $this->belongsTo(CustomerAgreement::class, 'company_id');
+    }
+
+    public function media()
+    {
+        return $this->hasMany(MaterialOrderMedia::class, 'material_order_id');
     }
 
 }

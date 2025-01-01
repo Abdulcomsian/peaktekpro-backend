@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\OverheadPercentage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +19,7 @@ class ProfileController extends Controller
         $this->validate($request, [
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|unique:users,email,' . $id, // Unique check excluding current user
+            'email' => 'nullable|string|email|unique:users,email,' . $id,
             'phone' => 'nullable|string|max:255',
             'job_title' => 'nullable|string|max:255',
             'market_segment' => 'nullable|string|max:255',
@@ -27,6 +28,7 @@ class ProfileController extends Controller
 
         try { 
 
+            $path = null;
            
             if($request->hasFile('profile_image'))
             {
@@ -43,6 +45,9 @@ class ProfileController extends Controller
                 $image = $request->file('profile_image');
                 $imageName = time(). '.'.$image->getClientOriginalExtension();
                 $path = $image->storeAs('public/user_profile_image', $imageName);
+            }else {
+                $user = User::find($id);
+                $path = $user->profile_image; 
             }
             $user= User::find($id);
             $user->first_name=$request->first_name ?? $user->first_name;
@@ -96,4 +101,45 @@ class ProfileController extends Controller
         ]);
     }
     
+
+    public function addOverheadPercentage(Request $request)
+    {
+        $request->validate([//
+            'overhead_percentage'=> 'nullable'
+        ]);
+
+        $percentage = OverheadPercentage::query()->update(
+        [
+        'overhead_percentage'=> $request->overhead_percentage,
+        ]);
+        
+        $updatedData = OverheadPercentage::first();
+        $message = 'Data Saved Successfully';
+        return response()->json([
+            'status'=> 200,
+            'message' => $message,
+            'data' => $updatedData
+        ]);
+    }
+
+    public function getOverheadPercentage()
+    {   
+        $updatedData = OverheadPercentage::first();
+        if($updatedData)
+        {
+            $message = 'Data Fetched Successfully';
+            return response()->json([
+                'status'=> 200,
+                'message' => $message,
+                'data' => $updatedData
+            ]);
+        }
+        $message = 'Data Not Found ';
+        return response()->json([
+            'status'=> 200,
+            'message' => $message,
+            'data' => []
+        ]);
+       
+    }
 }

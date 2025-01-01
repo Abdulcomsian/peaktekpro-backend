@@ -9,9 +9,11 @@ use App\Models\Status;
 use App\Models\Location;
 use App\Models\CompanyJob;
 use App\Models\ClaimDetail;
+use Illuminate\Support\Str;
 use App\Models\CompanyNotes;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
+use App\Models\ClaimInformation;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
@@ -21,10 +23,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Events\JobStatusUpdateEvent;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
+use App\Models\Payment;
 use Illuminate\Support\Facades\DB as FacadesDB;
 
 class CompanyJobController extends Controller
@@ -47,8 +51,36 @@ class CompanyJobController extends Controller
 
         try {
 
+            if (!is_array($request->address)) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Invalid address, Please Select from Google places.'
+                ], 422);
+            
+            }
             $user = Auth::user();
+            $company= $user->company_id;
             $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
+             //here We will check that this mail exist in users table and if it is in users table then add the job with it if we have no email then create a new customer
+            // $user=User::where('email',$request->email)->first();
+            // if(!$user)
+            // {
+            //     //here I am making a new customer/client
+            //     $user=new User();
+            //     $user->name = $request->name;
+            //     $names = explode(' ', $request->name, 2); // Split into two parts
+            //     $user->first_name = $names[0] ?? null;
+            //     $user->last_name = $names[1] ?? null;
+            //     $user->email = $request->email;
+            //     $user->phone = $request->phone;
+            //     // $user->password = Hash::make(Str::random(8));
+            //     $user->password = Hash::make('12345678');
+            //     $user->status = 'active';
+            //     $user->role_id = 10;
+            //     $user->created_by = $created_by;
+            //     $user->company_id = $company;
+            //     $user->save();
+            // }
 
             //Create Job
             $job = new CompanyJob;
@@ -64,16 +96,17 @@ class CompanyJobController extends Controller
             $job->phone = $request->phone;
             $job->date = now()->format('Y-m-d');
 
+            $job->customer_id = $user->id; //it will be job customer
             $job->save();
-
+           
             //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
             $address = new CustomerAgreement();
             $address->company_job_id = $job->id;
-            $address->street = $request->address['street'];
-            $address->city = $request->address['city'];
-            $address->state = $request->address['state'];
-            $address->zip_code = $request->address['postalCode'];
-            $address->address = $request->address['formatedAddress'];//full addres save
+            $address->street = $request->address['street'] ?? null;
+            $address->city = $request->address['city'] ?? null;
+            $address->state = $request->address['state'] ?? null;
+            $address->zip_code = $request->address['postalCode'] ?? null;
+            $address->address = $request->address['formatedAddress'] ?? null;
 
             $address->save();
 
@@ -115,6 +148,40 @@ class CompanyJobController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
+    }
+
+    public function customerProfile($jobId)
+    {
+        $customer_profile = CompanyJob::with('companyJobSummaries')->select('id','name','address','email','phone','user_id')->where('id',$jobId)->first();
+
+        $jobTotal = $customer_profile->companyJobSummaries->first()->job_total ?? null;
+
+        $response=[
+            'id'=>$customer_profile->id,
+            'name'=>$customer_profile->name,
+            'email'=>$customer_profile->email,
+            'phone'=>$customer_profile->phone,
+            'job_total' => $jobTotal ?? null, // Safely access job_total
+            'address'=>json_decode($customer_profile->address),
+            // 'job_total' => $customer_profile->companyJobSummaries->sum('job_total') ?? null, // Safely access job_total
+
+        ];
+        
+        if($customer_profile)
+        {
+            return response()->json([
+                'status'=>200,
+                'message' => 'Details Fetched Successfully',
+                'data' => $response
+            ]);
+        }
+
+        return response()->json([
+            'status'=>404,
+            'message' => 'Not Found',
+            'data' =>[]
+        ]);
+
     }
 
 
@@ -185,6 +252,8 @@ class CompanyJobController extends Controller
                     ->first();
                     if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
                         $completedSteps += 1; // Count both 'new_leads' and 'customer_agreements'
+                    }elseif ($customerAgreement && $customerAgreement->current_stage === 'no') {
+                        $completedSteps += 1; // when we revert from status 4 to status 2 it means at this time job is in status 2 so no 1 step is complete thats why set 10 percent
                     }
 
                 foreach ($tables as $table) {
@@ -223,8 +292,8 @@ class CompanyJobController extends Controller
             // Define statuses
             $statuses = Status::whereIn('name', [
                 'New Leads',
-                'Signed Deals',
-                'Estimate Prepared', //excluded
+                'Customer Agreement',
+                // 'Estimate Prepared', //excluded
                 'Adjuster Scheduled',
                 'Ins Under Review', 
                 'Overturn',
@@ -237,7 +306,7 @@ class CompanyJobController extends Controller
                 'COC Required',
                 'Final Payment Due',
                 'Ready to Close',
-                'Supplement Submitted',
+                // 'Supplement Submitted',
                 'Won and Closed',
                 'Lost',
                 'Unqualified', 
@@ -523,6 +592,8 @@ class CompanyJobController extends Controller
                 'final_payment' => $request->final_payment,
                 'final_payment_cheque_number' => $request->final_payment_cheque_number,
                 'balance' => $request->balance,
+                'is_fully_paid' => 'no',
+                'full_payment_date' => null
                 // 'invoice_number' => $request->invoice_number,
                 // 'market' => $request->market,
                 // 'lead_source' => $request->lead_source,
@@ -531,6 +602,14 @@ class CompanyJobController extends Controller
                 // 'email' => $request->email,
                 // 'insurance_representative' => $request->insurance_representative
             ]);
+
+            // $job_payment = Payment::updateOrCreate([
+            //     'company_job_id' => $id
+            // ],
+            // [
+            //     'company_job_id' => $id,
+            //     'payment_amount' 
+            // ])
 
             // Assign Job To Users
             // if(isset($request->user_ids) && count($request->user_ids) > 0) {
@@ -1082,8 +1161,8 @@ class CompanyJobController extends Controller
             // $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
             $specificStatuses=[
                             'New Leads',
-                            'Signed Deals',
-                            'Estimate Prepared', //excluded show only when job_type is insurance
+                            'Customer Agreement',
+                            // 'Estimate Prepared', //excluded show only when job_type is insurance
                             'Adjuster Scheduled',
                             'Ins Under Review', 
                             'Overturn',
@@ -1096,7 +1175,7 @@ class CompanyJobController extends Controller
                             'COC Required',
                             'Final Payment Due',
                             'Ready to Close',
-                            'Supplement Submitted',
+                            // 'Supplement Submitted',
                             'Won and Closed',
                             'Lost',
                             'Unqualified',
@@ -1216,9 +1295,96 @@ class CompanyJobController extends Controller
     }
 
 
+    public function getJobWithStatus($statusId, Request $request)
+{
+    $request->validate([
+        'job_type' => 'nullable',
+        'market' => 'nullable',
+    ]);
+
+    try {
+        // Check Status
+        $task = Status::find($statusId);
+        if (!$task) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Task Not Found',
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+        $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+        $market = $request->input('market'); // Get the market filter from the request
+        $jobType = $request->input('job_type'); // Get the job_type filter from the request
+
+        if ($user->role_id == 1 || $user->role_id == 2) {
+            $jobs = CompanyJob::where('created_by', $created_by)
+                ->where('status_id', $statusId)
+                ->when($market && $market !== 'all', function ($query) use ($market) {
+                    // Apply market filter only if it's not "all"
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType && $jobType !== 'all', function ($query) use ($jobType) {
+                    // Apply job_type filter only if it's not "all"
+                    $query->whereHas('summary', function ($q) use ($jobType) {
+                        $q->where('job_type', $jobType);
+                    });
+                })
+                ->with('summary') // Load only necessary fields from the summary
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($job) {
+                    // Assign amount based on the summary balance or set it to 0 if summary is null
+                    $job->amount = $job->summary->balance ?? 0;
+                    return $job;
+                });
+        } else {
+            $jobs = CompanyJob::whereIn('id', $assigned_jobs)
+                ->where('status_id', $statusId)
+                ->when($market && $market !== 'all', function ($query) use ($market) {
+                    // Apply market filter only if it's not "all"
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType && $jobType !== 'all', function ($query) use ($jobType) {
+                    // Apply job_type filter only if it's not "all"
+                    $query->where('job_type', $jobType);
+                })
+                ->with('summary') // Load only necessary fields from the summary
+                ->orderBy('status_id', 'asc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($job) {
+                    $job->amount = $job->summary->balance ?? 0;
+                    return $job;
+                });
+        }
+
+        $task->jobs = $jobs;
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Jobs Found Successfully',
+            'data' => $task,
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+    }
+}
+
     
-    public function getJobWithStatus($statusId)
+    public function getJobWithStatus22($statusId, Request $request)
     {
+        $request->validate([
+            'job_type'=>'nullable',
+            'market' => 'nullable'
+        ]);
+
         try {
             // Check Status
             $task = Status::find($statusId);
@@ -1232,11 +1398,25 @@ class CompanyJobController extends Controller
             $user = Auth::user();
             $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
             $created_by = $user->created_by == 0 ? 1 : $user->created_by;
-            
+            $market = $request->input('market'); // Get the market filter from the request
+            $jobType = $request->input('job_type'); // Get the job_type filter from the request
+
             if($user->role_id == 1 || $user->role_id == 2) {
+
                 $jobs = CompanyJob::where('created_by', $created_by)
                 ->where('status_id', $statusId)
-                ->with('summary:company_job_id,balance') // Load only necessary fields from the summary
+                ->when($market, function ($query) use ($market) {
+                    // Apply market filter if provided
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType, function ($query) use ($jobType) {
+                    $query->whereHas('summary', function ($q) use ($jobType) {
+                        $q->where('job_type', $jobType);
+                    });     
+                           })
+                ->with('summary') // Load only necessary fields from the summary
                 ->orderBy('status_id', 'asc')
                 ->orderBy('id', 'desc')
                 ->get()
@@ -1248,8 +1428,18 @@ class CompanyJobController extends Controller
                 
                 
             } else {
-                $jobs = CompanyJob::whereIn('id', $assigned_jobs)->where('status_id', $statusId)
-                ->with('summary:company_job_id,balance') // Load only necessary fields from the summary
+                $jobs = CompanyJob::whereIn('id', $assigned_jobs)
+                ->where('status_id', $statusId)
+                ->when($market, function ($query) use ($market) {
+                    // Apply market filter if provided
+                    $query->whereHas('summary', function ($q) use ($market) {
+                        $q->where('market', $market);
+                    });
+                })
+                ->when($jobType, function ($query) use ($jobType) {
+                    $query->where('job_type', $jobType);
+                })
+                ->with('summary') // Load only necessary fields from the summary
                 ->orderBy('status_id', 'asc')
                 ->orderBy('id', 'desc')
                 ->get()
@@ -1272,7 +1462,7 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-    
+
     public function dashboardStats()
     {
         try { 
@@ -1839,7 +2029,7 @@ class CompanyJobController extends Controller
             $created_by = $user->created_by == 0 ? 1 : $user->created_by; 
             // dd($created_by);
 
-            $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close','Won and Closed'];
+            $specificStatuses = ['New Leads', 'Customer Agreement', 'Adjuster Scheduled','Ins Under Review','Overturn','Appraisal','Approved', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete','COC Required', 'Final Payment Due', 'Ready to Close','Won and Closed','Lost','Unqualified'];
 
             if ($user->role_id == 1 || $user->role_id == 2) {
                 $tasks = Status::whereIn('name', $specificStatuses)
@@ -2088,6 +2278,18 @@ class CompanyJobController extends Controller
             $sortField = 'updated_at';
             $sortOrder = 'desc';
 
+               // Tables with stages
+            $tables = [
+                'customer_agreements',
+                'estimate_prepareds',
+                'adjustor_meetings',
+                'ready_to_builds',
+                'build_details',
+                'inprogresses',
+                'cocs',
+                'final_payment_dues',
+                'ready_to_closes',
+            ];
             // Determine sorting based on request
             if (!empty($request->sort_by)) {
                 switch ($request->sort_by) {
@@ -2132,9 +2334,8 @@ class CompanyJobController extends Controller
 
             $specificStatuses =
                 ['New Leads',
-                'Signed Deals',
-                // 'Estimate Prepared', //excluded
-                'Adjuster',
+                'Customer Agreement',
+                'Adjuster Scheduled',
                 'Ins Under Review', 
                 'Overturn',
                 'Appraisal',  
@@ -2146,14 +2347,14 @@ class CompanyJobController extends Controller
                 'COC Required',
                 'Final Payment Due',
                 'Ready to Close',
-                'Supplement Submitted',
+                // 'Supplement Submitted',
                 'Won and Closed',
                 'Lost',
                 'Unqualified', ];
 
-            // $specificStatuses = ['New Leads', 'Signed Deals', 'Estimate Prepared', 'Adjustor', 'Ready To Build', 'Build Scheduled', 'In Progress', 'Build Complete', 'Final Payment Due', 'Ready to Close', 'Won and Closed'];
-
+                // dd($specificStatuses);
             $tasks = Status::select('id', 'name')
+                ->whereIn('name', $specificStatuses)
                 ->when(!empty($request->stages), function ($query) use ($request) {
                     $query->whereIn('name', $request->stages);
                 })
@@ -2169,13 +2370,13 @@ class CompanyJobController extends Controller
 
                         if ($request->location) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('market', $request->location);
+                                $q->whereIn('market', $request->location);
                             });
                         }
 
                         if ($request->lead_source) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('lead_source', $request->lead_source);
+                                $q->whereIn('lead_source', $request->lead_source);
                             });
                         }
 
@@ -2218,7 +2419,7 @@ class CompanyJobController extends Controller
                         //filter fir location
                         if ($request->location) {
                             $query->whereHas('companyJobSummaries', function ($q) use ($request) {
-                                $q->where('market', $request->location);
+                                $q->whereIn('market', $request->location);
                             });
                         }
 
@@ -2297,6 +2498,50 @@ class CompanyJobController extends Controller
                 ])
                 ->get();
 
+
+                // Calculate progress for each job
+            // $tables = [
+            //     'customer_agreements',
+            //     'estimate_prepareds',
+            //     'adjustor_meetings',
+            //     'ready_to_builds',
+            //     'build_details',
+            //     'inprogresses',
+            //     'cocs',
+            //     'final_payment_dues',
+            //     'ready_to_closes',
+            // ];
+
+        // $jobsWithProgress = $$tasks->map(function ($job) use ($tables) {
+        //     $completedSteps = 0;
+        //     $totalSteps = count($tables) + 1;
+
+        //     $customerAgreement = DB::table('customer_agreements')
+        //         ->where('company_job_id', $job->id)
+        //         ->select('current_stage')
+        //         ->first();
+
+        //     if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
+        //         $completedSteps++;
+        //     }
+
+        //     foreach ($tables as $table) {
+        //         $currentStage = DB::table($table)
+        //             ->where('company_job_id', $job->id)
+        //             ->select('current_stage')
+        //             ->first();
+
+        //         if ($currentStage && $currentStage->current_stage === 'yes') {
+        //             $completedSteps++;
+        //         }
+        //     }
+
+        //     $completedPercentage = ($completedSteps / $totalSteps) * 100;
+        //     $job->completed_percentage = round($completedPercentage, 2);
+
+        //     return $job;
+        // });
+
             // Transform tasks data to include 'job_total' and 'claim_number' in 'summary' and sum up 'job_total' for each status
             $tasks->each(function ($status) {
                 $status->job_total = $status->tasks->sum(function ($job) {
@@ -2348,14 +2593,14 @@ class CompanyJobController extends Controller
             $companyId = $user->company_id;
             // dd($companyId);
 
-            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Signed Deals','Adjuster','Ins Under Review', 'Overturn','Appraisal','Approved','Ready To Build','Build Scheduled', 'In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Supplement Submitted','Won and Closed','Lost','Unqualified'])
+            $statuses = Status::select('id','name')->whereIn('name',['New Leads','Customer Agreement','Adjuster Scheduled','Ins Under Review', 'Overturn','Appraisal','Approved','Ready To Build','Build Scheduled', 'In Progress','Build Complete','COC Required','Final Payment Due','Ready to Close','Won and Closed','Lost','Unqualified'])
                  ->get();
             if (in_array($user->role_id, [1, 2,5,8,9])) {
                 // Role 1 or 2: Fetch users with the same company_id as the logged-in user
                 $representatives = User::
                     // whereHas('companyJobUsers')
                     where('created_by', $companyId)
-                    ->select('id', 'name', 'first_name', 'last_name', 'email', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
+                    ->select('id', 'name', 'first_name', 'last_name', 'email','company_id', 'role_id', 'phone','created_by', 'created_at', 'updated_at')
                     ->get();
                 $location = Location::whereIn('created_by',[$companyId,0])->get();
 
@@ -2417,7 +2662,6 @@ class CompanyJobController extends Controller
             'job_type' => 'nullable|string',
             'location' => 'nullable|string',
         ]);
-
         try {
             // Check Status
             $task = Status::find($statusId);
@@ -2481,29 +2725,38 @@ class CompanyJobController extends Controller
     public function claimDetails($jobId, ClaimDetailRequest $request)
     {
         try{
+            $job = CompanyJob::where('id',$jobId)->first();
+            if(!$job)
+            {
+                return response()->json([
+                    'status'=>200,
+                    'message'=> 'Company not Found',
+                    'data'=>[]
+                ]);
+            }
              $request->validated();
-            $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
+            // $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
 
-            if($ClaimDetail){
-                $ClaimDetail->claim_number = $request->claim_number;
-                $ClaimDetail->status = $request->status;
-                $ClaimDetail->supplement_amount = $request->supplement_amount;
-                $ClaimDetail->notes = $request->notes;
-                $ClaimDetail->last_update_date = $request->last_update_date;
-                $ClaimDetail->save();
-                $message = "Claim Details Updated";
-            }else{
+            // if($ClaimDetail){
+            //     $ClaimDetail->claim_number = $request->claim_number;
+            //     $ClaimDetail->status = $request->status;
+            //     $ClaimDetail->supplement_amount = $request->supplement_amount;
+            //     $ClaimDetail->notes = $request->notes;
+            //     $ClaimDetail->last_update_date = $request->last_update_date;
+            //     $ClaimDetail->save();
+            //     $message = "Claim Details Updated";
+            // }else{
                 $ClaimDetail = new ClaimDetail();
                 $ClaimDetail->company_job_id = $jobId;
                 $ClaimDetail->claim_number = $request->claim_number;
                 $ClaimDetail->status = $request->status;
                 $ClaimDetail->supplement_amount = $request->supplement_amount;
-                $ClaimDetail->notes = $request->notes;
+                $ClaimDetail->notes = $request->notes ?? "";
                 $ClaimDetail->last_update_date = $request->last_update_date;
                 $ClaimDetail->save();
                 $message = "Claim Details Created";
 
-            }
+            // }
 
             return response()->json([
                 'status_code' =>200,
@@ -2523,12 +2776,12 @@ class CompanyJobController extends Controller
 
     public function getclaimDetails($jobId)
     {
-        $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
+        $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->get();
         if($ClaimDetail)
         {
             return response()->json([
                 'status_code' =>200,
-                'message' => 'Claim Details Found Successfully',
+                'message' => 'Claim Details Fetched Successfully',
                 'data' => $ClaimDetail
             ]);
         }
@@ -2818,6 +3071,62 @@ class CompanyJobController extends Controller
                 'message' => 'notes not exist',
                 'data' => []
             ]);
+    }
+
+    public function claimInformationSummary($jobId, Request $request)
+    {
+        $request->validate([
+            'claim_number' => 'nullable|string',
+            'date_of_loss' => 'nullable|date',
+            'insurance_provider' => 'nullable|string',
+            'adjustor_name' => 'nullable|string',
+            'contact_information' => 'nullable|string',
+            'status' => 'nullable|in:approved,review,denied'
+        ]);
+
+        try{
+            $claim = new ClaimInformation();
+            $claim->company_job_id = $jobId;
+            $claim->claim_number = $request->claim_number;
+            $claim->date_of_loss = $request->date_of_loss;
+            $claim->insurance_provider = $request->insurance_provider;
+            $claim->adjustor_name = $request->adjustor_name;
+            $claim->contact_information = $request->contact_information;
+            $claim->status = $request->status;
+            $claim->save();
+
+            return response()->json([
+                'status' =>200,
+                'message' => 'saved successfully',
+                'data' => $claim
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 500,
+                'message' => 'Issue Occcured',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function getClaimInformationSummary($jobId)
+    {
+        $claim_summary = ClaimInformation::where('company_job_id',$jobId)->first();
+        if($claim_summary)
+        {
+            return response()->json([
+                'status' => 200,
+                'message' => 'claim summary fetched successfully',
+                'data' => $claim_summary
+            ]);
+        }
+        return response()->json([
+            'status' => 401,
+            'message' => 'Not found',
+            'data' => []
+
+        ]);
     }
 
 }

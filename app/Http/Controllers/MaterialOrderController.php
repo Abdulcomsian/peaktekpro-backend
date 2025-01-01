@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Log;
 use PDF;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Material;
 use App\Models\CompanyJob;
 use App\Models\BuildDetail;
 use App\Models\ReadyToBuild;
@@ -13,6 +15,8 @@ use App\Jobs\ConfirmationJob;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
 use App\Models\CustomerAgreement;
+use App\Models\MaterialSelection;
+use App\Models\MaterialOrderMedia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MaterialOrderMaterial;
@@ -21,21 +25,29 @@ use App\Models\MaterialOrderConfirmation;
 use App\Jobs\MaterialOrderConfirmationJob;
 use App\Models\MaterialOrderDeliveryInformation;
 use App\Notifications\MaterialOrderConfirmationNotification;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 class MaterialOrderController extends Controller
 {
-    public function materialOrder(Request $request, $id)
+    public function materialList()
+    {
+        // dd();
+        $options = Material::with('subOptions')->get(); // Fetch options with sub-options
+        return response()->json($options);
+    }
+
+    public function materialOrder(Request $request, $id) //add this in ready build now
     {
         //Validate Request
         $this->validate($request, [
             // 'supplier_id' => 'required|integer',
-            'street' => 'nullable',
-            'city' => 'nullable',
-            'state' => 'nullable',
-            'zip_code' => 'nullable',
-            'insurance' => 'nullable',
-            'claim_number' => 'nullable',
-            'policy_number' => 'nullable',
+            // 'street' => 'nullable',
+            // 'city' => 'nullable',
+            // 'state' => 'nullable',
+            // 'zip_code' => 'nullable',
+            // 'insurance' => 'nullable',
+            // 'claim_number' => 'nullable',
+            // 'policy_number' => 'nullable',
             'date_needed' => 'nullable|date_format:m/d/Y',
             'square_count' => 'nullable',
             'total_perimeter' => 'nullable',
@@ -50,6 +62,13 @@ class MaterialOrderController extends Controller
             'materials.*.quantity' => 'nullable',
             'materials.*.color' => 'nullable',
             'materials.*.order_key' => 'nullable',
+            'notes'=>'nullable|string',
+            'file_name' => 'nullable|array',
+            'file_name.*' => 'nullable',
+            'media_type' => 'nullable|array',
+            'media_type.*' => 'nullable|string',
+            'media' => 'nullable|array',
+            'media.*' => 'nullable|mimes:jpg,png,pdf|max:2048',
         ]);
 
         DB::beginTransaction();
@@ -64,6 +83,38 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
 
+
+            /////////////get previous details////////////
+            $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id',$id)->select('id','name','email','phone','address')->first();
+            // return response()->json([
+            //     'data'=> $customer_agreement
+            // ]);
+          
+            if ($customer_agreement) {
+                $decodedAddress = json_decode($customer_agreement->address, true);
+
+                // Decode the address JSON string into a PHP array
+                $customer_agreement->city = $decodedAddress['city'] ?? null;
+                $customer_agreement->postalCode = $decodedAddress['postalCode'] ?? null;
+                $customer_agreement->street = $decodedAddress['street'] ?? null;
+                $customer_agreement->state = $decodedAddress['state'] ?? null;
+                $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
+            
+                unset($customer_agreement->address);
+
+                  // Separate summary values
+                if ($customer_agreement->summary) {
+                    $customer_agreement->insurance = $customer_agreement->summary->insurance;
+                    $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
+                    $customer_agreement->claim_number = $customer_agreement->summary->claim_number;
+
+                    unset($customer_agreement->summary);
+                }
+
+            }
+            //Generate PO number
+            $poNumber = $this->generatePONumber();
+
             //Check Supplier
             // $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
             // if(!$supplier) {
@@ -74,18 +125,29 @@ class MaterialOrderController extends Controller
             // }
 
             //Store Material Order
+            $city = $decodedAddress['city'] ?? null;
+            $postalCode = $decodedAddress['postalCode'] ?? null;
+            $street = $decodedAddress['street'] ?? null;
+            $state = $decodedAddress['state'] ?? null;
+            $formatedAddress = $decodedAddress['formatedAddress'] ?? null;
+        
+            $insurance = $customer_agreement->summary->insurance ?? null;
+            $claimnumber = $customer_agreement->summary->claim_number ?? null;
+            $policynumber = $customer_agreement->summary->policy_number ?? null;
+
             $material_order = MaterialOrder::updateOrCreate([
                 'company_job_id' => $id,
             ],[
                 'company_job_id' => $id,
+                'po_number' => $poNumber, 
                 'supplier_id' => $request->supplier_id,
-                'street' => $request->street,
-                'city' => $request->city,
-                'state' => $request->state,
-                'zip_code' => $request->zip_code,
-                'insurance' => $request->insurance,
-                'claim_number' => $request->claim_number,
-                'policy_number' => $request->policy_number,
+                'street' => $street,
+                'city' =>  $city,
+                'state' => $state,
+                'zip_code' => $postalCode,
+                'insurance' => $insurance,
+                'claim_number' => $claimnumber,
+                'policy_number' => $policynumber,
                 'date_needed' => $request->date_needed,
                 'square_count' => $request->square_count,
                 'total_perimeter' => $request->total_perimeter,
@@ -95,6 +157,37 @@ class MaterialOrderController extends Controller
                 'hip_and_ridge_lf' => $request->hip_and_ridge_lf,
                 'drip_edge_lf' => $request->drip_edge_lf,
             ]);
+
+            ////////save documents and notes////////////
+            $savedPhotos = [];
+            $medias = $request->media ?? [];
+
+            foreach($medias as $index=>$media)
+            {
+                $image_filename = time(). '.'. $media->getClientOriginalName();
+                $image_filePath = $media->storeAs('material_order_documents',$image_filename,'public');
+
+                //store Path
+                $media = new MaterialOrderMedia();
+                $media->notes = $request->notes;
+                $media->material_order_id = $material_order->id;
+                $media->file_name = $request->file_name[$index] ?? null; // Use the corresponding file_name
+                $media->media_type = $request->media_type[$index] ?? null;
+                $media->media_url = Storage::url($image_filePath);
+                $media->save();
+                  // Collect saved photo details
+                  $savedPhotos[] = [
+                    'id' => $media->id,
+                    'material_order_id' => $media->material_order_id,
+                    'file_name' => $media->file_name,
+                    'media_type' => $media->media_type,
+                    'media_url' => $media->media_url,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+
+            ///end document and notes logic////
 
             // Delete materials that are not in the incoming data
             $existingMaterials = MaterialOrderMaterial::where('material_order_id', $material_order->id)->get();
@@ -141,12 +234,101 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Material Order Created Successfully',
-                'material_order' => $material_order
+                'data' =>     $material_order->load('materials', 'media'),
             ], 200);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
+    }
+
+    private function generatePONumber()
+    {
+        $latestOrder = MaterialOrder::latest('id')->first();
+        $nextId = $latestOrder ? $latestOrder->id + 1 : 1; // Increment ID or start at 1
+        return 'PO-' . str_pad($nextId, 8, '0', STR_PAD_LEFT); // Format: PO-00000001
+    }
+
+    //material Selections
+    public function materialSelection(Request $request, $id)
+    {
+        $this->validate($request,[
+            'name' => 'nullable|array',
+            'name.*'=> 'nullable|string',
+            'option' => 'nullable|array',
+            'option.*' => 'nullable|string',
+            'unit' => 'nullable|array',
+            'unit.*' => 'nullable|string',
+            'unit_cost' => 'nullable|array',
+            'unit_cost.*' => 'nullable|string',
+            'quantity' => 'nullable|array',
+            'quantity.*' => 'nullable|string',
+            'total' => 'nullable|array',
+            'total.*' => 'nullable|string'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->name as $index => $name) {
+                $material = MaterialSelection::create(
+                    [   
+                        'material_order_id' => $id,
+                        'name' => $name,
+                        'option' => $request->option[$index] ?? null,
+                        'unit' => $request->unit[$index] ?? null,
+                        'unit_cost' => $request->unit_cost[$index] ?? null,
+                        'quantity' => $request->quantity[$index] ?? null,
+                        'total' => $request->total[$index] ?? null,
+                    ]       
+                );
+            }
+    
+            DB::commit();
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Material selection saved successfully.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack(); 
+    
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage() . ' on line ' . $e->getLine(),
+            ]);
+        }
+
+    }
+
+    public function getMaterialSelection($id)
+    {
+        $material_order = MaterialOrder::where('id',$id)->first();
+        if(!$material_order)
+        {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Material Order Not Exist.',
+                'data' => []
+            ]);
+        }
+
+        $material_order_selection = MaterialSelection::where('material_order_id',$id)->get();
+        if($material_order_selection->isEmpty())
+        {
+            return response()->json([
+                'status' =>404,
+                'message' => 'Materail Order Selection not Found',
+                'data' => []
+            ]);
+           
+        }else{
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data Fetched Successfully',
+                'data' => $material_order_selection
+            ]);
+        }
+        
     }
 
     public function generatePdf($jobId)
@@ -161,17 +343,22 @@ class MaterialOrderController extends Controller
                 ], 422);
             }
             //here we will create a pdf 
-            $material_order = MaterialOrder::with('materials')->where('company_job_id',$jobId)->first();
+            $material_order =MaterialOrder::with('materials','materialSelection')->where('company_job_id',$jobId)->first();
             if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Material Order Not Found'
                 ], 404);
             }
-            // return response()->json($material_order);
-
+            $materialSelection=$material_order->materialSelection;
+            // Log::info($material_order->materialSelection);
             //Generate PDF
-            $pdf = PDF::loadView('pdf.material-order', ['data' => $material_order]);
+            $pdf = PDF::loadView('pdf.material-order', [
+                // Log::info($material_order),// Ensure all data is present
+
+                'data' => $material_order,
+                'materialSelection' => $materialSelection,
+            ]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
             
@@ -255,10 +442,42 @@ class MaterialOrderController extends Controller
         }
 
     }
+
     public function getMaterialOrder($id)
     {
+        
         try {
-            $customer_agreement = CustomerAgreement::select('street','city','state','zip_code','insurance','claim_number','policy_number')->where('company_job_id', $id)->first();
+            // $customer_agreement = CustomerAgreement::select('street','city','state','zip_code','insurance','claim_number','policy_number')->where('company_job_id', $id)->first();
+            $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id',$id)->select('id','name','email','phone','address')->first();
+            if ($customer_agreement) {
+                $decodedAddress = json_decode($customer_agreement->address, true);
+
+                $customer_agreement->my_address = $customer_agreement->address;
+
+                // return response()->json([
+                //     'data'=>  $decodedAddress
+                // ]);
+                // Decode the address JSON string into a PHP array
+                // $customer_agreement->address = json_decode($customer_agreement->address, true);
+                $customer_agreement->city = $decodedAddress['city'] ?? null;
+                // dd($decodedAddress['city']);
+                $customer_agreement->postalCode = $decodedAddress['postalCode'] ?? null;
+                $customer_agreement->street = $decodedAddress['street'] ?? null;
+                $customer_agreement->state = $decodedAddress['state'] ?? null;
+                $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
+            
+                // unset($customer_agreement->address);
+
+                  // Separate summary values
+                if ($customer_agreement->summary) {
+                    $customer_agreement->insurance = $customer_agreement->summary->insurance;
+                    $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
+                    $customer_agreement->claim_number = $customer_agreement->summary->claim_number;
+
+                    // unset($customer_agreement->summary);
+                }
+
+            }
             // return response($customer_agreement->toArray());
             $job = CompanyJob::select('name', 'email', 'phone')->find($id);
 
@@ -268,10 +487,20 @@ class MaterialOrderController extends Controller
             $response_data = [];
 
             // Always include job data in the response at the same level
+            $decodedAddress = json_decode($customer_agreement->address, true);
+
             if ($job) {
                 $response_data['name'] = $job->name;
                 $response_data['email'] = $job->email;
                 $response_data['phone'] = $job->phone;
+                $response_data['city'] = $decodedAddress['city'] ?? null;
+                $response_data['street'] = $decodedAddress['street'] ?? null;
+                $response_data['state'] = $decodedAddress['state'] ?? null;
+                $response_data['postalCode'] = $decodedAddress['postalCode'] ?? null;
+                $response_data['insurance'] = $customer_agreement->summary->insurance ?? null;
+                $response_data['policy_number'] = $customer_agreement->summary->policy_number ?? null;
+                $response_data['claim_number'] = $customer_agreement->summary->claim_number ?? null;
+
             }
 
             if ($material_order) {
@@ -310,7 +539,7 @@ class MaterialOrderController extends Controller
         try {
 
             //Check Material Order
-            $material_order = MaterialOrder::find($id);
+            $material_order = MaterialOrder::where('company_job_id',$id)->first();
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
@@ -347,7 +576,7 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Signature Image Added Successfully',
-                'material_order' => $material_order
+                'material_order' => $material_order,
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
@@ -432,7 +661,7 @@ class MaterialOrderController extends Controller
             }
 
             //Check Supplier
-            $supplier = User::where('id', $request->supplier_id)->where('role_id', 3)->first();
+            $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
             if(!$supplier) {
                 return response()->json([
                     'status' => 422,
@@ -480,7 +709,9 @@ class MaterialOrderController extends Controller
             }
 
             //Check Material Order
-            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('job','materials')->first();
+            $material_order = MaterialOrder::with('materialSelection')->where('company_job_id', $jobId)->with('job','materials')->first();
+            $materialSelection = $material_order->materialSelection;
+            // return response($material_order);
             if(!$material_order) {
                 return response()->json([
                     'status' => 422,
@@ -489,13 +720,14 @@ class MaterialOrderController extends Controller
             }
 
             //Check if Supplier is assigned
-            $assigned_supplier = MaterialOrder::whereNotNull('supplier_id')->first();
-            if(!$assigned_supplier) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Supplier Not Yet Assigned'
-                ], 422);
-            }
+            // $assigned_supplier = MaterialOrder::whereNotNull('supplier_id')->first();
+            // if(!$assigned_supplier) {
+            //     return response()->json([
+            //         'status' => 422,
+            //         'message' => 'Supplier Not Yet Assigned'
+            //     ], 422);
+            // }
+            
 
             //Check Supplier
             $supplier = User::where('id', $material_order->supplier_id)->where('role_id', 4)->first();
@@ -507,7 +739,9 @@ class MaterialOrderController extends Controller
             }
 
             //Generate PDF
-            $pdf = PDF::loadView('pdf.material-order', ['data' => $material_order]);
+            $pdf = PDF::loadView('pdf.material-order', [
+                'materialSelection'=>$materialSelection,
+                'data' => $material_order]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
             // Check if the old PDF exists and delete it
@@ -563,7 +797,7 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+            // $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
@@ -572,14 +806,26 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'build_time' => $request->build_time,
-                'homeowner' => $readyBuild->home_owner ?? '',
-                'homeowner_email' => $readyBuild->home_owner_email ?? '',
+                // 'homeowner' => $readyBuild->home_owner ?? '',
+                // 'homeowner_email' => $readyBuild->home_owner_email ?? '',
+                'homeowner' => $request->homeowner,
+                'homeowner_email' => $request->homeowner_email,
                 'contractor' => $request->contractor,
                 'contractor_email' => $request->contractor_email,
                 'supplier' => $request->supplier,
                 'supplier_email' => $request->supplier_email,
                 'confirmed' => $request->confirmed,
             ]);
+
+            //i am adding the supplier in material order from here
+            // $supplier = User::where('email',$request->supplier_email)->where('role_id',4)->first();
+            // $supplier_id = $supplier->id;
+            // $build_detail = MaterialOrder::updateOrCreate([
+            //     'company_job_id' => $jobId
+            // ],[
+            //     'company_job_id' => $jobId,
+            //     'supplier_id' => $supplier_id,
+            // ]);
 
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
@@ -601,13 +847,11 @@ class MaterialOrderController extends Controller
 
     public function updateBuildDetailStatus(Request $request, $jobId)
     {
-        //Validate Request
         $this->validate($request, [
             'confirmed' => 'nullable|in:true,false',
         ]);
         
         try {
-            
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -616,7 +860,6 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
@@ -624,10 +867,9 @@ class MaterialOrderController extends Controller
             ],[
                 'confirmed' => $request->confirmed,
             ]);
-
             //Update Status
             if(isset($request->confirmed) && $request->confirmed == 'true') {
-                $job->status_id = 11;
+                $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
@@ -640,7 +882,7 @@ class MaterialOrderController extends Controller
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
-                  //current stage save
+                  //current stage save 
                 $build_detail->current_stage="no";
                 $build_detail->save();
             }
@@ -671,7 +913,7 @@ class MaterialOrderController extends Controller
              //get Build Detail
              $build_detail = BuildDetail::where('company_job_id',$jobId)->first();
              //get Ready to Build
-             $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+            //  $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
 
             //  if (!$build_detail) {
             //     return response()->json([
@@ -686,8 +928,8 @@ class MaterialOrderController extends Controller
                 'message' => 'Build Details Found Successfully',
                 'data' =>
                 [
-                        'homeowner' => $readyBuild->home_owner ?? '',
-                        'homeowner_email' => $readyBuild->home_owner_email ?? '',
+                        'homeowner' => $build_detail->homeowner ?? '',
+                        'homeowner_email' => $build_detail->homeowner_email ?? '',
                         'id' => $build_detail->id ?? '',
                         'company_job_id' => $build_detail->company_job_id ?? '',
                         'build_date' => $build_detail->build_date ?? '',
@@ -703,7 +945,7 @@ class MaterialOrderController extends Controller
                         'updated_at' => $build_detail->updated_at ?? '',                    
                 ]
             ], 200);
-        }catch(Exception $e){
+        }catch(\Exception $e){
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }

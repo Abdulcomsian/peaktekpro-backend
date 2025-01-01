@@ -1,6 +1,6 @@
-@extends('layouts.template-layout')
+@extends('layouts.report-layout')
 
-@section('title', 'Templates')
+@section('title', 'Reports')
 
 @section('content')
     <section>
@@ -9,7 +9,7 @@
             <div class="flex items-center justify-between mb-4">
 
                 <h1 class="text-2xl font-bold text-gray-700">
-                    Report Layout</h1>
+                    Reports</h1>
                 <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Create
                 </button>
@@ -22,24 +22,43 @@
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">S.No</th>
                             <th class="py-3 px-6 text-left">Title</th>
+                            @if($reports->where('status', 'published')->count() > 0)
+                            <th class="py-3 px-6 text-left">File</th>
+                            @endif
+                            <th class="py-3 px-6 text-left">Status</th>
                             <th class="py-3 px-6 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-700 text-sm font-light">
-                        @forelse ($templates as $template)
+                        @forelse ($reports as $report)
                             <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
-                                <td class="py-3 px-6 text-left">{{ $template->title }}</td>
+                                <td class="py-3 px-6 text-left">{{ $report->title }}</td>
+                                @if($report->status == 'published')
+                                <td class="py-3 px-6 text-left">
+                                <a id="downloadReportPDF" data-id="{{ $report->id }}"
+                                class="text-blue-500 hover:text-blue-600 cursor-pointer">
+                                    Download PDF
+                                </a>
+                                </td>
+                                @endif
+                                <td class="py-3 px-6 text-left">
+                                @if($report->status === 'draft')
+                                    <span class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
+                                @else
+                                    <span class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
+                                @endif
+                                </td>
                                 <td class="py-3 px-6 text-center">
-                                    <a href="{{ route('templates.edit', ['id' => $template->id]) }}"
+                                    <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
                                         class="text-blue-500 hover:text-blue-600">Edit</a>
-                                    <button onclick="openDeleteModal({{ $template->id }})"
+                                    <button onclick="openDeleteModal({{ $report->id }})"
                                         class="text-red-500 hover:text-red-600 ml-4">Delete</button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
+                                <td colspan="3" class="py-3 px-6 text-center">No reports found.</td>
                             </tr>
                         @endforelse
                         <!-- Repeat rows as needed -->
@@ -47,12 +66,12 @@
                 </table>
             </div>
             <div class="bg-white shadow-md rounded-lg">
-                {!! $templates->links('vendor.pagination.tailwind') !!}
+                {!! $reports->links('vendor.pagination.tailwind') !!}
             </div>
         </div>
     </section>
 
-    <!-- create template modal -->
+    <!-- create report modal -->
     <div id="modal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
         <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
             <!-- Modal Header -->
@@ -83,8 +102,8 @@
     <!--Template Delete Confirmation Modal -->
     <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-            <h2 class="text-xl font-semibold mb-4">Delete Template</h2>
-            <p class="text-gray-700 mb-4">Are you sure you want to delete this template?</p>
+            <h2 class="text-xl font-semibold mb-4">Delete Report</h2>
+            <p class="text-gray-700 mb-4">Are you sure you want to delete this report?</p>
             <div class="flex justify-end">
                 <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded mr-2"
                     onclick="closeDeleteModal()">
@@ -165,7 +184,7 @@
                         } else {
 
                             await showErrorNotification('An error occurred. Please try again.');
-                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled',
+                            $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled',
                                 false);
 
                         }
@@ -174,55 +193,79 @@
             })
         })
 
-        // delete template start
+        // delete report start
 
-        let deleteTemplateId = null;
+        let deleteReportId = null;
 
-        // Open the delete modal and set the template ID
-        function openDeleteModal(templateId) {
-            deleteTemplateId = templateId;
+        // Open the delete modal and set the report ID
+        function openDeleteModal(reportId) {
+            deleteReportId = reportId;
             $('#deleteModal').removeClass('hidden');
         }
 
         // Close the delete modal
         function closeDeleteModal() {
             $('#deleteModal').addClass('hidden');
-            deleteTemplateId = null;
+            deleteReportId = null;
         }
 
         // Confirm deletion via AJAX
         function confirmDelete() {
-            if (!deleteTemplateId) {
-                showErrorNotification('Template not found');
-                return;
+    if (!deleteReportId) {
+        showErrorNotification('Report not found');
+        return;
+    }
+
+    $.ajax({
+        url: `{{ route('reports.destroy', ['id' => ':id']) }}`.replace(':id', deleteReportId), // Fix typo here
+        type: 'DELETE',
+        data: {
+            _token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(response) {
+            if (response.status) {
+                closeDeleteModal();
+                showSuccessNotification(response.message);
+                window.location.reload();
             }
-
-            $.ajax({
-                url: `{{ route('templates.destroy', ['id' => ':id']) }}`.replace(':id', deleteTemplateId),
-                type: 'DELETE',
-                data: {
-                    _token: $('meta[name=csrf-token]').attr('content')
-                },
-                success: function(response) {
-
-                    if (response.status) {
-
-                        closeDeleteModal();
-
-                        showSuccessNotification(response.message);
-
-                        window.location.reload();
-
-                    }
-
-                },
-                error: function(error) {
-                    showErrorNotification('An error occurred. Please try again.');
-                }
-            });
+        },
+        error: function(error) {
+            showErrorNotification('An error occurred. Please try again.');
         }
+    });
+}
 
-        // delete template end
+document.getElementById('downloadReportPDF').addEventListener('click', function () {
+    const reportId = this.getAttribute('data-id');
+    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+    const url = downloadPdfUrl.replace(':id', reportId);
 
-    </script>
+    // Download PDF via Fetch
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.blob(); // Convert the response to a Blob for the file
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `report-${reportId}.pdf`; // Specify the filename
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link); // Clean up
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+});
+</script>
 @endpush
