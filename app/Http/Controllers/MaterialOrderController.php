@@ -451,17 +451,19 @@ class MaterialOrderController extends Controller
             if ($customer_agreement) {
                 $decodedAddress = json_decode($customer_agreement->address, true);
 
+                $customer_agreement->my_address = $customer_agreement->address;
+
                 // return response()->json([
                 //     'data'=>  $decodedAddress
                 // ]);
                 // Decode the address JSON string into a PHP array
                 // $customer_agreement->address = json_decode($customer_agreement->address, true);
-                $customer_agreement->city = $decodedAddress['city'];
+                $customer_agreement->city = $decodedAddress['city'] ?? null;
                 // dd($decodedAddress['city']);
-                $customer_agreement->postalCode = $decodedAddress['postalCode'];
-                $customer_agreement->street = $decodedAddress['street'];
-                $customer_agreement->state = $decodedAddress['state'];
-                $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'];
+                $customer_agreement->postalCode = $decodedAddress['postalCode'] ?? null;
+                $customer_agreement->street = $decodedAddress['street'] ?? null;
+                $customer_agreement->state = $decodedAddress['state'] ?? null;
+                $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
             
                 // unset($customer_agreement->address);
 
@@ -490,13 +492,13 @@ class MaterialOrderController extends Controller
                 $response_data['name'] = $job->name;
                 $response_data['email'] = $job->email;
                 $response_data['phone'] = $job->phone;
-                $response_data['city'] = $decodedAddress['city'];
-                $response_data['street'] = $decodedAddress['street'] ;
-                $response_data['state'] = $decodedAddress['state'] ;
-                $response_data['postalCode'] = $decodedAddress['postalCode'];
-                $response_data['insurance'] = $customer_agreement->summary->insurance;
-                $response_data['policy_number'] = $customer_agreement->summary->policy_number;
-                $response_data['claim_number'] = $customer_agreement->summary->claim_number;
+                $response_data['city'] = $decodedAddress['city'] ?? null;
+                $response_data['street'] = $decodedAddress['street'] ?? null;
+                $response_data['state'] = $decodedAddress['state'] ?? null;
+                $response_data['postalCode'] = $decodedAddress['postalCode'] ?? null;
+                $response_data['insurance'] = $customer_agreement->summary->insurance ?? null;
+                $response_data['policy_number'] = $customer_agreement->summary->policy_number ?? null;
+                $response_data['claim_number'] = $customer_agreement->summary->claim_number ?? null;
 
             }
 
