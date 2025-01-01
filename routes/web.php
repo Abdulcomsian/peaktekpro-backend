@@ -25,10 +25,14 @@ Route::get('user', function() {
 });
 
 Route::get('user-logout', function() {
-    Auth::logout();
-    session()->invalidate();
-    session()->regenerateToken();
-    dd('logout successfully done!');
+    Auth::logout(); // Log out the user
+    session()->invalidate(); // Invalidate the entire session
+    session()->regenerateToken(); // Regenerate the CSRF token
+
+    // Remove specific session key
+    session()->forget('job_id');
+
+    dd('Logout successfully done and session cleared!');
 });
 
 Route::get('download-report-pdf/{report_id}',[ReportLayoutController::class, 'downloadReportPdf'])->name('download-report-pdf');

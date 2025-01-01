@@ -768,47 +768,6 @@ customPageInitializeDropzone();
         });
     }
 
-
-    document.getElementById('downloadReportPDF').addEventListener('click', function() {
-    const reportId = this.getAttribute('data-id');
-    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
-    const url = downloadPdfUrl.replace(':id', reportId);
-
-    // Show the loader before starting the download
-    document.getElementById('loadingSpinner').style.display = 'block';
-
-    // Fetch PDF URL
-    fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json(); // Parse the JSON response
-        })
-        .then(data => {
-            if (data.status) {
-                const fileUrl = data.file_url; // Get the full file URL
-                window.open(fileUrl, '_blank'); // Open the PDF in a new tab
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
-        })
-        .finally(() => {
-            // Hide the loader after the PDF is opened
-            document.getElementById('loadingSpinner').style.display = 'none';
-        });
-});
-
-
     document.addEventListener('DOMContentLoaded', () => {
     const url = "{{ route('reports.copy-template') }}";
     const reportId = @json($report->id ?? '');
@@ -874,6 +833,45 @@ customPageInitializeDropzone();
     closeErrorModalBtn.addEventListener('click', () => {
         errorModal.classList.add('hidden');
     });
+});
+
+    document.getElementById('downloadReportPDF').addEventListener('click', function() {
+    const reportId = this.getAttribute('data-id');
+    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+    const url = downloadPdfUrl.replace(':id', reportId);
+
+    // Show the loader before starting the download
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // Fetch PDF URL
+    fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json(); // Parse the JSON response
+        })
+        .then(data => {
+            if (data.status) {
+                const fileUrl = data.file_url; // Get the full file URL
+                window.open(fileUrl, '_blank'); // Open the PDF in a new tab
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        })
+        .finally(() => {
+            // Hide the loader after the PDF is opened
+            document.getElementById('loadingSpinner').style.display = 'none';
+        });
 });
 </script>
 @endpush
