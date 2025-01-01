@@ -403,6 +403,7 @@
                 unenforceable, the remaining provisions shall remain unaffected
               </p>
             </li>
+            <br>
             <li>
               <p>
                 Any verbal communications outside this contract are deemed
