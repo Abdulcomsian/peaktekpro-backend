@@ -22,15 +22,12 @@ class InprogressController extends Controller
             'build_end_date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable',
             'morningPhotos' => 'nullable|array',
-            'morningPhotos.*.id' => 'nullable|integer',
             'morningPhotos.*.label' => 'nullable|string',
             'morningPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
             'compliancePhotos' => 'nullable|array',
-            'compliancePhotos.*.id' => 'nullable|integer',
             'compliancePhotos.*.label' => 'nullable|string',
             'compliancePhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
             'completionPhotos' => 'nullable|array',
-            'completionPhotos.*.id' => 'nullable|integer',
             'completionPhotos.*.label' => 'nullable|string',
             'completionPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
             'production_sign_url' => 'nullable|string',
@@ -43,64 +40,62 @@ class InprogressController extends Controller
                 return response()->json(['status' => 422, 'message' => 'Job not found'], 422);
             }
 
-            // Update Inprogress
+            // Update or create Inprogress record
             $in_progress = Inprogress::updateOrCreate(
                 ['company_job_id' => $jobId],
                 [
-                    'company_job_id' => $jobId,
                     'build_start_date' => $request->build_start_date,
                     'build_end_date' => $request->build_end_date,
                     'notes' => $request->notes,
                 ]
             );
 
-            // Handle photos for morning, compliance, and completion categories
+            // Handle media updates
             $imageCategories = ['morningPhotos', 'compliancePhotos', 'completionPhotos'];
             foreach ($imageCategories as $category) {
+                $existingMedia = InprogressMedia::where('company_job_id', $jobId)->where('category', $category)->get();
+                $uploadedLabels = collect($request->$category)->pluck('label');
+
+                foreach ($existingMedia as $media) {
+                    if (!$uploadedLabels->contains($media->labels)) {
+                        Storage::delete($media->image_path); // Delete the associated file
+                        $media->delete(); // Delete the row from the database
+                    }
+                }
+
                 if (isset($request->$category) && is_array($request->$category)) {
                     foreach ($request->$category as $imageData) {
-                        if (isset($imageData['id'])) {
-                            // Check if the record exists
-                            $existingMedia = InprogressMedia::find($imageData['id']);
-                            if ($existingMedia) {
-                                // Update label
-                                if (isset($imageData['label'])) {
-                                    $existingMedia->labels = $imageData['label'];
-                                }
+                        $filePath = isset($imageData['image']) ? $imageData['image']->store('public/inprogress_media') : null;
+                        $url = $filePath ? str_replace('public/', '/storage/', $filePath) : null;
 
-                                // Update image if a new one is provided
-                                if (isset($imageData['image']) && $imageData['image']->isValid()) {
-                                    // Delete the old image from storage
-                                    Storage::delete('public/' . str_replace('/storage/', '', $existingMedia->image_path));
-
-                                    // Upload the new image
-                                    $filePath = $imageData['image']->store('public/inprogress_media');
-                                    $url = str_replace('public/', '/storage/', $filePath);
-                                    $existingMedia->image_path = $url;
-                                }
-
-                                $existingMedia->save();
-                                continue; // Skip to the next imageData
-                            }
-                        }
-
-                        // If no ID is provided or record doesn't exist, create a new one
-                        if (isset($imageData['image']) && $imageData['image']->isValid()) {
-                            $filePath = $imageData['image']->store('public/inprogress_media');
-                            $url = str_replace('public/', '/storage/', $filePath);
-
-                            $media = new InprogressMedia();
-                            $media->company_job_id = $jobId;
-                            $media->labels = $imageData['label'] ?? null;
-                            $media->image_path = $url;
-                            $media->category = $category;
-                            $media->save();
-                        }
+                        InprogressMedia::updateOrCreate(
+                            [
+                                'company_job_id' => $jobId,
+                                'category' => $category,
+                                'labels' => $imageData['label'],
+                            ],
+                            [
+                                'image_path' => $url ?? null,
+                            ]
+                        );
                     }
                 }
             }
 
-            // Handle Base64 Signatures
+            // Fetch updated media for the response
+            $morningPhotos = InprogressMedia::where('company_job_id', $jobId)
+                ->where('category', 'morningPhotos')
+                ->get(['labels', 'image_path']);
+
+            $compliancePhotos = InprogressMedia::where('company_job_id', $jobId)
+                ->where('category', 'compliancePhotos')
+                ->get(['labels', 'image_path']);
+
+            $completionPhotos = InprogressMedia::where('company_job_id', $jobId)
+                ->where('category', 'completionPhotos')
+                ->get(['labels', 'image_path']);
+
+            // Handle Base64 signatures and generate PDF as before...
             if ($request->production_sign_url) {
                 $in_progress->production_sign_url = $this->saveBase64Image($request->production_sign_url, 'inprogress_signature');
             }
@@ -109,7 +104,7 @@ class InprogressController extends Controller
             }
 
             // Generate and Save PDF
-            $pdf = PDF::loadView('pdf.inprogress', ['data' => $in_progress]);
+            $pdf = PDF::loadView('pdf.inprogress', ['data' => $in_progress, 'saved_photos' => $completionPhotos]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'inprogress_pdf/' . $pdf_fileName;
 
@@ -121,35 +116,28 @@ class InprogressController extends Controller
             $in_progress->pdf_url = '/storage/' . $pdf_filePath;
             $in_progress->save();
 
-            // Update Job Status
-            if (isset($request->status) && $request->status == true) {
-                $job->status_id = 11;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-            }
-
             return response()->json([
                 'status' => 200,
                 'message' => 'Inprogress Build Updated Successfully',
                 'data' => $in_progress,
+                'morningPhotos' => $morningPhotos,
+                'compliancePhotos' => $compliancePhotos,
+                'completionPhotos' => $completionPhotos,
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine()], 500);
         }
     }
 
 
-    public function updateInprogress12(Request $request, $jobId)
+    public function updateInprogress1(Request $request, $jobId)
     {
         // Validate Request
         $this->validate($request, [
             'build_start_date' => 'nullable|date_format:m/d/Y',
             'build_end_date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable',
-            // 'status' => 'nullable',
-
-            //this is required photos section
-            // 'images' => 'nullable|array',
+           
             'morningPhotos' => 'nullable|array',
             'morningPhotos.*.label' => 'nullable|string',
             'morningPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
@@ -161,12 +149,6 @@ class InprogressController extends Controller
             'completionPhotos' => 'nullable|array',
             'completionPhotos.*.label' => 'nullable|string',
             'completionPhotos.*.image' => 'nullable|file|mimes:jpg,jpeg,png',
-
-            //this is photo upload Fields Section
-            // 'photos'=> 'nullable|array',
-            // 'photos.*' => 'nullable|image',
-            // 'labels' => 'nullable|array',
-            // 'labels.*' => 'nullable|string',
 
             'production_sign_url' => 'nullable|string',
             'homeowner_signature' => 'nullable|string'
