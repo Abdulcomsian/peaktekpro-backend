@@ -785,7 +785,7 @@ class MaterialOrderController extends Controller
             'supplier_email' => 'nullable|email',
             'build_time' => 'nullable|date_format:h:i A',
             'build_date' => 'nullable|date_format:m/d/Y',
-            'confirmed' => 'nullable|in:true,false',
+            // 'confirmed' => 'nullable|in:true,false',
         ]);
         
         try {
@@ -815,7 +815,7 @@ class MaterialOrderController extends Controller
                 'contractor_email' => $request->contractor_email,
                 'supplier' => $request->supplier,
                 'supplier_email' => $request->supplier_email,
-                'confirmed' => $request->confirmed,
+                // 'confirmed' => $request->confirmed,
             ]);
 
             //i am adding the supplier in material order from here
@@ -829,11 +829,11 @@ class MaterialOrderController extends Controller
             // ]);
 
             //Update Status
-            if(isset($request->confirmed) && $request->confirmed == 'true') {
-                $job->status_id = 10;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-            }
+            // if(isset($request->confirmed) && $request->confirmed == 'true') {
+            //     $job->status_id = 10;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();
+            // }
 
             return response()->json([
                 'status' => 200,
@@ -869,7 +869,7 @@ class MaterialOrderController extends Controller
                 'confirmed' => $request->confirmed,
             ]);
             //Update Status
-            if(isset($request->confirmed) && $request->confirmed == 'true') {
+            if(isset($request->confirmed) && $request->confirmed == "true") {
                 $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
@@ -878,7 +878,7 @@ class MaterialOrderController extends Controller
                 $build_detail->current_stage="yes";
                 $build_detail->save();
 
-            }if(isset($request->confirmed) && $request->confirmed == 'false') {
+            }elseif(isset($request->confirmed) && $request->confirmed == "false") {
                 $job->status_id = 10;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
