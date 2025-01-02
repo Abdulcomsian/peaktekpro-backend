@@ -2279,17 +2279,17 @@ class CompanyJobController extends Controller
             $sortOrder = 'desc';
 
                // Tables with stages
-            $tables = [
-                'customer_agreements',
-                'estimate_prepareds',
-                'adjustor_meetings',
-                'ready_to_builds',
-                'build_details',
-                'inprogresses',
-                'cocs',
-                'final_payment_dues',
-                'ready_to_closes',
-            ];
+            // $tables = [
+            //     'customer_agreements',
+            //     'estimate_prepareds',
+            //     'adjustor_meetings',
+            //     'ready_to_builds',
+            //     'build_details',
+            //     'inprogresses',
+            //     'cocs',
+            //     'final_payment_dues',
+            //     'ready_to_closes',
+            // ];
             // Determine sorting based on request
             if (!empty($request->sort_by)) {
                 switch ($request->sort_by) {
@@ -2500,48 +2500,55 @@ class CompanyJobController extends Controller
 
 
                 // Calculate progress for each job
-            // $tables = [
-            //     'customer_agreements',
-            //     'estimate_prepareds',
-            //     'adjustor_meetings',
-            //     'ready_to_builds',
-            //     'build_details',
-            //     'inprogresses',
-            //     'cocs',
-            //     'final_payment_dues',
-            //     'ready_to_closes',
-            // ];
+            $tables = [
+                'customer_agreements',
+                'estimate_prepareds',
+                'adjustor_meetings',
+                'ready_to_builds',
+                'build_details',
+                'inprogresses',
+                'cocs',
+                'final_payment_dues',
+                'ready_to_closes',
+            ];
 
-        // $jobsWithProgress = $$tasks->map(function ($job) use ($tables) {
-        //     $completedSteps = 0;
-        //     $totalSteps = count($tables) + 1;
+            // $jobsWithProgress = $tasks->map(function ($job) use ($tables) {
+            //     $completedSteps = 0;
+            //     $totalSteps = count($tables) + 1;
 
-        //     $customerAgreement = DB::table('customer_agreements')
-        //         ->where('company_job_id', $job->id)
-        //         ->select('current_stage')
-        //         ->first();
+            //     $customerAgreement = DB::table('customer_agreements')
+            //         ->where('company_job_id', $job->id)
+            //         ->value('current_stage');
+            //         // ->first();
 
-        //     if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
-        //         $completedSteps++;
-        //     }
+                // if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
+                //     $completedSteps++;
+                // }
+                // if ($customerAgreement === 'yes') {
+                //     $completedSteps++;
+                // }
 
-        //     foreach ($tables as $table) {
-        //         $currentStage = DB::table($table)
-        //             ->where('company_job_id', $job->id)
-        //             ->select('current_stage')
-        //             ->first();
+                // foreach ($tables as $table) {
+                //     $currentStage = DB::table($table)
+                //         ->where('company_job_id', $job->id)
+                //         ->value('current_stage');
+                      //  // ->first();
 
-        //         if ($currentStage && $currentStage->current_stage === 'yes') {
-        //             $completedSteps++;
-        //         }
-        //     }
+                    // if ($currentStage && $currentStage->current_stage === 'yes') {
+                    //     $completedSteps++;
+                    // }
+            //         if ($currentStage === 'yes') {
+            //             $completedSteps++;
+            //         }
+            //     }
 
-        //     $completedPercentage = ($completedSteps / $totalSteps) * 100;
-        //     $job->completed_percentage = round($completedPercentage, 2);
+            //     $completedPercentage = ($completedSteps / $totalSteps) * 100;
+            //     $job->completed_percentage = round($completedPercentage, 2);
 
-        //     return $job;
-        // });
+            //     return $job;
+            // });
 
+            // dd($jobsWithProgress);
             // Transform tasks data to include 'job_total' and 'claim_number' in 'summary' and sum up 'job_total' for each status
             $tasks->each(function ($status) {
                 $status->job_total = $status->tasks->sum(function ($job) {
@@ -2549,12 +2556,36 @@ class CompanyJobController extends Controller
                 });
 
                 $status->tasks->transform(function ($job) {
+                    $completed_percentage = 0; // Default value
+
+                        if ($job->status_id == 1) {  
+                            $completed_percentage = 10;
+                        } elseif ($job->status_id == 2) {  
+                            $completed_percentage = 20;
+                        } elseif ($job->status_id == 4) {  
+                            $completed_percentage = 30;
+                        } elseif ($job->status_id == 9) {  
+                            $completed_percentage = 40;
+                        } elseif ($job->status_id == 10) {  
+                            $completed_percentage = 50;
+                        } elseif ($job->status_id == 11) {  
+                            $completed_percentage = 60;
+                        } elseif ($job->status_id == 13) {  
+                            $completed_percentage = 70;
+                        } elseif ($job->status_id == 14) {  
+                            $completed_percentage = 80;
+                        } elseif ($job->status_id == 15) {  
+                            $completed_percentage = 20;
+                        } elseif ($job->status_id == 20) {  
+                            $completed_percentage = 100;
+                        } 
                     return [
                         'id' => $job->id,
                         'name' => $job->name,
                         'address' => json_decode($job->address, true)['formatedAddress'] ?? null,
                         'status_id' => $job->status_id,
                         'user_id' => $job->user_id,
+                        'completed_percentage' => $completed_percentage,
                         'created_at' => $job->created_at,
                         'updated_at' => $job->updated_at,
                         'summary' => [
