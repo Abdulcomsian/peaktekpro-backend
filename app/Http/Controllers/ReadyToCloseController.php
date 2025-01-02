@@ -25,7 +25,7 @@ class ReadyToCloseController extends Controller
             'additional_costs'=> 'nullable',
             'sales_rep1_commission_percentage' => 'nullable', 
             'sales_rep2_commission_percentage' => 'nullable',
-            'status' => 'nullable',
+            // 'status' => 'nullable',
             'sales_rep1' => 'nullable|integer|exists:users,id',
             'sales_rep2' => 'nullable|integer|exists:users,id',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
@@ -42,8 +42,6 @@ class ReadyToCloseController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            
-           
 
             $ready_to_close = ReadyToClose::updateOrCreate([
                 'company_job_id' => $jobId
@@ -57,7 +55,7 @@ class ReadyToCloseController extends Controller
                 'costs_of_goods' => $request->costs_of_goods,
                 'market' => $request->market, //
                 'additional_costs' => $request->additional_costs,
-                'status' => (isset($request->status)) ? $request->status : false,
+                // 'status' => (isset($request->status)) ? $request->status : false,
                 'notes' => $request->notes,
             ]);
             
@@ -125,12 +123,12 @@ class ReadyToCloseController extends Controller
             $job->users()->sync($user_ids);
             
             //Update Job Status
-            if(isset($request->status) && $request->status == true)
-            {
-                $job->status_id = 15;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();
-            }
+            // if(isset($request->status) && $request->status == true)
+            // {
+            //     $job->status_id = 15;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();
+            // }
             
             return response()->json([
                 'status' => 200,
