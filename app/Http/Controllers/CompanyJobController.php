@@ -184,8 +184,167 @@ class CompanyJobController extends Controller
 
     }
 
-
     public function getAllJobs()
+    {
+        try {
+            $user = Auth::user();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+            // Retrieve assigned jobs
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+
+            // Fetch jobs based on user role
+            $jobs = ($user->role_id == 1 || $user->role_id == 2) ?
+                CompanyJob::with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'job_total', 'claim_number', 'job_type');
+                    }])
+                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
+                    ->where('created_by', $created_by)
+                    ->orderBy('status_id', 'asc')
+                    ->orderBy('id', 'desc')
+                    ->get()
+                    ->map(function ($job) {
+                        $decodedAddress = json_decode($job->address, true);
+                        $job->address = $decodedAddress['formatedAddress'] ?? null;
+                        return $job;
+                    })
+                :
+                CompanyJob::with(['summary' => function ($query) {
+                        $query->select('company_job_id', 'job_total', 'claim_number', 'job_type');
+                    }])
+                    ->select('id', 'name', 'address', 'created_at', 'updated_at', 'status_id')
+                    ->where(function ($query) use ($user, $assigned_jobs) {
+                        $query->orWhere('user_id', $user->id);
+                        $query->orWhereIn('id', $assigned_jobs);
+                    })
+                    ->orderBy('status_id', 'asc')
+                    ->orderBy('id', 'desc')
+                    ->get()
+                    ->map(function ($job) {
+                        $decodedAddress = json_decode($job->address, true);
+                        $job->address = $decodedAddress['formatedAddress'] ?? null;
+                        return $job;
+                    });
+
+            // Add progress calculations based on status_id
+            $jobsWithProgress = $jobs->map(function ($job) {
+                $statusId = $job->status_id;
+                $completedPercentage = 0;
+
+                // Calculate completed percentage based on status_id
+                switch ($statusId) {
+                    case 1: // New Leads
+                        $completedPercentage = 10;
+                        break;
+                    case 2: // Customer Agreement
+                        $completedPercentage = 20;
+                        break;
+                    case 4: // Adjuster Scheduled
+                        $completedPercentage = 30;
+                        break;
+                    case 9: // Ready To Build
+                        $completedPercentage = 40;
+                        break;
+                    case 10: // Build Scheduled
+                        $completedPercentage = 50;
+                        break;
+                    case 11: // In Progress
+                        $completedPercentage = 60;
+                        break;
+                    case 13: // COC Required
+                        $completedPercentage = 70;
+                        break;
+                    case 14: // Final Payment Due
+                        $completedPercentage = 80;
+                        break;
+                    case 15: // Ready to Close
+                        $completedPercentage = 90;
+                        break;
+                    case 20: // Completed
+                        $completedPercentage = 100;
+                        break;
+                    default:
+                        $completedPercentage = 0; // Default to 0 if status is unknown
+                }
+
+                // Add completed_percentage to job data
+                $job->completed_percentage = $completedPercentage;
+
+                return $job;
+            });
+
+            // Group jobs by status name
+            $groupedJobs = $jobsWithProgress->map(function ($job) {
+                $job->job_summaries = $job->jobSummaries ? $job->jobSummaries->map(function ($summary) {
+                    return [
+                        'job_total' => $summary->job_total ?? 0,
+                        'claim_number' => $summary->claim_number,
+                    ];
+                }) : collect([]);
+
+                return $job;
+            })->groupBy(function ($job) {
+                return $job->status->name;
+            });
+
+            // Define statuses
+            $statuses = Status::whereIn('name', [
+                'New Leads',
+                'Customer Agreement',
+                'Adjuster Scheduled',
+                'Ins Under Review',
+                'Overturn',
+                'Appraisal',
+                'Approved',
+                'Ready To Build',
+                'Build Scheduled',
+                'In Progress',
+                'Build Complete',
+                'COC Required',
+                'Final Payment Due',
+                'Ready to Close',
+                'Won and Closed',
+                'Lost',
+                'Unqualified',
+            ])->get();
+
+            // Map statuses with job totals and tasks
+            $response = $statuses->map(function ($status) use ($groupedJobs, $user, $created_by) {
+                $jobTotalSumQuery = CompanyJobSummary::whereHas('job', function ($query) use ($status) {
+                    $query->where('status_id', $status->id);
+                });
+
+                // Apply `created_by` filter for role_id 1 and 2
+                if ($user->role_id == 1 || $user->role_id == 2) {
+                    $jobTotalSumQuery->whereHas('job', function ($query) use ($created_by) {
+                        $query->where('created_by', $created_by);
+                    });
+                }
+
+                $jobTotalSum = $jobTotalSumQuery->sum('job_total');
+
+                return [
+                    'id' => $status->id,
+                    'name' => $status->name,
+                    'job_total' => $jobTotalSum,
+                    'tasks' => $groupedJobs->get($status->name, collect()),
+                ];
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Jobs Found Successfully',
+                'data' => $response
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()
+            ], 500);
+        }
+    }
+
+
+    public function getAllJobs0()
     {
         try {
             $user = Auth::user();
@@ -2498,57 +2657,6 @@ class CompanyJobController extends Controller
                 ])
                 ->get();
 
-
-                // Calculate progress for each job
-            $tables = [
-                'customer_agreements',
-                'estimate_prepareds',
-                'adjustor_meetings',
-                'ready_to_builds',
-                'build_details',
-                'inprogresses',
-                'cocs',
-                'final_payment_dues',
-                'ready_to_closes',
-            ];
-
-            // $jobsWithProgress = $tasks->map(function ($job) use ($tables) {
-            //     $completedSteps = 0;
-            //     $totalSteps = count($tables) + 1;
-
-            //     $customerAgreement = DB::table('customer_agreements')
-            //         ->where('company_job_id', $job->id)
-            //         ->value('current_stage');
-            //         // ->first();
-
-                // if ($customerAgreement && $customerAgreement->current_stage === 'yes') {
-                //     $completedSteps++;
-                // }
-                // if ($customerAgreement === 'yes') {
-                //     $completedSteps++;
-                // }
-
-                // foreach ($tables as $table) {
-                //     $currentStage = DB::table($table)
-                //         ->where('company_job_id', $job->id)
-                //         ->value('current_stage');
-                      //  // ->first();
-
-                    // if ($currentStage && $currentStage->current_stage === 'yes') {
-                    //     $completedSteps++;
-                    // }
-            //         if ($currentStage === 'yes') {
-            //             $completedSteps++;
-            //         }
-            //     }
-
-            //     $completedPercentage = ($completedSteps / $totalSteps) * 100;
-            //     $job->completed_percentage = round($completedPercentage, 2);
-
-            //     return $job;
-            // });
-
-            // dd($jobsWithProgress);
             // Transform tasks data to include 'job_total' and 'claim_number' in 'summary' and sum up 'job_total' for each status
             $tasks->each(function ($status) {
                 $status->job_total = $status->tasks->sum(function ($job) {
@@ -2575,7 +2683,7 @@ class CompanyJobController extends Controller
                         } elseif ($job->status_id == 14) {  
                             $completed_percentage = 80;
                         } elseif ($job->status_id == 15) {  
-                            $completed_percentage = 20;
+                            $completed_percentage = 90;
                         } elseif ($job->status_id == 20) {  
                             $completed_percentage = 100;
                         } 
