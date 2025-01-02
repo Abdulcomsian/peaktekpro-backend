@@ -66,46 +66,103 @@ class InprogressController extends Controller
             );
 
         // Save photos and store in their respective categories
-            $morningPhotos = [];
-            $compliancePhotos = [];
-            $completionPhotos = [];
+            // $morningPhotos = [];
+            // $compliancePhotos = [];
+            // $completionPhotos = [];
 
-            $imageCategories = ['morningPhotos', 'compliancePhotos', 'completionPhotos'];
-            foreach ($imageCategories as $category) {
-                if (isset($request->$category) && is_array($request->$category)) {
-                    foreach ($request->$category as $imageData) {
-                        if (isset($imageData['image']) && $imageData['image']->isValid()) {
-                            $filePath = $imageData['image']->store('public/inprogress_media');
-                            $url = str_replace('public/', '/storage/', $filePath);
+            // $imageCategories = ['morningPhotos', 'compliancePhotos', 'completionPhotos'];
+            // foreach ($imageCategories as $category) {
+            //     if (isset($request->$category) && is_array($request->$category)) {
+            //         foreach ($request->$category as $imageData) {
 
-                            $media = new InprogressMedia();
-                            $media->company_job_id = $jobId;
-                            $media->labels = $imageData['label'] ?? null;
-                            $media->image_path = $url;
-                            $media->category = $category;
-                            $media->save();
+            //             if (isset($imageData['image']) && $imageData['image']->isValid()) {
+            //                 $filePath = $imageData['image']->store('public/inprogress_media');
+            //                 $url = str_replace('public/', '/storage/', $filePath);
 
-                            // Add to specific category arrays
-                            if ($category == 'morningPhotos') {
-                                $morningPhotos[] = [
-                                    'labels' => $media->labels,
-                                    'image_paths' => $url,
-                                ];
-                            } elseif ($category == 'compliancePhotos') {
-                                $compliancePhotos[] = [
-                                    'labels' => $media->labels,
-                                    'image_paths' => $url,
-                                ];
-                            } elseif ($category == 'completionPhotos') {
-                                $completionPhotos[] = [
-                                    'labels' => $media->labels,
-                                    'image_paths' => $url,
-                                ];
-                            }
-                        }
-                    }
+            //                 $media = new InprogressMedia();
+            //                 $media->company_job_id = $jobId;
+            //                 $media->labels = $imageData['label'] ?? null;
+            //                 $media->image_path = $url;
+            //                 $media->category = $category;
+            //                 $media->save();
+
+            //                 // Add to specific category arrays
+            //                 if ($category == 'morningPhotos') {
+            //                     $morningPhotos[] = [
+            //                         'labels' => $media->labels,
+            //                         'image_paths' => $url,
+            //                     ];
+            //                 } elseif ($category == 'compliancePhotos') {
+            //                     $compliancePhotos[] = [
+            //                         'labels' => $media->labels,
+            //                         'image_paths' => $url,
+            //                     ];
+            //                 } elseif ($category == 'completionPhotos') {
+            //                     $completionPhotos[] = [
+            //                         'labels' => $media->labels,
+            //                         'image_paths' => $url,
+            //                     ];
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+            // Save photos and store in their respective categories
+$morningPhotos = [];
+$compliancePhotos = [];
+$completionPhotos = [];
+
+$imageCategories = ['morningPhotos', 'compliancePhotos', 'completionPhotos'];
+foreach ($imageCategories as $category) {
+    if (isset($request->$category) && is_array($request->$category)) {
+        foreach ($request->$category as $imageData) {
+            // Check if the image already exists in the database
+            $existingMedia = null;
+            if (!empty($imageData['label']) && empty($imageData['image'])) {
+                $existingMedia = InprogressMedia::where('company_job_id', $jobId)
+                    ->where('category', $category)
+                    ->where('labels', $imageData['label'])
+                    ->first();
+            }
+
+            if ($existingMedia) {
+                // Update the label if the image already exists
+                $existingMedia->labels = $imageData['label'] ?? $existingMedia->labels;
+                $existingMedia->save();
+            } elseif (isset($imageData['image']) && $imageData['image']->isValid()) {
+                // Handle new image upload
+                $filePath = $imageData['image']->store('public/inprogress_media');
+                $url = str_replace('public/', '/storage/', $filePath);
+
+                $media = new InprogressMedia();
+                $media->company_job_id = $jobId;
+                $media->labels = $imageData['label'] ?? null;
+                $media->image_path = $url;
+                $media->category = $category;
+                $media->save();
+
+                // Add to specific category arrays
+                if ($category == 'morningPhotos') {
+                    $morningPhotos[] = [
+                        'labels' => $media->labels,
+                        'image_paths' => $url,
+                    ];
+                } elseif ($category == 'compliancePhotos') {
+                    $compliancePhotos[] = [
+                        'labels' => $media->labels,
+                        'image_paths' => $url,
+                    ];
+                } elseif ($category == 'completionPhotos') {
+                    $completionPhotos[] = [
+                        'labels' => $media->labels,
+                        'image_paths' => $url,
+                    ];
                 }
             }
+        }
+    }
+}
+
 
             // Handle Base64 Signatures
             if ($request->production_sign_url) {
