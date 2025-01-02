@@ -41,8 +41,11 @@ class ReadyToBuildController extends Controller
             'materials.*.order_key' => 'nullable',
             //supplier selection
             'supplier_id' => 'nullable',
+        ],[
+            'attachements.max'=>'image '
         ]);
-        
+
+        dd($request->all());
         try {
             // Check Job
             $job = CompanyJob::find($jobId);
