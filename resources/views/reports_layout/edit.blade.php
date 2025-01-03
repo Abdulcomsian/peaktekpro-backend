@@ -835,44 +835,44 @@ customPageInitializeDropzone();
     });
 });
 
-    document.getElementById('downloadReportPDF').addEventListener('click', function() {
-    const reportId = this.getAttribute('data-id');
-    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
-    const url = downloadPdfUrl.replace(':id', reportId);
+//     document.getElementById('downloadReportPDF').addEventListener('click', function() {
+//     const reportId = this.getAttribute('data-id');
+//     const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+//     const url = downloadPdfUrl.replace(':id', reportId);
 
-    // Show the loader before starting the download
-    document.getElementById('loadingSpinner').style.display = 'block';
+//     // Show the loader before starting the download
+//     document.getElementById('loadingSpinner').style.display = 'block';
 
-    // Fetch PDF URL
-    fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json(); // Parse the JSON response
-        })
-        .then(data => {
-            if (data.status) {
-                const fileUrl = data.file_url; // Get the full file URL
-                window.open(fileUrl, '_blank'); // Open the PDF in a new tab
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
-        })
-        .finally(() => {
-            // Hide the loader after the PDF is opened
-            document.getElementById('loadingSpinner').style.display = 'none';
-        });
-});
+//     // Fetch PDF URL
+//     fetch(url, {
+//             method: 'GET',
+//             headers: {
+//                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+//             },
+//         })
+//         .then(response => {
+//             if (!response.ok) {
+//                 throw new Error('Network response was not ok');
+//             }
+//             return response.json(); // Parse the JSON response
+//         })
+//         .then(data => {
+//             if (data.status) {
+//                 const fileUrl = data.file_url; // Get the full file URL
+//                 window.open(fileUrl, '_blank'); // Open the PDF in a new tab
+//             } else {
+//                 alert(data.message);
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+//             alert('An error occurred. Please try again.');
+//         })
+//         .finally(() => {
+//             // Hide the loader after the PDF is opened
+//             document.getElementById('loadingSpinner').style.display = 'none';
+//         });
+// });
 </script>
 @endpush
 
@@ -963,36 +963,36 @@ customPageInitializeDropzone();
                         {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
                     </button>
                     <div id="publishReportModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
-            <h2 class="text-lg font-semibold mb-4">Publish Report</h2>
-            <p>Are you sure you want to update this report to Published?</p>
-            <div class="flex justify-end mt-4">
-                <button id="cancelPublishBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
-                <button id="confirmPublishBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
-            </div>
+                    <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
+                        <h2 class="text-lg font-semibold mb-4">Publish Report</h2>
+                        <p>Are you sure you want to update this report to Published?</p>
+                        <div class="flex justify-end mt-4">
+                            <button id="cancelPublishBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+                            <button id="confirmPublishBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
+                        </div>
+                    </div>
         </div>
-    </div>
 
-    <!-- Modal for saving report as draft -->
-    <div id="draftReportModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
-            <h2 class="text-lg font-semibold mb-4">Draft Report</h2>
-            <p>Are you sure you want to update this report to Draft?</p>
-            <div class="flex justify-end mt-4">
-                <button id="cancelDraftBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
-                <button id="confirmDraftBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
-            </div>
-        </div>
-    </div>
+                <!-- Modal for saving report as draft -->
+                <div id="draftReportModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
+                        <h2 class="text-lg font-semibold mb-4">Draft Report</h2>
+                        <p>Are you sure you want to update this report to Draft?</p>
+                        <div class="flex justify-end mt-4">
+                            <button id="cancelDraftBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+                            <button id="confirmDraftBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
+                        </div>
+                    </div>
+                </div>
 
-                    @if($report->status === 'published')
+                    <!-- @if($report->status === 'published')
                     <button
                         class="text-blue-500 hover:text-blue-600 update-status-button"
                         id="downloadReportPDF" style="margin-right:100px;"
                         data-id="{{ $report->id }}">
                         Download PDF
                     </button>
-                    @endif
+                    @endif -->
                     <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
                 </div>
             </div>

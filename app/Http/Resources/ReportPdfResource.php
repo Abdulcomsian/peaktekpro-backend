@@ -17,8 +17,7 @@ class ReportPdfResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'file_path' => $this->file_path,
-            'file_url' => route('download-report-pdf', ['report_id' => $this->id]),
+            'file_url' => $this->pdf_path,
         ];
     }
 }
