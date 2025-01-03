@@ -3058,7 +3058,7 @@ class CompanyJobController extends Controller
        
     }
 
-    public function progressLine($jobId) //used for both grid and kanban
+    public function progressLineold($jobId) //used for both grid and kanban
     {
         $tables = [
             'customer_agreements',
@@ -3121,6 +3121,61 @@ class CompanyJobController extends Controller
             
         ]);
     }
+
+    public function progressLine($jobId) 
+    {
+        // Define the mapping of `status_id` to completion percentages
+        $statusCompletionMap = [
+            1 => 10,  // New Leads
+            2 => 20,  // Customer Agreement
+            4 => 30,  // Adjustor Meeting
+            9 => 40,  // Ready to Build
+            10 => 50,  // Build Schedule
+            11 => 60,  // In Progress
+            13 => 70,  // COC
+            14 => 80, // Final Payment Due
+            15 => 90, //ready to close
+            20 => 100 //completed
+        ];
+
+        // Get the job's current status_id
+        $job = DB::table('company_jobs')
+            ->where('id', $jobId)
+            ->select('status_id')
+            ->first();
+
+        if (!$job) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Job not found',
+            ], 404);
+        }
+
+        $currentStatusId = $job->status_id;
+
+        // Calculate completion and remaining percentages
+        $completedPercentage = $statusCompletionMap[$currentStatusId] ?? 0;
+        $remainingPercentage = 100 - $completedPercentage;
+
+        // Prepare stages with their completion status
+        $stages = [];
+        foreach ($statusCompletionMap as $statusId => $percentage) {
+            $stages[] = [
+                'status_id' => $statusId,
+                'step' => $statusId,
+                'completion_percentage' => $percentage,
+                'current_stage' => $statusId === $currentStatusId ? 'yes' : 'no',
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'completed' => round($completedPercentage, 2),
+            'remaining' => round($remainingPercentage, 2),
+            'stages' => $stages,
+        ]);
+    }
+
 
     public function progressLineNotused($jobId) //currently not used
     {
