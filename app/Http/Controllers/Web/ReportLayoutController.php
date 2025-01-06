@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Support\Facades\Storage;
 use App\Models\{Page, Report, ReportPageData, ReportPage};
@@ -73,8 +74,9 @@ class ReportLayoutController extends Controller
     public function edit($reportId)
     {
         try {
+            $companyId = Auth::user()->company_id;
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
-            $templates = Template::latest()->get();
+            $templates = Template::where('company_id',$companyId)->latest()->get();
             return view('reports_layout.edit', compact('report', 'templates'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');

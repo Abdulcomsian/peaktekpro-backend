@@ -25,7 +25,10 @@ class CheckReactAuth
             $jobId = $request->query('j') ?? '';
 
             if (Auth::check()) {
-            return $next($request);
+                if ($jobId) {
+                    session(['job_id' => $jobId]);
+                }
+                return $next($request);
             } else {
 
                 // If the token is missing, abort with an error
