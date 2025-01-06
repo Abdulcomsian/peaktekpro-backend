@@ -21,11 +21,12 @@ class CheckReactAuth
     public function handle(Request $request, Closure $next)
     {
         try {
+            $token = $request->query('t') ?? '';
+            $jobId = $request->query('j') ?? '';
+
             if (Auth::check()) {
             return $next($request);
             } else {
-                $token = $request->query('t');
-                $jobId = $request->query('j');
 
                 // If the token is missing, abort with an error
                 if (!$token) {
