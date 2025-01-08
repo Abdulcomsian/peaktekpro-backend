@@ -256,7 +256,6 @@
             <br/><br>
             <div style="display: flex; justify-content: left; max-width: 1200px;">
               <h2 style="text-align: left">Notes</h2>
-              <br>
                 <p>
                 {!! $coc->notes ?? '' !!}
                 </p>
