@@ -56,7 +56,7 @@ class ReadyToCloseController extends Controller
                 'market' => $request->market, //
                 'additional_costs' => $request->additional_costs,
                 // 'status' => (isset($request->status)) ? $request->status : false,
-                'notes' => $request->notes,
+                'notes' => $request->notes ?? '',
             ]);
             
             $user_ids = [];
@@ -97,19 +97,7 @@ class ReadyToCloseController extends Controller
             $profit = $job_total-$total_expense;
 
             $ready_to_close->net_profit = $profit;
-            $ready_to_close->save();
-
-            // return response()->json([
-            //     'status' => 200,
-            //     'message' => 'Ready To Close Updated Successfully',
-            //     'material_cost' => $material_cost,
-            //     'labor_costs' => $labor_cost,
-            //     'overhead_value' => $value_overhead_deduction,
-            //     'additional_cost' => $additional_costs,
-            //     'costs_of_goods' => $costs_of_goods,
-            //     'total_expense' => $total_expense,
-            //     'profit' => $profit
-            // ], 200); 
+            $ready_to_close->save(); 
 
             if (isset($request->sales_rep1)) {
                 $user_ids[] = $request->sales_rep1;
@@ -121,14 +109,6 @@ class ReadyToCloseController extends Controller
             
             //Assign Job
             $job->users()->sync($user_ids);
-            
-            //Update Job Status
-            // if(isset($request->status) && $request->status == true)
-            // {
-            //     $job->status_id = 15;
-            //     $job->date = Carbon::now()->format('Y-m-d');
-            //     $job->save();
-            // }
             
             return response()->json([
                 'status' => 200,
