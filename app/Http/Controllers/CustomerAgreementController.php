@@ -404,9 +404,9 @@ class CustomerAgreementController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Agreement Created Successfully',
+                'message' => 'Agreement pdf Generated Successfully',
                 'agreement' => $agreement
-            ], 200, [], JSON_UNESCAPED_SLASHES);
+            ], 200);
         
             } catch (\Exception $e) {
                 return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);

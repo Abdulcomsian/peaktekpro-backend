@@ -79,25 +79,25 @@
       <tbody>
         <tr>
           <td>
-            <label for="">name:</label>
+            <p>Name</p>
             <input
-              style="width: 100%;"
+              style="width: 100%;color:#333"
               type="text"
               value="{{$data->job->name}}"
             />
           </td>
           <td>
-            <label for="">email:</label>
+            <p>Email</p>
             <input
-              style="width: 100%"
+              style="width: 100%;color:#333"
               type="text"
               value="{{$data->job->email}}"
             />
           </td>
           <td colspan="2">
-            <label for="">phone:</label>
+            <p>Phone</p>
             <input
-              style="width: 100%"
+              style="width: 100%;color:#333"
               type="text"
               value="{{$data->job->phone}}"
             />
@@ -105,21 +105,21 @@
         </tr>
         <tr>
           <td>
-            <label for="">Street:</label>
-            <input style="width: 100%" type="text" value="{{$data->street}}" />
+            <p>Street</p>
+            <input style="width: 100%; color:#333" type="text" value="{{$data->street}}" />
           </td>
           <td>
-            <label for="">City:</label>
-            <input style="width: 100%" type="text" value="{{$data->city}}" />
+            <p>City</p>
+            <input style="width: 100%; color:#333" type="text" value="{{$data->city}}" />
           </td>
           <td>
-            <label for="">State:</label>
-            <input style="width: 100%" type="text" value="{{$data->state}}" />
+            <p>State</p>
+            <input style="width: 100%; color:#333" type="text" value="{{$data->state}}" />
           </td>
           <td>
-            <label for="">Zip:</label>
+            <p>Zip Code</p>
             <input
-              style="width: 100%"
+              style="width: 100%; color:#333"
               type="text"
               value="{{$data->zip_code}}"
             />
@@ -493,144 +493,152 @@
     </table>
   
     <!-- signature part -->
-<table style="width: 100%; max-width: 1200px; margin: auto; border-collapse: collapse;">
-  <thead>
-    <tr>
-      <th colspan="6" style="text-align: left; padding-bottom: 10px;">
-        <h2>Signatures</h2>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
-        <label for="">Customer Signature:</label>
-        <div
-          style="
-            width: 250px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-            margin-top: 5px;
-          "
-        >
-          <img
-            src="{{ public_path($data->customer_signature) }}"
-            style="width: 100%; max-width: 230px; height: auto;"
-            alt="Customer Signature"
+  <table style="width: 100%; max-width: 1200px; margin: auto; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th colspan="6" style="text-align: left; padding-bottom: 10px;">
+          <h2>Signatures</h2>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
+          <p>Customer Signature:</p>
+          <div
+            style="
+              width: 250px;
+              border: 1px solid #ccc;
+              padding: 10px;
+              text-align: center;
+              margin-top: 5px;
+              color:#333;
+            "
+          >
+            <img
+              src="{{ public_path($data->customer_signature) }}"
+              style="width: 100%; max-width: 230px; height: auto;"
+              alt="Customer Signature"
+            />
+          </div>
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Printed Name:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->customer_printed_name}}"
           />
-        </div>
-      </td>
-      <td style="padding: 15px; text-align: left; width: 30%;">
-        <label for="">Printed Name:</label>
-        <input
-          style="
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 5px;
-          "
-          type="text"
-          value="{{$data->customer_printed_name}}"
-        />
-      </td>
-      <td style="padding: 15px; text-align: left; width: 30%;">
-        <label for="">Date Signed:</label>
-        <input
-          style="
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 5px;
-          "
-          type="text"
-          value="{{$data->customer_date}}"
-        />
-      </td>
-    </tr>
-    <tr>
-      <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
-        <label for="">Company Representative Signature:</label>
-        <div
-          style="
-            width: 250px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-            margin-top: 5px;
-          "
-        >
-          <img
-            src="{{ public_path($data->company_signature) }}"
-            style="width: 100%; max-width: 230px; height: auto;"
-            alt="Company Signature"
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Date Signed:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->customer_date}}"
           />
-        </div>
-      </td>
-      <td style="padding: 15px; text-align: left; width: 30%;">
-        <label for="">Printed Name:</label>
-        <input
-          style="
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 5px;
-          "
-          type="text"
-          value="{{$data->company_printed_name}}"
-        />
-      </td>
-      <td style="padding: 15px; text-align: left; width: 30%;">
-        <label for="">Date Signed:</label>
-        <input
-          style="
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 5px;
-          "
-          type="text"
-          value="{{$data->company_date}}"
-        />
-      </td>
-    </tr>
-    <tr>
-    
-      <td style="padding: 15px; text-align: left; width: 30%;">
-        <label for="">Customer Name:</label>
-        <input
-          style="
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 5px;
-          "
-          type="text"
-          value="{{$data->customer_name}}"
-        />
-      </td>
-      <td style="padding: 15px; text-align: left; width: 30%;">
-        <label for="">Aggrement Signed Date:</label>
-        <input
-          style="
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 5px;
-          "
-          type="text"
-          value="{{$data->agreement_date}}"
-        />
-      </td>
-    </tr>
-  </tbody>
-</table>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
+          <p>Company Representative Signature:</p>
+          <div
+            style="
+              width: 250px;
+              border: 1px solid #ccc;
+              padding: 10px;
+              text-align: center;
+              margin-top: 5px;
+            "
+          >
+            <img
+              src="{{ public_path($data->company_signature) }}"
+              style="width: 100%; max-width: 230px; height: auto;"
+              alt="Company Signature"
+            />
+          </div>
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Printed Name:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333
+            "
+            type="text"
+            value="{{$data->company_printed_name}}"
+          />
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Date Signed:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->company_date}}"
+          />
+        </td>
+      </tr>
+      <tr>
+      
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Customer Name:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->customer_name}}"
+          />
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Aggrement Signed Date:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->agreement_date}}"
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<!-- end signature part -->
 
 
   </body>
