@@ -127,6 +127,15 @@ class CustomerAgreementController extends Controller
 
             ]);
 
+            $job_summary = CompanyJobSummary::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'insurance' => $request->insurance,
+                'policy_number' => $request->policy_number,
+                'claim_number' => $request->claim_number
+            ]);
+
             //Get Job
             $job = CompanyJob::find($agreement->company_job_id);
             if($job) {
