@@ -125,7 +125,7 @@
             />
           </td>
         </tr>
-        <!-- <tr>
+        <tr>
           <td>
             <label for="">Insurance:</label>
             <input
@@ -150,7 +150,7 @@
               value="{{$data->policy_number}}"
             />
           </td>
-        </tr> -->
+        </tr>
       </tbody>
     </table>
     <!-- section4 -->
