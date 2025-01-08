@@ -22,7 +22,7 @@ class CustomerAgreement extends Model
         // !is_null($this->street) || !is_null($this->city) || !is_null($this->state) || !is_null($this->zip_code)
         !is_null($this->company_signature)  && !is_null($this->company_printed_name) && !is_null($this->company_date)
         && !is_null($this->customer_signature) && !is_null($this->customer_printed_name)
-        && !is_null($this->customer_date) && !is_null($this->customer_name) && !is_null($this->agreement_date)) {
+        && !is_null($this->customer_date)) {
             return true;
         } else {
             return false;
