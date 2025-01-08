@@ -2437,18 +2437,6 @@ class CompanyJobController extends Controller
             $sortField = 'updated_at';
             $sortOrder = 'desc';
 
-               // Tables with stages
-            // $tables = [
-            //     'customer_agreements',
-            //     'estimate_prepareds',
-            //     'adjustor_meetings',
-            //     'ready_to_builds',
-            //     'build_details',
-            //     'inprogresses',
-            //     'cocs',
-            //     'final_payment_dues',
-            //     'ready_to_closes',
-            // ];
             // Determine sorting based on request
             if (!empty($request->sort_by)) {
                 switch ($request->sort_by) {
@@ -2476,7 +2464,7 @@ class CompanyJobController extends Controller
                         $sortField = 'company_job_summaries.job_total'; // Sort by job_total (higher)
                         $sortOrder = 'desc';
                         break;
-                    case 'value_low':
+                    case 'value_low':   
                         $sortField = 'company_job_summaries.job_total'; // Sort by job_total (lower)
                         $sortOrder = 'asc';
                         break;
@@ -2585,7 +2573,9 @@ class CompanyJobController extends Controller
                         // Handle sorting for job_total (from company_job_summaries) using the summary relation
                         if ($sortField === 'company_job_summaries.job_total') {
                             $query->orderBy('company_job_summaries.job_total', $sortOrder);
-                        } else {
+                        } elseif($sortField==='address'){
+                            $query->orderByRaw("JSON_UNQUOTE(JSON_EXTRACT(company_jobs.address, '$.formatedAddress')) " . strtoupper($sortOrder));
+                        }else {
                             $query->orderBy($sortField, $sortOrder);
                         }
 
@@ -3124,7 +3114,6 @@ class CompanyJobController extends Controller
 
     public function progressLine($jobId) 
     {
-        // Define the mapping of `status_id` to completion percentages
         $statusCompletionMap = [
             1 => 10,  // New Leads
             2 => 20,  // Customer Agreement
