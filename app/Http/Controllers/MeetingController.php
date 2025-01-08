@@ -695,7 +695,7 @@ class MeetingController extends Controller
     {
         //Validate Rules
         $rules = [
-            'status' => 'nullable|in:approved,overturn,appraisal,denied,pending_insurance',
+            'status' => 'nullable|in:approved,overturn,appraisal',
         ];
         try {
             //Check Job
@@ -718,26 +718,27 @@ class MeetingController extends Controller
             ]);
 
             if($request->status=== 'approved' && $adjustor_meeting->sent === 'true') {
-                $job->status_id = 6;
+                $job->status_id = 9;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
             }elseif($request->status=== 'overturn' && $adjustor_meeting->sent === 'true') {
-                $job->status_id = 5;
+                $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
             }elseif($request->status=== 'appraisal' || $adjustor_meeting->sent === 'true') {
-                $job->status_id = 18;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();   
-            }elseif($request->status=== 'denied' || $adjustor_meeting->sent === 'true') {
-                $job->status_id = 16;
-                $job->date = Carbon::now()->format('Y-m-d');
-                $job->save();   
-            }elseif($request->status=== 'pending_insurance' || $adjustor_meeting->sent === 'true') {
-                $job->status_id = 17;
+                $job->status_id = 7;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();   
             }
+            // elseif($request->status=== 'denied' || $adjustor_meeting->sent === 'true') {
+            //     $job->status_id = 16;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();   
+            // }elseif($request->status=== 'pending_insurance' || $adjustor_meeting->sent === 'true') {
+            //     $job->status_id = 17;
+            //     $job->date = Carbon::now()->format('Y-m-d');
+            //     $job->save();   
+            // }
 
             return response()->json([
                 'status' => 200,
