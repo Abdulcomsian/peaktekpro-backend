@@ -325,9 +325,8 @@ class CocController extends Controller
         ]);
 
         try {
-
             //Check Job
-            $job = CompanyJob::whereId($jobId)->with('summary')->first();
+            $job = CompanyJob::whereId('id',$jobId)->first();
             if(!$job) {
                 return response()->json([
                     'status' => 422,
@@ -345,7 +344,7 @@ class CocController extends Controller
             
             //Update Status
             if(isset($request->status) && $request->status == true) {
-                $job->status_id = 13;
+                $job->status_id = 14;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
@@ -353,7 +352,7 @@ class CocController extends Controller
                 $coc->current_stage="yes";
                 $coc->save();
             } elseif(isset($request->status) && $request->status == false) {
-                $job->status_id = 12;
+                $job->status_id = 13;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
