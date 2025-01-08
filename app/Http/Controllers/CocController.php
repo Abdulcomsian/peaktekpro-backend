@@ -326,7 +326,7 @@ class CocController extends Controller
 
         try {
             //Check Job
-            $job = CompanyJob::whereId('id',$jobId)->first();
+            $job = CompanyJob::where('id',$jobId)->first();
             if(!$job) {
                 return response()->json([
                     'status' => 422,
