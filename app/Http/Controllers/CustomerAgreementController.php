@@ -718,4 +718,36 @@ class CustomerAgreementController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    // Manage content of customer agreements
+    public function storeCustomerAgreementContent($jobId, Request $request)
+    {
+        $request->validate([
+            'content'=> 'string'
+        ]);
+
+        $job = CompanyJob::where('id',$jobId)->first();
+        if(!$job)
+        {
+            return response()->json([
+                'status' => 404,
+                'message'=> 'Job Not Found'
+            ]);
+        }
+
+        $agreement = CustomerAgreement::updateOrCreate([
+            'company_job_id' => $jobId,
+        ],[
+            'company_job_id' => $jobId,
+            'content' => $request->content,
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'message'=> 'Agreement Content Added Successfully',
+            'data' => $agreement
+        ]);
+
+    }
+
 }

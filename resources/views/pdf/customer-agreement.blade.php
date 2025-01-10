@@ -127,25 +127,25 @@
         </tr>
         <tr>
           <td>
-            <label for="">Insurance:</label>
+            <p>Insurance Number:</p>
             <input
-              style="width: 100%"
+              style="width: 100%; color:#333;"
               type="text"
               value="{{$data->insurance}}"
             />
           </td>
           <td>
-            <label for="">Claim Number:</label>
+            <p>Claim Number:</p>
             <input
-              style="width: 100%"
+              style="width: 100%; color:#333;"
               type="text"
               value="{{$data->claim_number}}"
             />
           </td>
           <td colspan="2">
-            <label for="">Policy Number:</label>
+            <p>Policy Number:</p>
             <input
-              style="width: 100%"
+              style="width: 100%; color:#333;"
               type="text"
               value="{{$data->policy_number}}"
             />
