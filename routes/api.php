@@ -228,7 +228,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Manage Content of Customer Agreement
     Route::post('store-customer-agreement-content/{jobId}', [CustomerAgreementController::class, 'storeCustomerAgreementContent']);
-    Route::post('get-customer-agreement-content/{jobId}', [CustomerAgreementController::class, 'getCustomerAgreementContent']);
+    Route::get('get-customer-agreement-content/{jobId}', [CustomerAgreementController::class, 'getCustomerAgreementContent']);
 
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
