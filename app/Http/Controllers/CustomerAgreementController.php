@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use PDF;
+use Exception;
 use Carbon\Carbon;
+use App\Models\Company;
 use App\Jobs\SignEmailJob;
 use App\Models\CompanyJob;
 use App\Mail\SignEmailMail;
 use Illuminate\Http\Request;
+use App\Models\AgreementContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ProjectDesignTitle;
 use Illuminate\Support\Facades\DB;
 use App\Events\JobStatusUpdateEvent;
-use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
@@ -389,6 +391,10 @@ class CustomerAgreementController extends Controller
                     'message' => 'Agreement Not Found for this job'
                 ], 422);
             }
+            $user = Auth::user();
+            $companyId = $user->company_id;
+            $agreement_content = AgreementContent::where('company_id',$companyId)->first();
+            // dd($agreement_content);
             //Generate PDF
             $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
             $pdf_fileName = time() . '.pdf';
@@ -411,6 +417,8 @@ class CustomerAgreementController extends Controller
             $job->status_id = 2;
             $job->date = Carbon::now()->format('Y-m-d');
             $job->save();
+
+            // dd($agreement);
 
             return response()->json([
                 'status' => 200,
@@ -721,7 +729,48 @@ class CustomerAgreementController extends Controller
     }
 
     // Manage content of customer agreements
-    public function storeCustomerAgreementContent($jobId, Request $request)
+    public function storeCustomerAgreementContent($jobId, Request $request) //it is company id
+    {
+        $request->validate([
+            'content'=> 'string'
+        ]);
+
+        try{
+            $user = Auth()->user();
+            $companyId = $user->company_id;
+            $company = Company::find($jobId); //check this company exist or not
+            // dd($company);
+            if(!$company)
+            {
+                return response()->json([
+                    'status' => 404,
+                    'message'=> 'Company Not Found'
+                ]);
+            }
+
+            $agreement = AgreementContent::updateOrCreate([
+                'company_id' => $jobId,
+            ],[
+                'company_id' => $jobId,
+                'content' => $request->content,
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message'=> 'Agreement Content Added Successfully',
+                'data' => $agreement
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 200,
+                'message'=> $e->getMessage(),
+            ]);
+
+        }
+        
+    }
+    public function storeCustomerAgreementContentold($jobId, Request $request)
     {
         $request->validate([
             'content'=> 'string'
@@ -734,7 +783,7 @@ class CustomerAgreementController extends Controller
             {
                 return response()->json([
                     'status' => 404,
-                    'message'=> 'Job Not Found'
+                    'message'=> 'Com Not Found'
                 ]);
             }
 
@@ -753,7 +802,7 @@ class CustomerAgreementController extends Controller
 
         }catch(\Exception $e){
             return response()->json([
-                'status' => 200,
+                'status' => 500,
                 'message'=> 'Internal Server Error',
             ]);
 
@@ -762,6 +811,29 @@ class CustomerAgreementController extends Controller
     }
 
     public function getCustomerAgreementContent($jobId)
+    {
+        $company = Company::find($jobId);
+        if(!$company)
+        {
+            return response()->json([
+                'status' => 404,
+                'message'=> 'Company Not Found'
+            ]);
+        }
+
+        $agreement= AgreementContent::where('company_id',$jobId)->first();
+        if($agreement)
+        {
+            return response()->json([
+                'status' => 200,
+                'message'=> 'Agreement Content Found Successfully',
+                'data' => $agreement
+            ]);
+        }
+
+    }
+
+    public function getCustomerAgreementContentold($jobId)
     {
         $job = CompanyJob::find($jobId);
         if(!$job)

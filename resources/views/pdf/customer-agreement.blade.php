@@ -39,6 +39,7 @@
       table:not(.header-image-table) {
         border-spacing: 20px;
       }
+
       table tr td {
         padding-block: 0.2rem;
         /* border: 5px solid #000; */
@@ -46,16 +47,22 @@
       .page-break {
         page-break-before: always;
       }
-
       .list {
         padding-left: 15px;
         display: flex;
-        flex-direction: column;
-        gap: 15px;
+        /* flex-direction: column;
+        gap: 15px; */
       }
       .list li {
         line-height: 1.5;
       }
+
+      footer {
+      width: 100%;
+      background-color: #f1f1f1;
+      text-align: center;
+      padding: 20px 0;
+    }
     </style>
   </head>
   <body>
@@ -68,15 +75,16 @@
         </tr>
       </tbody>
     </table>
-    <table style="width: 1200px; margin: auto">
-      <thead>
+
+    <!-- section4 -->
+    <table style="width: 100%; max-width: 1200px; margin: auto;">
+      <tbody>
         <tr>
           <th colspan="6">
-            <h2 style="text-align: left">Customer Information</h2>
+            <h2 style="text-align: left">CUSTOMER INFORMATION</h2>
           </th>
         </tr>
-      </thead>
-      <tbody>
+   
         <tr>
           <td>
             <p>Name</p>
@@ -106,20 +114,20 @@
         <tr>
           <td>
             <p>Street</p>
-            <input style="width: 100%; color:#333" type="text" value="{{$data->street}}" />
+            <input style="color:#333" type="text" value="{{$data->street}}" />
           </td>
           <td>
             <p>City</p>
-            <input style="width: 100%; color:#333" type="text" value="{{$data->city}}" />
+            <input style="color:#333" type="text" value="{{$data->city}}" />
           </td>
           <td>
             <p>State</p>
-            <input style="width: 100%; color:#333" type="text" value="{{$data->state}}" />
+            <input style="color:#333" type="text" value="{{$data->state}}" />
           </td>
           <td>
             <p>Zip Code</p>
             <input
-              style="width: 100%; color:#333"
+              style="color:#333"
               type="text"
               value="{{$data->zip_code}}"
             />
@@ -153,42 +161,45 @@
         </tr>
       </tbody>
     </table>
-    <!-- section4 -->
+
+
     <table style="max-width: 1200px; margin: auto">
       <tbody>
-        <tr>
-          <td>
-            <h2 style="text-align: left">ACKNOWLEDGEMENTS</h2>
-            <ul class="list">
-              <li>
-                <p>
-                  Customer affirms and acknowledges ownership of the property
-                  situated at the address provided above and asserts
-                  authorization and competency to engage in this Agreement.
-                </p>
-              </li>
-              <li>
-                <p>
-                  PeakTek Roofing & Restoration ("PeakTek") will supply
-                  materials, equipment, and labor, either directly or through
-                  independent contractors, as outlined herein (the "Work").
-                </p>
-              </li>
-              <li>
-                <p>
-                  Customer has enlisted PeakTek as the chosen contractor due to
-                  PeakTek's expertise and its licensing, bonding, and insurance.
-                  Customer comprehends that PeakTek will proceed with the Work
-                  and associated tasks related to the insurance claim included
-                  within this agreement, relying on this agreement as a
-                  foundation.
-                </p>
-              </li>
-            </ul>
-          </td>
-        </tr>
-      </tbody>
+      <tr>
+              <td>
+                <h2 style="text-align: left">ACKNOWLEDGEMENTS</h2>
+                <ul class="list">
+                  <li>
+                    <p>
+                      Customer affirms and acknowledges ownership of the property
+                      situated at the address provided above and asserts
+                      authorization and competency to engage in this Agreement.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      PeakTek Roofing & Restoration ("PeakTek") will supply
+                      materials, equipment, and labor, either directly or through
+                      independent contractors, as outlined herein (the "Work").
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      Customer has enlisted PeakTek as the chosen contractor due to
+                      PeakTek's expertise and its licensing, bonding, and insurance.
+                      Customer comprehends that PeakTek will proceed with the Work
+                      and associated tasks related to the insurance claim included
+                      within this agreement, relying on this agreement as a
+                      foundation.
+                    </p>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+      </tbody>    
     </table>
+
+
     <table style="max-width: 1200px; margin: auto">
       <tbody>
         <tr>
@@ -227,6 +238,8 @@
         </tr>
       </tbody>
     </table>
+
+
     <table style="max-width: 1200px; margin: auto">
       <tbody>
         <tr>
@@ -279,11 +292,146 @@
             </ul>
           </td>
         </tr>
+
       </tbody>
     </table>
+
+
+    <table style="width: 100%; max-width: 1200px; margin: auto;">
+      <tbody>
+      <tr>
+          <td>
+          <h2>SIGNATURES</h2>
+          </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
+          <p>Customer Signature:</p>
+          <div
+            style="
+              width: 250px;
+              border: 1px solid #ccc;
+              padding: 10px;
+              text-align: center;
+              margin-top: 5px;
+              color:#333;
+            "
+          >
+            <img
+              src="{{ public_path($data->customer_signature) }}"
+              style="width: 100%; max-width: 230px; height: auto;"
+              alt="Customer Signature"
+            />
+          </div>
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Printed Name:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->customer_printed_name}}"
+          />
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Date Signed:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->customer_date}}"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
+          <p>Company Representative Signature:</p>
+          <div
+            style="
+              width: 250px;
+              border: 1px solid #ccc;
+              padding: 10px;
+              text-align: center;
+              margin-top: 5px;
+            "
+          >
+            <img
+              src="{{ public_path($data->company_signature) }}"
+              style="width: 100%; max-width: 230px; height: auto;"
+              alt="Company Signature"
+            />
+          </div>
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Printed Name:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333
+            "
+            type="text"
+            value="{{$data->company_printed_name}}"
+          />
+        </td>
+        <td style="padding: 15px; text-align: left; width: 30%;">
+          <p>Date Signed:</p>
+          <input
+            style="
+              width: 100%;
+              padding: 5px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-top: 5px;
+              color:#333;
+            "
+            type="text"
+            value="{{$data->company_date}}"
+          />
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <!-- add footer of page -->
+    <table class="footer-image-table" style="margin-top: 250px">
+      <tbody>
+        <tr>
+          <td>
+            <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_footer.PNG')))}}" width="1500"/>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
     <!-- Page Break -->
-    <!-- <div class="page-break"></div> -->
+    <div class="page-break"></div>
     <!-- End -->
+     <!-- add header for second page -->
+    <table class="header-image-table" style="margin-bottom: 60px">
+      <tbody>
+        <tr>
+          <td>
+            <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_header.png')))}}" width="1500"/>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <table style="max-width: 1200px; margin: auto">
       <tr>
@@ -492,119 +640,11 @@
       </tr>
     </table>
   
-    <!-- signature part -->
+ 
+       <!-- signature part -->
   <table style="width: 100%; max-width: 1200px; margin: auto; border-collapse: collapse;">
-    <thead>
-      <tr>
-        <th colspan="6" style="text-align: left; padding-bottom: 10px;">
-          <h2>Signatures</h2>
-        </th>
-      </tr>
-    </thead>
     <tbody>
       <tr>
-        <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
-          <p>Customer Signature:</p>
-          <div
-            style="
-              width: 250px;
-              border: 1px solid #ccc;
-              padding: 10px;
-              text-align: center;
-              margin-top: 5px;
-              color:#333;
-            "
-          >
-            <img
-              src="{{ public_path($data->customer_signature) }}"
-              style="width: 100%; max-width: 230px; height: auto;"
-              alt="Customer Signature"
-            />
-          </div>
-        </td>
-        <td style="padding: 15px; text-align: left; width: 30%;">
-          <p>Printed Name:</p>
-          <input
-            style="
-              width: 100%;
-              padding: 5px;
-              border: 1px solid #ccc;
-              border-radius: 4px;
-              margin-top: 5px;
-              color:#333;
-            "
-            type="text"
-            value="{{$data->customer_printed_name}}"
-          />
-        </td>
-        <td style="padding: 15px; text-align: left; width: 30%;">
-          <p>Date Signed:</p>
-          <input
-            style="
-              width: 100%;
-              padding: 5px;
-              border: 1px solid #ccc;
-              border-radius: 4px;
-              margin-top: 5px;
-              color:#333;
-            "
-            type="text"
-            value="{{$data->customer_date}}"
-          />
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; padding: 15px; text-align: left; width: 40%;">
-          <p>Company Representative Signature:</p>
-          <div
-            style="
-              width: 250px;
-              border: 1px solid #ccc;
-              padding: 10px;
-              text-align: center;
-              margin-top: 5px;
-            "
-          >
-            <img
-              src="{{ public_path($data->company_signature) }}"
-              style="width: 100%; max-width: 230px; height: auto;"
-              alt="Company Signature"
-            />
-          </div>
-        </td>
-        <td style="padding: 15px; text-align: left; width: 30%;">
-          <p>Printed Name:</p>
-          <input
-            style="
-              width: 100%;
-              padding: 5px;
-              border: 1px solid #ccc;
-              border-radius: 4px;
-              margin-top: 5px;
-              color:#333
-            "
-            type="text"
-            value="{{$data->company_printed_name}}"
-          />
-        </td>
-        <td style="padding: 15px; text-align: left; width: 30%;">
-          <p>Date Signed:</p>
-          <input
-            style="
-              width: 100%;
-              padding: 5px;
-              border: 1px solid #ccc;
-              border-radius: 4px;
-              margin-top: 5px;
-              color:#333;
-            "
-            type="text"
-            value="{{$data->company_date}}"
-          />
-        </td>
-      </tr>
-      <tr>
-      
         <td style="padding: 15px; text-align: left; width: 30%;">
           <p>Customer Name:</p>
           <input
@@ -640,6 +680,27 @@
   </table>
 <!-- end signature part -->
 
+ <!-- add footer of page -->
+ <table class="footer-image-table" style="margin-top: 750px">
+      <tbody>
+        <tr>
+          <td>
+            <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_footer.PNG')))}}" width="1500"/>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+<!-- <div style="position: relative; min-height: 100vh;" class="footer-image-table">
 
+    <table style="margin-bottom: 0px; position: fixed; bottom: 0; left: 0; width: 100%; background-color: white;">
+        <tbody>
+          <tr>
+            <td>
+              <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_footer.PNG')))}}" width="1500"/>
+            </td>
+          </tr>
+        </tbody>
+    </table>
+</div> -->
   </body>
 </html>
