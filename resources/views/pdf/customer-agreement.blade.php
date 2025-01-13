@@ -321,6 +321,27 @@
       </tbody>
     </table>
 
+    
+    <div style="display: flex; padding: 10px; align-items: center;">
+  <label for="" style="color: #333;">I</label>
+  <input
+    style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; color: #333; margin-left: 5px;"
+    type="text"
+    value="{{$data->customer_name}}"
+  />
+  <label for="" style="color: #333; margin-left: 30px;">the undersigned, hereby cancel this transaction as of <strong>Date</strong>:</label>
+  <input
+    style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; color: #333; margin-left: 30px;"
+    type="text"
+    value="{{$data->agreement_date}}"
+  />
+</div>
+
+
+
+
+
+
     <!-- add footer of page -->
     <!-- <table class="footer-image-table" style="margin-top: 250px">
       <tbody>
@@ -333,10 +354,10 @@
     </table> -->
     
     <!-- Page Break -->
-    <div class="page-break"></div>
+    <!-- <div class="page-break"></div> -->
     <!-- End -->
      <!-- add header for second page -->
-    <table class="header-image-table" style="margin-bottom: 60px">
+    <!-- <table class="header-image-table" style="margin-bottom: 60px">
       <tbody>
         <tr>
           <td>
@@ -344,46 +365,7 @@
           </td>
         </tr>
       </tbody>
-    </table>
-    
-       <!-- signature part -->
-  <table style="width: 100%; max-width: 1200px; margin: auto; border-collapse: collapse;">
-    <tbody>
-      <tr>
-        <td style="padding: 15px; text-align: left; width: 30%;">
-          <p>Customer Name:</p>
-          <input
-            style="
-              width: 100%;
-              padding: 5px;
-              border: 1px solid #ccc;
-              border-radius: 4px;
-              margin-top: 5px;
-              color:#333;
-            "
-            type="text"
-            value="{{$data->customer_name}}"
-          />
-        </td>
-        <td style="padding: 15px; text-align: left; width: 30%;">
-          <p>Aggrement Signed Date:</p>
-          <input
-            style="
-              width: 100%;
-              padding: 5px;
-              border: 1px solid #ccc;
-              border-radius: 4px;
-              margin-top: 5px;
-              color:#333;
-            "
-            type="text"
-            value="{{$data->agreement_date}}"
-          />
-        </td>
-      </tr>
-    </tbody>
-  </table>
-<!-- end signature part -->
+    </table> -->
 
  <!-- add footer of page -->
     <!-- <table class="footer-image-table" style="margin-top: 750px">
