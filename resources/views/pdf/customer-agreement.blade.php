@@ -16,7 +16,8 @@
       }
       h2 {
         font-size: 20px;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
+        text-transform: none;
         margin-bottom: 15px;
       }
       p {
