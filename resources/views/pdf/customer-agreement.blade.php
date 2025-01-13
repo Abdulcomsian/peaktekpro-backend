@@ -321,21 +321,32 @@
       </tbody>
     </table>
 
+    <table style="width: 100%; max-width: 1200px; margin: auto;">
+      <tbody>
+        <tr>
+          <td>
+            <div style="display: flex; padding: 10px; align-items: center;">
+              <label for="" style="color: #333;">I</label>
+              <input
+                style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; color: #333; margin-left: 5px;"
+                type="text"
+                value="{{$data->customer_name}}"
+              />
+              <label for="" style="color: #333; margin-left: 30px;">the undersigned, hereby cancel this transaction as of <strong>Date</strong>:</label>
+              <input
+                style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; color: #333; margin-left: 30px;"
+                type="text"
+                value="{{$data->agreement_date}}"
+              />
+            </div>
+          </td>
+        </tr>
+     
+      </tbody>
+    </table>
+
     
-    <div style="display: flex; padding: 10px; align-items: center;">
-  <label for="" style="color: #333;">I</label>
-  <input
-    style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; color: #333; margin-left: 5px;"
-    type="text"
-    value="{{$data->customer_name}}"
-  />
-  <label for="" style="color: #333; margin-left: 30px;">the undersigned, hereby cancel this transaction as of <strong>Date</strong>:</label>
-  <input
-    style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; color: #333; margin-left: 30px;"
-    type="text"
-    value="{{$data->agreement_date}}"
-  />
-</div>
+    
 
 
 
