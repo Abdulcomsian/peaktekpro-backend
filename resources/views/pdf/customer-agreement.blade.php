@@ -166,35 +166,48 @@
     <table style="max-width: 1200px; margin: auto;">
     <tr>
         <td>
-            <ul>
-                @foreach($content as $heading => $details)
-                    <li>
-                        <h3>{{ $heading }}</h3>
-                        @foreach($details['paragraphs'] as $paragraph)
-                            <p>{{ $paragraph }}</p>
+            @foreach($content as $item)
+                @if($item['type'] === 'heading')
+                    <h{{ $item['level'] }}>{{ $item['content'] }}</h{{ $item['level'] }}>
+                @elseif($item['type'] === 'paragraph')
+                    <p>{{ $item['content'] }}</p>
+                @elseif($item['type'] === 'orderedList')
+                    <ol>
+                        @foreach($item['items'] as $listItem)
+                            <li>
+                                {{ $listItem['content'] }}
+                                @if(!empty($listItem['subList']))
+                                    <ul>
+                                        @foreach($listItem['subList'] as $subItem)
+                                            <li>{{ $subItem['content'] }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </li>
                         @endforeach
-
-                        @foreach($details['orderedLists'] as $orderedList)
-                            <ol>
-                                @foreach($orderedList as $item)
-                                    <li>{{ $item }}</li>
-                                @endforeach
-                            </ol>
+                    </ol>
+                @elseif($item['type'] === 'unorderedList')
+                    <ul>
+                        @foreach($item['items'] as $listItem)
+                            <li>
+                                {{ $listItem['content'] }}
+                                @if(!empty($listItem['subList']))
+                                    <ul>
+                                        @foreach($listItem['subList'] as $subItem)
+                                            <li>{{ $subItem['content'] }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </li>
                         @endforeach
-
-                        @foreach($details['unorderedLists'] as $unorderedList)
-                            <ul>
-                                @foreach($unorderedList as $item)
-                                    <li>{{ $item }}</li>
-                                @endforeach
-                            </ul>
-                        @endforeach
-                    </li>
-                @endforeach
-            </ul>
+                    </ul>
+                @endif
+            @endforeach
         </td>
     </tr>
 </table>
+
+
 
 
     <table style="width: 100%; max-width: 1200px; margin: auto;">

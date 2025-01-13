@@ -399,6 +399,116 @@ class CustomerAgreementController extends Controller
             //here I will parse the data before generating the pdf
 
             // Parse the content using DOMDocument
+            // Parse the content using DOMDocument
+            $dom = new DOMDocument();
+            libxml_use_internal_errors(true); // Suppress HTML parsing warnings
+            $dom->loadHTML('<div>' . $agreement_content->content . '</div>'); // Wrap content in a div for parsing
+            libxml_clear_errors();
+
+            function parseContent($element)
+            {
+                $parsed = [];
+                foreach ($element->childNodes as $child) {
+                    $tagName = $child->nodeName;
+
+                    if (preg_match('/^h[1-6]$/', $tagName)) {
+                        // Heading
+                        $parsed[] = [
+                            'type' => 'heading',
+                            'level' => substr($tagName, 1),
+                            'content' => trim($child->nodeValue),
+                        ];
+                    } elseif ($tagName === 'p') {
+                        // Paragraph
+                        $parsed[] = [
+                            'type' => 'paragraph',
+                            'content' => trim($child->nodeValue),
+                        ];
+                    } elseif ($tagName === 'ol' || $tagName === 'ul') {
+                        // Ordered or Unordered List
+                        $listType = $tagName === 'ol' ? 'orderedList' : 'unorderedList';
+                        $items = [];
+                        foreach ($child->childNodes as $li) {
+                            if ($li->nodeName === 'li') {
+                                // Recursively parse nested lists
+                                $items[] = [
+                                    'content' => trim($li->nodeValue),
+                                    'subList' => parseContent($li),
+                                ];
+                            }
+                        }
+                        $parsed[] = [
+                            'type' => $listType,
+                            'items' => $items,
+                        ];
+                    }
+                }
+                return $parsed;
+            }
+
+            // Start parsing from the body or div element
+            $body = $dom->getElementsByTagName('div')->item(0);
+            $parsedContent = parseContent($body);
+
+            // return response()->json([
+            //     'data'=> $parsedContent
+            // ]);
+
+            //Generate PDF
+            $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement, 'content'=>$parsedContent]);
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
+            // Check if the old PDF exists and delete it
+            if ($agreement->sign_pdf_url) {
+                $oldPdfPath = public_path($agreement->sign_pdf_url);
+                if (file_exists($oldPdfPath)) {
+                    unlink($oldPdfPath);
+                }
+            }
+            // Save the new PDF
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+            //Save PDF Path
+            $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
+            $agreement->save();
+
+            //Update Job Status
+            $job = CompanyJob::find($agreement->company_job_id);
+            $job->status_id = 2;
+            $job->date = Carbon::now()->format('Y-m-d');
+            $job->save();
+
+            // dd($agreement);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Agreement pdf Generated Successfully',
+                'agreement' => $agreement
+            ], 200);
+        
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            }
+
+    }
+
+    public function updateCustomerAgreement1(Request $request, $id)
+    {
+        try {
+            //Check Agreement
+            $agreement = CustomerAgreement::where('company_job_id',$id)->first();
+            if(!$agreement) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Agreement Not Found for this job'
+                ], 422);
+            }
+            $user = Auth::user();
+            $companyId = $user->company_id;
+            $agreement_content = AgreementContent::where('company_id',$companyId)->first();
+            // dd($agreement_content);
+            //here I will parse the data before generating the pdf
+
+            // Parse the content using DOMDocument
             $dom = new DOMDocument();
             @$dom->loadHTML($agreement_content->content); // Use $agreement_content->content for raw HTML
 
@@ -479,94 +589,6 @@ class CustomerAgreementController extends Controller
             } catch (\Exception $e) {
                 return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
             }
-
-    }
-    //when the user sign then the pdf generate
-    public function updateCustomerAgreement1(Request $request, $id)
-    {
-        // dd();
-        //Validate Request
-        $this->validate($request, [
-            'sign_image' => 'nullable',
-        ]);
-        try {
-
-            //Check Agreement
-            $agreement = CustomerAgreement::where('company_job_id',$id)->first();
-            if(!$agreement) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Agreement Not Found for this job'
-                ], 422);
-            }
-
-            // Get base64 image data
-            $base64Image = $request->input('sign_image');
-            $data = substr($base64Image, strpos($base64Image, ',') + 1);
-            $decodedImage = base64_decode($data);
-
-            // Generate a unique filename
-            $filename = 'image_' . time() . '.png';
-            // Check if the old image exists and delete it
-            if ($agreement->sign_image_url) {
-                $oldImagePath = public_path($agreement->sign_image_url);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
-            // Save the new image
-            Storage::disk('public')->put('agreement_signature/' . $filename, $decodedImage);
-            $imageUrl = '/storage/agreement_signature/' . $filename;
-
-            //Save Image Path
-            $agreement->sign_image_url = $imageUrl;
-            $agreement->save();
-
-            // return response()->json(
-            //    [ 'aggrement'=> $agreement]
-            // );
-
-            // dd($agreement);
-            //Generate PDF
-            $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
-            $pdf_fileName = time() . '.pdf';
-            $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
-            // Check if the old PDF exists and delete it
-            if ($agreement->sign_pdf_url) {
-                $oldPdfPath = public_path($agreement->sign_pdf_url);
-                if (file_exists($oldPdfPath)) {
-                    unlink($oldPdfPath);
-                }
-            }
-            // Save the new PDF
-            Storage::put('public/' . $pdf_filePath, $pdf->output());
-            //Save PDF Path
-            $agreement->sign_pdf_url = '/storage/' . $pdf_filePath;
-            $agreement->save();
-
-            //Update Job Status
-            $job = CompanyJob::find($agreement->company_job_id);
-            $job->status_id = 2;
-            $job->date = Carbon::now()->format('Y-m-d');
-            $job->save();
-
-            //Fire an Event
-            // event(new JobStatusUpdateEvent('Refresh Pgae'));
-
-            // return response()->json([
-            //     'status' => 200,
-            //     'message' => 'Signature Image Added Successfully',
-            //     'agreement' => $agreement
-            // ], 200);
-            return response()->json([
-                'status' => 200,
-                'message' => 'Agreement Created Successfully',
-                'agreement' => $agreement
-            ], 200, [], JSON_UNESCAPED_SLASHES);
-            
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-        }
 
     }
 
