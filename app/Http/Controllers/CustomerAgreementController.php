@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+use DOMDocument;
 
 class CustomerAgreementController extends Controller
 {
@@ -395,8 +396,57 @@ class CustomerAgreementController extends Controller
             $companyId = $user->company_id;
             $agreement_content = AgreementContent::where('company_id',$companyId)->first();
             // dd($agreement_content);
+            //here I will parse the data before generating the pdf
+
+            // Parse the content using DOMDocument
+            $dom = new DOMDocument();
+            @$dom->loadHTML($agreement_content->content); // Use $agreement_content->content for raw HTML
+
+            $parsedData = [];
+            $allHeadings = $dom->getElementsByTagName('*');
+
+            // Iterate through all elements to group by headings
+            $currentHeading = null;
+
+            foreach ($allHeadings as $element) {
+                $tagName = $element->tagName;
+
+                // Check for headings (h1, h2, ..., h6)
+                if (preg_match('/^h[1-6]$/', $tagName)) {
+                    $currentHeading = $element->nodeValue;
+                    $parsedData[$currentHeading] = [
+                        'paragraphs' => [],
+                        'orderedLists' => [],
+                        'unorderedLists' => [],
+                    ];
+                }
+
+                // Associate sub-elements (p, ol, ul) with the current heading
+                if ($currentHeading) {
+                    if ($tagName === 'p') {
+                        $parsedData[$currentHeading]['paragraphs'][] = $element->nodeValue;
+                    } elseif ($tagName === 'ol') {
+                        $items = [];
+                        foreach ($element->getElementsByTagName('li') as $li) {
+                            $items[] = $li->nodeValue;
+                        }
+                        $parsedData[$currentHeading]['orderedLists'][] = $items;
+                    } elseif ($tagName === 'ul') {
+                        $items = [];
+                        foreach ($element->getElementsByTagName('li') as $li) {
+                            $items[] = $li->nodeValue;
+                        }
+                        $parsedData[$currentHeading]['unorderedLists'][] = $items;
+                    }
+                }
+            }
+
+            // return response()->json([
+            //     'data'=> $parsedData
+            // ]);
+
             //Generate PDF
-            $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement]);
+            $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement, 'content'=>$parsedData]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'customer_agreement_pdf/' . $pdf_fileName;
             // Check if the old PDF exists and delete it
