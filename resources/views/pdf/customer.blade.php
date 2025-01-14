@@ -316,14 +316,14 @@
             </tbody>
         </table>
 
-        <div style="display: flex; padding: 10px; align-items: center;">
+        <div style="display: flex; padding: 10px; align-items: center; color:black;">
             
                 <b>This Contract and any agreements entered into between PeakTek Roofing & Restoration <br>
                      (hereinafter referred to as the “Company” or “PeakTek”) and the customer(s) identified herein <br>
                       on the Agreement’s page 1 shall adhere to all applicable copyright laws, regulations, and <br>
                       ordinances in the state of record.</b>
                 <p>
-                ⦁ All contracts are subject to the approval of our credit department and office without exception. <br>
+              &bull; All contracts are subject to the approval of our credit department and office without exception. <br>
                 The person executing this contract must obtain the consent of the officer of the Company for this contract to be effective under any conditions in the state of record.</p>
                 <p> SHOULD DEFAULT BE MADE IN PAYMENT OF THIS CONTRACT, CHARGES SHALL BE ADDED FROM <br>
                      THE DATE THEREOF AT A RATE EQUAL TO THE GREATER OF ONE- AND ONE-HALF PERCENT (1.5%) PER <br> 
@@ -331,36 +331,36 @@
                        AMOUNT ALLOWED BY LAW. IF PLACED IN THE HANDS OF AN ATTORNEY FOR COLLECTION, <br>
                         CUSTOMER SHALL BE RESPONSIBLE FOR ALL ATTORNEY’S FEES AND COSTS. </p>
                 <p>
-                ⦁ The Company shall have no responsibility for damages from rain, fire, tornado, windstorm, or other <br>
+              &bull; The Company shall have no responsibility for damages from rain, fire, tornado, windstorm, or other <br>
                 perils, including as is normally contemplated to be covered by HOMEOWNER’S INSURANCE or BUSINESS <br>
                  RISK INSURANCE, or unless specified in writing, made therefor before the commencement of work.
                  </p>
                  <p>
-                ⦁ The quotation on the face hereof does not include expenses or charges for bond insurance premiums <br>
+              &bull; The quotation on the face hereof does not include expenses or charges for bond insurance premiums <br>
                  or costs beyond standard insurance coverage, and any such additional expenses, premiums, or costs shall <br>
                   be added to the amount of the contract. (For example, Performance Bonds or Maintenance Bonds.) </p>
                   <p>
-                ⦁ Replacement of deteriorated decking, fascia boards, roof jacks, ventilators, flashing, or other materials, <br>
+              &bull; Replacement of deteriorated decking, fascia boards, roof jacks, ventilators, flashing, or other materials, <br>
                  unless otherwise STATED IN THE CONTRACT, are NOT INCLUDED and will be charged as an extra on a  <br>
                  time and material basis.
                  </p>
                  <p>
-                ⦁ After 90 days, Company reserves the right to revise the price in accordance with costs in effect at the <br>
+              &bull; After 90 days, Company reserves the right to revise the price in accordance with costs in effect at the <br>
                  time. (For example, increases in material cost).</p>
                  <p>
-                ⦁ The Company shall not be liable for the failure of performance due to labor controversies, strikes, <br>
+              &bull; The Company shall not be liable for the failure of performance due to labor controversies, strikes, <br>
                  fires, pandemics, wars, riots, protests, supply shortages, labor shortages, weather, inability to obtain <br>
                   materials from usual sources, or any other circumstances beyond the control of the Company, whether of a <br>
                   similar or dissimilar nature.</p>
                   <p>
-                ⦁ The Company is not responsible for any damage on or below the roof due to leaks, excessive wind- <br>
+              &bull; The Company is not responsible for any damage on or below the roof due to leaks, excessive wind- <br>
                 driven rain, ice, or hail during the period of warranty. EXCESSIVE WIND is 50 M.P.H. or faster. <br>
-                ⦁ If material must be reordered or restocked because of cancellation by the Customer, there will be a <br>
+              &bull; If material must be reordered or restocked because of cancellation by the Customer, there will be a <br>
                  RESTOCKING FEE equal to fifteen percent (15%) of the contract price. </p>
                  <p>
-                ⦁ This contract or warranty shall not be assigned except by or with the written permission of the Company.</p>
-               <p> ⦁ The Company is not responsible for any mold or interior damage resulting from mildew.</p>
-               <p> ⦁ IF THIS CONTRACT IS CANCELLED BY THE CUSTOMER LATER THAN 5 DAYS from the execution, <br>
+              &bull; This contract or warranty shall not be assigned except by or with the written permission of the Company.</p>
+               <p> &bull; The Company is not responsible for any mold or interior damage resulting from mildew.</p>
+               <p> &bull; IF THIS CONTRACT IS CANCELLED BY THE CUSTOMER LATER THAN 5 DAYS from the execution, <br>
                  Customer shall pay the Company a fee for the inspection and construction consulting services provided by <br>
                   PeakTek Roofing & Restoration LLC. By signing this contract, Customer agrees that the appropriate damages <br>
                   for cancellation shall be $200.00 (two hundred dollars) per person per hour expended in evaluating the <br>
@@ -368,38 +368,38 @@
                 
                 The Company agrees to accept such a reasonable and just compensation for cancellation. <br>
                  For the cancellation to be effective, notice must be sent via certified mail to PeakTek Roofig & Restoration LLC.</p>
-                <p>⦁ THIS CONTRACT CANNOT BE CANCELLED ONCE WORK IS COMMENCED EXCEPT BY MUTUAL WRITTEN <br>
+                <p>&bull; THIS CONTRACT CANNOT BE CANCELLED ONCE WORK IS COMMENCED EXCEPT BY MUTUAL WRITTEN <br>
                      AGREEMENT OF THE PARTIES.</p>
                      <p>
-                ⦁ If any provision of this contract should be held to be invalid or unenforceable, the validity and <br>
+              &bull; If any provision of this contract should be held to be invalid or unenforceable, the validity and <br>
                  enforceability of the remaining provisions of this contract shall not be affected thereby.</p>
                  <p>
-                ⦁ ANY REPRESENTATIONS, STATEMENTS, OR OTHER COMMUNICATIONS NOT WRITTEN ON THIS <br>
+              &bull; ANY REPRESENTATIONS, STATEMENTS, OR OTHER COMMUNICATIONS NOT WRITTEN ON THIS <br>
                  CONTRACT ARE AGREED TO BE <br>
                 IMMATERIAL, and not relied on by either party and do not survive the execution of this contract.</p>
                 <p>
-                ⦁ The maximum liability for the Company shall be the original cost of labor and materials for the repair, <br>
+              &bull; The maximum liability for the Company shall be the original cost of labor and materials for the repair, <br>
                  which Customer agrees shall be a liquidated sum, under any event of default by Company herein.</p>
                  <p>
-                ⦁ During the duration of the work, the Customer’s homeowner’s insurance will be responsible for any <br>
+              &bull; During the duration of the work, the Customer’s homeowner’s insurance will be responsible for any <br>
                  interior damage as long as the Company has taken appropriate action to protect the roof during the repair <br> 
                   of the roof.</p>
                   <p>
-                ⦁ If there are any solar panels on the roof, the Company will not be responsible for any damage during <br>
+              &bull; If there are any solar panels on the roof, the Company will not be responsible for any damage during <br>
                  the repair, so the homeowner agrees to have a solar panel company take the appropriate action to protect it <br>
                   if necessary.</p>
                   <p>
-                ⦁ The Company is not responsible for the construction problems of your home. If pointed out and notified <br>
+              &bull; The Company is not responsible for the construction problems of your home. If pointed out and notified <br>
                  to our Company, we will try and assist you in correcting them on a timely and material basis.</p>
                  <p>
-                ⦁ The Company is not responsible for any damage on or below the roof due to leaks from skylights <br>
+              &bull; The Company is not responsible for any damage on or below the roof due to leaks from skylights <br>
                 unless the Company completes the skylight replacement.</p>
                 <p>
-                ⦁ Warranty is for two (2) years on roof replacement, one (1) year on siding replacement, and one (1) <br>
+              &bull; Warranty is for two (2) years on roof replacement, one (1) year on siding replacement, and one (1) <br>
                  year on gutter repairs. There is no warranty on roof repairs. Extended service warranties are available for  <br>
                  an additional charge. THE WARRANTY IS NON-TRANSFERABLE.</p>
                  <p>
-                ⦁ Payments are to be made Half-down payment or first insurance check, whichever is greater. The <br>
+              &bull; Payments are to be made Half-down payment or first insurance check, whichever is greater. The <br>
                  Company reserves the right to bill proportionately based on the percentage of work completed. Further, the <br> 
                  Customer agrees to endorse and turn over to the Company any check received from an insurance company <br>
                  or the third party within seven (7) days of receipt thereof will be considered default. Customer’s violation of <br>
@@ -407,29 +407,29 @@
                   treble damages.
                   </p>
                   <p>
-                ⦁ Any hidden conditions or building code-related issues which result in additional labor and/or material <br>
+              &bull; Any hidden conditions or building code-related issues which result in additional labor and/or material <br>
                  costs will require a signed change order to proceed. The Customer understands the Company may issue a <br>
                   stop-work order if the change order is not accepted. (For example, rotten decking, fascia, gas vents, HVAC <br>
                    lines or coils, etc.) The Company is not responsible for damages.</p>
                 <p>
-                ⦁ Customer understands that existing framing issues such as uneven rafter and bowed sheeting are not <br>
+              &bull; Customer understands that existing framing issues such as uneven rafter and bowed sheeting are not <br>
                  the responsibility of the Company to fix and will only be repaired if needed and on a time and material <br>
                   basis.</p>
                   <p>
-                ⦁ Customer understands all insurance proceeds are to be paid to the Company for insurance-approved <br>
+              &bull; Customer understands all insurance proceeds are to be paid to the Company for insurance-approved <br>
                 repairs unless noted in writing on the customer agreement or a change order contract.</p>
                 <p>
-                ⦁ ADDITIONALLY, THE COMPANY MAY ENFORCE ITS RIGHT TO PAYMENT BY OTHER MEANS, <br>
+              &bull; ADDITIONALLY, THE COMPANY MAY ENFORCE ITS RIGHT TO PAYMENT BY OTHER MEANS, <br>
                 INCLUDING, BUT NOT LIMITED TO, FILING OF A LIEN AGAINST THE PROPERTY OF THE <br>
                  CUSTOMER INVOLVED IN THIS CONTRACT, REPORTING TO APPROPRIATE CREDIT REPORTING <br>
                   AGENCIES, AND ANY OTHER LEGAL REMEDIES AVAILABLE AT LAW.
                   </p>
                   <p>
-                ⦁ Customer Understands that the Company, subcontracts all dumpster work. Any flat tires due to <br>
+              &bull; Customer Understands that the Company, subcontracts all dumpster work. Any flat tires due to <br>
                 nails left under the dumpster, driveway, or garage damage are the responsibility of the contracted <br>
                  dumpster company.</p>
                  <p>
-                ⦁ CUSTOMER AGREES TO PAY IN FULL AT THE TIME OF COMPLETION OF EACH CONTRACT <br>
+              &bull; CUSTOMER AGREES TO PAY IN FULL AT THE TIME OF COMPLETION OF EACH CONTRACT <br>
 
                 If you are notified by your insurer that all or part of the claim or contract is not a covered loss under your <br>
                  insurance policy, you may cancel the contract by mailing or delivering a signed and dated copy of this <br>
@@ -440,7 +440,7 @@
                     receipt of your cancellation notice.
                 </p>
                 <p>
-                ⦁ Customer is responsible for advising the Company of any covenants, conditions, or restrictions for the <br>
+              &bull; Customer is responsible for advising the Company of any covenants, conditions, or restrictions for the <br>
                  property. The Company is not responsible for the violation of any covenants, conditions, or restrictions <br>
                   unless Customer notifies the Company in writing and reference is made in the specific terms of this  <br>
                   Agreement.</p>
