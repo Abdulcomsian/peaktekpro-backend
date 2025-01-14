@@ -96,11 +96,11 @@
     <body>
         <!-- Define header and footer blocks before your content -->
         <header>
-                <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_header.PNG')))}}" width="800"/>
+                <img src="{{(public_path('assets/pdf_header.PNG'))}}" width="800"/>
         </header>
 
         <footer>
-                <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_footer.PNG')))}}" width="800"/>
+                <img src="{{(public_path('assets/pdf_footer.PNG'))}}" width="800"/>
         </footer>
 
         <!-- Wrap the content of your PDF inside a main tag -->
