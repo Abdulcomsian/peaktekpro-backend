@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\CustomerController;
 use App\Http\Controllers\Web\{ReactAuthController, TemplateController, ReportLayoutController};
 
 
@@ -37,11 +38,14 @@ Route::get('user-logout', function() {
 
 Route::get('download-report-pdf/{report_id}',[ReportLayoutController::class, 'downloadReportPdf'])->name('download-report-pdf');
 
+Route::get('update/customer-agreement/{id}', [CustomerController::class, 'updateCustomerAgreement']);
+
 
 Route::get('auth', ReactAuthController::class)->middleware('check.react.auth');
 // templates
 // Route::middleware(['check.react.auth', 'check.user.role'])->group(function () {
     Route::middleware(['check.react.auth'])->group(function () {
+
 
     Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::get('/templates/create', [TemplateController::class, 'create'])->name('templates.create');
