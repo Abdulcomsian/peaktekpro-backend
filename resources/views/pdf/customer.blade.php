@@ -272,12 +272,12 @@
                         <p>Company Representative Signature:</p>
                         <div
                             style="
-                width: 250px;
-                border: 1px solid black;
-                padding: 10px;
-                text-align: center;
-                margin-top: 5px;
-                ">
+                                    width: 250px;
+                                    border: 1px solid black;
+                                    padding: 10px;
+                                    text-align: center;
+                                    margin-top: 5px;
+                                    ">
                             <img
                                 src="{{ public_path($data->company_signature) }}"
                                 style="width: 100%; max-width: 230px; height: auto;"
@@ -316,7 +316,8 @@
             </tbody>
         </table>
 
-        <div style="display: flex; padding: 10px; align-items: center; color:black;">
+
+        <!-- <div style="display: flex; padding: 10px; align-items: center; color:black;">
             
                 <b>This Contract and any agreements entered into between PeakTek Roofing & Restoration <br>
                      (hereinafter referred to as the “Company” or “PeakTek”) and the customer(s) identified herein <br>
@@ -324,7 +325,8 @@
                       ordinances in the state of record.</b>
                 <p>
               &bull; All contracts are subject to the approval of our credit department and office without exception. <br>
-                The person executing this contract must obtain the consent of the officer of the Company for this contract to be effective under any conditions in the state of record.</p>
+                The person executing this contract must obtain the consent of the officer of the Company for this contract to be effective under any conditions in the state of record.
+            </p>
                 <p> SHOULD DEFAULT BE MADE IN PAYMENT OF THIS CONTRACT, CHARGES SHALL BE ADDED FROM <br>
                      THE DATE THEREOF AT A RATE EQUAL TO THE GREATER OF ONE- AND ONE-HALF PERCENT (1.5%) PER <br> 
                       MONTH (18% PER ANNUM) WITH A MINIMUM CHARGE OF $20.00 PER MONTH OR THE MAXIMUM <br>
@@ -444,8 +446,7 @@
                  property. The Company is not responsible for the violation of any covenants, conditions, or restrictions <br>
                   unless Customer notifies the Company in writing and reference is made in the specific terms of this  <br>
                   Agreement.</p>
-                <!-- </p> -->
-        </div>
+        </div> -->
 
 
         <div style="display: flex; padding: 10px; align-items: center;">
