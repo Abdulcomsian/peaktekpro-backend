@@ -317,7 +317,7 @@
         </table>
 
 
-        <!-- <div style="display: flex; padding: 10px; align-items: center; color:black;">
+        <div style="display: flex; padding: 10px; align-items: center; color:black;">
             
                 <b>This Contract and any agreements entered into between PeakTek Roofing & Restoration <br>
                      (hereinafter referred to as the “Company” or “PeakTek”) and the customer(s) identified herein <br>
@@ -446,7 +446,7 @@
                  property. The Company is not responsible for the violation of any covenants, conditions, or restrictions <br>
                   unless Customer notifies the Company in writing and reference is made in the specific terms of this  <br>
                   Agreement.</p>
-        </div> -->
+        </div>
 
 
         <div style="display: flex; padding: 10px; align-items: center;">
