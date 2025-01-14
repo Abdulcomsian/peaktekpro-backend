@@ -347,16 +347,8 @@
       </tbody>
     </table>
 
-    
-    
-
-
-
-
-
-
     <!-- add footer of page -->
-    <!-- <table class="footer-image-table" style="margin-top: 250px">
+    <table class="footer-image-table" style="margin-top: 250px">
       <tbody>
         <tr>
           <td>
@@ -364,7 +356,7 @@
           </td>
         </tr>
       </tbody>
-    </table> -->
+    </table>
     
     <!-- Page Break -->
     <!-- <div class="page-break"></div> -->
