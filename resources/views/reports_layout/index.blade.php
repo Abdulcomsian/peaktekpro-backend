@@ -58,7 +58,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="py-3 px-6 text-center">No reports found.</td>
+                                <td colspan="4" class="py-3 px-6 text-center">No reports found.</td>
                             </tr>
                         @endforelse
                         <!-- Repeat rows as needed -->
