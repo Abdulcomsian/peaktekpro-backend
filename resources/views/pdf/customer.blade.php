@@ -135,62 +135,62 @@
 
                 <tr>
                     <td>
-                        <p>Name</p>
+                        <p style="margin: 0;">Name</p>
                         <input
-                            style="color:#333" type="text" value="{{$data->job->name}}" />
+                            style="color:#333; min-height:20px; word-wrap:break-word;" type="text" value="{{$data->job->name}}" />
                     </td>
                     <td>
-                        <p>Email</p>
+                        <p style="margin: 0;">Email</p>
                         <input
-                            style="color:#333"
+                            style="color:#333; min-height:20px; word-wrap:break-word;"
                             type="text"
                             value="{{$data->job->email}}" />
                     </td>
                     <td colspan="2">
-                        <p>Phone</p>
+                        <p style="margin: 0;">Phone</p>
                         <input
-                            style="color:#333"
+                            style="color:#333; min-height:20px; word-wrap:break-word;"
                             type="text"
                             value="{{$data->job->phone}}" />
                     </td>
                 </tr>
                 <tr>
                     <td style="padding-right: 20px;">
-                        <p>Street</p>
-                        <input style="color:#333; width:100%; margin-right:30px;" type="text" value="{{$data->street}}" />
+                        <p style="margin: 0;">Street</p>
+                        <input style="color:#333; width:100px; margin-right:30px; min-height:20px; word-wrap:break-word;" type="text" value="{{$data->street ?? ''}}" />
                     </td>
                     <td style="padding-right: 20px;">
-                        <p>City</p>
-                        <input style="color:#333; width:100%; margin-right:30px;" type="text" value="{{$data->city}}" />
+                        <p style="margin: 0;">City</p>
+                        <input style="color:#333; width:100px; margin-right:30px; min-height:20px; word-wrap:break-word;" type="text" value="{{$data->city ?? ''}}" />
                     </td>
                     <td style="padding-right: 20px;">
-                        <p>State</p>
-                        <input style="color:#333; width:100%; margin-right:30px;" type="text" value="{{$data->state}}" />
+                        <p style="margin: 0;">State</p>
+                        <input style="color:#333; width:100px; margin-right:30px; min-height:20px; word-wrap:break-word;" type="text" value="{{$data->state ?? ''}}" />
                     </td>
                     <td>
-                        <p>Zip Code</p>
-                        <input style="color:#333; width:100%;" type="text" value="{{$data->zip_code}}" />
+                        <p style="margin: 0;">Zip Code</p>
+                        <input style="color:#333; width:100px; min-height: 20px; word-wrap: break-word;" type="text" value="{{$data->zip_code ?? ''}}" />
                     </td>
                 </tr>
 
                 <td>
-                    <p>Insurance Number:</p>
+                    <p style="margin: 0;">Insurance Number:</p>
                     <input
-                        style="color:#333;"
+                        style="color:#333; min-height:20px; word-wrap:break-word;"
                         type="text"
-                        value="{{$data->insurance}}" />
+                        value="{{$data->insurance ?? ''}}" />
                 </td>
                 <td>
-                    <p>Claim Number:</p>
+                    <p style="margin: 0;">Claim Number:</p>
                     <input
-                        style="color:#333;"
+                        style="color:#333; min-height:20px; word-wrap:break-word;"
                         type="text"
                         value="{{$data->claim_number}}" />
                 </td>
                 <td colspan="2">
-                    <p>Policy Number:</p>
+                    <p style="margin: 0;">Policy Number:</p>
                     <input
-                        style="color:#333;"
+                        style="color:#333; min-height:20px; word-wrap:break-word;"
                         type="text"
                         value="{{$data->policy_number}}" />
                 </td>
@@ -317,7 +317,7 @@
         </table>
 
 
-        <div style="display: flex; padding: 10px; align-items: center; color:black;">
+        <!-- <div style="display: flex; padding: 10px; align-items: center; color:black;">
             
                 <b>This Contract and any agreements entered into between PeakTek Roofing & Restoration <br>
                      (hereinafter referred to as the “Company” or “PeakTek”) and the customer(s) identified herein <br>
@@ -446,20 +446,26 @@
                  property. The Company is not responsible for the violation of any covenants, conditions, or restrictions <br>
                   unless Customer notifies the Company in writing and reference is made in the specific terms of this  <br>
                   Agreement.</p>
-        </div>
+        </div> -->
 
 
         <div style="display: flex; padding: 10px; align-items: center;">
             <div>
-                I <span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none;color:transparent">......................................</span>,the undersigned,hereby cancel this transaction as of <span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none;color:transparent">.......</span>/<span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none;color:transparent">.......</span>/<span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none;color:transparent">............</span>
+                I 
+                <span style="border: .1rem solid gray; border-top: none; border-left: none; border-right: none; color: {{ !empty($data->customer_name) ? 'black' : 'transparent' }}">
+                    {{ !empty($data->customer_name) ? $data->customer_name : '......................................'}}
+                </span>, the undersigned, hereby cancel this transaction as of 
+                <span style="border: .1rem solid gray; border-top: none; border-left: none; border-right: none; display: inline-block; color: {{ !empty($data->agreement_date) ? 'black' : 'transparent' }}">
+                    {{ !empty($data->agreement_date) 
+                        ? explode('/', $data->agreement_date)[0] . '/' . explode('/', $data->agreement_date)[1] . '/' . explode('/', $data->agreement_date)[2] 
+                        : '...... / ...... / ............' }}
+                </span>
             </div>
+
             <div style="margin-top : 1rem;">
-                Customer Signature:<span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none;color:transparent">......................................................................</span>
+                Customer Signature:<span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none; color:transparent">............................................................</span>
             </div>
-            <!-- Name Field -->
-
-
-
+        </div>
     </main>
 </body>
 
