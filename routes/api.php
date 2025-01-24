@@ -35,6 +35,8 @@ use App\Http\Controllers\ProjectDesignAuthorizationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CompanyLocationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\InsuranceUnderReviewController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -214,6 +216,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'getAdjustorMeetingSquarePhotos']);
     Route::get('mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'CompleteAdjustorMeetingSquarePhotos']);
     Route::get('get/mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'getCompleteAdjustorMeetingSquarePhotos']);
+
+    //Insurance Under Review Apis//
+    Route::post('add/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'addInsuranceUnderReview']);
+    Route::get('get/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'getInsuranceUnderReview']);
 
     //Overturn Meeting Api
     Route::post('create/overturn-meeting/{jobId}', [MeetingController::class, 'createOverturnMeeting']);
