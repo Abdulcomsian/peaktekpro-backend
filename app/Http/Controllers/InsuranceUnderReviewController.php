@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\InsuranceUnderReview;
 use Illuminate\Support\Facades\Storage;
 use App\Models\InsuranceUnderReviewPhotos;
-
+use App\Http\Requests\InsuranceUnderReview\StoreRequest;
 class InsuranceUnderReviewController extends Controller
 {
     public function addInsuranceUnderReview($id, Request $request)
@@ -16,7 +16,7 @@ class InsuranceUnderReviewController extends Controller
         $request->validate([
             'notes'=>'nullable|string',
             'photo' => 'nullable|array', 
-            'photo.*' => 'nullable|image', 
+            'photo.*' => 'nullable|image|mimes:png,jpg,jpeg,svg,gif|max:2048', 
             'label' => 'nullable|array',         
             'label.*' => 'nullable|string',      
         ]);
@@ -118,6 +118,34 @@ class InsuranceUnderReviewController extends Controller
                 'data' => $insurance,
             ]);
         } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+        }
+    }
+
+    public function statusInsuranceUnderReview(StoreRequest $request,$id)
+    {
+        dd("shdh"); //branch rehmat-31 not merged
+        try{
+            $company = CompanyJob::find($id);
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Company Not Found',
+                ]);
+            }
+
+            $insurance = InsuranceUnderReview::updateOrCreate(
+                ['company_job_id' => $id],
+                [
+                    'status' => $request->status,
+                ]
+            );
+
+        }catch(\Exception $e){
             return response()->json([
                 'status' => 500,
                 'message' => 'An issue occurred: ' . $e->getMessage(),
