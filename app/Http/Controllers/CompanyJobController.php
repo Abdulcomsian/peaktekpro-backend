@@ -242,10 +242,13 @@ class CompanyJobController extends Controller
                     case 4: // Adjuster Scheduled
                         $completedPercentage = 30;
                         break;
-                    case 9: // Ready To Build
+                    case 5: // Insurance Under Review
                         $completedPercentage = 40;
                         break;
-                    case 10: // Build Scheduled
+                    case 6: // Overturn
+                        $completedPercentage = 40;
+                        break;
+                    case 8: // Build Scheduled
                         $completedPercentage = 50;
                         break;
                     case 11: // In Progress
