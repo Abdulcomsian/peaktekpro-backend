@@ -2662,9 +2662,9 @@ class CompanyJobController extends Controller
                             $completed_percentage = 20;
                         } elseif ($job->status_id == 4) {  
                             $completed_percentage = 30;
-                        } elseif ($job->status_id == 9) {  
+                        } elseif ($job->status_id == 5 || $job->status_id == 6) {  
                             $completed_percentage = 40;
-                        } elseif ($job->status_id == 10) {  
+                        } elseif ($job->status_id == 8) {  
                             $completed_percentage = 50;
                         } elseif ($job->status_id == 11) {  
                             $completed_percentage = 60;
