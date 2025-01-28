@@ -128,7 +128,7 @@ class InsuranceUnderReviewController extends Controller
 
     public function statusInsuranceUnderReview(StoreRequest $request,$id)
     {
-        dd("shdh"); //branch rehmat-31 not merged
+        // dd($id);
         try{
             $company = CompanyJob::find($id);
             if (!$company) {
@@ -138,12 +138,29 @@ class InsuranceUnderReviewController extends Controller
                 ]);
             }
 
+            if($request->status == "approved"){
+                $company->status_id = 8;
+                $company->save();
+            }elseif($request->status == "partial-approved"){
+                $company->status_id = 4;
+                $company->save();
+            }elseif($request->status == "denied"){
+                $company->status_id = 18;
+                $company->save();
+            }
+
             $insurance = InsuranceUnderReview::updateOrCreate(
                 ['company_job_id' => $id],
                 [
                     'status' => $request->status,
                 ]
             );
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Insurance Added Successfully',
+                'data' => $insurance,
+            ]);
 
         }catch(\Exception $e){
             return response()->json([

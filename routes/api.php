@@ -220,7 +220,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     //Insurance Under Review Apis//
     Route::post('add/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'addInsuranceUnderReview']);
     Route::get('get/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'getInsuranceUnderReview']);
-    Route::post('status/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'statusInsuranceUnderReview']);
+    Route::post('updateStatus/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'statusInsuranceUnderReview']);
 
 
     //Overturn Meeting Api

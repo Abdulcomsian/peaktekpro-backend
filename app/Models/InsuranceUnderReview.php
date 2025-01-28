@@ -10,7 +10,8 @@ class InsuranceUnderReview extends Model
     use HasFactory;
     protected $fillable=[
         'company_job_id',
-        'notes'
+        'notes',
+        'status',
     ];
 
     public function getPhotos()

@@ -24,7 +24,7 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'status'=> 'nullable|in:approved,partial-approved,denied'
+            'status'=> 'nullable|in:approved,partial-approved,denied',
         ];
     }
 }
