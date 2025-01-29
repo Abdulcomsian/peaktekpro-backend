@@ -242,10 +242,13 @@ class CompanyJobController extends Controller
                     case 4: // Adjuster Scheduled
                         $completedPercentage = 30;
                         break;
-                    case 9: // Ready To Build
+                    case 5: // Insurance Under Review
                         $completedPercentage = 40;
                         break;
-                    case 10: // Build Scheduled
+                    case 6: // Overturn
+                        $completedPercentage = 40;
+                        break;
+                    case 8: // Build Scheduled
                         $completedPercentage = 50;
                         break;
                     case 11: // In Progress
@@ -2662,9 +2665,9 @@ class CompanyJobController extends Controller
                             $completed_percentage = 20;
                         } elseif ($job->status_id == 4) {  
                             $completed_percentage = 30;
-                        } elseif ($job->status_id == 9) {  
+                        } elseif ($job->status_id == 5 || $job->status_id == 6) {  
                             $completed_percentage = 40;
-                        } elseif ($job->status_id == 10) {  
+                        } elseif ($job->status_id == 8) {  
                             $completed_percentage = 50;
                         } elseif ($job->status_id == 11) {  
                             $completed_percentage = 60;
