@@ -4,14 +4,14 @@
 
 @section('content')
     <section>
-        <div class="container mx-auto p-4">
+        <div class=" mx-auto p-4">
             <!-- Header with Title and Create Button -->
             <div class="flex items-center justify-between mb-4">
 
                 <h1 class="text-2xl font-bold text-gray-700">
                     Templates</h1>
-                <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Create
+                <button onclick="openModal()" class="btn-gradient text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Create Templates
                 </button>
             </div>
 
@@ -26,6 +26,7 @@
                         </tr>
                     </thead>
                     <tbody class="text-gray-700 text-sm font-light">
+
                         @forelse ($templates as $template)
                             <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
@@ -48,6 +49,11 @@
             </div>
             <div class="bg-white shadow-md rounded-lg">
                 {!! $templates->links('vendor.pagination.tailwind') !!}
+            </div>
+
+            <!-- Card Grid -->
+            <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                <!-- Cards will be dynamically inserted here -->
             </div>
         </div>
     </section>
@@ -72,7 +78,8 @@
 
                 <!-- Modal Footer -->
                 <div class="flex justify-end">
-                    <button type="button" onclick="closeModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
+                    <button type="button" onclick="closeModal()"
+                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
                     <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
                 </div>
 
@@ -119,6 +126,117 @@
 
         }
         $(document).ready(function() {
+            const dummyData = [{
+                    "image": "https://picsum.photos/536/354",
+                    "reportName": "Test1",
+                    "siteAddress": "316 Country Run Circle, Powell, Tennessee",
+                    "description": "Created in the future",
+                    "price": "$41,282.00",
+                    "tag": "OPEN"
+                },
+                {
+                    "image": "https://picsum.photos/536/354",
+                    "reportName": "Test2",
+                    "siteAddress": "102 Heritage Place, Mt. Juliet, Tennessee",
+                    "description": "Created today",
+                    "price": "$25,723.54",
+                    "tag": "WON"
+
+                },
+                {
+                    "image": "https://picsum.photos/536/354",
+                    "reportName": "Test3",
+                    "siteAddress": "7128 Grizzly Creek Lane, Powell, Tennessee",
+                    "description": "Created 2 days ago",
+                    "price": "$30,000.00",
+                    "tag": "LOST"
+
+                }
+            ];
+
+            const cardGrid = $('#cardGrid');
+
+            $.each(dummyData, function(index, item) {
+                const card = $('<div>').addClass('bg-white shadow-md rounded-lg p-4 relative');
+
+                // Image with status tag
+                const imageContainer = $('<div>').addClass('relative');
+                const image = $('<img>').attr('src', item.image).attr('alt', item.reportName).addClass(
+                    'w-full h-32 object-cover mb-4 rounded-lg'
+                );
+                const statusTag = $('<div>').addClass(
+                    'absolute top-2 left-2 text-white px-2 py-1 rounded text-sm'
+                );
+
+                // Set tag color based on status
+                switch (item.tag) {
+                    case 'OPEN':
+                        statusTag.addClass('bg-blue-500').text('OPEN');
+                        break;
+                    case 'WON':
+                        statusTag.addClass('bg-green-500').text('WON');
+                        break;
+                    case 'LOST':
+                        statusTag.addClass('bg-red-500').text('LOST');
+                        break;
+                    default:
+                        statusTag.addClass('bg-gray-500').text(item.status);
+                }
+
+                imageContainer.append(image).append(statusTag);
+
+                // Three Dots Menu
+                const menuContainer = $('<div>').addClass('absolute top-2 right-6 cursor-pointer');
+                const threeDots = $('<div>').html('...').addClass(
+                    'text-3xl text-white');
+
+                // Dropdown Menu
+                const dropdownMenu = $('<div>')
+                    .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
+                    .append(
+                        $('<ul>').addClass('text-sm text-gray-700').html(`
+                <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</li>
+                <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</li>
+            `)
+                    );
+
+                // Toggle menu on click
+                menuContainer.append(threeDots).append(dropdownMenu);
+                menuContainer.on('click', function(event) {
+                    event.stopPropagation(); // Prevent event from bubbling
+                    $('.absolute.right-0.mt-2').not(dropdownMenu).hide(); // Hide other dropdowns
+                    dropdownMenu.toggle();
+                });
+
+                // Click outside to close dropdown
+                $(document).on('click', function() {
+                    dropdownMenu.hide();
+                });
+
+                // Handle menu actions
+                dropdownMenu.find('.edit-report').on('click', function() {
+                    alert(`Edit Report: ${item.reportName}`);
+                });
+
+                dropdownMenu.find('.view-report').on('click', function() {
+                    alert(`View Report: ${item.reportName}`);
+                });
+
+                // Card content
+                const content = $('<div>').html(`
+        <h3 class="text-xl font-bold text-gray-700">${item.reportName}</h3>
+        <p class="text-gray-600">${item.siteAddress}</p>
+        <p class="text-gray-600">${item.description}</p>
+        <p class="text-gray-800 font-bold mt-2">${item.price}</p>
+    `);
+
+                // Append image container, menu, and content to card
+                card.append(imageContainer).append(menuContainer).append(content);
+
+                // Append card to card grid
+                cardGrid.append(card);
+            });
+
 
             $('#storeTemplateForm').submit(function(e) {
 
@@ -220,6 +338,5 @@
         }
 
         // delete template end
-
     </script>
 @endpush

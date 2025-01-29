@@ -4,14 +4,14 @@
 
 @section('content')
     <section>
-        <div class="container mx-auto p-4">
+        <div class=" mx-auto p-4">
             <!-- Header with Title and Create Button -->
             <div class="flex items-center justify-between mb-4">
 
                 <h1 class="text-2xl font-bold text-gray-700">
                     Reports</h1>
-                <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Create
+                <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 btn-gradient">
+                    Create Report
                 </button>
             </div>
 
@@ -22,8 +22,8 @@
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">S.No</th>
                             <th class="py-3 px-6 text-left">Title</th>
-                            @if($reports->where('status', 'published')->count() > 0)
-                            <th class="py-3 px-6 text-left">File</th>
+                            @if ($reports->where('status', 'published')->count() > 0)
+                                <th class="py-3 px-6 text-left">File</th>
                             @endif
                             <th class="py-3 px-6 text-left">Status</th>
                             <th class="py-3 px-6 text-center">Actions</th>
@@ -34,20 +34,22 @@
                             <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-6 text-left">{{ $report->title }}</td>
-                                @if($report->status == 'published')
-                                <td class="py-3 px-6 text-left">
-                                <a id="downloadReportPDF" data-id="{{ $report->id }}"
-                                class="text-blue-500 hover:text-blue-600 cursor-pointer">
-                                    Download PDF
-                                </a>
-                                </td>
+                                @if ($report->status == 'published')
+                                    <td class="py-3 px-6 text-left">
+                                        <a id="downloadReportPDF" data-id="{{ $report->id }}"
+                                            class="text-blue-500 hover:text-blue-600 cursor-pointer">
+                                            Download PDF
+                                        </a>
+                                    </td>
                                 @endif
                                 <td class="py-3 px-6 text-left">
-                                @if($report->status === 'draft')
-                                    <span class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
-                                @else
-                                    <span class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
-                                @endif
+                                    @if ($report->status === 'draft')
+                                        <span
+                                            class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
+                                    @else
+                                        <span
+                                            class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
+                                    @endif
                                 </td>
                                 <td class="py-3 px-6 text-center">
                                     <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
@@ -91,7 +93,8 @@
 
                 <!-- Modal Footer -->
                 <div class="flex justify-end">
-                    <button type="button" onclick="closeModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
+                    <button type="button" onclick="closeModal()"
+                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
                     <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
                 </div>
 
@@ -158,7 +161,8 @@
 
                             closeModal();
 
-                            await showSuccessNotification('Report Layout created successfully!');
+                            await showSuccessNotification(
+                                'Report Layout created successfully!');
 
                             window.location.href = response.redirect_to;
 
@@ -184,7 +188,8 @@
                         } else {
 
                             await showErrorNotification('An error occurred. Please try again.');
-                            $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled',
+                            $('button[type="submit"]', '#storeReportLayoutForm').prop(
+                                'disabled',
                                 false);
 
                         }
@@ -211,61 +216,63 @@
 
         // Confirm deletion via AJAX
         function confirmDelete() {
-    if (!deleteReportId) {
-        showErrorNotification('Report not found');
-        return;
-    }
-
-    $.ajax({
-        url: `{{ route('reports.destroy', ['id' => ':id']) }}`.replace(':id', deleteReportId), // Fix typo here
-        type: 'DELETE',
-        data: {
-            _token: $('meta[name=csrf-token]').attr('content')
-        },
-        success: function(response) {
-            if (response.status) {
-                closeDeleteModal();
-                showSuccessNotification(response.message);
-                window.location.reload();
+            if (!deleteReportId) {
+                showErrorNotification('Report not found');
+                return;
             }
-        },
-        error: function(error) {
-            showErrorNotification('An error occurred. Please try again.');
+
+            $.ajax({
+                url: `{{ route('reports.destroy', ['id' => ':id']) }}`.replace(':id',
+                    deleteReportId), // Fix typo here
+                type: 'DELETE',
+                data: {
+                    _token: $('meta[name=csrf-token]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        closeDeleteModal();
+                        showSuccessNotification(response.message);
+                        window.location.reload();
+                    }
+                },
+                error: function(error) {
+                    showErrorNotification('An error occurred. Please try again.');
+                }
+            });
         }
-    });
-}
 
-document.getElementById('downloadReportPDF').addEventListener('click', function () {
-    const reportId = this.getAttribute('data-id');
-    const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
-    const url = downloadPdfUrl.replace(':id', reportId);
+        document.getElementById('downloadReportPDF').addEventListener('click', function() {
+            const reportId = this.getAttribute('data-id');
+            const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+            const url = downloadPdfUrl.replace(':id', reportId);
 
-    // Download PDF via Fetch
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.blob(); // Convert the response to a Blob for the file
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `report-${reportId}.pdf`; // Specify the filename
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link); // Clean up
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            // Download PDF via Fetch
+            fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content'),
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob(); // Convert the response to a Blob for the file
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `report-${reportId}.pdf`; // Specify the filename
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link); // Clean up
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
         });
-});
-</script>
+    </script>
 @endpush
