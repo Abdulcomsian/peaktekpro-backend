@@ -11,26 +11,28 @@
 </head>
 
 <body>
-    <header class="bg-gray-900 text-white p-4">
-        <nav class="container mx-auto flex justify-between items-center">
+    <header class=" text-white p-4">
+        <nav class=" mx-auto flex justify-between items-center">
             <!-- Logo and App Name -->
             <div class="flex items-center space-x-4">
-                <img src="{{ asset('assets/logo/logo-white.png') }}" alt="Logo" class="h-14 w-16 object-contain">
+                {{-- <img src="{{ asset('assets/logo/logo-white.png') }}" alt="Logo" class="h-14 w-16 object-contain"> --}}
                 <!-- Logo -->
                 {{-- <a href="{{ route('templates.index') }}" class="text-xl font-bold">{{ config('app.name') }}</a> --}}
             </div>
 
             <!-- Navigation Links -->
             <div class="flex space-x-4">
-                <a href="{{ route('reports.index') }}" class="text-gray-300 hover:text-white">Reports</a>
-                <a href="{{ route('templates.index') }}" class="text-gray-300 hover:text-white">Templates</a>
+                <a href="{{ route('reports.index') }}"
+                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded">Reports</a>
+                <a href="{{ route('templates.index') }}"
+                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded">Templates</a>
 
                 <!-- Add more links as needed -->
             </div>
         </nav>
     </header>
 
-    <main class="container mx-auto">
+    <main class=" mx-auto">
         @yield('content')
     </main>
     {{-- show toastr --}}
@@ -112,7 +114,6 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-
     </script>
     @stack('scripts')
 </body>
