@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\Snappy\Facades\SnappyPdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
-use App\Models\{Page, Report, ReportPageData, ReportPage};
+use App\Models\{CompanyJob, Page, Report, ReportPageData, ReportPage};
 use App\Http\Requests\Report\{StoreRequest, UpdateRequest};
-
 class ReportLayoutController extends Controller
 {
     public function index(Request $request)
@@ -110,6 +110,84 @@ class ReportLayoutController extends Controller
     public function updateStatus(Request $request, $id)
     {
         try {
+            $jobId = session('job_id');
+            $company = CompanyJob::where('id',$jobId)->first();
+            if(!$company)
+            {
+                return response()->json([
+                    'msg'=> 'Job Not Found'
+                ]);
+            }
+
+            $email = $company->email ?? null;
+            $phone = $company->phone ?? null;
+
+            // $companyId = $company->created_by;
+            // dd($email,$phone);
+
+            // Find the report
+            $report = Report::findOrFail($id);
+
+            // Update the status
+            $newStatus = $request->input('status', 'draft');
+            $report->status = $newStatus;
+            $report->save();
+            if ($report->status == 'published') {
+                // Generate PDF if the report is published
+                $reportData = $report->getAllReportData();
+                // dd($reportData->toArray());
+
+                // Generate the PDF using Dompdf
+                // $pdf = PDF::loadView('pdf.report-pdf', ['report' => $reportData]);
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData,'email' => $email, 'phone'=> $phone]);
+                $pdf->setPaper('A4', 'portrait');
+
+                $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
+                $fileName = "report-{$id}_{$timestamp}.pdf";
+                $folder = "pdf-files";
+                $filePath = "{$folder}/{$fileName}";
+
+                // Save the PDF to the storage directory (public disk)
+                Storage::disk('public')->put($filePath, $pdf->output());
+
+                // Update the file path in the report
+                $report->update(['file_path' => $filePath]);
+            } elseif ($report->status == 'draft') {
+                // Clear file_path and delete the file from storage
+                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
+                    Storage::disk('public')->delete($report->file_path);
+                }
+                $report->update(['file_path' => null]);
+            }
+
+            $message = $report->status === 'published'
+                ? 'Report Published Successfully'
+                : ($report->status === 'draft' ? 'Report Draft Successfully' : 'Status Updated Successfully');
+
+            // Return success response
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'response' => $report
+            ], 200);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Update Status Error: ' . $e->getMessage());
+
+            // Return error response
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong',
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function updateStatus1(Request $request, $id) //publish/edit the  report and it make the pdf file
+    {
+        try {
+            // dd("update");
             // Find the report
             $report = Report::findOrFail($id);
 
@@ -127,7 +205,8 @@ class ReportLayoutController extends Controller
                 $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
                 $fileName = "report-{$id}_{$timestamp}.pdf";
                 $folder = "pdf-files";
-                $filePath = "{$folder}/{$fileName}";
+                $filePath = "{$folder}/{$fileName}";//before
+                // $filePath = "/storage/{$folder}/{$fileName}";  // Add "storage/" prefix here
 
                 // Save the PDF to the storage directory (public disk)
                 Storage::disk('public')->put($filePath, $pdf->output());
@@ -165,10 +244,54 @@ class ReportLayoutController extends Controller
         }
     }
 
-    public function downloadPdf($id)
+    public function downloadPdf($id) //this is used for pdf downloading
+    {
+        try {
+            // dd($id);
+            // Find the report by its ID
+            $report = Report::findOrFail($id);
+
+            // Get the full path of the file to download (ensure it's stored in the public disk)
+            $filePath = public_path('storage/' . $report->file_path);
+
+            \Log::info('File path: ' . $filePath);
+
+            // Check if the file exists
+            if (file_exists($filePath)) {
+                // Return the file as a download response
+                $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
+
+                // Generate the file name with timestamp
+                $fileName = "report-{$id}_{$timestamp}.pdf";
+
+                // Return the file as a download response with the updated file name
+                return response()->download($filePath, $fileName, [
+                    'Content-Type' => 'application/pdf',
+                ]);
+            } else {
+                // If the file doesn't exist, return an error response
+                return response()->json([
+                    'status_code' => 404,
+                    'status' => false,
+                    'message' => 'File not found.'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error downloading file: ' . $e->getMessage());
+
+            // Handle any exceptions that occur
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'message' => 'An error occurred while downloading the file: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function downloadPdf1($id)
     {
         $report = Report::findOrFail($id)->getAllReportData();
-
+        // dd($report);
+        // return response()->json($report);
         if (!$report) {
             return response()->json(['status' => false, 'message' => 'Report not found'], 404);
         }
@@ -176,10 +299,12 @@ class ReportLayoutController extends Controller
         // Generate the PDF
         $pdf = SnappyPdf::loadView('pdf.report-pdf', ['report' => $report]);
 
-        $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
+        $timestamp = now()  ->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
         $fileName = "report-{$id}_{$timestamp}.pdf";
         $folder = "pdf-files";
-        $filePath = "{$folder}/{$fileName}"; // Correctly concatenate folder and file name
+        $filePath = "{$folder}/{$fileName}"; // Correctly concatenate folder and file name//old one
+        
+        // $filePath = "/storage/{$folder}/{$fileName}";  // Add "storage/" prefix here
 
         // Save the PDF to the storage directory (public disk)
         Storage::disk('public')->put($filePath, $pdf->output());
@@ -1238,15 +1363,18 @@ class ReportLayoutController extends Controller
 
         return response()->json(['success' => 'File deleted successfully']);
     }
-
+  
     public function downloadReportPdf($id)
     {
         try {
+            // dd($id);
             // Find the report by its ID
             $report = Report::findOrFail($id);
 
             // Get the full path of the file to download (ensure it's stored in the public disk)
             $filePath = public_path('storage/' . $report->file_path);
+
+            \Log::info('File path: ' . $filePath);
 
             // Check if the file exists
             if (file_exists($filePath)) {
@@ -1269,6 +1397,8 @@ class ReportLayoutController extends Controller
                 ], 404);
             }
         } catch (\Exception $e) {
+            \Log::error('Error downloading file: ' . $e->getMessage());
+
             // Handle any exceptions that occur
             return response()->json([
                 'status_code' => 500,
