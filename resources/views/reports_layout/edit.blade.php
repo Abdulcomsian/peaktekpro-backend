@@ -734,7 +734,6 @@ customPageInitializeDropzone();
     // Function to update report status
     function updateReportStatus(reportId, newStatus) {
         const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
-
         // AJAX Request to update the status
         fetch(updateStatusUrl, {
             method: 'POST',
