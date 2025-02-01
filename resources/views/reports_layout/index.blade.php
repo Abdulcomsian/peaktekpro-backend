@@ -35,12 +35,12 @@
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-6 text-left">{{ $report->title }}</td>
                                 <td class="py-3 px-6 text-left">
-                                    @if($report->status == 'published')
-                                <a class="downloadReportPDF text-blue-500 hover:text-blue-600 cursor-pointer" data-id="{{ $report->id }}"
-                                >
-                                    Download PDF
-                                </a>
-                                @endif
+                                    @if ($report->status == 'published')
+                                        <a class="downloadReportPDF text-blue-500 hover:text-blue-600 cursor-pointer"
+                                            data-id="{{ $report->id }}">
+                                            Download PDF
+                                        </a>
+                                    @endif
                                 </td>
                                 <td class="py-3 px-6 text-left">
                                     @if ($report->status === 'draft')
@@ -70,6 +70,10 @@
             <div class="bg-white shadow-md rounded-lg">
                 {!! $reports->links('vendor.pagination.tailwind') !!}
             </div>
+
+            <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                <!-- Cards will be dynamically inserted here -->
+            </div>
         </div>
     </section>
 
@@ -85,7 +89,7 @@
                 @csrf
                 <!-- Modal Body -->
                 <div class="mb-4">
-    
+
                     <label for="title" class="block text-gray-700 mb-2">Title</label>
                     <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
                     <!-- Error messages will be appended here dynamically -->
@@ -142,7 +146,115 @@
 
         }
         $(document).ready(function() {
+            const dummyData = [{
+                    "image": "https://picsum.photos/536/354",
+                    "reportName": "Test1",
+                    "siteAddress": "316 Country Run Circle, Powell, Tennessee",
+                    "description": "Created in the future",
+                    "price": "$41,282.00",
+                    "tag": "OPEN"
+                },
+                {
+                    "image": "https://picsum.photos/536/354",
+                    "reportName": "Test2",
+                    "siteAddress": "102 Heritage Place, Mt. Juliet, Tennessee",
+                    "description": "Created today",
+                    "price": "$25,723.54",
+                    "tag": "WON"
 
+                },
+                {
+                    "image": "https://picsum.photos/536/354",
+                    "reportName": "Test3",
+                    "siteAddress": "7128 Grizzly Creek Lane, Powell, Tennessee",
+                    "description": "Created 2 days ago",
+                    "price": "$30,000.00",
+                    "tag": "LOST"
+
+                }
+            ];
+            const cardGrid = $('#cardGrid');
+
+            $.each(dummyData, function(index, item) {
+                const card = $('<div>').addClass('bg-white shadow-md rounded-lg p-4 relative');
+
+                // Image with status tag
+                const imageContainer = $('<div>').addClass('relative');
+                const image = $('<img>').attr('src', item.image).attr('alt', item.reportName).addClass(
+                    'w-full h-32 object-cover mb-4 rounded-lg'
+                );
+                const statusTag = $('<div>').addClass(
+                    'absolute top-2 left-2 text-white px-2 py-1 rounded text-sm'
+                );
+
+                // Set tag color based on status
+                switch (item.tag) {
+                    case 'OPEN':
+                        statusTag.addClass('bg-blue-500').text('OPEN');
+                        break;
+                    case 'WON':
+                        statusTag.addClass('bg-green-500').text('WON');
+                        break;
+                    case 'LOST':
+                        statusTag.addClass('bg-red-500').text('LOST');
+                        break;
+                    default:
+                        statusTag.addClass('bg-gray-500').text(item.status);
+                }
+
+                imageContainer.append(image).append(statusTag);
+
+                // Three Dots Menu
+                const menuContainer = $('<div>').addClass('absolute top-2 right-6 cursor-pointer');
+                const threeDots = $('<div>').html('...').addClass(
+                    'text-3xl text-white');
+
+                // Dropdown Menu
+                const dropdownMenu = $('<div>')
+                    .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
+                    .append(
+                        $('<ul>').addClass('text-sm text-gray-700').html(`
+                <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</li>
+                <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</li>
+            `)
+                    );
+
+                // Toggle menu on click
+                menuContainer.append(threeDots).append(dropdownMenu);
+                menuContainer.on('click', function(event) {
+                    event.stopPropagation(); // Prevent event from bubbling
+                    $('.absolute.right-0.mt-2').not(dropdownMenu).hide(); // Hide other dropdowns
+                    dropdownMenu.toggle();
+                });
+
+                // Click outside to close dropdown
+                $(document).on('click', function() {
+                    dropdownMenu.hide();
+                });
+
+                // Handle menu actions
+                dropdownMenu.find('.edit-report').on('click', function() {
+                    alert(`Edit Report: ${item.reportName}`);
+                });
+
+                dropdownMenu.find('.view-report').on('click', function() {
+                    alert(`View Report: ${item.reportName}`);
+                });
+
+                // Card content
+                const content = $('<div>').html(`
+        <h3 class="text-xl font-bold text-gray-700">${item.reportName}</h3>
+        <p class="text-gray-600">${item.siteAddress}</p>
+        <p class="text-gray-600">${item.description}</p>
+        <p class="text-gray-800 font-bold mt-2">${item.price}</p>
+    `);
+
+                // Append image container, menu, and content to card
+                card.append(imageContainer).append(menuContainer).append(content);
+
+                // Append card to card grid
+                cardGrid.append(card);
+            });
             $('#storeReportLayoutForm').submit(function(e) {
 
                 e.preventDefault();
@@ -242,40 +354,41 @@
             });
         }
 
-// Add event listeners to all elements with the class 'downloadReportPDF'
-document.querySelectorAll('.downloadReportPDF').forEach(button => {
-    button.addEventListener('click', function () {
-        const reportId = this.getAttribute('data-id');
-        const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
-        const url = downloadPdfUrl.replace(':id', reportId);
+        // Add event listeners to all elements with the class 'downloadReportPDF'
+        document.querySelectorAll('.downloadReportPDF').forEach(button => {
+            button.addEventListener('click', function() {
+                const reportId = this.getAttribute('data-id');
+                const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
+                const url = downloadPdfUrl.replace(':id', reportId);
 
-        // Download PDF via Fetch
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.blob(); // Convert the response to a Blob for the file
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `report-${reportId}.pdf`; // Specify the filename
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link); // Clean up
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+                // Download PDF via Fetch
+                fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content'),
+                        },
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.blob(); // Convert the response to a Blob for the file
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `report-${reportId}.pdf`; // Specify the filename
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link); // Clean up
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
+            });
         });
-    });
-});
-</script>
+    </script>
 @endpush
