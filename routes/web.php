@@ -21,11 +21,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('user', function() {
+Route::get('user', function () {
     dd(Auth::user());
 });
 
-Route::get('user-logout', function() {
+Route::get('user-logout', function () {
     Auth::logout(); // Log out the user
     session()->invalidate(); // Invalidate the entire session
     session()->regenerateToken(); // Regenerate the CSRF token
@@ -36,7 +36,7 @@ Route::get('user-logout', function() {
     dd('Logout successfully done and session cleared!');
 });
 
-Route::get('download-report-pdf/{report_id}',[ReportLayoutController::class, 'downloadReportPdf'])->name('download-report-pdf');
+Route::get('download-report-pdf/{report_id}', [ReportLayoutController::class, 'downloadReportPdf'])->name('download-report-pdf');
 
 Route::get('update/customer-agreement/{id}', [CustomerController::class, 'updateCustomerAgreement']);
 
@@ -44,7 +44,7 @@ Route::get('update/customer-agreement/{id}', [CustomerController::class, 'update
 Route::get('auth', ReactAuthController::class)->middleware('check.react.auth');
 // templates
 // Route::middleware(['check.react.auth', 'check.user.role'])->group(function () {
-    Route::middleware(['check.react.auth'])->group(function () {
+Route::middleware(['check.react.auth'])->group(function () {
 
 
     Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
