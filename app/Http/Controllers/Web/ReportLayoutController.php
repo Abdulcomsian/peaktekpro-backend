@@ -20,7 +20,7 @@ class ReportLayoutController extends Controller
     {
         try {
             $jobId = session('job_id');
-            $reports = Report::where('job_id', $jobId)->paginate(5);
+            $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->paginate(5);
             return view('reports_layout.index', compact('reports'));
         } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching reports.');
@@ -286,42 +286,6 @@ class ReportLayoutController extends Controller
                 'message' => 'An error occurred while downloading the file: ' . $e->getMessage()
             ], 500);
         }
-    }
-    public function downloadPdf1($id)
-    {
-        $report = Report::findOrFail($id)->getAllReportData();
-        // dd($report);
-        // return response()->json($report);
-        if (!$report) {
-            return response()->json(['status' => false, 'message' => 'Report not found'], 404);
-        }
-
-        // Generate the PDF
-        $pdf = SnappyPdf::loadView('pdf.report-pdf', ['report' => $report]);
-
-        $timestamp = now()  ->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
-        $fileName = "report-{$id}_{$timestamp}.pdf";
-        $folder = "pdf-files";
-        $filePath = "{$folder}/{$fileName}"; // Correctly concatenate folder and file name//old one
-        
-        // $filePath = "/storage/{$folder}/{$fileName}";  // Add "storage/" prefix here
-
-        // Save the PDF to the storage directory (public disk)
-        Storage::disk('public')->put($filePath, $pdf->output());
-
-        // Update the report with the file path
-        $reportModel = Report::find($id); // Reload the model
-        $reportModel->update(['file_path' => $filePath]);
-
-        // Construct the full URL to access the saved file
-        $url = Storage::url($filePath);
-
-        // Return the URL to the client so it can open the PDF in a new tab
-        return response()->json([
-            'status' => true,
-            'message' => 'PDF saved successfully.',
-            'file_url' => url($url), // Full URL to open in the browser
-        ], 200);
     }
 
     public function copyTemplate(Request $request)
