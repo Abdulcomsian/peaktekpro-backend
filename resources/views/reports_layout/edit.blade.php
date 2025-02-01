@@ -398,7 +398,6 @@
                 $(".tab-content").hide();
                 $($(this).data("target")).fadeIn();
 
-                // Assign active page ID
                 pageId = $(this).data('id');
             });
 
@@ -752,42 +751,42 @@
             });
         });
 
-    // Function to update report status
-    function updateReportStatus(reportId, newStatus) {
-        const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
+        // Function to update report status
+        function updateReportStatus(reportId, newStatus) {
+            const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
 
-        // AJAX Request to update the status
-        fetch(updateStatusUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-            body: JSON.stringify({
-                status: newStatus
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status) { // Check for success
-                console.log('data', data);
-                // Update the button text and data-status attribute dynamically
-                const button = document.getElementById('updateToPublishedBtn');
-                button.setAttribute('data-status', newStatus);
-                button.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
-                showSuccessNotification(data.message);
-                setTimeout(() => {
-                        window.location.reload();  // Reload the page after a short delay
-                    }, 2000);  // Delay of 2 seconds
-            } else {
-                showErrorNotification(data.message || 'An error occurred while updating the status.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showErrorNotification('An error occurred. Please try again.');
-        });
-    }
+            // AJAX Request to update the status
+            fetch(updateStatusUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status) { // Check for success
+                        console.log('data', data);
+                        // Update the button text and data-status attribute dynamically
+                        const button = document.getElementById('updateToPublishedBtn');
+                        button.setAttribute('data-status', newStatus);
+                        button.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
+                        showSuccessNotification(data.message);
+                        setTimeout(() => {
+                            window.location.reload(); // Reload the page after a short delay
+                        }, 2000); // Delay of 2 seconds
+                    } else {
+                        showErrorNotification(data.message || 'An error occurred while updating the status.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorNotification('An error occurred. Please try again.');
+                });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const url = "{{ route('reports.copy-template') }}";
@@ -1028,11 +1027,11 @@
 
                         <!-- @if ($report->status === 'published')
     <button
-                                        class="text-blue-500 hover:text-blue-600 update-status-button"
-                                        id="downloadReportPDF" style="margin-right:100px;"
-                                        data-id="{{ $report->id }}">
-                                        Download PDF
-                                    </button>
+                                            class="text-blue-500 hover:text-blue-600 update-status-button"
+                                            id="downloadReportPDF" style="margin-right:100px;"
+                                            data-id="{{ $report->id }}">
+                                            Download PDF
+                                        </button>
     @endif -->
                         <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
                     </div>

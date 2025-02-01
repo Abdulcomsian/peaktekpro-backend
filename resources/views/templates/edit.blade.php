@@ -403,7 +403,6 @@
                     '<div class="absolute -right-7 top-0 h-full w-7 bg-blue-400 clip-path-arrow arrow-indicator"></div>'
                 );
 
-                // Show the related content
                 $(".tab-content").hide();
                 $($(this).data("target")).fadeIn();
 
