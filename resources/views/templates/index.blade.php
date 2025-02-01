@@ -7,9 +7,7 @@
         <div class=" mx-auto p-4">
             <!-- Header with Title and Create Button -->
             <div class="flex items-center justify-between mb-4">
-
-                <h1 class="text-2xl font-bold text-gray-700">
-                    Templates</h1>
+                <h1 class="text-2xl font-bold text-gray-700">Templates</h1>
                 <button onclick="openModal()" class="btn-gradient text-white px-4 py-2 rounded hover:bg-blue-600">
                     Create Templates
                 </button>
@@ -26,7 +24,6 @@
                         </tr>
                     </thead>
                     <tbody class="text-gray-700 text-sm font-light">
-
                         @forelse ($templates as $template)
                             <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
@@ -43,7 +40,6 @@
                                 <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
                             </tr>
                         @endforelse
-                        <!-- Repeat rows as needed -->
                     </tbody>
                 </table>
             </div>
@@ -58,7 +54,7 @@
         </div>
     </section>
 
-    <!-- create template modal -->
+    <!-- Create Template Modal -->
     <div id="modal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
         <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
             <!-- Modal Header -->
@@ -66,7 +62,7 @@
                 <h2 class="text-xl font-semibold">Create Template</h2>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
             </div>
-            <form action="{{ route('templates.store') }}" method="post" id="storeTemplateForm" method="post">
+            <form action="{{ route('templates.store') }}" method="post" id="storeTemplateForm">
                 @csrf
                 <!-- Modal Body -->
                 <div class="mb-4">
@@ -82,12 +78,11 @@
                         class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
                     <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
                 </div>
-
             </form>
         </div>
     </div>
 
-    <!--Template Delete Confirmation Modal -->
+    <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 class="text-xl font-semibold mb-4">Delete Template</h2>
@@ -104,59 +99,48 @@
             </div>
         </div>
     </div>
-
 @endsection
+
 @push('scripts')
     <script>
-        // show create modal
-        function openModal() {
+        // Pass the $templates data to the frontend and adjust its structure
+        const templatesData = @json($templates->items()).map(template => {
+            // Fetch the first template page's data (assuming a similar structure to reports)
+            // const templatePage = templates.template_pages[0]; // Adjust this based on your actual relationship
+            // const templatePageData = templatePage ? templatePage.page_data : null;
 
-            $('#storeTemplateForm')[0].reset();
-            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+            const templatePage = template.template_pages?.[0];  // Optional chaining to safely access the first element
+            const templatePageData = templatePage ? templatePage.page_data : null;  // Safely access page_data
 
-            $('#modal').removeClass('hidden');
-        }
-        // hide create modal
-        function closeModal() {
+            // Debugging: Log templatePage and templatePageData
+            console.log("Template Page:", templatePage);
+            console.log("Template Page Data:", templatePageData);
 
-            $('#storeTemplateForm')[0].reset();
-            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+            // Extract required data
+            const title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
+            const siteAddress = templatePageData ? templatePageData.json_data.company_address : 'No address available';
+            const description = templatePageData ? templatePageData.json_data.intro_text : 'No description available';
+            const price = template.price ? `$${template.price.toFixed(2)}` : '$0.00';
+            const tag = template.status === 'published' ? 'PUBLISHED' : 'DRAFT';
+            const image = templatePageData && templatePageData.json_data.primary_image 
+                ? templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path 
+                : 'https://picsum.photos/536/354';
 
-            $('#modal').addClass('hidden');
+            return {
+                reportName: title, // Map title to reportName
+                siteAddress: siteAddress, // Use company_address
+                description: description, // Use intro_text
+                price: price, // Format price if available
+                tag: tag, // Map status to tag
+                image: image, // Use primary_image path
+            };
+        });
 
-        }
         $(document).ready(function() {
-            const dummyData = [{
-                    "image": "https://picsum.photos/536/354",
-                    "reportName": "Test1",
-                    "siteAddress": "316 Country Run Circle, Powell, Tennessee",
-                    "description": "Created in the future",
-                    "price": "$41,282.00",
-                    "tag": "OPEN"
-                },
-                {
-                    "image": "https://picsum.photos/536/354",
-                    "reportName": "Test2",
-                    "siteAddress": "102 Heritage Place, Mt. Juliet, Tennessee",
-                    "description": "Created today",
-                    "price": "$25,723.54",
-                    "tag": "WON"
-
-                },
-                {
-                    "image": "https://picsum.photos/536/354",
-                    "reportName": "Test3",
-                    "siteAddress": "7128 Grizzly Creek Lane, Powell, Tennessee",
-                    "description": "Created 2 days ago",
-                    "price": "$30,000.00",
-                    "tag": "LOST"
-
-                }
-            ];
-
             const cardGrid = $('#cardGrid');
 
-            $.each(dummyData, function(index, item) {
+            // Use the adjusted dynamic data
+            $.each(templatesData, function(index, item) {
                 const card = $('<div>').addClass('bg-white shadow-md rounded-lg p-4 relative');
 
                 // Image with status tag
@@ -170,17 +154,14 @@
 
                 // Set tag color based on status
                 switch (item.tag) {
-                    case 'OPEN':
-                        statusTag.addClass('bg-blue-500').text('OPEN');
+                    case 'DRAFT':
+                        statusTag.addClass('bg-blue-500').text('DRAFT');
                         break;
-                    case 'WON':
-                        statusTag.addClass('bg-green-500').text('WON');
-                        break;
-                    case 'LOST':
-                        statusTag.addClass('bg-red-500').text('LOST');
+                    case 'PUBLISHED':
+                        statusTag.addClass('bg-green-500').text('PUBLISHED');
                         break;
                     default:
-                        statusTag.addClass('bg-gray-500').text(item.status);
+                        statusTag.addClass('bg-gray-500').text(item.tag);
                 }
 
                 imageContainer.append(image).append(statusTag);
@@ -195,9 +176,9 @@
                     .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
                     .append(
                         $('<ul>').addClass('text-sm text-gray-700').html(`
-                <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</li>
-                <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</li>
-            `)
+                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-template">Edit Template</li>
+                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer view-template">View Template</li>
+                        `)
                     );
 
                 // Toggle menu on click
@@ -214,21 +195,21 @@
                 });
 
                 // Handle menu actions
-                dropdownMenu.find('.edit-report').on('click', function() {
-                    alert(`Edit Report: ${item.reportName}`);
+                dropdownMenu.find('.edit-template').on('click', function() {
+                    alert(`Edit Template: ${item.reportName}`);
                 });
 
-                dropdownMenu.find('.view-report').on('click', function() {
-                    alert(`View Report: ${item.reportName}`);
+                dropdownMenu.find('.view-template').on('click', function() {
+                    alert(`View Template: ${item.reportName}`);
                 });
 
                 // Card content
                 const content = $('<div>').html(`
-        <h3 class="text-xl font-bold text-gray-700">${item.reportName}</h3>
-        <p class="text-gray-600">${item.siteAddress}</p>
-        <p class="text-gray-600">${item.description}</p>
-        <p class="text-gray-800 font-bold mt-2">${item.price}</p>
-    `);
+                    <h3 class="text-xl font-bold text-gray-700">${item.reportName}</h3>
+                    <p class="text-gray-600">${item.siteAddress}</p>
+                    <p class="text-gray-600">${item.description}</p>
+                    <p class="text-gray-800 font-bold mt-2">${item.price}</p>
+                `);
 
                 // Append image container, menu, and content to card
                 card.append(imageContainer).append(menuContainer).append(content);
@@ -237,15 +218,10 @@
                 cardGrid.append(card);
             });
 
-
+            // Form submission handling
             $('#storeTemplateForm').submit(function(e) {
-
                 e.preventDefault();
-
-                // Disable the submit button within the form
                 $(this).find('button[type="submit"]').prop('disabled', true);
-
-                // Clear previous error messages
                 $('.error-message').text('');
 
                 $.ajax({
@@ -254,61 +230,44 @@
                     data: $(this).serialize(),
                     success: async function(response) {
                         if (response.status) {
-
                             closeModal();
-
                             await showSuccessNotification('Template created successfully!');
-
                             window.location.href = response.redirect_to;
-
                         } else {
                             showErrorNotification('Error creating template!');
                         }
                     },
                     error: async function(xhr) {
-                        // Handle validation errors
-                        if (xhr.status ===
-                            422) { // Laravel returns 422 status code for validation errors
+                        if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
-                            // Loop through each error field and display messages
                             $.each(errors, function(field, messages) {
-                                // Find the error container with data attribute matching the field name
                                 let errorContainer = $(`[data-error="${field}"]`);
-                                // Append each error message
                                 messages.forEach(function(message) {
-                                    errorContainer.append(
-                                        `<div>${message}</div>`);
+                                    errorContainer.append(`<div>${message}</div>`);
                                 });
                             });
                         } else {
-
                             await showErrorNotification('An error occurred. Please try again.');
-                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled',
-                                false);
-
+                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
                         }
                     }
-                })
-            })
-        })
+                });
+            });
+        });
 
-        // delete template start
-
+        // Delete template functionality
         let deleteTemplateId = null;
 
-        // Open the delete modal and set the template ID
         function openDeleteModal(templateId) {
             deleteTemplateId = templateId;
             $('#deleteModal').removeClass('hidden');
         }
 
-        // Close the delete modal
         function closeDeleteModal() {
             $('#deleteModal').addClass('hidden');
             deleteTemplateId = null;
         }
 
-        // Confirm deletion via AJAX
         function confirmDelete() {
             if (!deleteTemplateId) {
                 showErrorNotification('Template not found');
@@ -318,25 +277,20 @@
             $.ajax({
                 url: `{{ route('templates.destroy', ['id' => ':id']) }}`.replace(':id', deleteTemplateId),
                 type: 'DELETE',
+                data: {
+                    _token: $('meta[name=csrf-token]').attr('content')
+                },
                 success: function(response) {
-
                     if (response.status) {
-
                         closeDeleteModal();
-
                         showSuccessNotification(response.message);
-
                         window.location.reload();
-
                     }
-
                 },
                 error: function(error) {
                     showErrorNotification('An error occurred. Please try again.');
                 }
             });
         }
-
-        // delete template end
     </script>
 @endpush

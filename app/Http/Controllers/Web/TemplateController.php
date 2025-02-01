@@ -17,7 +17,9 @@ class TemplateController extends Controller
         try {
             $companyId = Auth::user()->company_id;
 
-            $templates = Template::where('company_id',$companyId)->paginate(5);
+            $templates = Template::with('templatePages.pageData')->where('company_id',$companyId)->paginate(5);
+            // dd($templates);
+
             return view('templates.index', compact('templates'));
         } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching templates.');
