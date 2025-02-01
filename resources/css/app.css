@@ -35,6 +35,7 @@ input[type="checkbox"].toggle:checked + span > span {
 .clip-path-arrow {
     clip-path: polygon(100% 50%, 0 0, 0 100%);
 }
+/* <!-- button gradient */
 .btn-gradient {
     background: linear-gradient(108.74deg, #2e429b -60.43%, #18faf8 193.77%);
   }
