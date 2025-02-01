@@ -24,7 +24,7 @@ class CheckReactAuth
             $token = $request->query('t') ?? '';
             $jobId = $request->query('j') ?? '';
 
-            if (Auth::check()) {
+            if (Auth::check()) {    
                 if ($jobId) {
                     session(['job_id' => $jobId]);
                 }
