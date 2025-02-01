@@ -13,7 +13,6 @@
 <body>
     <header class=" text-white p-4">
         <nav class="mx-auto flex justify-between items-center">
-            <!-- Logo and App Name -->
             <div class="flex items-center space-x-4">
                 {{-- <img src="{{ asset('assets/logo/logo-white.png') }}" alt="Logo" class="h-14 w-16 object-contain"> --}}
                 <!-- Logo -->
