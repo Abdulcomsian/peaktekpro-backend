@@ -907,14 +907,13 @@
         <img id="loadingSpinner" src="{{ asset('assets/images/loader2.gif') }}" alt="Loading"
             style="display: none; position: fixed; top: 50%; left: 60%; transform: translate(-50%, -50%); z-index: 9999; width: 100px; height: 100px;" />
         <!-- Sidebar with Tabs -->
-        <aside
-            class="w-auto p-4 bg-white shadow overflow-y-auto h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">
+
+        <aside class="w-auto p-4 bg-white shadow h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">
             <ul id="tabsList" class="space-y-2">
                 <!-- Loop through pages -->
                 @forelse ($report->reportPages as $page)
-                    <li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
+                    <li class="tab-item bg-blue-200 p-2 rounded cursor-pointer relative flex justify-between items-center"
                         data-target="#tab{{ $page->id }}" data-id="{{ $page->id }}">
-                        {{-- <span id="leftMenuPageName-{{ $page->id }}">{{ $page->name }}</span> --}}
                         <div class="flex gap-2">
                             <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
@@ -925,14 +924,17 @@
                             {{-- <div class="absolute right-0 top-0 h-full w-5 bg-green-500 clip-path-arrow"></div> --}}
 
                         </div>
+
                         <!-- Toggle switch to update page status -->
                         <label for="toggle-{{ $page->id }}" class="inline-flex relative items-center cursor-pointer">
                             <input type="checkbox" id="toggle-{{ $page->id }}" class="sr-only toggle"
                                 data-page-id="{{ $page->id }}" {{ $page->is_active === 1 ? 'checked' : '' }}>
                             <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
-                                <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
+                                <span class="w-4 h-4 bg-white rounded-full shadow transform transition-transform"></span>
                             </span>
                         </label>
+                        {{-- <div class="absolute right-0 top-0 h-full w-5 bg-green-500 clip-path-arrow"></div> --}}
+
                     </li>
                 @empty
                     <p class="text-gray-500">No pages found</p>
@@ -944,7 +946,6 @@
                 Create Page
             </button>
         </aside>
-
 
         <!-- Main Content Area -->
         <section class="w-3/4 p-6">
@@ -1027,11 +1028,11 @@
 
                         <!-- @if ($report->status === 'published')
     <button
-                                            class="text-blue-500 hover:text-blue-600 update-status-button"
-                                            id="downloadReportPDF" style="margin-right:100px;"
-                                            data-id="{{ $report->id }}">
-                                            Download PDF
-                                        </button>
+                                                class="text-blue-500 hover:text-blue-600 update-status-button"
+                                                id="downloadReportPDF" style="margin-right:100px;"
+                                                data-id="{{ $report->id }}">
+                                                Download PDF
+                                            </button>
     @endif -->
                         <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
                     </div>
