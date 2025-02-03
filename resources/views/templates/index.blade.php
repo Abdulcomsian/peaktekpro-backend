@@ -25,7 +25,7 @@
                     </thead>
                     <tbody class="text-gray-700 text-sm font-light">
                         @forelse ($templates as $template)
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                            <!-- <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-6 text-left">{{ $template->title }}</td>
                                 <td class="py-3 px-6 text-center">
@@ -34,7 +34,7 @@
                                     <button onclick="openDeleteModal({{ $template->id }})"
                                         class="text-red-500 hover:text-red-600 ml-4">Delete</button>
                                 </td>
-                            </tr>
+                            </tr> -->
                         @empty
                             <tr>
                                 <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
@@ -136,6 +136,22 @@
             };
         });
 
+        function openModal() {
+
+        $('#storeTemplateForm')[0].reset();
+        $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+
+        $('#modal').removeClass('hidden');
+        }
+        // hide create modal
+        function closeModal() {
+
+        $('#storeTemplateForm')[0].reset();
+        $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+
+        $('#modal').addClass('hidden');
+
+        }
         $(document).ready(function() {
             const cardGrid = $('#cardGrid');
 
