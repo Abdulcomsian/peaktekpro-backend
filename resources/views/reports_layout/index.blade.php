@@ -162,7 +162,6 @@
             };
         });
 
-        console.log(reportsData);
 
         function openModal() {
 
@@ -246,13 +245,13 @@
                 });
 
                 // Handle menu actions
-                dropdownMenu.find('.edit-report').on('click', function() {
-                    alert(`Edit Report: ${item.reportName}`);
-                });
+                // dropdownMenu.find('.edit-report').on('click', function() {
+                //     alert(`Edit Report: ${item.reportName}`);
+                // });
 
-                dropdownMenu.find('.view-report').on('click', function() {
-                    alert(`View Report: ${item.reportName}`);
-                });
+                // dropdownMenu.find('.view-report').on('click', function() {
+                //     alert(`View Report: ${item.reportName}`);
+                // });
 
                 // Card content
                 const content = $('<div>').html(`
