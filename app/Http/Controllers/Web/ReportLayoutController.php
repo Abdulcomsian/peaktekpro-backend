@@ -109,9 +109,84 @@ class ReportLayoutController extends Controller
         }
     }
     
-
-
     public function updateStatus(Request $request, $id)
+    {
+        try {
+            $jobId = session('job_id');
+            $company = CompanyJob::where('id',$jobId)->first();
+            if(!$company)
+            {
+                return response()->json([
+                    'msg'=> 'Job Not Found'
+                ]);
+            }
+
+            $email = $company->email ?? null;
+            $phone = $company->phone ?? null;
+
+            // $companyId = $company->created_by;
+            // dd($email,$phone);
+
+            // Find the report
+            $report = Report::findOrFail($id);
+
+            // Update the status
+            $newStatus = $request->input('status', 'draft');
+            $report->status = $newStatus;
+            $report->save();
+            if ($report->status == 'published') {
+                // Generate PDF if the report is published
+                $reportData = $report->getAllReportData();
+                // dd($reportData->toArray());
+
+                // Generate the PDF using Dompdf
+                // $pdf = PDF::loadView('pdf.report-pdf', ['report' => $reportData]);
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData,'email' => $email, 'phone'=> $phone]);
+                $pdf->setPaper('A4', 'portrait');
+
+                $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
+                $fileName = "report-{$id}_{$timestamp}.pdf";
+                $folder = "pdf-files";
+                $filePath = "{$folder}/{$fileName}";
+
+                // Save the PDF to the storage directory (public disk)
+                Storage::disk('public')->put($filePath, $pdf->output());
+
+                // Update the file path in the report
+                $report->update(['file_path' => $filePath]);
+            } elseif ($report->status == 'draft') {
+                // Clear file_path and delete the file from storage
+                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
+                    Storage::disk('public')->delete($report->file_path);
+                }
+                $report->update(['file_path' => null]);
+            }
+
+            $message = $report->status === 'published'
+                ? 'Report Published Successfully'
+                : ($report->status === 'draft' ? 'Report Draft Successfully' : 'Status Updated Successfully');
+
+            // Return success response
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'response' => $report
+            ], 200);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Update Status Error: ' . $e->getMessage());
+
+            // Return error response
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong',
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function updateStatus1(Request $request, $id)
     {
         try {
             $jobId = session('job_id');
