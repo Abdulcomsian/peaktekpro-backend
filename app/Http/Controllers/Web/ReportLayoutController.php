@@ -14,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use App\Models\{CompanyJob, Page, Report, ReportPageData, ReportPage};
 use App\Http\Requests\Report\{StoreRequest, UpdateRequest};
+use Smalot\PdfParser\Parser;
 
 class ReportLayoutController extends Controller
 {
@@ -107,52 +108,111 @@ class ReportLayoutController extends Controller
             );
         }
     }
+    
+
 
     public function updateStatus(Request $request, $id)
     {
         try {
             $jobId = session('job_id');
-            $company = CompanyJob::where('id',$jobId)->first();
-            if(!$company)
-            {
+            $company = CompanyJob::where('id', $jobId)->first();
+
+            if (!$company) {
                 return response()->json([
-                    'msg'=> 'Job Not Found'
+                    'msg' => 'Job Not Found'
                 ]);
             }
 
             $email = $company->email ?? null;
             $phone = $company->phone ?? null;
 
-            // $companyId = $company->created_by;
-            // dd($email,$phone);
-
             // Find the report
             $report = Report::findOrFail($id);
+            // dd($report);
 
             // Update the status
             $newStatus = $request->input('status', 'draft');
             $report->status = $newStatus;
             $report->save();
-            if ($report->status == 'published') {
-                // Generate PDF if the report is published
-                $reportData = $report->getAllReportData();
-                // dd($reportData->toArray());
 
-                // Generate the PDF using Dompdf
-                // $pdf = PDF::loadView('pdf.report-pdf', ['report' => $reportData]);
-                $pdf = PDF::loadView('pdf.report', ['report' => $reportData,'email' => $email, 'phone'=> $phone]);
+            if ($report->status == 'published') {
+                // Get report data
+                $reportData = $report;
+                // dd($reportData->toArray());
+                $checkFile = null; // Initialize as null
+
+                // Check if report_pages is not null and is an array
+                if (is_array($reportData->reportPages) || is_object($reportData->reportPages)) {
+                    // dd("indie the if");
+                    // Iterate through the report_pages to find the page with the matching slug
+                    foreach ($reportData->reportPages as $page) {
+
+                        if ($page['slug'] === 'unfair-claims-practices') {
+                            // $checkData = $page->pageData;
+                            // break; // Exit loop once the matching page is found
+                            $jsonData = is_array($page->pageData->json_data) 
+                            ? $page->pageData->json_data 
+                            : json_decode($page->pageData->json_data, true); // Decode only if it's a string
+
+                            // Retrieve the path if available
+                            $filePath = $jsonData['unfair_claim_file']['path'] ?? null;
+
+                            $checkFile = $filePath;
+                            break;
+                        }
+                    }
+                } else {
+                    // Handle the case where report_pages is null or not an array
+                    $checkData = 'No report pages available';
+                }
+
+                if (!$filePath) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'File path not found for Unfair Claims Practices'
+                    ], 404);
+                }
+
+                // Output the file path for debugging
+                // dd($filePath);
+
+                // Extract text from the existing PDF (if available)
+                $extractedText = "";
+                $file= public_path('storage/' . $filePath);
+                $pdfPath = str_replace('\\', '/', $file);
+
+                // dd($pdfPath);
+
+                if (file_exists($pdfPath)) {
+                //    $dummypath= "http://127.0.0.1:8000/storage/template-files/unfair_claim_file/1738593730_2mb.pdf";
+                    $parser = new Parser();
+                    $pdf = $parser->parseFile($pdfPath);
+                    $extractedText = nl2br(e($pdf->getText())); // Convert text to HTML format
+                    // dd("my extracted text is",$extractedText); // Debug the extracted text
+                    // dd("isndjsjd");
+                }
+
+                // Generate the PDF with extracted content
+                $pdf = PDF::loadView('pdf.report', [
+                    'report' => $reportData,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'extractedText' => $extractedText // Inject extracted content into the view
+                ]);
+
                 $pdf->setPaper('A4', 'portrait');
 
                 $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
                 $fileName = "report-{$id}_{$timestamp}.pdf";
                 $folder = "pdf-files";
-                $filePath = "{$folder}/{$fileName}";
+                $newFilePath = "{$folder}/{$fileName}";
 
-                // Save the PDF to the storage directory (public disk)
-                Storage::disk('public')->put($filePath, $pdf->output());
+                // Save the PDF to storage (public disk)
+                Storage::disk('public')->put($newFilePath, $pdf->output());
 
                 // Update the file path in the report
-                $report->update(['file_path' => $filePath]);
+                $report->update(['file_path' => $newFilePath]);
+
             } elseif ($report->status == 'draft') {
                 // Clear file_path and delete the file from storage
                 if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
@@ -165,17 +225,16 @@ class ReportLayoutController extends Controller
                 ? 'Report Published Successfully'
                 : ($report->status === 'draft' ? 'Report Draft Successfully' : 'Status Updated Successfully');
 
-            // Return success response
             return response()->json([
                 'status' => true,
                 'message' => $message,
                 'response' => $report
             ], 200);
+
         } catch (\Exception $e) {
-            // Log the error for debugging
+            // Log error for debugging
             Log::error('Update Status Error: ' . $e->getMessage());
 
-            // Return error response
             return response()->json([
                 'status' => false,
                 'message' => 'Something went wrong',
@@ -183,6 +242,8 @@ class ReportLayoutController extends Controller
             ], 500);
         }
     }
+
+ 
 
     public function downloadPdf($id) //this is used for pdf downloading
     {

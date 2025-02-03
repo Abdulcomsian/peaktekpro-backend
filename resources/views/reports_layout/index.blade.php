@@ -164,6 +164,22 @@
 
         console.log(reportsData);
 
+        function openModal() {
+
+        $('#storeReportLayoutForm')[0].reset();
+        $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
+
+        $('#modal').removeClass('hidden');
+        }
+        // hide create modal
+        function closeModal() {
+
+        $('#storeReportLayoutForm')[0].reset();
+        $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
+
+        $('#modal').addClass('hidden');
+
+        }
         $(document).ready(function() {
             const cardGrid = $('#cardGrid');
 
@@ -362,3 +378,4 @@
         });
     </script>
 @endpush
+
