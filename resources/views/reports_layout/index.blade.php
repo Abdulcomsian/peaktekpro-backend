@@ -134,10 +134,11 @@
             const reportPageData6 = reportPage6 ? reportPage6.page_data : null;
 
             // Debugging: Log reportPage and reportPageData
-            // console.log("Report Page:", reportPage);
+            console.log("Report Page:", reportPage);
             // console.log("Report Page Data:", reportPageData);
 
             // Extract required data
+            const id = reportPageData ? reportPageData.json_data.report_id : null;
             const title = reportPageData ? reportPageData.json_data.report_title : 'No company name available';
             const grandTotal = reportPageData6 ? reportPageData6.json_data.grand_total : null;
             const price = grandTotal ? `$${parseFloat(grandTotal).toFixed(2)}` : `$${report.price ? report.price.toFixed(2) : '0.00'}`;
@@ -150,6 +151,7 @@
             : 'https://picsum.photos/536/354';
 
             return {
+                reportId: id,
                 reportName: title, // Map title to reportName
                 siteAddress: companyAddress, // Use company_address
                 description: reportPageData ? reportPageData.json_data.intro_text : 'No description available', // Use intro_text
@@ -202,8 +204,10 @@
                     .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
                     .append(
                         $('<ul>').addClass('text-sm text-gray-700').html(`
-                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</li>
-                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</li>
+                            <a href="{{ route('reports.edit', ['id' => $reportId]) }}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</a>
+                           @if ($report->status == 'published')
+                                <a href="{{ route('reports.download-pdf', ['id' => $report->id]) }}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</a>
+                            @endif
                         `)
                     );
 
