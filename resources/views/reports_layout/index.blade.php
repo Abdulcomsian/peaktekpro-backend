@@ -29,7 +29,7 @@
                     </thead>
                     <tbody class="text-gray-700 text-sm font-light">
                         @forelse ($reports as $report)
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                            <!-- <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-6 text-left">{{ $report->title }}</td>
                                 <td class="py-3 px-6 text-left">
@@ -55,7 +55,7 @@
                                     <button onclick="openDeleteModal({{ $report->id }})"
                                         class="text-red-500 hover:text-red-600 ml-4">Delete</button>
                                 </td>
-                            </tr>
+                            </tr> -->
                         @empty
                             <tr>
                                 <td colspan="4" class="py-3 px-6 text-center">No reports found.</td>
