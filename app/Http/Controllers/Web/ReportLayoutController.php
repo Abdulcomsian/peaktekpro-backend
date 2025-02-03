@@ -14,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use App\Models\{CompanyJob, Page, Report, ReportPageData, ReportPage};
 use App\Http\Requests\Report\{StoreRequest, UpdateRequest};
+
 class ReportLayoutController extends Controller
 {
     public function index(Request $request)
@@ -163,67 +164,6 @@ class ReportLayoutController extends Controller
             $message = $report->status === 'published'
                 ? 'Report Published Successfully'
                 : ($report->status === 'draft' ? 'Report Draft Successfully' : 'Status Updated Successfully');
-
-            // Return success response
-            return response()->json([
-                'status' => true,
-                'message' => $message,
-                'response' => $report
-            ], 200);
-        } catch (\Exception $e) {
-            // Log the error for debugging
-            Log::error('Update Status Error: ' . $e->getMessage());
-
-            // Return error response
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-                'errors' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-
-    public function updateStatus1(Request $request, $id) //publish/edit the  report and it make the pdf file
-    {
-        try {
-            // dd("update");
-            // Find the report
-            $report = Report::findOrFail($id);
-
-            // Update the status
-            $newStatus = $request->input('status', 'draft');
-            $report->status = $newStatus;
-            $report->save();
-
-            if ($report->status == 'published') {
-                // Generate PDF if the report is published
-                $reportData = $report->getAllReportData();
-
-                $pdf = SnappyPdf::loadView('pdf.report-pdf', ['report' => $reportData]);
-
-                $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
-                $fileName = "report-{$id}_{$timestamp}.pdf";
-                $folder = "pdf-files";
-                $filePath = "{$folder}/{$fileName}";//before
-                // $filePath = "/storage/{$folder}/{$fileName}";  // Add "storage/" prefix here
-
-                // Save the PDF to the storage directory (public disk)
-                Storage::disk('public')->put($filePath, $pdf->output());
-
-                // Update the file path in the report
-                $report->update(['file_path' => $filePath]);
-            } elseif ($report->status == 'draft') {
-                // Clear file_path and delete the file from storage
-                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
-                    Storage::disk('public')->delete($report->file_path);
-                }
-                $report->update(['file_path' => null]);
-            }
-
-            $message = $report->status === 'published'
-            ? 'Report Published Successfully'
-            : ($report->status === 'draft' ? 'Report Draft Successfully' : 'Status Updated Successfully');
 
             // Return success response
             return response()->json([
