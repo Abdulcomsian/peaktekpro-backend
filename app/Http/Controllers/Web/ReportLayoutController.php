@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\{CompanyJob, Page, Report, ReportPageData, ReportPage};
 use App\Http\Requests\Report\{StoreRequest, UpdateRequest};
 use Smalot\PdfParser\Parser;
+use setasign\Fpdi\Fpdi;
+use setasign\Fpdi\TcpdfFpdi;
+use setasign\Fpdf\Fpdf;
+use setasign\Fpdi\PdfReader;
+
 
 class ReportLayoutController extends Controller
 {
@@ -37,6 +42,29 @@ class ReportLayoutController extends Controller
         return view('reports_layout.create', compact('pages'));
     }
 
+    public function dummy()
+    {
+        $pdf = PDF::loadView(‘layouts.pdf.nomination’,[‘data’=>$request->all(),‘signature’=>$image_name,‘project_name’ => $projectdata->name,‘project_no’=>$projectdata->no,‘images’=>$images,‘qimages’=>$qimages,‘cimages’=>$cimages,‘user’=>$user,‘company’=>$company,‘qualificationscount’=>$qualificationscount,‘cv’=>$cv]);
+                    $path = public_path(‘pdf’);
+                    $filename =rand().‘nomination.pdf’;
+                    $pdf->save($path . ‘/’ . $filename);
+                    //merge pdf files
+                    $pdf = PDFMerger::init();
+                    $pdf->addPDF($path . ‘/’ . $filename, ‘all’);
+                     //nomination courses
+                    foreach($images as $img)
+                    {
+                         $n = strrpos($img, ‘.’);
+                         $ext=substr($img, $n+1);
+                         if($ext==‘pdf’)
+                         {
+                           $pdf->addPDF($img, ‘all’);
+                         }
+                    }
+                    $pdf->merge();
+                    $pdf->save($path . ‘/’ . $filename);
+
+    }
     public function store(StoreRequest $request)
     {
         try {
@@ -108,8 +136,263 @@ class ReportLayoutController extends Controller
             );
         }
     }
-    
+ 
     public function updateStatus(Request $request, $id)
+    {
+        try {
+            $jobId = session('job_id');
+            $company = CompanyJob::where('id', $jobId)->first();
+            if (!$company) {
+                return response()->json(['msg' => 'Job Not Found']);
+            }
+
+            $email = $company->email ?? null;
+            $phone = $company->phone ?? null;
+
+            $report = Report::findOrFail($id);
+            $newStatus = $request->input('status', 'draft');
+            $report->status = $newStatus;
+            $report->save();
+
+            if ($report->status == 'published') {
+                // Generate new main report PDF
+                $reportData = $report->getAllReportData();
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
+                $pdf->setPaper('A4', 'portrait');
+
+                $timestamp = now()->format('Ymd_His');
+                $newPdfPath = "pdf-files/report-{$id}_{$timestamp}.pdf";
+
+                // Save the newly generated PDF
+                Storage::disk('public')->put($newPdfPath, $pdf->output());
+
+                // Retrieve section PDFs from `report_page_data`
+                $sectionPdfPaths = [];
+                $reportPages = $report->reportPages()->with('pageData')->get();
+
+                foreach ($reportPages as $page) {
+                    if ($page->pageData) {
+                        $jsonData = is_string($page->pageData->json_data) 
+                            ? json_decode($page->pageData->json_data, true) 
+                            : $page->pageData->json_data; // If already an array, use it directly
+                
+                        Log::info('Processing JSON Data:', ['json_data' => $jsonData]);
+                
+                        if (!empty($jsonData)) {
+                            // Handle product compatibility files
+                            if (isset($jsonData['product_compatibility_files']) && is_array($jsonData['product_compatibility_files'])) {
+                                foreach ($jsonData['product_compatibility_files'] as $file) {
+                                    if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
+                                        $filePath = storage_path("app/public/{$file['path']}");
+                                            Log::info('Added Product Compatibility File:', [$filePath]);
+                                        $sectionPdfPaths[] = $filePath;
+                                    }
+                                }
+                            }
+                
+                            // Handle unfair claim files (DEBUG ADDED)
+                            if (isset($jsonData['unfair_claim_file'])) {
+                                if (is_array($jsonData['unfair_claim_file']) && isset($jsonData['unfair_claim_file']['path'])) {
+                                    // Case: Single file stored as an associative array
+                                    $filePath = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
+                                    if (Storage::disk('public')->exists($jsonData['unfair_claim_file']['path'])) {
+                                        Log::info('Added Unfair Claim File:', [$filePath]);
+                                        $sectionPdfPaths[] = $filePath;
+                                    } else {
+                                        Log::warning('Unfair Claim File Not Found:', [$filePath]);
+                                    }
+                                } elseif (is_array($jsonData['unfair_claim_file']) && array_keys($jsonData['unfair_claim_file']) === range(0, count($jsonData['unfair_claim_file']) - 1)) {
+                                    // Case: Multiple files (indexed array)
+                                    foreach ($jsonData['unfair_claim_file'] as $file) {
+                                        if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
+                                            $filePath = storage_path("app/public/{$file['path']}");
+                                            Log::info('Added Unfair Claim File:', [$filePath]);
+                                            $sectionPdfPaths[] = $filePath;
+                                        } else {
+                                            Log::warning('Unfair Claim File Not Found:', [$filePath]);
+                                        }
+                                    }
+                                }
+                            }
+                            
+ 
+                        }
+                    }
+                }
+                
+
+                // Debugging: Log all files that will be merged
+                Log::info("Files to Merge: " . json_encode($sectionPdfPaths));
+
+                // Ensure unfair claim file is added first if needed
+                usort($sectionPdfPaths, function($a, $b) {
+                    return str_contains($a, 'unfair_claim') ? -1 : 1;
+                });
+
+                // Merge main report PDF with section PDFs
+                $allPdfsToMerge = array_merge([storage_path("app/public/{$newPdfPath}")], $sectionPdfPaths);
+                $allPdfsToMerge = array_filter($allPdfsToMerge, fn($path) => $path && file_exists($path)); // Remove null/invalid paths
+
+                if (count($allPdfsToMerge) > 1) {
+                    $mergedPdfPath = "pdf-files/merged-report-{$id}_{$timestamp}.pdf";
+                    $this->mergePdfs($allPdfsToMerge, storage_path("app/public/{$mergedPdfPath}"));
+                    $report->update(['file_path' => $mergedPdfPath]);
+                } else {
+                    $report->update(['file_path' => $newPdfPath]);
+                }
+            } elseif ($report->status == 'draft') {
+                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
+                    Storage::disk('public')->delete($report->file_path);
+                }
+                $report->update(['file_path' => null]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => $report->status === 'published' ? 'Report Published Successfully' : 'Report Draft Successfully',
+                'response' => $report
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Update Status Error: ' . $e->getMessage());
+            return response()->json(['status' => false, 'message' => 'Something went wrong', 'errors' => $e->getMessage()], 500);
+        }
+    }
+
+    
+
+    private function mergePdfs(array $pdfPaths, $outputPath)
+    {
+        $pdf = new TcpdfFpdi();
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+    
+        foreach ($pdfPaths as $pdfPath) {
+            $pageCount = $pdf->setSourceFile($pdfPath);
+            for ($i = 1; $i <= $pageCount; $i++) {
+                $tplIdx = $pdf->importPage($i);
+                $size = $pdf->getTemplateSize($tplIdx);
+                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $pdf->useTemplate($tplIdx);
+            }
+        }
+    
+        $pdf->Output($outputPath, 'F');
+    }
+
+    public function updateStatus1(Request $request, $id)
+    {
+        try {
+            $jobId = session('job_id');
+            $company = CompanyJob::where('id', $jobId)->first();
+            if (!$company) {
+                return response()->json(['msg' => 'Job Not Found']);
+            }
+    
+            $email = $company->email ?? null;
+            $phone = $company->phone ?? null;
+    
+            $report = Report::findOrFail($id);
+            $newStatus = $request->input('status', 'draft');
+            $report->status = $newStatus;
+            $report->save();
+    
+            if ($report->status == 'published') {
+                // Generate new main report PDF
+                $reportData = $report->getAllReportData();
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
+                $pdf->setPaper('A4', 'portrait');
+    
+                $timestamp = now()->format('Ymd_His');
+                $newPdfPath = "pdf-files/report-{$id}_{$timestamp}.pdf";
+    
+                // Save the newly generated PDF
+                Storage::disk('public')->put($newPdfPath, $pdf->output());
+    
+                // Retrieve section PDFs from `report_page_data`
+               // Retrieve section PDFs from report_page_data through report pages
+                $sectionPdfPaths = [];
+                
+                $reportPages = $report->reportPages()->with('pageData')->get();
+                // dd($reportPages->toArray());
+
+                foreach ($reportPages as $page) {
+                    if ($page->pageData) {
+                        $jsonData = is_string($page->pageData->json_data) 
+                            ? json_decode($page->pageData->json_data, true) 
+                            : $page->pageData->json_data; // If already an array, use it directly
+                        
+                        if (!empty($jsonData) && isset($jsonData['product_compatibility_files'])) {
+                            foreach ($jsonData['product_compatibility_files'] as $file) {
+                                if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
+                                    $sectionPdfPaths[] = storage_path("app/public/{$file['path']}");
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+
+                $pdf = PDF::loadView('pdf.report', [
+                    'report' => $reportData,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'sectionPdfs' => $sectionPdfPaths
+                ]);
+                
+
+                // Merge main report PDF with section PDFs
+                $allPdfsToMerge = array_merge([storage_path("app/public/{$newPdfPath}")], $sectionPdfPaths);
+                $allPdfsToMerge = array_filter($allPdfsToMerge, fn($path) => $path && file_exists($path)); // Remove null/invalid paths
+    
+                if (count($allPdfsToMerge) > 1) {
+                    $mergedPdfPath = "pdf-files/merged-report-{$id}_{$timestamp}.pdf";
+                    $this->mergePdfs($allPdfsToMerge, storage_path("app/public/{$mergedPdfPath}"));
+                    $report->update(['file_path' => $mergedPdfPath]);
+                } else {
+                    $report->update(['file_path' => $newPdfPath]);
+                }
+            } elseif ($report->status == 'draft') {
+                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
+                    Storage::disk('public')->delete($report->file_path);
+                }
+                $report->update(['file_path' => null]);
+            }
+    
+            return response()->json([
+                'status' => true,
+                'message' => $report->status === 'published' ? 'Report Published Successfully' : 'Report Draft Successfully',
+                'response' => $report
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Update Status Error: ' . $e->getMessage());
+            return response()->json(['status' => false, 'message' => 'Something went wrong', 'errors' => $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Merge multiple PDFs into one.
+     */
+    private function mergePdfs1(array $pdfPaths, $outputPath)
+    {
+        $pdf = new TcpdfFpdi();
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+    
+        foreach ($pdfPaths as $pdfPath) {
+            $pageCount = $pdf->setSourceFile($pdfPath);
+            for ($i = 1; $i <= $pageCount; $i++) {
+                $tplIdx = $pdf->importPage($i);
+                $size = $pdf->getTemplateSize($tplIdx);
+                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $pdf->useTemplate($tplIdx);
+            }
+        }
+    
+        $pdf->Output($outputPath, 'F');
+    }
+
+    public function updateStatusok(Request $request, $id)
     {
         try {
             $jobId = session('job_id');
@@ -184,141 +467,6 @@ class ReportLayoutController extends Controller
             ], 500);
         }
     }
-
-
-    public function updateStatus1(Request $request, $id)
-    {
-        try {
-            $jobId = session('job_id');
-            $company = CompanyJob::where('id', $jobId)->first();
-
-            if (!$company) {
-                return response()->json([
-                    'msg' => 'Job Not Found'
-                ]);
-            }
-
-            $email = $company->email ?? null;
-            $phone = $company->phone ?? null;
-
-            // Find the report
-            $report = Report::findOrFail($id);
-            // dd($report);
-
-            // Update the status
-            $newStatus = $request->input('status', 'draft');
-            $report->status = $newStatus;
-            $report->save();
-
-            if ($report->status == 'published') {
-                // Get report data
-                $reportData = $report;
-                // dd($reportData->toArray());
-                $checkFile = null; // Initialize as null
-
-                // Check if report_pages is not null and is an array
-                if (is_array($reportData->reportPages) || is_object($reportData->reportPages)) {
-                    // dd("indie the if");
-                    // Iterate through the report_pages to find the page with the matching slug
-                    foreach ($reportData->reportPages as $page) {
-
-                        if ($page['slug'] === 'unfair-claims-practices') {
-                            // $checkData = $page->pageData;
-                            // break; // Exit loop once the matching page is found
-                            $jsonData = is_array($page->pageData->json_data) 
-                            ? $page->pageData->json_data 
-                            : json_decode($page->pageData->json_data, true); // Decode only if it's a string
-
-                            // Retrieve the path if available
-                            $filePath = $jsonData['unfair_claim_file']['path'] ?? null;
-
-                            $checkFile = $filePath;
-                            break;
-                        }
-                    }
-                } else {
-                    // Handle the case where report_pages is null or not an array
-                    $checkData = 'No report pages available';
-                }
-
-                if (!$filePath) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'File path not found for Unfair Claims Practices'
-                    ], 404);
-                }
-
-                // Output the file path for debugging
-                // dd($filePath);
-
-                // Extract text from the existing PDF (if available)
-                $extractedText = "";
-                $file= public_path('storage/' . $filePath);
-                $pdfPath = str_replace('\\', '/', $file);
-
-                // dd($pdfPath);
-
-                if (file_exists($pdfPath)) {
-                //    $dummypath= "http://127.0.0.1:8000/storage/template-files/unfair_claim_file/1738593730_2mb.pdf";
-                    $parser = new Parser();
-                    $pdf = $parser->parseFile($pdfPath);
-                    $extractedText = nl2br(e($pdf->getText())); // Convert text to HTML format
-                    // dd("my extracted text is",$extractedText); // Debug the extracted text
-                    // dd("isndjsjd");
-                }
-
-                // Generate the PDF with extracted content
-                $pdf = PDF::loadView('pdf.report', [
-                    'report' => $reportData,
-                    'email' => $email,
-                    'phone' => $phone,
-                    'extractedText' => $extractedText // Inject extracted content into the view
-                ]);
-
-                $pdf->setPaper('A4', 'portrait');
-
-                $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
-                $fileName = "report-{$id}_{$timestamp}.pdf";
-                $folder = "pdf-files";
-                $newFilePath = "{$folder}/{$fileName}";
-
-                // Save the PDF to storage (public disk)
-                Storage::disk('public')->put($newFilePath, $pdf->output());
-
-                // Update the file path in the report
-                $report->update(['file_path' => $newFilePath]);
-
-            } elseif ($report->status == 'draft') {
-                // Clear file_path and delete the file from storage
-                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
-                    Storage::disk('public')->delete($report->file_path);
-                }
-                $report->update(['file_path' => null]);
-            }
-
-            $message = $report->status === 'published'
-                ? 'Report Published Successfully'
-                : ($report->status === 'draft' ? 'Report Draft Successfully' : 'Status Updated Successfully');
-
-            return response()->json([
-                'status' => true,
-                'message' => $message,
-                'response' => $report
-            ], 200);
-
-        } catch (\Exception $e) {
-            // Log error for debugging
-            Log::error('Update Status Error: ' . $e->getMessage());
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-                'errors' => $e->getMessage()
-            ], 500);
-        }
-    }
-
- 
 
     public function downloadPdf($id) //this is used for pdf downloading
     {

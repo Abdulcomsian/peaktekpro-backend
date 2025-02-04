@@ -270,8 +270,8 @@
             </tr>
         </table>
 
-</div>
-</div>
+    </div>
+    </div>
 
         @break
 
@@ -319,9 +319,9 @@
             @endforeach
         </div>
         @break
+       
 
         <!-- 4th section -->
-
         @case('product-compatibility')
         <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="product-compatibility-section" style="font-size:9.6px; font-family:sans-serif;">
@@ -339,6 +339,7 @@
         </div>
         @break
 
+
         <!-- 5th Section -->
         @case('unfair-claims-practices')
         <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
@@ -351,16 +352,6 @@
         </div>
         @break
 
-        <!-- working section -->
-        <!-- @case('unfair-claims-practices')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="unfair-claims-section" style="font-size:9.6px; font-family:sans-serif;">
-            <h2>Demo Test</h2>
-        <div class="extracted-text">
-            {!! $extractedText !!}
-        </div>
-        </div>
-        @break -->
 
         <!-- 6th Section -->
 
