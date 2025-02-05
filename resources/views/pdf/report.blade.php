@@ -139,40 +139,43 @@
             object-fit: cover;
         }
 
-        .section {
-            page-break-after: always; /* Ensures each section starts on a new page */
-        }
-        .section {
-            page-break-before: always; /* Forces each section to start on a new page */
-        }
-        /* New styles for full-width images and blue titles */
-        .section h2 {
-            color: rgb(55, 179, 184); /* Blue color for section titles */
-            margin-left: 20px; /* Add margin to the left */
-            margin-right: 20px; /* Add margin to the right */
-        }
+        /* .section {
+            page-break-after: always; 
+            break-after: page; 
+            page-break-inside: avoid; 
+        } */
 
-        .section p, .section .content,h4,a,h3 {
-            margin-left: 20px; /* Add margin to the left */
-            margin-right: 20px; /* Add margin to the right */
-        }
+        /* .section h2 {
+            color: rgb(55, 179, 184);
+            margin-left: 20px; 
+            margin-right: 20px; 
+        } */
 
-        .section img {
-            width: 100%; /* Ensure images take full width */
-            margin-left: 0; /* Remove margin for images */
-            margin-right: 0; /* Remove margin for images */
-        }
+        /* .section p, .section .content,h4,a,h3 {
+            margin-left: 20px; 
+            margin-right: 20px; 
+        } */
+
+        /* .section img {
+            width: 100%; 
+            margin-left: 0; 
+            margin-right: 0; 
+        } */
         /* / */
-        .section, .section-items, .item {
-            page-break-inside: avoid; /* Prevent elements from breaking */
-            page-break-before: auto;  /* Avoid unnecessary page breaks */
+        /* .section, .section-items, .item {
+            page-break-inside: avoid; 
+            page-break-before: auto;  
             page-break-after: auto;
-        }
+        } */
 
         .grand-total {
             page-break-inside: avoid; /* Keep grand total on the same page */
             font-weight: bold;
             margin-top: 10px;
+        }
+
+        .section {
+            page-break-after: always;
         }
 
         .section-items {
@@ -182,6 +185,51 @@
 
 
     </style>
+
+<!-- <style>
+        @page {
+            margin: 0;
+        }
+
+        body {
+            font-family: sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 450px 0 70px 0; /* Reserve space for header and footer */
+        }
+
+        header {
+            height: 450px;
+            margin-top: -450px; /* Pull header into the top padding */
+        }
+
+        .header-content {
+            width: 100%;
+            background-color: rgb(55, 179, 184);
+            color: white;
+            padding: 20px;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background-color: rgb(121, 128, 128);
+            color: white;
+        }
+
+        /* Keep existing styles for other elements */
+        .section {
+            page-break-after: always;
+        }
+
+        /* Adjust main content to account for header/footer */
+        main {
+            margin: 20px;
+        }
+</style> -->
 </head>
 
 <body>
@@ -194,46 +242,46 @@
         @switch($page->slug)
         @case('introduction')
 
-    <!-- Define header and footer blocks before your content -->
-    <header>
-        <table width="100%" style="border-collapse: collapse;">
-            <tr>
-                <!-- Left section -->
-                <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
-                    <!-- <h2>{{ is_string($report->title) ? $report->title : 'Untitled Report' }}</h2> -->
-                    <h2 style="color:white;">{{ $jsonData['report_title'] ?? 'No title available.' }}</h2>
-                    <p>{{ $jsonData['report_date'] ?? 'No date available.' }}</p>
-                </td>
-                <!-- Right section -->
-                <td style="width: 50%; background-color: white; text-align: right; padding: 10px; vertical-align:middle;">
-                    <img src="{{ public_path('assets/logo/logoTest.PNG') }}" style="width:420px; height:auto;" alt="Logo">
-                </td>
-            </tr>
-        </table>
-    </header>
+        <!-- Define header and footer blocks before your content -->
+        <header>
+            <table width="100%" style="border-collapse: collapse;">
+                <tr>
+                    <!-- Left section -->
+                    <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
+                        <!-- <h2>{{ is_string($report->title) ? $report->title : 'Untitled Report' }}</h2> -->
+                        <h2 style="color:white;">{{ $jsonData['report_title'] ?? 'No title available.' }}</h2>
+                        <p>{{ $jsonData['report_date'] ?? 'No date available.' }}</p>
+                    </td>
+                    <!-- Right section -->
+                    <td style="width: 50%; background-color: white; text-align: right; padding: 10px; vertical-align:middle;">
+                        <img src="{{ public_path('assets/logo/logoTest.PNG') }}" style="width:420px; height:auto;" alt="Logo">
+                    </td>
+                </tr>
+            </table>
+        </header>
 
-    <footer style="position: fixed; bottom: 0; width: 100%; background-color:rgb(121, 128, 128);">
-        <table width="100%" style="color: white; padding: 10px; font-size: 12px; border-collapse: collapse;">
-            <tr>
-                <!-- Left Content -->
-                <td style="width: 28%; text-align: center; font-weight: bold;">
-                    Thank you for choosing<br>
-                    PeakTek Roofing & Restoration
-                </td>
+        <footer style="position: fixed; bottom: 0; width: 100%; background-color:rgb(121, 128, 128);">
+            <table width="100%" style="color: white; padding: 10px; font-size: 12px; border-collapse: collapse;">
+                <tr>
+                    <!-- Left Content -->
+                    <td style="width: 28%; text-align: center; font-weight: bold;">
+                        Thank you for choosing<br>
+                        PeakTek Roofing & Restoration
+                    </td>
 
-                <!-- Vertical Divider -->
-                <td style="width: 4%; border-left: 2px solid white;"></td>
+                    <!-- Vertical Divider -->
+                    <td style="width: 4%; border-left: 2px solid white;"></td>
 
-                <!-- Right Content -->
-                <td style="width: 68%; text-align: center;">
-                    <strong>admin@peaktekpro.com</strong><br>
-                    (629) 333-6170
-                </td>
-            </tr>
-        </table>
-    </footer>
+                    <!-- Right Content -->
+                    <td style="width: 68%; text-align: center;">
+                        <strong>admin@peaktekpro.com</strong><br>
+                        (629) 333-6170
+                    </td>
+                </tr>
+            </table>
+        </footer>
 
-    <!-- Wrap the content of your PDF inside a main tag -->
+        <!-- Wrap the content of your PDF inside a main tag -->
     <main>
         
         <div class="image">
@@ -270,29 +318,29 @@
             </tr>
         </table>
 
-    </div>
-    </div>
+    <!-- </div>
+    </div>  -->
 
-        @break
+        <!-- @break -->
 
-        <!-- second section start from here  repairability-assessment -->
+       
 
         @case('repairability-assessment')
-        <h2 style="margin: 0; padding-left: 20px; padding-right: 20px; background-color: rgb(33, 166, 228); color: white; width: 100%; height: 70px; padding-top: 30px; padding-left: 0; box-sizing: border-box;">
-            {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
-        </h2>
-        <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
-        <div class="roof-repair-limitations" style="font-size:9.6px; font-family:sans-serif; margin-top:0px;">
-            {!! $jsonData['roof_repair_limitations_text'] ?? 'No repair limitations text available.' !!}
-        </div>
-
-        <div class="repairability-assessment-images">
-            @foreach ($jsonData['repariability_assessment_images'] ?? [] as $image)
-            <div class="image">
-                <img src="{{ public_path('storage/' . $image['path']) }}" alt="repariability_assessment_images"  />
+            <h2 style="margin: 0; padding-left: 20px; padding-right: 20px; background-color: rgb(33, 166, 228); color: white; width: 100%; height: 70px; padding-top: 30px; padding-left: 0; box-sizing: border-box;">
+                {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+            </h2>
+            <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
+            <div class="roof-repair-limitations" style="font-size:9.6px; font-family:sans-serif; margin-top:0px;">
+                {!! $jsonData['roof_repair_limitations_text'] ?? 'No repair limitations text available.' !!}
             </div>
-            @endforeach
-        </div>
+
+            <div class="repairability-assessment-images">
+                @foreach ($jsonData['repariability_assessment_images'] ?? [] as $image)
+                <div class="image">
+                    <img src="{{ public_path('storage/' . $image['path']) }}" alt="repariability_assessment_images"  />
+                </div>
+                @endforeach
+            </div>
         @break
 
         <!-- third Section -->
@@ -310,7 +358,6 @@
                     {!! $item['content'] ?? 'No content available.' !!}
                 </div>
 
-               
                 <div class="image">
                     <img src="{{ public_path('storage/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? '')) }}" alt="repairability-or-compatibility-photos" />
                 </div>
@@ -320,15 +367,45 @@
         </div>
         @break
        
+        <!-- <div style="page-break-after: always; break-after: page;"></div> -->
 
-        <!-- 4th section -->
+        <!-- <div class="section"> -->
+
         @case('product-compatibility')
+        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <div class="product-compatibility-section">
+            <div class="product-compatibility-text">
+                {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
+            </div>
+
+            
+
+            <!-- Placeholder for product compatibility PDF -->
+            <div class="pdf-placeholder product-compatibility-placeholder" data-section="product-compatibility">
+                [product-compatibility-placeholder]
+            </div>
+        </div>
+        @break
+        <!-- </div> -->
+
+        <!-- <div style="page-break-after: always; break-after: page;"></div> -->
+
+        @case('unfair-claims-practices')
+        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <div class="unfair-claims-section">
+            <div class="pdf-placeholder" data-section="unfair-claims-practices">
+                [unfair-claims-practices-placeholder]
+            </div>
+        </div>
+        @break
+        <!-- 4th section -->
+        <!-- @case('product-compatibility')
         <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="product-compatibility-section" style="font-size:9.6px; font-family:sans-serif;">
             <div class="product-compatibility-text">
                 {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
             </div>
-
+        
             @foreach ($jsonData['product_compatibility_files'] ?? [] as $file)
             <div class="file-item">
                 <a href="{{ asset('storage/' . $file['path']) }}" download>
@@ -338,10 +415,10 @@
             @endforeach
         </div>
         @break
+    -->
 
-
-        <!-- 5th Section -->
-        @case('unfair-claims-practices')
+       <!-- 5th Section  -->
+        <!-- @case('unfair-claims-practices')
         <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="unfair-claims-section" style="font-size:9.6px; font-family:sans-serif;">
             <div class="file-item">
@@ -350,7 +427,7 @@
                 </a>
             </div>
         </div>
-        @break
+        @break -->
 
 
         <!-- 6th Section -->
@@ -468,5 +545,25 @@
 
     </main>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.16.0/pdf-lib.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const pdfPlaceholders = document.querySelectorAll('.pdf-placeholder');
+        pdfPlaceholders.forEach(async (placeholder) => {
+            const pdfPath = placeholder.getAttribute('data-pdf-path');
+            const pdfBytes = await fetch(pdfPath).then(res => res.arrayBuffer());
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+            const pages = pdfDoc.getPages();
+            pages.forEach(page => {
+                const { width, height } = page.getSize();
+                const iframe = document.createElement('iframe');
+                iframe.src = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
+                iframe.style.width = `${width}px`;
+                iframe.style.height = `${height}px`;
+                placeholder.appendChild(iframe);
+            });
+        });
+    });
+</script>
 
 </html>
