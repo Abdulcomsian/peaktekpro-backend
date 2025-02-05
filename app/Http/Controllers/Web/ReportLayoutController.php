@@ -42,29 +42,6 @@ class ReportLayoutController extends Controller
         return view('reports_layout.create', compact('pages'));
     }
 
-    public function dummy()
-    {
-        $pdf = PDF::loadView(‘layouts.pdf.nomination’,[‘data’=>$request->all(),‘signature’=>$image_name,‘project_name’ => $projectdata->name,‘project_no’=>$projectdata->no,‘images’=>$images,‘qimages’=>$qimages,‘cimages’=>$cimages,‘user’=>$user,‘company’=>$company,‘qualificationscount’=>$qualificationscount,‘cv’=>$cv]);
-                    $path = public_path(‘pdf’);
-                    $filename =rand().‘nomination.pdf’;
-                    $pdf->save($path . ‘/’ . $filename);
-                    //merge pdf files
-                    $pdf = PDFMerger::init();
-                    $pdf->addPDF($path . ‘/’ . $filename, ‘all’);
-                     //nomination courses
-                    foreach($images as $img)
-                    {
-                         $n = strrpos($img, ‘.’);
-                         $ext=substr($img, $n+1);
-                         if($ext==‘pdf’)
-                         {
-                           $pdf->addPDF($img, ‘all’);
-                         }
-                    }
-                    $pdf->merge();
-                    $pdf->save($path . ‘/’ . $filename);
-
-    }
     public function store(StoreRequest $request)
     {
         try {
@@ -137,7 +114,166 @@ class ReportLayoutController extends Controller
         }
     }
  
+
+    private function insertSectionPdfs($mainPdfPath, $outputPath, $sectionPdfs)
+    {
+        $pdf = new TcpdfFpdi();
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Load the main PDF once to get the page count
+        $mainPdfPageCount = $pdf->setSourceFile($mainPdfPath);
+        Log::info("Main PDF has {$mainPdfPageCount} pages.");
+
+        for ($i = 1; $i <= $mainPdfPageCount; $i++) {
+            // Reset the source to the main PDF before importing each page
+            $pdf->setSourceFile($mainPdfPath);
+            $tplIdx = $pdf->importPage($i);
+            $size = $pdf->getTemplateSize($tplIdx);
+
+            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            $pdf->useTemplate($tplIdx);
+
+            // Check for placeholders on the current main PDF page
+            $parser = new \Smalot\PdfParser\Parser();
+            $mainPdf = $parser->parseFile($mainPdfPath);
+            $pages = $mainPdf->getPages();
+            $text = $pages[$i - 1]->getText();
+
+            // Insert section PDFs if a placeholder is found
+            foreach ($sectionPdfs as $section => $pdfPaths) {
+                $placeholder = "[{$section}-placeholder]";
+                if (strpos($text, $placeholder) !== false) {
+                    // $text = str_replace($placeholder, '', $text);
+
+                    foreach ($pdfPaths as $pdfPath) {
+                        Log::info("Inserting PDF for section: {$section}");
+                        $this->insertEntirePdf($pdf, $pdfPath);
+                    }
+                }
+            }
+        }
+
+        $pdf->Output($outputPath, 'F');
+    }
+
+    private function insertEntirePdf($pdf, $pdfPath)
+    {
+        if (!file_exists($pdfPath)) {
+            Log::error("File not found: " . $pdfPath);
+            return;
+        }
+
+        // Set the source to the section PDF
+        $sectionPageCount = $pdf->setSourceFile($pdfPath);
+        Log::info("Section PDF has {$sectionPageCount} pages. Path: {$pdfPath}");
+
+        if ($sectionPageCount < 1) {
+            Log::error("Section PDF has no pages: " . $pdfPath);
+            return;
+        }
+
+        // Import all pages from the section PDF
+        for ($i = 1; $i <= $sectionPageCount; $i++) {
+            try {
+                Log::info("Processing page {$i} of section PDF: {$pdfPath}");
+                $tplIdx = $pdf->importPage($i);
+                $size = $pdf->getTemplateSize($tplIdx);
+
+                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $pdf->useTemplate($tplIdx);
+            } catch (\Exception $e) {
+                Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
+                continue;
+            }
+        }
+    }
+
     public function updateStatus(Request $request, $id)
+    {
+        try {
+            $jobId = session('job_id');
+            $company = CompanyJob::where('id', $jobId)->first();
+            if (!$company) {
+                return response()->json(['msg' => 'Job Not Found']);
+            }
+
+            $email = $company->email ?? null;
+            $phone = $company->phone ?? null;
+
+            $report = Report::findOrFail($id);
+            $newStatus = $request->input('status', 'draft');
+            $report->status = $newStatus;
+            $report->save();
+
+            if ($report->status == 'published') {
+                // Step 1: Generate Main Report PDF
+                $reportData = $report->getAllReportData();
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
+                $pdf->setPaper('A4', 'portrait');
+
+                $timestamp = now()->format('Ymd_His');
+                $mainPdfPath = storage_path("app/public/pdf-files/report-{$id}_{$timestamp}.pdf");
+                Storage::disk('public')->put("pdf-files/report-{$id}_{$timestamp}.pdf", $pdf->output());
+
+                // Step 2: Gather Section PDFs
+                $sectionPdfs = [];
+                $reportPages = $report->reportPages()->with('pageData')->get();
+
+                foreach ($reportPages as $page) {
+                    if (isset($page->pageData->json_data)) {
+                        $jsonData = $page->pageData->json_data;
+
+                        if ($page->slug === 'product-compatibility') {
+                            if (isset($jsonData['product_compatibility_files'])) {
+                                foreach ($jsonData['product_compatibility_files'] as $file) {
+                                    if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
+                                        $sectionPdfs['product-compatibility'][] = storage_path("app/public/{$file['path']}");
+                                    }
+                                }
+                            }
+                        }
+
+                        if ($page->slug === 'unfair-claims-practices') {
+                            if (isset($jsonData['unfair_claim_file']['path']) && Storage::disk('public')->exists($jsonData['unfair_claim_file']['path'])) {
+                                $sectionPdfs['unfair-claims-practices'][] = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
+                            }
+                        }
+                    }
+                }
+
+                // Step 3: Merge PDFs into the correct sections
+                $mergedPdfPath = storage_path("app/public/pdf-files/merged-report-{$id}_{$timestamp}.pdf");
+                $this->insertSectionPdfs($mainPdfPath, $mergedPdfPath, $sectionPdfs);
+
+                // Step 4: Update report file path
+                $report->update(['file_path' => "pdf-files/merged-report-{$id}_{$timestamp}.pdf"]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Report Published Successfully',
+                    'response' => $report
+                ], 200);
+            } elseif ($report->status == 'draft') {
+                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
+                    Storage::disk('public')->delete($report->file_path);
+                }
+                $report->update(['file_path' => null]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => $report->status === 'published' ? 'Report Published Successfully' : 'Report Draft Successfully',
+                'response' => $report
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Update Status Error: ' . $e->getMessage());
+            return response()->json(['status' => false, 'message' => 'Something went wrong', 'errors' => $e->getMessage()], 500);
+        }
+    }
+
+
+    public function updateStatus1(Request $request, $id)
     {
         try {
             $jobId = session('job_id');
@@ -260,119 +396,6 @@ class ReportLayoutController extends Controller
 
     
 
-    private function mergePdfs(array $pdfPaths, $outputPath)
-    {
-        $pdf = new TcpdfFpdi();
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-    
-        foreach ($pdfPaths as $pdfPath) {
-            $pageCount = $pdf->setSourceFile($pdfPath);
-            for ($i = 1; $i <= $pageCount; $i++) {
-                $tplIdx = $pdf->importPage($i);
-                $size = $pdf->getTemplateSize($tplIdx);
-                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                $pdf->useTemplate($tplIdx);
-            }
-        }
-    
-        $pdf->Output($outputPath, 'F');
-    }
-
-    public function updateStatus1(Request $request, $id)
-    {
-        try {
-            $jobId = session('job_id');
-            $company = CompanyJob::where('id', $jobId)->first();
-            if (!$company) {
-                return response()->json(['msg' => 'Job Not Found']);
-            }
-    
-            $email = $company->email ?? null;
-            $phone = $company->phone ?? null;
-    
-            $report = Report::findOrFail($id);
-            $newStatus = $request->input('status', 'draft');
-            $report->status = $newStatus;
-            $report->save();
-    
-            if ($report->status == 'published') {
-                // Generate new main report PDF
-                $reportData = $report->getAllReportData();
-                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
-                $pdf->setPaper('A4', 'portrait');
-    
-                $timestamp = now()->format('Ymd_His');
-                $newPdfPath = "pdf-files/report-{$id}_{$timestamp}.pdf";
-    
-                // Save the newly generated PDF
-                Storage::disk('public')->put($newPdfPath, $pdf->output());
-    
-                // Retrieve section PDFs from `report_page_data`
-               // Retrieve section PDFs from report_page_data through report pages
-                $sectionPdfPaths = [];
-                
-                $reportPages = $report->reportPages()->with('pageData')->get();
-                // dd($reportPages->toArray());
-
-                foreach ($reportPages as $page) {
-                    if ($page->pageData) {
-                        $jsonData = is_string($page->pageData->json_data) 
-                            ? json_decode($page->pageData->json_data, true) 
-                            : $page->pageData->json_data; // If already an array, use it directly
-                        
-                        if (!empty($jsonData) && isset($jsonData['product_compatibility_files'])) {
-                            foreach ($jsonData['product_compatibility_files'] as $file) {
-                                if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
-                                    $sectionPdfPaths[] = storage_path("app/public/{$file['path']}");
-                                }
-                            }
-                        }
-                    }
-
-
-                }
-
-                $pdf = PDF::loadView('pdf.report', [
-                    'report' => $reportData,
-                    'email' => $email,
-                    'phone' => $phone,
-                    'sectionPdfs' => $sectionPdfPaths
-                ]);
-                
-
-                // Merge main report PDF with section PDFs
-                $allPdfsToMerge = array_merge([storage_path("app/public/{$newPdfPath}")], $sectionPdfPaths);
-                $allPdfsToMerge = array_filter($allPdfsToMerge, fn($path) => $path && file_exists($path)); // Remove null/invalid paths
-    
-                if (count($allPdfsToMerge) > 1) {
-                    $mergedPdfPath = "pdf-files/merged-report-{$id}_{$timestamp}.pdf";
-                    $this->mergePdfs($allPdfsToMerge, storage_path("app/public/{$mergedPdfPath}"));
-                    $report->update(['file_path' => $mergedPdfPath]);
-                } else {
-                    $report->update(['file_path' => $newPdfPath]);
-                }
-            } elseif ($report->status == 'draft') {
-                if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
-                    Storage::disk('public')->delete($report->file_path);
-                }
-                $report->update(['file_path' => null]);
-            }
-    
-            return response()->json([
-                'status' => true,
-                'message' => $report->status === 'published' ? 'Report Published Successfully' : 'Report Draft Successfully',
-                'response' => $report
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Update Status Error: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Something went wrong', 'errors' => $e->getMessage()], 500);
-        }
-    }
-    
-    /**
-     * Merge multiple PDFs into one.
-     */
     private function mergePdfs1(array $pdfPaths, $outputPath)
     {
         $pdf = new TcpdfFpdi();
@@ -391,6 +414,8 @@ class ReportLayoutController extends Controller
     
         $pdf->Output($outputPath, 'F');
     }
+
+
 
     public function updateStatusok(Request $request, $id)
     {
