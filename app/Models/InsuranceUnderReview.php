@@ -12,6 +12,8 @@ class InsuranceUnderReview extends Model
         'company_job_id',
         'notes',
         'status',
+        'pdf_path',
+        'file_name',
     ];
 
     public function getPhotos()

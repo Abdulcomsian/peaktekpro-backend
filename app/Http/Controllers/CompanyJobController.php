@@ -246,9 +246,9 @@ class CompanyJobController extends Controller
                         $completedPercentage = 40;
                         break;
                     case 6: // Overturn
-                        $completedPercentage = 40;
+                        $completedPercentage = 50;
                         break;
-                    case 8: // Build Scheduled
+                    case 8: // Approved
                         $completedPercentage = 50;
                         break;
                     case 11: // In Progress
@@ -2665,9 +2665,9 @@ class CompanyJobController extends Controller
                             $completed_percentage = 20;
                         } elseif ($job->status_id == 4) {  
                             $completed_percentage = 30;
-                        } elseif ($job->status_id == 5 || $job->status_id == 6) {  
+                        } elseif ($job->status_id == 5) {  
                             $completed_percentage = 40;
-                        } elseif ($job->status_id == 8) {  
+                        } elseif ($job->status_id == 6 || $job->status_id == 8) {  
                             $completed_percentage = 50;
                         } elseif ($job->status_id == 11) {  
                             $completed_percentage = 60;

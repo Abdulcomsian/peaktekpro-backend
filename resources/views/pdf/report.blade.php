@@ -183,6 +183,9 @@
             width: 100%;
         }
 
+        h2,h4,p,a {
+            margin: 20px;
+        }
 
     </style>
 

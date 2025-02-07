@@ -16,9 +16,11 @@ class InsuranceUnderReviewController extends Controller
         $request->validate([
             'notes'=>'nullable|string',
             'photo' => 'nullable|array', 
-            'photo.*' => 'nullable|image|mimes:png,jpg,jpeg,svg,gif|max:2048', 
+            'photo.*' => 'sometimes|image|mimes:png,jpg,jpeg,svg,gif|max:2048', 
             'label' => 'nullable|array',         
-            'label.*' => 'nullable|string',      
+            'label.*' => 'nullable|string', 
+            'pdf_path'=>  'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt', 
+            'file_name' => 'nullable|string'   
         ]);
 
         try {
@@ -30,14 +32,33 @@ class InsuranceUnderReviewController extends Controller
                 ]);
             }
 
+            // $filePath = null;
+
+            $insurance = InsuranceUnderReview::where('company_job_id', $id)->first();
+            $existingFilePath = $insurance ? $insurance->pdf_path : null;
+            //store attachements here
+            if ($request->hasFile('pdf_path')) {
+                 // Delete the old document if it exists
+                if ($existingFilePath) {
+                    $oldFilePath = str_replace('/storage/', 'public/', $existingFilePath);
+                    Storage::delete($oldFilePath);
+                }
+                $document = $request->file('pdf_path');
+                $fileName = uniqid() . '_' . $document->getClientOriginalName();
+                $filePath = $document->storeAs('public/insurance_under_review', $fileName);
+            }else {
+                $newFilePath = $existingFilePath ? str_replace('/storage/', 'public/', $existingFilePath) : null;
+            }
             $insurance = InsuranceUnderReview::updateOrCreate(
                 ['company_job_id' => $id],
                 [
                     'notes' => $request->notes,
+                    'pdf_path' => $filePath ? Storage::url($filePath) : null,
+                    'file_name' => $request->file_name,
+
                 ]
             );
 
-            // return response()->json($insurance);
 
             // Step 1: Delete existing images
             $existingPhotos = InsuranceUnderReviewPhotos::where('insurance_under_reviews_id', $insurance->id)->get();
@@ -64,8 +85,7 @@ class InsuranceUnderReviewController extends Controller
 
                 // Collect saved photo details
                 $savedPhotos[] = [
-                    'id' => $media->id,
-                    'notes' =>  $insurance->notes,                    
+                    'id' => $media->id,                  
                     'insurance_under_reviews_id' => $media->insurance_under_reviews_id,
                     'label' => $media->label,
                     'photo' => $media->photo,
@@ -80,9 +100,12 @@ class InsuranceUnderReviewController extends Controller
                 'id' => $insurance->id,
                 'company_job_id'=> $insurance->company_job_id,
                 'notes' => $insurance->notes,
+                'pdf_path' =>  $insurance->pdf_path,                    
+                'file_name' =>  $insurance->file_name, 
                 'photo' => $savedPhotos,
             ]);
-        } catch (\Exception $e) {
+        } 
+        catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
                 'message' => 'An issue occurred: ' . $e->getMessage(),
@@ -126,9 +149,9 @@ class InsuranceUnderReviewController extends Controller
         }
     }
 
-    public function statusInsuranceUnderReview(StoreRequest $request,$id)
+    public function statusInsuranceUnderReview(StoreRequest $request,$id) //not used currently if used use some other field for status because it is alreay in use of other fun
     {
-        // dd($id);
+        dd($id);
         try{
             $company = CompanyJob::find($id);
             if (!$company) {
@@ -170,4 +193,51 @@ class InsuranceUnderReviewController extends Controller
             ]);
         }
     }
+
+
+    public function updateInsuranceUnderReview(Request $request,$id)
+    {
+        $request->validate([
+            'status'=>'nullable|in:approved,overturn'
+        ]);
+        try{
+            $company = CompanyJob::find($id);
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Company Not Found',
+                ]);
+            }
+
+            if($request->status == "approved"){
+                $company->status_id = 8;
+                $company->save();
+            }elseif($request->status == "overturn"){
+                $company->status_id = 6;
+                $company->save();
+            }
+
+            $insurance = InsuranceUnderReview::updateOrCreate(
+                ['company_job_id' => $id],
+                [
+                    'status' => $request->status,
+                ]
+            );
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Insurance Added Successfully',
+                'data' => $insurance,
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+        }
+    }
+
+  
 }
