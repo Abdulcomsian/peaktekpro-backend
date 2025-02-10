@@ -225,9 +225,7 @@
                     .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
                     .append(
                         $('<ul>').addClass('text-sm text-gray-700').html(`<a href="${editReportRoute}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</a>
-                           @if ($report->status == 'published')
                                 <a href="${downloadReportPdfRoute}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</a>
-                            @endif
                         `)
                     );
 
