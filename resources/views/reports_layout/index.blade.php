@@ -16,7 +16,7 @@
             <!-- Responsive Table -->
             <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table class="min-w-full border border-gray-300">
-                    <thead>
+                    <!-- <thead>
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">S.No</th>
                             <th class="py-3 px-6 text-left">Title</th>
@@ -26,7 +26,7 @@
                             <th class="py-3 px-6 text-left">Status</th>
                             <th class="py-3 px-6 text-center">Actions</th>
                         </tr>
-                    </thead>
+                    </thead> -->
                     <tbody class="text-gray-700 text-sm font-light">
                         @forelse ($reports as $report)
                             <!-- <tr class="border-b border-gray-200 hover:bg-gray-100">

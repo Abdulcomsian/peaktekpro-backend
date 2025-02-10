@@ -503,7 +503,7 @@ class ReportLayoutController extends Controller
             // Get the full path of the file to download (ensure it's stored in the public disk)
             $filePath = public_path('storage/' . $report->file_path);
 
-            \Log::info('File path: ' . $filePath);
+            \Log::info('File path11: ' . $filePath);
 
             // Check if the file exists
             if (file_exists($filePath)) {
