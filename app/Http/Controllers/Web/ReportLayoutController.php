@@ -210,6 +210,8 @@ class ReportLayoutController extends Controller
                 // Step 1: Generate Main Report PDF
                 $reportData = $report->getAllReportData();
                 $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
+                // $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
+
                 $pdf->setPaper('A4', 'portrait');
 
                 $timestamp = now()->format('Ymd_His');
