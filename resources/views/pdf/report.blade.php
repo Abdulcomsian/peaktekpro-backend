@@ -176,6 +176,8 @@
 
         .section {
             page-break-after: always;
+            page-break-inside: avoid;
+
         }
 
         .section-items {
@@ -185,6 +187,17 @@
 
         h2,h4,p,a {
             margin: 20px;
+        }
+        .product-compatibility-text{
+            margin-left: 10px;
+            font-size: 12px;
+            color: black
+
+        }
+
+        .pdf-placeholder {
+            color: transparent;
+            font-size: 0;
         }
 
     </style>
@@ -333,7 +346,7 @@
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
             <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
-            <div class="roof-repair-limitations" style="font-size:9.6px; font-family:sans-serif; margin-top:0px;">
+            <div class="roof-repair-limitations" style="font-size:9.6px; font-family:sans-serif; margin-top:10px;">
                 {!! $jsonData['roof_repair_limitations_text'] ?? 'No repair limitations text available.' !!}
             </div>
 
@@ -380,8 +393,6 @@
             <div class="product-compatibility-text">
                 {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
             </div>
-
-            
 
             <!-- Placeholder for product compatibility PDF -->
             <div class="pdf-placeholder product-compatibility-placeholder" data-section="product-compatibility">
@@ -445,65 +456,88 @@
         @break
 
         <!-- 7th Section -->
+
         @case('quote-details')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="quote-details-section" style="font-size:9.6px; font-family:sans-serif;">
-            @foreach($jsonData['sections'] ?? [] as $section)
-            <div class="section">
-                <h4>{{ $section['title'] ?? 'No title available.' }}</h4>
-                <p>Status: {{ $section['isActive'] == 'true' ? 'Active' : 'Inactive' }}</p>
-                <p>Total for Section: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
+    <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+    <div class="quote-details-section" style="font-size:9.6px; font-family:sans-serif; margin: 0 20px;">
 
-                <div class="section-items">
+        @foreach($jsonData['sections'] ?? [] as $section)
+            <h4>Section Name: {{ $section['title'] ?? 'No title available.' }}</h4>
+            <p>Status: {{ $section['isActive'] == 'true' ? 'Active' : 'Inactive' }}</p>
+            <p>Section Total: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
+
+            <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
+                <thead style="background-color: #f2f2f2;">
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Price ($)</th>
+                        <th>Line Total ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach($section['sectionItems'] ?? [] as $item)
-                    <div class="item">
-                        <p><strong>Description:</strong> {{ $item['description'] ?? 'No description available.' }}</p>
-                        <p><strong>Quantity:</strong> {{ $item['qty'] ?? '0' }}</p>
-                        <p><strong>Price:</strong> ${{ number_format($item['price'] ?? 0, 2) }}</p>
-                        <p><strong>Line Total:</strong> ${{ number_format($item['lineTotal'] ?? 0, 2) }}</p>
-                    </div>
+                        <tr>
+                            <td>{{ $item['description'] ?? 'No description available.' }}</td>
+                            <td style="text-align: center;">{{ $item['qty'] ?? '0' }}</td>
+                            <td style="text-align: right;">{{ number_format($item['price'] ?? 0, 2) }}</td>
+                            <td style="text-align: right;">{{ number_format($item['lineTotal'] ?? 0, 2) }}</td>
+                        </tr>
                     @endforeach
-                </div>
-            </div>
-            @endforeach
+                </tbody>
+            </table>
+        @endforeach
 
-            <div class="grand-total">
-                <p><stron>Grand Total:</strong> ${{ number_format($jsonData['grand_total'] ?? 0, 2) }}</p>
-            </div>
+        <div class="grand-total" style="text-align: right; font-weight: bold; margin-top: 10px;">
+            <p>Grand Total: ${{ number_format($jsonData['grand_total'] ?? 0, 2) }}</p>
         </div>
-        @break
+    </div>
+@break
+
+        
 
         <!-- 8th Section -->
         @case('authorization-page')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="authorization-page-section" style="font-size:9.6px; font-family:sans-serif;">
-            @foreach($jsonData['sections'] as $section)
-            <div class="section">
-                <h4>{{ $section['title'] }}</h4>
-                <p>Total for Section: ${{ number_format($section['sectionTotal'], 2) }}</p>
+        <h2 style="margin-left: 20px; margin-right: 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
 
-                <div class="section-items">
-                    @foreach($section['sectionItems'] as $item)
-                    <div class="item">
-                        <p><strong>Description:</strong> {{ $item['description'] }}</p>
-                        <p><strong>Quantity:</strong> {{ $item['qty'] }}</p>
-                        <p><strong>Price:</strong> ${{ number_format($item['price'], 2) }}</p>
-                        <p><strong>Line Total:</strong> ${{ number_format($item['lineTotal'], 2) }}</p>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
+        <div class="authorization-page-section" style="font-size:9.6px; font-family:sans-serif; margin: 0 20px;"> <!-- Added margin here -->
+
+            @foreach($jsonData['sections'] ?? [] as $section)
+                <h4 style="margin-top: 10px;">{{ $section['title'] ?? 'No Title Available' }}</h4>
+                <p>Total for Section: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
+
+                <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
+                    <thead style="background-color: #f2f2f2;">
+                        <tr>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Price ($)</th>
+                            <th>Line Total ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($section['sectionItems'] ?? [] as $item)
+                            <tr>
+                                <td>{{ $item['description'] ?? 'No description available.' }}</td>
+                                <td style="text-align: center;">{{ $item['qty'] ?? '0' }}</td>
+                                <td style="text-align: right;">{{ number_format($item['price'] ?? 0, 2) }}</td>
+                                <td style="text-align: right;">{{ number_format($item['lineTotal'] ?? 0, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             @endforeach
 
-            <div class="authorization-disclaimer">
-                <p>{{ $jsonData['authorization_disclaimer'] }}</p>
+            <div class="authorization-disclaimer" style="margin-top: 15px; font-style: italic;">
+                <p>{{ $jsonData['authorization_disclaimer'] ?? 'No disclaimer available.' }}</p>
             </div>
 
-            <div class="grand-total">
-                <p><stron>Grand Total:</strong> ${{ number_format($jsonData['authorization_sections_grand_total'], 2) }}</p>
+            <div class="grand-total" style="text-align: right; font-weight: bold; margin-top: 10px;">
+                <p>Grand Total: ${{ number_format($jsonData['authorization_sections_grand_total'] ?? 0, 2) }}</p>
             </div>
         </div>
-        @break
+         @break
+
 
         <!-- 9th Section -->
         @case('terms-and-conditions')
@@ -522,16 +556,38 @@
         @break
 
         @case('')
+    <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+    <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
+        @if(isset($jsonData['custom_page_text']))
+            <div class="custom-page-text">
+                {!! $jsonData['custom_page_text'] !!}
+            </div>
+        @endif
+
+        <!-- Custom Page PDF Placeholder -->
+        @if(isset($jsonData['custom_page_file']))
+            <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
+                [custom-page-{{ $page->order_no }}-placeholder]
+            </div>
+        @endif
+    </div>
+    @break
+
+
+        <!-- @case('')
         <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
-            <!-- Custom Page Text -->
             @if(isset($jsonData['custom_page_text']))
             <div class="custom-page-text">
                 {!! $jsonData['custom_page_text'] !!}
             </div>
             @endif
 
-            <!-- Custom Page File -->
+            @if(isset($jsonData['custom_page_file']))
+                <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
+                    [custom-page-{{ $page->order_no }}-placeholder]
+                </div>
+            @endif
             @if(isset($jsonData['custom_page_file']))
             <div class="custom-page-file">
                 <a href="{{ asset('storage/' . $jsonData['custom_page_file']['path']) }}" download class="btn btn-primary">
@@ -540,7 +596,7 @@
             </div>
             @endif
         </div>
-        @break
+        @break -->
         @endswitch
         @endif
     </div>
