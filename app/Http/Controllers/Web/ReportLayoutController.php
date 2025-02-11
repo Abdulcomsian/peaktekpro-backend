@@ -131,8 +131,13 @@ class ReportLayoutController extends Controller
             $tplIdx = $pdf->importPage($i);
             $size = $pdf->getTemplateSize($tplIdx);
 
-            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-            $pdf->useTemplate($tplIdx);
+            if ($tplIdx) {  // Add this condition
+                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $pdf->useTemplate($tplIdx);
+            } /////
+
+            // $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            // $pdf->useTemplate($tplIdx);
 
             // Check for placeholders on the current main PDF page
             $parser = new \Smalot\PdfParser\Parser();
@@ -180,8 +185,14 @@ class ReportLayoutController extends Controller
                 $tplIdx = $pdf->importPage($i);
                 $size = $pdf->getTemplateSize($tplIdx);
 
-                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                $pdf->useTemplate($tplIdx);
+                if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) {  // ✅ Check for valid template and size
+                    $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                    $pdf->useTemplate($tplIdx);
+                }
+                // $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                // $pdf->useTemplate($tplIdx);
+
+                
             } catch (\Exception $e) {
                 Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
                 continue;
@@ -210,6 +221,8 @@ class ReportLayoutController extends Controller
                 // Step 1: Generate Main Report PDF
                 $reportData = $report->getAllReportData();
                 $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
+                // $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
+
                 $pdf->setPaper('A4', 'portrait');
 
                 $timestamp = now()->format('Ymd_His');
@@ -239,6 +252,25 @@ class ReportLayoutController extends Controller
                                 $sectionPdfs['unfair-claims-practices'][] = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
                             }
                         }
+                        if (isset($page->order_no)) { 
+                            if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
+                                $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
+                            }
+                        }
+                        
+
+                        // if ($page->order_no === 10) {
+                        //     if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
+                        //         $sectionPdfs[$page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
+                        //     }
+                        // }
+
+                        // if (in_array($page->order_no, [10, 11, 12])) {
+                        //     if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
+                        //         $sectionPdfs[$page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
+                        //     }
+                        // }
+                        
                     }
                 }
 
