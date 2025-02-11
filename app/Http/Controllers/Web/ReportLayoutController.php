@@ -115,90 +115,176 @@ class ReportLayoutController extends Controller
     }
  
 
+    // private function insertSectionPdfs($mainPdfPath, $outputPath, $sectionPdfs)
+    // {
+    //     $pdf = new TcpdfFpdi();
+    //     $pdf->setPrintHeader(false);
+    //     $pdf->setPrintFooter(false);
+
+    //     // Load the main PDF once to get the page count
+    //     $mainPdfPageCount = $pdf->setSourceFile($mainPdfPath);
+    //     Log::info("Main PDF has {$mainPdfPageCount} pages.");
+
+    //     for ($i = 1; $i <= $mainPdfPageCount; $i++) {
+    //         // Reset the source to the main PDF before importing each page
+    //         $pdf->setSourceFile($mainPdfPath);
+    //         $tplIdx = $pdf->importPage($i);
+    //         $size = $pdf->getTemplateSize($tplIdx);
+
+    //         if ($tplIdx) {  // Add this condition
+    //             $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+    //             $pdf->useTemplate($tplIdx);
+    //         } /////
+
+    //         // $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+    //         // $pdf->useTemplate($tplIdx);
+
+    //         // Check for placeholders on the current main PDF page
+    //         $parser = new \Smalot\PdfParser\Parser();
+    //         $mainPdf = $parser->parseFile($mainPdfPath);
+    //         $pages = $mainPdf->getPages();
+    //         $text = $pages[$i - 1]->getText();
+
+    //         // Insert section PDFs if a placeholder is found
+    //         foreach ($sectionPdfs as $section => $pdfPaths) {
+    //             $placeholder = "[{$section}-placeholder]";
+    //             if (strpos($text, $placeholder) !== false) {
+    //                 // $text = str_replace($placeholder, '', $text);
+
+    //                 foreach ($pdfPaths as $pdfPath) {
+    //                     Log::info("Inserting PDF for section: {$section}");
+    //                     $this->insertEntirePdf($pdf, $pdfPath);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     $pdf->Output($outputPath, 'F');
+    // }
+
     private function insertSectionPdfs($mainPdfPath, $outputPath, $sectionPdfs)
-    {
-        $pdf = new TcpdfFpdi();
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
+{
+    $pdf = new TcpdfFpdi();
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
 
-        // Load the main PDF once to get the page count
-        $mainPdfPageCount = $pdf->setSourceFile($mainPdfPath);
-        Log::info("Main PDF has {$mainPdfPageCount} pages.");
+    $mainPdfPageCount = $pdf->setSourceFile($mainPdfPath);
+    Log::info("Main PDF has {$mainPdfPageCount} pages.");
 
-        for ($i = 1; $i <= $mainPdfPageCount; $i++) {
-            // Reset the source to the main PDF before importing each page
-            $pdf->setSourceFile($mainPdfPath);
+    for ($i = 1; $i <= $mainPdfPageCount; $i++) {
+        $pdf->setSourceFile($mainPdfPath);
+        $tplIdx = $pdf->importPage($i);
+        $size = $pdf->getTemplateSize($tplIdx);
+
+        // ✅ Add the page ONLY if it's not completely blank
+        if ($tplIdx && $this->hasContent($mainPdfPath, $i)) {
+            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            $pdf->useTemplate($tplIdx);
+        }
+
+        $parser = new \Smalot\PdfParser\Parser();
+        $mainPdf = $parser->parseFile($mainPdfPath);
+        $pages = $mainPdf->getPages();
+        $text = $pages[$i - 1]->getText();
+
+        // ✅ Insert only if placeholder exists
+        foreach ($sectionPdfs as $section => $pdfPaths) {
+            $placeholder = "[{$section}-placeholder]";
+            if (strpos($text, $placeholder) !== false) {
+                foreach ($pdfPaths as $pdfPath) {
+                    Log::info("Inserting PDF for section: {$section}");
+                    $this->insertEntirePdf($pdf, $pdfPath);
+                }
+            }
+        }
+    }
+
+    $pdf->Output($outputPath, 'F');
+}
+
+private function hasContent($pdfPath, $pageNumber)
+{
+    $parser = new \Smalot\PdfParser\Parser();
+    $pdf = $parser->parseFile($pdfPath);
+    $pages = $pdf->getPages();
+
+    if (isset($pages[$pageNumber - 1])) {
+        $text = trim($pages[$pageNumber - 1]->getText());
+        return !empty($text); // Returns true if there's content
+    }
+    return false;
+}
+
+private function insertEntirePdf($pdf, $pdfPath)
+{
+    if (!file_exists($pdfPath)) {
+        Log::error("File not found: " . $pdfPath);
+        return;
+    }
+
+    $sectionPageCount = $pdf->setSourceFile($pdfPath);
+    Log::info("Section PDF has {$sectionPageCount} pages. Path: {$pdfPath}");
+
+    if ($sectionPageCount < 1) {
+        Log::error("Section PDF has no pages: " . $pdfPath);
+        return;
+    }
+
+    for ($i = 1; $i <= $sectionPageCount; $i++) {
+        try {
             $tplIdx = $pdf->importPage($i);
             $size = $pdf->getTemplateSize($tplIdx);
 
-            if ($tplIdx) {  // Add this condition
+            // ✅ Insert only if the page has size (content exists)
+            if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) {
                 $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
                 $pdf->useTemplate($tplIdx);
-            } /////
-
-            // $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-            // $pdf->useTemplate($tplIdx);
-
-            // Check for placeholders on the current main PDF page
-            $parser = new \Smalot\PdfParser\Parser();
-            $mainPdf = $parser->parseFile($mainPdfPath);
-            $pages = $mainPdf->getPages();
-            $text = $pages[$i - 1]->getText();
-
-            // Insert section PDFs if a placeholder is found
-            foreach ($sectionPdfs as $section => $pdfPaths) {
-                $placeholder = "[{$section}-placeholder]";
-                if (strpos($text, $placeholder) !== false) {
-                    // $text = str_replace($placeholder, '', $text);
-
-                    foreach ($pdfPaths as $pdfPath) {
-                        Log::info("Inserting PDF for section: {$section}");
-                        $this->insertEntirePdf($pdf, $pdfPath);
-                    }
-                }
             }
+        } catch (\Exception $e) {
+            Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
+            continue;
         }
-
-        $pdf->Output($outputPath, 'F');
     }
+}
 
-    private function insertEntirePdf($pdf, $pdfPath)
-    {
-        if (!file_exists($pdfPath)) {
-            Log::error("File not found: " . $pdfPath);
-            return;
-        }
 
-        // Set the source to the section PDF
-        $sectionPageCount = $pdf->setSourceFile($pdfPath);
-        Log::info("Section PDF has {$sectionPageCount} pages. Path: {$pdfPath}");
+    // private function insertEntirePdf($pdf, $pdfPath)
+    // {
+    //     if (!file_exists($pdfPath)) {
+    //         Log::error("File not found: " . $pdfPath);
+    //         return;
+    //     }
 
-        if ($sectionPageCount < 1) {
-            Log::error("Section PDF has no pages: " . $pdfPath);
-            return;
-        }
+    //     // Set the source to the section PDF
+    //     $sectionPageCount = $pdf->setSourceFile($pdfPath);
+    //     Log::info("Section PDF has {$sectionPageCount} pages. Path: {$pdfPath}");
 
-        // Import all pages from the section PDF
-        for ($i = 1; $i <= $sectionPageCount; $i++) {
-            try {
-                Log::info("Processing page {$i} of section PDF: {$pdfPath}");
-                $tplIdx = $pdf->importPage($i);
-                $size = $pdf->getTemplateSize($tplIdx);
+    //     if ($sectionPageCount < 1) {
+    //         Log::error("Section PDF has no pages: " . $pdfPath);
+    //         return;
+    //     }
 
-                if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) { 
-                    $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                    $pdf->useTemplate($tplIdx);
-                }
-                // $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                // $pdf->useTemplate($tplIdx);
+    //     // Import all pages from the section PDF
+    //     for ($i = 1; $i <= $sectionPageCount; $i++) {
+    //         try {
+    //             Log::info("Processing page {$i} of section PDF: {$pdfPath}");
+    //             $tplIdx = $pdf->importPage($i);
+    //             $size = $pdf->getTemplateSize($tplIdx);
+
+    //             if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) { 
+    //                 $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+    //                 $pdf->useTemplate($tplIdx);
+    //             }
+    //             // $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+    //             // $pdf->useTemplate($tplIdx);
 
                 
-            } catch (\Exception $e) {
-                Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
-                continue;
-            }
-        }
-    }
+    //         } catch (\Exception $e) {
+    //             Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
+    //             continue;
+    //         }
+    //     }
+    // }
 
     public function updateStatus(Request $request, $id)
     {
