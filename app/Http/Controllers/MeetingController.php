@@ -146,6 +146,7 @@ class MeetingController extends Controller
         }
     }
 
+
     public function AddExteriorPhotoSection(Request $request, $Id)
     {
         // Validate request (fields can be optional and null, or must be valid images if provided)
@@ -453,6 +454,29 @@ class MeetingController extends Controller
         }
     }
 
+    public function DeleteAdjustorMeetingSquarePhotos($id)
+    {
+        $media = AdjustorSquarePhotos::find($id);
+        if (!$media) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Photo not found',
+            ]);
+        }
+        $imagePath = $media->square_photos; 
+        $relativePath = str_replace('/storage/', '', $imagePath);
+
+        // Delete the image from storage
+        if (Storage::disk('public')->exists($relativePath)) {
+            Storage::disk('public')->delete($relativePath);
+        }
+
+        $media->delete();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Adjustor Square Photos Deleted Successfully',
+        ]);
+    }
 
     public function getAdjustorMeetingSquarePhotos($Id,Request $request)
     { 
