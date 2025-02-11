@@ -130,7 +130,7 @@
 
         .roof-repair-limitations {
             margin-top: 70px;
-            /* margin-bottom: 10px; */
+            margin-bottom: 10px;
         }
 
         img {
@@ -334,19 +334,31 @@
             </tr>
         </table>
 
-    <!-- </div>
-    </div>  -->
-
-        <!-- @break -->
-
-       
-
-        @case('repairability-assessment')
-            <h2 style="margin: 0; padding-left: 20px; padding-right: 20px; background-color: rgb(33, 166, 228); color: white; width: 100%; height: 70px; padding-top: 30px; padding-left: 0; box-sizing: border-box;">
+        <!-- first section -->
+        @case('introduction')
+           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);">
+           <h2 style=" padding-left: 10px; 
+            color: white;  padding-top: 160px; ">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
+           </div>
             <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
-            <div class="roof-repair-limitations" style="font-size:9.6px; font-family:sans-serif; margin-top:10px;">
+            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:20px">
+                {!! $jsonData['intro_text'] ?? 'No introduction text available.' !!}
+            </div>
+        @break
+
+        <!-- second section -->
+
+        @case('repairability-assessment')
+           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);">
+           <h2 style=" padding-left: 10px; 
+            color: white;  padding-top: 25px; ">
+                {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+            </h2>
+           </div>
+            <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
+            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:20px">
                 {!! $jsonData['roof_repair_limitations_text'] ?? 'No repair limitations text available.' !!}
             </div>
 
