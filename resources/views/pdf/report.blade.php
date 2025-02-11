@@ -556,16 +556,38 @@
         @break
 
         @case('')
+    <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+    <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
+        @if(isset($jsonData['custom_page_text']))
+            <div class="custom-page-text">
+                {!! $jsonData['custom_page_text'] !!}
+            </div>
+        @endif
+
+        <!-- Custom Page PDF Placeholder -->
+        @if(isset($jsonData['custom_page_file']))
+            <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
+                [custom-page-{{ $page->order_no }}-placeholder]
+            </div>
+        @endif
+    </div>
+    @break
+
+
+        <!-- @case('')
         <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
-            <!-- Custom Page Text -->
             @if(isset($jsonData['custom_page_text']))
             <div class="custom-page-text">
                 {!! $jsonData['custom_page_text'] !!}
             </div>
             @endif
 
-            <!-- Custom Page File -->
+            @if(isset($jsonData['custom_page_file']))
+                <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
+                    [custom-page-{{ $page->order_no }}-placeholder]
+                </div>
+            @endif
             @if(isset($jsonData['custom_page_file']))
             <div class="custom-page-file">
                 <a href="{{ asset('storage/' . $jsonData['custom_page_file']['path']) }}" download class="btn btn-primary">
@@ -574,7 +596,7 @@
             </div>
             @endif
         </div>
-        @break
+        @break -->
         @endswitch
         @endif
     </div>
