@@ -143,7 +143,7 @@ return [
     | the cookie from being sent to you when it can't be done securely.
     |
     */
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => true,
     /*
     |--------------------------------------------------------------------------
     | HTTP Access Only
@@ -167,5 +167,5 @@ return [
     | Supported: "lax", "strict", "none", null
     |
     */
-    'same_site' => 'lax',
+    'same_site' => 'none',
 ];
