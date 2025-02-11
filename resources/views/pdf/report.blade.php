@@ -336,9 +336,15 @@
 
         <!-- first section -->
         @case('introduction')
-           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);">
+           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative;">
            <h2 style=" padding-left: 10px; 
-            color: white;  padding-top: 160px; ">
+            color: white; 
+              margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+            ">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
            </div>
@@ -351,14 +357,14 @@
         <!-- second section -->
 
         @case('repairability-assessment')
-           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);">
+           <div style=" margin-top:-20px; height: 70px; width: 100%; background-color: rgb(33, 166, 228);">
            <h2 style=" padding-left: 10px; 
             color: white;  padding-top: 25px; ">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
            </div>
             <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
-            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:20px">
+            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:20px; padding-right:20px">
                 {!! $jsonData['roof_repair_limitations_text'] ?? 'No repair limitations text available.' !!}
             </div>
 

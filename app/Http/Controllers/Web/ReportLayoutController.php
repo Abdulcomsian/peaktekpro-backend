@@ -185,7 +185,7 @@ class ReportLayoutController extends Controller
                 $tplIdx = $pdf->importPage($i);
                 $size = $pdf->getTemplateSize($tplIdx);
 
-                if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) {  // ✅ Check for valid template and size
+                if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) { 
                     $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
                     $pdf->useTemplate($tplIdx);
                 }
