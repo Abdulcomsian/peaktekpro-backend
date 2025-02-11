@@ -962,7 +962,8 @@
                         <option disabled>No templates available</option>
                     @endforelse
                 </select>
-                <button id="templateDropdown" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Submit</button>
+                <button id="templateDropdown"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-lg btn-gradient">Submit</button>
             </div>
             <!-- Modal for confirmation -->
             <!-- Modal for confirmation (small version) -->
@@ -989,7 +990,7 @@
             </div>
 
             <!-- Content area with a card-like design for report and actions -->
-            <div class="bg-white shadow p-4 rounded-lg mt-4">
+            <div class="bg-white shadow p-4 rounded-lg mt-4 mb-2">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold" id="reportTitleText">{{ $report->title }}</h2>
                     <div>
@@ -1028,11 +1029,11 @@
 
                         <!-- @if ($report->status === 'published')
     <button
-                                                class="text-blue-500 hover:text-blue-600 update-status-button"
-                                                id="downloadReportPDF" style="margin-right:100px;"
-                                                data-id="{{ $report->id }}">
-                                                Download PDF
-                                            </button>
+                                                        class="text-blue-500 hover:text-blue-600 update-status-button"
+                                                        id="downloadReportPDF" style="margin-right:100px;"
+                                                        data-id="{{ $report->id }}">
+                                                        Download PDF
+                                                    </button>
     @endif -->
                         <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
                     </div>

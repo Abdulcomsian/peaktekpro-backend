@@ -17,45 +17,45 @@
             <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table class="min-w-full border border-gray-300">
                     <!-- <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 text-left">S.No</th>
-                            <th class="py-3 px-6 text-left">Title</th>
-                            @if ($reports->where('status', 'published')->count() > 0)
-                                <th class="py-3 px-6 text-left">File</th>
-                            @endif
-                            <th class="py-3 px-6 text-left">Status</th>
-                            <th class="py-3 px-6 text-center">Actions</th>
-                        </tr>
-                    </thead> -->
+                                                                                                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                                                                                            <th class="py-3 px-6 text-left">S.No</th>
+                                                                                                            <th class="py-3 px-6 text-left">Title</th>
+                                                                                                            @if ($reports->where('status', 'published')->count() > 0)
+    <th class="py-3 px-6 text-left">File</th>
+    @endif
+                                                                                                            <th class="py-3 px-6 text-left">Status</th>
+                                                                                                            <th class="py-3 px-6 text-center">Actions</th>
+                                                                                                        </tr>
+                                                                                                    </thead> -->
                     <tbody class="text-gray-700 text-sm font-light">
                         @forelse ($reports as $report)
                             <!-- <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
-                                <td class="py-3 px-6 text-left">{{ $report->title }}</td>
-                                <td class="py-3 px-6 text-left">
-                                    @if ($report->status == 'published')
-                                        <a class="downloadReportPDF text-blue-500 hover:text-blue-600 cursor-pointer"
-                                            data-id="{{ $report->id }}">
-                                            Download PDF
-                                        </a>
-                                    @endif
-                                </td>
-                                <td class="py-3 px-6 text-left">
-                                    @if ($report->status === 'draft')
-                                        <span
-                                            class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
-                                    @else
-                                        <span
-                                            class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
-                                    @endif
-                                </td>
-                                <td class="py-3 px-6 text-center">
-                                    <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
-                                        class="text-blue-500 hover:text-blue-600">Edit</a>
-                                    <button onclick="openDeleteModal({{ $report->id }})"
-                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button>
-                                </td>
-                            </tr> -->
+                                                                                                                <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
+                                                                                                                <td class="py-3 px-6 text-left">{{ $report->title }}</td>
+                                                                                                                <td class="py-3 px-6 text-left">
+                                                                                                                    @if ($report->status == 'published')
+    <a class="downloadReportPDF text-blue-500 hover:text-blue-600 cursor-pointer"
+                                                                                                                            data-id="{{ $report->id }}">
+                                                                                                                            Download PDF
+                                                                                                                        </a>
+    @endif
+                                                                                                                </td>
+                                                                                                                <td class="py-3 px-6 text-left">
+                                                                                                                    @if ($report->status === 'draft')
+    <span
+                                                                                                                            class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
+@else
+    <span
+                                                                                                                            class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
+    @endif
+                                                                                                                </td>
+                                                                                                                <td class="py-3 px-6 text-center">
+                                                                                                                    <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
+                                                                                                                        class="text-blue-500 hover:text-blue-600">Edit</a>
+                                                                                                                    <button onclick="openDeleteModal({{ $report->id }})"
+                                                                                                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button>
+                                                                                                                </td>
+                                                                                                            </tr> -->
                         @empty
                             <tr>
                                 <td colspan="4" class="py-3 px-6 text-center">No reports found.</td>
@@ -68,7 +68,7 @@
                 {!! $reports->links('vendor.pagination.tailwind') !!}
             </div>
 
-            <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+            <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
                 <!-- Cards will be dynamically inserted here -->
             </div>
         </div>
@@ -125,7 +125,7 @@
     <script>
         // Pass the $reports data to the frontend and adjust its structure
         const reportsData = @json($reports->items()).map(report => {
-        // Fetch the first report page's data
+            // Fetch the first report page's data
             const reportPage = report.report_pages?.[0];
             const reportPage6 = report.report_pages?.[6];
 
@@ -135,48 +135,73 @@
 
             // Debugging: Log reportPage and reportPageData
             // console.log("Report Page:", reportPage);
-            // console.log("Report Page Data:", reportPageData);
+            console.log("Report Page Data:", reportPageData, report.created_at);
 
             // Extract required data
             const title = reportPageData ? reportPageData.json_data.report_title : 'No company name available';
             const grandTotal = reportPageData6 ? reportPageData6.json_data.grand_total : null;
-            const price = grandTotal ? `$${parseFloat(grandTotal).toFixed(2)}` : `$${report.price ? report.price.toFixed(2) : '0.00'}`;
+            const price = grandTotal ? `$${parseFloat(grandTotal).toFixed(2)}` :
+                `$${report.price ? report.price.toFixed(2) : '0.00'}`;
 
-            const companyName = reportPageData ? reportPageData.json_data.company_name : 'No company name available';
-            const companyAddress = reportPageData ? reportPageData.json_data.company_address : 'No address available';
+            const companyName = reportPageData ? reportPageData.json_data.company_name :
+                'No company name available';
+            const companyAddress = reportPageData && reportPageData.json_data.company_address ? reportPageData
+                .json_data.company_address :
+                'No address available';
+            const createdAt = reportPageData ? report.created_at :
+                'Not yet Created';
             // const primaryImagePath = reportPageData && reportPageData.json_data.primary_image ? reportPageData.json_data.primary_image.path : 'https://picsum.photos/536/354';
-            const primaryImagePath = reportPageData && reportPageData.json_data.primary_image 
-            ? reportPageData.file_url + '/' + reportPageData.json_data.primary_image.path 
-            : 'https://picsum.photos/536/354';
+            const primaryImagePath = reportPageData && reportPageData.json_data.primary_image ?
+                reportPageData.file_url + '/' + reportPageData.json_data.primary_image.path :
+                'https://picsum.photos/536/354';
 
             return {
                 id: report.id, // Map ID
                 reportName: title, // Map title to reportName
                 siteAddress: companyAddress, // Use company_address
-                description: reportPageData ? reportPageData.json_data.intro_text : 'No description available', // Use intro_text
+                description: reportPageData && reportPageData.json_data.intro_text ? reportPageData.json_data
+                    .intro_text : 'No description available', // Use intro_text
                 price: price, // Format price if available
                 tag: report.status === 'published' ? 'PUBLISHED' : 'DRAFT', // Map status to tag
                 image: primaryImagePath, // Use primary_image path
                 companyName: companyName, // Company name
-
+                createdAt: timeAgo(report.created_at)
             };
         });
 
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const secondsAgo = Math.floor((now - date) / 1000);
+
+            if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
+            const minutesAgo = Math.floor(secondsAgo / 60);
+            if (minutesAgo < 60) return `${minutesAgo} minutes ago`;
+            const hoursAgo = Math.floor(minutesAgo / 60);
+            if (hoursAgo < 24) return `${hoursAgo} hours ago`;
+            const daysAgo = Math.floor(hoursAgo / 24);
+            if (daysAgo < 30) return `${daysAgo} days ago`;
+            const monthsAgo = Math.floor(daysAgo / 30);
+            if (monthsAgo < 12) return `${monthsAgo} months ago`;
+            const yearsAgo = Math.floor(monthsAgo / 12);
+
+            return `${yearsAgo} years ago`;
+        }
 
         function openModal() {
 
-        $('#storeReportLayoutForm')[0].reset();
-        $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
+            $('#storeReportLayoutForm')[0].reset();
+            $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
 
-        $('#modal').removeClass('hidden');
+            $('#modal').removeClass('hidden');
         }
         // hide create modal
         function closeModal() {
 
-        $('#storeReportLayoutForm')[0].reset();
-        $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
+            $('#storeReportLayoutForm')[0].reset();
+            $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
 
-        $('#modal').addClass('hidden');
+            $('#modal').addClass('hidden');
 
         }
         $(document).ready(function() {
@@ -214,12 +239,12 @@
                 const threeDots = $('<div>').html('...').addClass(
                     'text-3xl text-white');
 
-                    let editReportRoute = "{{ route('reports.edit', ['id' => ':id']) }}"
-                    editReportRoute = editReportRoute.replace(':id', item.id)
+                let editReportRoute = "{{ route('reports.edit', ['id' => ':id']) }}"
+                editReportRoute = editReportRoute.replace(':id', item.id)
 
-                    let downloadReportPdfRoute = "{{ route('reports.download-pdf', ['id' => ':id']) }}"
-                    downloadReportPdfRoute = downloadReportPdfRoute.replace(':id', item.id)
-                    
+                let downloadReportPdfRoute = "{{ route('reports.download-pdf', ['id' => ':id']) }}"
+                downloadReportPdfRoute = downloadReportPdfRoute.replace(':id', item.id)
+
                 // Dropdown Menu
                 const dropdownMenu = $('<div>')
                     .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
@@ -252,11 +277,12 @@
                 // });
 
                 // Card content
-                const content = $('<div>').html(`
-                    <h3 class="text-xl font-bold text-gray-700">${item.reportName}</h3>
+                const content = $('<div class="flex flex-col gap-1">').html(`
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">${item.reportName}</h3>
                     <p class="text-gray-600">${item.siteAddress}</p>
                     <p class="text-gray-600">${item.description}</p>
-                    <p class="text-gray-800 font-bold mt-2">${item.price}</p>
+                    <p class="text-gray-800">${item.createdAt}</p>
+                    <p class="text-gray-800 font-bold ">${item.price}</p>
                 `);
 
                 // Append image container, menu, and content to card
@@ -279,7 +305,8 @@
                     success: async function(response) {
                         if (response.status) {
                             closeModal();
-                            await showSuccessNotification('Report Layout created successfully!');
+                            await showSuccessNotification(
+                                'Report Layout created successfully!');
                             window.location.href = response.redirect_to;
                         } else {
                             showErrorNotification('Error creating report layout!');
@@ -291,12 +318,14 @@
                             $.each(errors, function(field, messages) {
                                 let errorContainer = $(`[data-error="${field}"]`);
                                 messages.forEach(function(message) {
-                                    errorContainer.append(`<div>${message}</div>`);
+                                    errorContainer.append(
+                                        `<div>${message}</div>`);
                                 });
                             });
                         } else {
                             await showErrorNotification('An error occurred. Please try again.');
-                            $('button[type="submit"]', '#storeReportLayoutForm').prop('disabled', false);
+                            $('button[type="submit"]', '#storeReportLayoutForm').prop(
+                                'disabled', false);
                         }
                     }
                 });
@@ -349,30 +378,30 @@
                 const url = downloadPdfUrl.replace(':id', reportId);
 
                 fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    },
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.blob();
-                })
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `report-${reportId}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                });
+                        method: 'GET',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content'),
+                        },
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `report-${reportId}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
             });
         });
     </script>
 @endpush
-
