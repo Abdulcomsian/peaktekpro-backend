@@ -213,6 +213,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('add/exterior/photo-section/{Id}', [MeetingController::class, 'AddExteriorPhotoSection']);
     Route::get('get/exterior/photo-section/{Id}', [MeetingController::class, 'getExteriorPhotoSection']);
     Route::post('add/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'AdjustorMeetingSquarePhotos']);
+    Route::post('delete/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'DeleteAdjustorMeetingSquarePhotos']);
     Route::get('get/adjustor-meeting/square-photos/{Id}', [MeetingController::class, 'getAdjustorMeetingSquarePhotos']);
     Route::get('mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'CompleteAdjustorMeetingSquarePhotos']);
     Route::get('get/mark/complete/adjustor-meeting-photos/{Id}', [MeetingController::class, 'getCompleteAdjustorMeetingSquarePhotos']);
