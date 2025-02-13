@@ -126,8 +126,12 @@
         // Pass the $reports data to the frontend and adjust its structure
         const reportsData = @json($reports->items()).map(report => {
             // Fetch the first report page's data
-            const reportPage = report.report_pages?.[0];
-            const reportPage6 = report.report_pages?.[6];
+            // const reportPage = report.report_pages?.[0];
+            // const reportPage6 = report.report_pages?.[6];
+
+            const reportPage = report.report_pages.find(page => page.slug === 'introduction');
+            const reportPage6 = report.report_pages.find(page => page.slug === 'quote-details');
+
 
             // Check if reportPage exists and fetch page data
             const reportPageData = reportPage ? reportPage.page_data : null;

@@ -340,12 +340,12 @@
            <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative;">
            <h2 style=" padding-left: 10px; 
             color: white; 
-              margin: 0;
-  position: absolute;
-  top: 50%;
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
-            ">
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+                        ">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
            </div>
