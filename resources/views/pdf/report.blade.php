@@ -315,13 +315,13 @@
             <tr>
                 <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
                     <!-- Text Column -->
-                    <h3>{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3>
+                    <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3>
                     <p style="margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
                     <p style="margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p> <!-- Add space after phone -->
                     
-                    <p style="margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_address'] ?? 'No address available.' }}</p>
-                    <p style="margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_province'] ?? 'No province available.' }}</p>
-                    <p style="line-height: 2px;">{{ $jsonData['company_postal_code'] ?? 'No postal code available.' }}</p>
+                    <p style="margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_address'] ?? '' }}</p>
+                    <p style="margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_province'] ?? '' }}</p>
+                    <p style="line-height: 2px;">{{ $jsonData['company_postal_code'] ?? '' }}</p>
 
                 </td>
                 <td style="width: 50%; vertical-align: middle; text-align: center;">

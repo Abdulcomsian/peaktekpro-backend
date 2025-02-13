@@ -654,8 +654,11 @@
 
         // save inputs data
         const saveReportPageInputData = debounce(function() {
+            console.log('there');
             let fieldName = $(this).attr('name');
             let fieldValue = $(this).val();
+            console.log("Input Event Triggered -> Field:", fieldName, "Value:", fieldValue);
+
             $.ajax({
                 url: saveReportPageData,
                 method: 'POST',
@@ -674,6 +677,72 @@
 
         // Apply debounced function to save data on keyup
         $('.inp-data').on('keyup change', saveReportPageInputData);
+
+
+        //save all address fields
+
+        const saveReportPageDataAddress = "{{ route('reports.page.save-data') }}";
+
+        // Function to save all address-related fields at once
+        function saveAddressData() {
+            let addressData = {
+                page_id: pageId,
+                company_address: $('#company-address').val(),
+                company_city: $('#company-city').val(),
+                company_province: $('#company-province').val(),
+                company_postal_code: $('#company-postal-code').val()
+            };
+
+            console.log("Saving Address Data:", addressData);
+
+            $.ajax({
+                url: saveReportPageDataAddress,
+                method: 'POST',
+                data: addressData,
+                success: function(response) {
+                    showSuccessNotification(response.message);
+                },
+                error: function(xhr) {
+                    showErrorNotification('An error occurred while saving the address data.');
+                }
+            });
+        }
+
+    // save the company address function 
+    const saveReportPageInputDataAddress = debounce(function() {
+        let fieldName = $(this).attr('name');
+        let fieldValue = $(this).val();
+        console.log("Input Event Triggered -> Field:", fieldName, "Value:", fieldValue);
+
+        // Check if the changed field is part of the address-related fields
+        if (['company_address', 'company_city', 'company_province', 'company_postal_code'].includes(fieldName)) {
+            saveAddressData();
+            return;
+        }
+
+        $.ajax({
+            url: saveReportPageDataAddress,
+            method: 'POST',
+            data: {
+                page_id: pageId,
+                [fieldName]: fieldValue
+            },
+            success: function(response) {
+                showSuccessNotification(response.message);
+            },
+            error: function(xhr) {
+                showErrorNotification('An error occurred while saving data.');
+            }
+        });
+    }, 500); // Delay in milliseconds
+
+    // Apply debounced function to save data on keyup or change
+    $('.inp-data-address').on('keyup change', saveReportPageInputDataAddress);
+
+
+
+        //end here
+
 
         // save textarea data
         const saveReportPageTextareaData = debounce(function(element) {

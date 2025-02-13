@@ -46,8 +46,8 @@
         <div class="mb-4">
             <label for="company-address" class="block text-gray-700 text-sm font-medium mb-2">Address</label>
             <input type="text" id="company-address" name="company_address"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                placeholder="Enter your address" autocomplete="off" required />
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
+                placeholder="Enter your address" value="{{ $pageData->json_data['company_address'] ?? '' }}" autocomplete="off" required />
             <!-- Container for suggestions -->
             <div id="suggestions"></div>
         </div>
@@ -57,8 +57,8 @@
             <div class="mb-4 grow">
                 <label for="company-city" class="block text-gray-700 text-sm font-medium mb-2">City</label>
                 <input type="text" id="company-city" name="company_city"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    placeholder="City" required />
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
+                    placeholder="City" value="{{ $pageData->json_data['company_province'] ?? '' }}" required />
             </div>
 
             <!-- State/Province -->
@@ -66,8 +66,8 @@
                 <label for="company-province"
                     class="block text-gray-700 text-sm font-medium mb-2">State/Province</label>
                 <input type="text" id="company-province" name="company_province"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    placeholder="State/Province" required />
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
+                    placeholder="State/Province" value="{{ $pageData->json_data['company_province'] ?? '' }}" required />
             </div>
 
             <!-- Zip Code / Postal Code -->
@@ -75,8 +75,8 @@
                 <label for="company-postal-code" class="block text-gray-700 text-sm font-medium mb-2">Zip code/Postal
                     code</label>
                 <input type="text" id="company-postal-code" name="company_postal_code"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    placeholder="Postal Code" required />
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
+                    placeholder="Postal Code" value="{{ $pageData->json_data['company_postal_code'] ?? '' }}" required />
             </div>
         </div>
 
@@ -117,181 +117,63 @@
 </div>
 
 @push('scripts')
-    <!-- <script>
-        // Debounce function to reduce the rate of API calls
-        function debounce(func, delay) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), delay);
-            };
-        }
+    <!-- Google Maps API (Include Places Library) -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxqWY-xr9Pm9ZYMAYL08XOWu3X6Tz-Brw&libraries=places"></script>
 
-        // References to the input and suggestions container
+<script>
+    function initAutocomplete() {
+        // Target the address input field
         const addressInput = document.getElementById('company-address');
-        console.log("address", addressInput);
-        const suggestionsContainer = document.getElementById('suggestions');
-        console.log("suggestion container", suggestionsContainer);
-        const apiKey = 'AIzaSyBxqWY-xr9Pm9ZYMAYL08XOWu3X6Tz-Brw'; // Replace with your actual API key
-        console.log("api key", apiKey);
-        // Fetch geocoding results for a given query
-        async function fetchGeocode(query) {
-            const url =
-                `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`;
-            try {
-                console.log('Fetching geocode for:', query);
-                const response = await fetch(url);
-                const data = await response.json();
-                console.log('API response:', data);
-                if (data.status !== "OK") {
-                    console.warn("Geocoding API returned:", data.status);
-                    return [];
-                }
-                return data.results;
-            } catch (error) {
-                console.error('Error fetching geocode data:', error);
-                return [];
-            }
-        }
 
-        // Display the fetched suggestions
-        function displaySuggestions(results) {
-            suggestionsContainer.innerHTML = '';
-            if (results.length === 0) {
-                suggestionsContainer.style.display = 'none';
+        // Initialize Google Places Autocomplete
+        const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+            types: ['geocode'], // Restrict to address suggestions
+            componentRestrictions: { country: "us" } // Restrict to a specific country (optional)
+        });
+
+        // Extract address details when a suggestion is selected
+        autocomplete.addListener('place_changed', function () {
+            const place = autocomplete.getPlace();
+            if (!place.geometry) {
+                console.error("No details available for input: " + addressInput.value);
                 return;
             }
-            results.forEach(result => {
-                const item = document.createElement('div');
-                item.classList.add('suggestion-item');
-                item.textContent = result.formatted_address;
-                item.addEventListener('click', function() {
-                    selectSuggestion(result);
-                });
-                suggestionsContainer.appendChild(item);
-            });
-            suggestionsContainer.style.display = 'block';
-        }
 
-        // When a suggestion is selected, update the input fields
-        function selectSuggestion(result) {
-            // Update address field with the formatted address
-            addressInput.value = result.formatted_address;
-            suggestionsContainer.innerHTML = '';
-            suggestionsContainer.style.display = 'none';
+            // Populate the address field with the formatted address
+            addressInput.value = place.formatted_address;
 
-            // Extract components for city, state/province, and postal code
-            let city = '',
-                province = '',
-                postalCode = '';
-            result.address_components.forEach(component => {
+            // Extract components (city, state, zip code)
+            let city = '', province = '', postalCode = '';
+            place.address_components.forEach(component => {
                 if (component.types.includes('locality')) {
                     city = component.long_name;
+                    console.log("city",city);
+
                 }
                 if (component.types.includes('administrative_area_level_1')) {
                     province = component.short_name;
+                    console.log("province",province);
+
                 }
                 if (component.types.includes('postal_code')) {
                     postalCode = component.long_name;
+                    console.log("postalcode",postalCode);
                 }
+                
             });
 
-            // Populate the additional fields
-            document.getElementById('company-city').value = city;
-            document.getElementById('company-province').value = province;
-            document.getElementById('company-postal-code').value = postalCode;
-        }
+            $('#company-city').val(city);
+            $('#company-province').val(province);
+            $('#company-postal-code').val(postalCode);
 
-        // Debounced input event handler to trigger geocoding
-        const handleInput = debounce(async function() {
-            const query = addressInput.value;
-            // Increase the threshold for triggering a lookup
-            if (query.length < 1) {
-                suggestionsContainer.innerHTML = '';
-                suggestionsContainer.style.display = 'none';
-                return;
-            }
-            const results = await fetchGeocode(query);
-            displaySuggestions(results);
-        }, 500);
-
-        // Listen to input events on the address field
-        addressInput.addEventListener('input', handleInput);
-
-        // Hide suggestions when clicking outside of the input or suggestions container
-        document.addEventListener('click', function(e) {
-            if (!addressInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
-                suggestionsContainer.innerHTML = '';
-                suggestionsContainer.style.display = 'none';
-            }
+            saveAddressData();
         });
-    </script> -->
-    <script>
-        // Replace with your actual API key
-        const apiKey = 'AIzaSyBxqWY-xr9Pm9ZYMAYL08XOWu3X6Tz-Brw';
-        // console.log("api key",apiKey);
-        // Function to reverse geocode using latitude and longitude
-        function reverseGeocode(lat, lng) {
-            const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-            // console.log(url);
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "OK" && data.results.length) {
-                        console.log("inside if condition");
-                        const result = data.results[0];
-                        // Update the address field with the full formatted address
-                        document.getElementById('company-address').value = result.formatted_address;
+    }
 
-                        // Extract additional address components (city, state/province, postal code)
-                        let city = '',
-                            province = '',
-                            postalCode = '';
-                        result.address_components.forEach(component => {
-                            if (component.types.includes('locality')) {
-                                city = component.long_name;
-                            }
-                            if (component.types.includes('administrative_area_level_1')) {
-                                province = component.short_name;
-                            }
-                            if (component.types.includes('postal_code')) {
-                                postalCode = component.long_name;
-                            }
-                        });
-                        document.getElementById('company-city').value = city;
-                        document.getElementById('company-province').value = province;
-                        document.getElementById('company-postal-code').value = postalCode;
-                    } else {
-                        console.error("Reverse Geocoding failed:", data.status);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching geocode data:", error);
-                });
-        }
+    // Initialize the autocomplete when the page loads
+    window.onload = initAutocomplete;
+</script>
 
-        // Use the browser's geolocation API to get the current position
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    // Call the reverse geocode function with obtained coordinates
-                    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-                    console.log(url);
-
-                    reverseGeocode(lat, lng);
-                },
-                (error) => {
-                    console.error("Error obtaining geolocation:", error);
-                }
-            );
-        } else {
-            console.error("Geolocation is not supported by this browser.");
-        }
-
-
-    </script>
 
 
     <script type="text/javascript">
