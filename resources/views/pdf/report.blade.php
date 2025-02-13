@@ -310,7 +310,7 @@
             @endif
         </div>
 
-        
+
         <!-- //this is table  -->
         <table style="width: 100%; border: none; padding: 10px;">
             <tr>
@@ -370,11 +370,14 @@
             </div>
 
             <div class="repairability-assessment-images">
-                @foreach ($jsonData['repariability_assessment_images'] ?? [] as $image)
+                
+
+                @if (isset($jsonData['repariability_assessment_images']))
                 <div class="image">
-                    <img src="{{ public_path('storage/' . $image['path']) }}" alt="repariability_assessment_images"  />
+                    <!-- <img src="{{ public_path('storage/template-files/introduction/1738234447_sample_1920×1280.jpeg') }}" alt="Primary Image" style="width: 100%; max-width: 800px; display: block; margin: 0 auto;" /> -->
+                    <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="Primary Image" style="width: 100%; max-width: 1800px; height:800px; display: block;" />
                 </div>
-                @endforeach
+                @endif
             </div>
         @break
 

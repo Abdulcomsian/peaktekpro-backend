@@ -5,6 +5,7 @@
             <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Image</span>
             <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
         </div>
+        
     </form>
 
     <form action="/upload" method="POST">
@@ -19,30 +20,42 @@
 </div>
 
 @push('scripts')
-    <script type="text/javascript">
-        // drop zone
-        Dropzone.autoDiscover = false;
+<script type="text/javascript">
+    // drop zone
+    Dropzone.autoDiscover = false;
 
     const repairabilityAssessmentDropzone = new Dropzone("#repairabilityAssessmentDropzone", {
-        url: saveMultipleFilesFromDropZoneRoute,
-        uploadMultiple: false, // Change to false to prevent multiple file uploads
-        parallelUploads: 1, 
+        url: saveFileFromDropZoneRoute,
+        // uploadMultiple: false, // Change to false to prevent multiple file uploads
+        // parallelUploads: 1,
         maxFiles: 1, // Allows only one file at a time
         acceptedFiles: ".jpeg,.jpg,.png",
-        addRemoveLinks: true,
+        // addRemoveLinks: true,
         dictRemoveFile: "Remove",
-        dictDefaultMessage: "Drag & Drop or Click to Upload",
+        addRemoveLinks: true,
+
+        // dictDefaultMessage: "Drag & Drop or Click to Upload",
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         init: function() {
+            // let repairabilityAssessmentImages = {
+            //     files: JSON.parse(`{!! json_encode($pageData->json_data['repariability_assessment_images'] ?? []) !!}`),
+            //     file_url: "{{ $pageData->file_url ?? '' }}"
+            // };
+
             let repairabilityAssessmentImages = {
-                files: JSON.parse(`{!! json_encode($pageData->json_data['repariability_assessment_images'] ?? []) !!}`),
-                file_url: "{{ $pageData->file_url ?? '' }}"
-            };
-            
+                    name: "{{ $pageData->json_data['repariability_assessment_images']['file_name'] ?? '' }}",
+                    size: "{{ $pageData->json_data['repariability_assessment_images']['size'] ?? '' }}",
+                    url: "{{ $pageData->file_url ?? '' }}",
+                    path: "{{ $pageData->json_data['repariability_assessment_images']['path'] ?? '' }}",
+                    type: 'repariability_assessment_images'
+                }
+
             // Show existing image on load
-            showMultipleFilesOnLoadInDropzone(this, repairabilityAssessmentImages, 'repariability_assessment_images');
+            // showMultipleFilesOnLoadInDropzone(this, repairabilityAssessmentImages, 'repariability_assessment_images');
+
+            showFileOnLoadInDropzone(this, repairabilityAssessmentImages);
 
             this.on("addedfile", function(file) {
                 if (this.files.length > 1) {
@@ -82,65 +95,65 @@
 
 
 
-        // quill
+    // quill
 
-        const roofRepairLimitationsQuillOptions = [
-            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-            ['blockquote', 'code-block'],
-            ['link'],
-            [{
-                'header': 1
-            }, {
-                'header': 2
-            }], // custom button values
-            [{
-                'list': 'ordered'
-            }, {
-                'list': 'bullet'
-            }, {
-                'list': 'check'
-            }],
-            [{
-                'script': 'sub'
-            }, {
-                'script': 'super'
-            }], // superscript/subscript
-            [{
-                'header': [1, 2, 3, 4, 5, 6, false]
-            }],
+    const roofRepairLimitationsQuillOptions = [
+        ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+        ['blockquote', 'code-block'],
+        ['link'],
+        [{
+            'header': 1
+        }, {
+            'header': 2
+        }], // custom button values
+        [{
+            'list': 'ordered'
+        }, {
+            'list': 'bullet'
+        }, {
+            'list': 'check'
+        }],
+        [{
+            'script': 'sub'
+        }, {
+            'script': 'super'
+        }], // superscript/subscript
+        [{
+            'header': [1, 2, 3, 4, 5, 6, false]
+        }],
 
-            [{
-                'color': []
-            }, {
-                'background': []
-            }], // dropdown with defaults from theme
-            [{
-                'font': []
-            }],
-            [{
-                'align': []
-            }],
-            ['clean'] // remove formatting button
-        ];
-        var roofRepairLimitationsQuill = new Quill('#roof-repair-limitations-quill', {
-            theme: 'snow',
-            modules: {
-                toolbar: roofRepairLimitationsQuillOptions
-            }
-        });
-        // Set the height dynamically via JavaScript
-        roofRepairLimitationsQuill.root.style.height = '200px';
+        [{
+            'color': []
+        }, {
+            'background': []
+        }], // dropdown with defaults from theme
+        [{
+            'font': []
+        }],
+        [{
+            'align': []
+        }],
+        ['clean'] // remove formatting button
+    ];
+    var roofRepairLimitationsQuill = new Quill('#roof-repair-limitations-quill', {
+        theme: 'snow',
+        modules: {
+            toolbar: roofRepairLimitationsQuillOptions
+        }
+    });
+    // Set the height dynamically via JavaScript
+    roofRepairLimitationsQuill.root.style.height = '200px';
 
-        // old intro text value
-        let oldRoofRepairLimitationText = "{!! $pageData->json_data['roof_repair_limitations_text'] ?? '' !!}";
+    // old intro text value
+    let oldRoofRepairLimitationText = "{!! $pageData->json_data['roof_repair_limitations_text'] ?? '' !!}";
 
-        // Load the saved content into the editor
-        roofRepairLimitationsQuill.clipboard.dangerouslyPasteHTML(oldRoofRepairLimitationText);
-        roofRepairLimitationsQuill.on('text-change', function() {
-            $('#roof-repair-limitations-text').val(roofRepairLimitationsQuill.root.innerHTML);
+    // Load the saved content into the editor
+    roofRepairLimitationsQuill.clipboard.dangerouslyPasteHTML(oldRoofRepairLimitationText);
+    roofRepairLimitationsQuill.on('text-change', function() {
+        $('#roof-repair-limitations-text').val(roofRepairLimitationsQuill.root.innerHTML);
 
-            //save textarea data
-            saveReportPageTextareaData('#roof-repair-limitations-text');
-        });
-    </script>
+        //save textarea data
+        saveReportPageTextareaData('#roof-repair-limitations-text');
+    });
+</script>
 @endpush
