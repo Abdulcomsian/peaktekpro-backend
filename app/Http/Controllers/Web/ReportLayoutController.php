@@ -557,15 +557,24 @@ private function insertEntirePdf($pdf, $pdfPath)
     public function createPage(Request $request, $reportId)
     {
         try {
-
             $lastReportPage = ReportPage::where('report_id', $reportId)->orderBy('order_no', 'desc')->first();
-
-            $reportPage = ReportPage::create([
-                'report_id' => $reportId,
-                'name' => $request->title,
-                'order_no' => $lastReportPage->order_no + 1
-            ]);
-
+            if(!$lastReportPage)
+            {
+                $reportPage = ReportPage::create([
+                    'report_id' => $reportId,
+                    'name' => $request->title,
+                    'order_no' => 10, //for the first custome page id is 10
+                    // 'order_no' => $lastReportPage->order_no + 1
+                ]);
+            }else{
+                // dd($lastReportPage);
+                $reportPage = ReportPage::create([
+                    'report_id' => $reportId,
+                    'name' => $request->title,
+                    'order_no' => $lastReportPage->order_no + 1
+                ]);
+            }
+            
             $reportPage = ReportPage::findOrFail($reportPage->id);
 
             return response()->json([
@@ -633,7 +642,6 @@ private function insertEntirePdf($pdf, $pdfPath)
     public function savePageData(Request $request)
     {
         try {
-
             $pageId = $request->input('page_id');
             $jsonData = $request->except('page_id');
 
@@ -669,6 +677,7 @@ private function insertEntirePdf($pdf, $pdfPath)
     public function savePageFile(Request $request)
     {
         try {
+        
 
             if ($request->hasFile('file')) {
 
