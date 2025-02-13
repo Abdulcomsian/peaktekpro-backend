@@ -642,7 +642,6 @@ private function insertEntirePdf($pdf, $pdfPath)
     public function savePageData(Request $request)
     {
         try {
-
             $pageId = $request->input('page_id');
             $jsonData = $request->except('page_id');
 

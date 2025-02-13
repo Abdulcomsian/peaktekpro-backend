@@ -739,7 +739,7 @@
     // Apply debounced function to save data on keyup or change
     $('.inp-data-address').on('keyup change', saveReportPageInputDataAddress);
 
-
+ 
 
         //end here
 
