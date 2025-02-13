@@ -89,7 +89,7 @@
 
     </form>
 
-    
+
     <!-- Form for Primary Image -->
     <div class="mb-4">
 
@@ -269,12 +269,22 @@
                     formData.append('folder', 'introduction');
                 });
                 // adding file
+                // this.on("addedfile", function(file) {
+                //     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
+                //         this.removeFile(file);
+                //         showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
+                //     }
+                // });
                 this.on("addedfile", function(file) {
-                    if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                        this.removeFile(file);
-                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
-                    }
-                });
+                if (this.files.length > 1) {
+                    this.removeFile(this.files[0]); // Remove the previous file if a new one is added
+                }
+
+                if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
+                    this.removeFile(file);
+                    showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
+                }
+            });
 
                 this.on("success", function(file, response) {
                     showSuccessNotification(response.message);
