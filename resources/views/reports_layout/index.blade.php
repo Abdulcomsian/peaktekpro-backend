@@ -64,12 +64,13 @@
                     </tbody>
                 </table>
             </div>
-            <div class="bg-white shadow-md rounded-lg">
-                {!! $reports->links('vendor.pagination.tailwind') !!}
-            </div>
+            
 
             <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
                 <!-- Cards will be dynamically inserted here -->
+            </div>
+            <div class="mt-3">
+                {!! $reports->links('vendor.pagination.tailwind') !!}
             </div>
         </div>
     </section>
@@ -138,8 +139,6 @@
             const reportPageData6 = reportPage6 ? reportPage6.page_data : null;
 
             // Debugging: Log reportPage and reportPageData
-            // console.log("Report Page:", reportPage);
-            console.log("Report Page Data:", reportPageData, report.created_at);
 
             // Extract required data
             const title = reportPageData ? reportPageData.json_data.report_title : 'No company name available';
@@ -402,7 +401,6 @@
                         document.body.removeChild(link);
                     })
                     .catch(error => {
-                        console.error('Error:', error);
                         alert('An error occurred. Please try again.');
                     });
             });
