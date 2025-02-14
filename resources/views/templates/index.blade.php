@@ -16,16 +16,16 @@
             <!-- Responsive Table -->
             <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table class="min-w-full border border-gray-300">
-                    <thead>
+                    <!-- <thead>
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">S.No</th>
                             <th class="py-3 px-6 text-left">Title</th>
                             <th class="py-3 px-6 text-center">Actions</th>
                         </tr>
-                    </thead>
-                    <tbody class="text-gray-700 text-sm font-light">
+                    </thead> -->
+                    <!-- <tbody class="text-gray-700 text-sm font-light">
                         @forelse ($templates as $template)
-                            <!-- <tr class="border-b border-gray-200 hover:bg-gray-100">
+                            <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-6 text-left">{{ $template->title }}</td>
                                 <td class="py-3 px-6 text-center">
@@ -34,22 +34,23 @@
                                     <button onclick="openDeleteModal({{ $template->id }})"
                                         class="text-red-500 hover:text-red-600 ml-4">Delete</button>
                                 </td>
-                            </tr> -->
+                            </tr>
                         @empty
                             <tr>
                                 <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
                             </tr>
                         @endforelse
-                    </tbody>
+                    </tbody> -->
                 </table>
             </div>
-            <div class="bg-white shadow-md rounded-lg">
-                {!! $templates->links('vendor.pagination.tailwind') !!}
-            </div>
+           
 
             <!-- Card Grid -->
             <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
                 <!-- Cards will be dynamically inserted here -->
+            </div>
+            <div class="mt-3">
+                {!! $templates->links('vendor.pagination.tailwind') !!}
             </div>
         </div>
     </section>
@@ -112,26 +113,25 @@
             const templatePage = template.template_pages?.[0];  // Optional chaining to safely access the first element
             const templatePageData = templatePage ? templatePage.page_data : null;  // Safely access page_data
 
-            // Debugging: Log templatePage and templatePageData
-            console.log("Template Page:", templatePage);
-            console.log("Template Page Data:", templatePageData);
+           
 
             // Extract required data
             const title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
             const siteAddress = templatePageData ? templatePageData.json_data.company_address : 'No address available';
             const description = templatePageData ? templatePageData.json_data.intro_text : 'No description available';
             const price = template.price ? `$${template.price.toFixed(2)}` : '$0.00';
-            const tag = template.status === 'published' ? 'PUBLISHED' : 'DRAFT';
+            // const tag = template.status === 'published' ? 'PUBLISHED' : 'DRAFT';
             const image = templatePageData && templatePageData.json_data.primary_image 
                 ? templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path 
                 : 'https://picsum.photos/536/354';
 
             return {
+                templateId: template.id, // Map title to reportName
                 reportName: title, // Map title to reportName
                 siteAddress: siteAddress, // Use company_address
                 description: description, // Use intro_text
                 price: price, // Format price if available
-                tag: tag, // Map status to tag
+                // tag: tag, // Map status to tag
                 image: image, // Use primary_image path
             };
         });
@@ -169,16 +169,16 @@
                 );
 
                 // Set tag color based on status
-                switch (item.tag) {
-                    case 'DRAFT':
-                        statusTag.addClass('bg-blue-500').text('DRAFT');
-                        break;
-                    case 'PUBLISHED':
-                        statusTag.addClass('bg-green-500').text('PUBLISHED');
-                        break;
-                    default:
-                        statusTag.addClass('bg-gray-500').text(item.tag);
-                }
+                // switch (item.tag) {
+                //     case 'DRAFT':
+                //         statusTag.addClass('bg-blue-500').text('DRAFT');
+                //         break;
+                //     case 'PUBLISHED':
+                //         statusTag.addClass('bg-green-500').text('PUBLISHED');
+                //         break;
+                //     default:
+                //         statusTag.addClass('bg-gray-500').text(item.tag);
+                // }
 
                 imageContainer.append(image).append(statusTag);
 
@@ -187,13 +187,19 @@
                 const threeDots = $('<div>').html('...').addClass(
                     'text-3xl text-white');
 
+                    let editTemplateRoute = "{{ route('templates.edit',['id' => ':id']) }}"
+                    editTemplateRoute = editTemplateRoute.replace(':id', item.templateId)
+                    
+
                 // Dropdown Menu
                 const dropdownMenu = $('<div>')
                     .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
                     .append(
                         $('<ul>').addClass('text-sm text-gray-700').html(`
-                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-template">Edit Template</li>
-                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer view-template">View Template</li>
+                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-template">
+                                <a href="${editTemplateRoute}">Edit Template</a>
+                            </li>
+                            
                         `)
                     );
 
@@ -211,9 +217,9 @@
                 });
 
                 // Handle menu actions
-                dropdownMenu.find('.edit-template').on('click', function() {
-                    alert(`Edit Template: ${item.reportName}`);
-                });
+                // dropdownMenu.find('.edit-template').on('click', function() {
+                //     alert(`Edit Template: ${item.reportName}`);
+                // });
 
                 dropdownMenu.find('.view-template').on('click', function() {
                     alert(`View Template: ${item.reportName}`);
