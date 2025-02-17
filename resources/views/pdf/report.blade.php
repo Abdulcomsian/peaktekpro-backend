@@ -339,7 +339,7 @@
         <!-- third Section -->
 
         @case('repairability-or-compatibility-photos')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="comparison-sections" style="font-size:9.6px; font-family:sans-serif;">
             <h4>Title</h4>
             <p>{{ $jsonData['comparision_sections'][0]['title'] ?? 'No title available.' }}</p>
@@ -365,7 +365,7 @@
         <!-- <div class="section"> -->
 
         @case('product-compatibility')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="product-compatibility-section">
             <div class="product-compatibility-text">
                 {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
@@ -382,7 +382,7 @@
         <!-- <div style="page-break-after: always; break-after: page;"></div> -->
 
         @case('unfair-claims-practices')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="unfair-claims-section">
             <div class="pdf-placeholder" data-section="unfair-claims-practices">
                 [unfair-claims-practices-placeholder]
@@ -424,7 +424,7 @@
         <!-- 6th Section -->
 
         @case('applicable-codes-guidelines')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="applicable-codes-guidelines-section" style="font-size:9.6px; font-family:sans-serif;">
             <div class="text-content">
                 {!! $jsonData['applicable_code_guidelines_text'] ?? 'No guidelines text available.' !!}
@@ -435,7 +435,7 @@
         <!-- 7th Section -->
 
         @case('quote-details')
-    <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+    <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
     <div class="quote-details-section" style="font-size:9.6px; font-family:sans-serif; margin: 0 20px;">
 
         @foreach($jsonData['sections'] ?? [] as $section)
@@ -518,7 +518,7 @@
 
         <!-- 9th Section -->
         @case('terms-and-conditions')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="terms-and-conditions" style="font-size:9.6px; font-family:sans-serif;">
             {!! $jsonData['terms_and_conditions_text'] !!}
         </div>
