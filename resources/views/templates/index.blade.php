@@ -17,33 +17,33 @@
             <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table class="min-w-full border border-gray-300">
                     <!-- <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 text-left">S.No</th>
-                            <th class="py-3 px-6 text-left">Title</th>
-                            <th class="py-3 px-6 text-center">Actions</th>
-                        </tr>
-                    </thead> -->
+                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 text-left">S.No</th>
+                                <th class="py-3 px-6 text-left">Title</th>
+                                <th class="py-3 px-6 text-center">Actions</th>
+                            </tr>
+                        </thead> -->
                     <!-- <tbody class="text-gray-700 text-sm font-light">
-                        @forelse ($templates as $template)
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
-                                <td class="py-3 px-6 text-left">{{ $template->title }}</td>
-                                <td class="py-3 px-6 text-center">
-                                    <a href="{{ route('templates.edit', ['id' => $template->id]) }}"
-                                        class="text-blue-500 hover:text-blue-600">Edit</a>
-                                    <button onclick="openDeleteModal({{ $template->id }})"
-                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button>
-                                </td>
-                            </tr>
+                            @forelse ($templates as $template)
+    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                    <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
+                                    <td class="py-3 px-6 text-left">{{ $template->title }}</td>
+                                    <td class="py-3 px-6 text-center">
+                                        <a href="{{ route('templates.edit', ['id' => $template->id]) }}"
+                                            class="text-blue-500 hover:text-blue-600">Edit</a>
+                                        <button onclick="openDeleteModal({{ $template->id }})"
+                                            class="text-red-500 hover:text-red-600 ml-4">Delete</button>
+                                    </td>
+                                </tr>
                         @empty
-                            <tr>
-                                <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody> -->
+                                <tr>
+                                    <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
+                                </tr>
+    @endforelse
+                        </tbody> -->
                 </table>
             </div>
-           
+
 
             <!-- Card Grid -->
             <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
@@ -110,20 +110,23 @@
             // const templatePage = templates.template_pages[0]; // Adjust this based on your actual relationship
             // const templatePageData = templatePage ? templatePage.page_data : null;
 
-            const templatePage = template.template_pages?.[0];  // Optional chaining to safely access the first element
-            const templatePageData = templatePage ? templatePage.page_data : null;  // Safely access page_data
+            const templatePage = template.template_pages?.[
+            0]; // Optional chaining to safely access the first element
+            const templatePageData = templatePage ? templatePage.page_data : null; // Safely access page_data
 
-           
+
 
             // Extract required data
             const title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
-            const siteAddress = templatePageData ? templatePageData.json_data.company_address : 'No address available';
-            const description = templatePageData ? templatePageData.json_data.intro_text : 'No description available';
+            const siteAddress = templatePageData ? templatePageData.json_data.company_address :
+                'No address available';
+            const description = templatePageData ? templatePageData.json_data.intro_text :
+                'No description available';
             const price = template.price ? `$${template.price.toFixed(2)}` : '$0.00';
             // const tag = template.status === 'published' ? 'PUBLISHED' : 'DRAFT';
-            const image = templatePageData && templatePageData.json_data.primary_image 
-                ? templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path 
-                : 'https://picsum.photos/536/354';
+            const image = templatePageData && templatePageData.json_data.primary_image ?
+                templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path :
+                'https://picsum.photos/536/354';
 
             return {
                 templateId: template.id, // Map title to reportName
@@ -138,18 +141,18 @@
 
         function openModal() {
 
-        $('#storeTemplateForm')[0].reset();
-        $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+            $('#storeTemplateForm')[0].reset();
+            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
 
-        $('#modal').removeClass('hidden');
+            $('#modal').removeClass('hidden');
         }
         // hide create modal
         function closeModal() {
 
-        $('#storeTemplateForm')[0].reset();
-        $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+            $('#storeTemplateForm')[0].reset();
+            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
 
-        $('#modal').addClass('hidden');
+            $('#modal').addClass('hidden');
 
         }
         $(document).ready(function() {
@@ -187,9 +190,9 @@
                 const threeDots = $('<div>').html('...').addClass(
                     'text-3xl text-white');
 
-                    let editTemplateRoute = "{{ route('templates.edit',['id' => ':id']) }}"
-                    editTemplateRoute = editTemplateRoute.replace(':id', item.templateId)
-                    
+                let editTemplateRoute = "{{ route('templates.edit', ['id' => ':id']) }}"
+                editTemplateRoute = editTemplateRoute.replace(':id', item.templateId)
+
 
                 // Dropdown Menu
                 const dropdownMenu = $('<div>')
@@ -199,7 +202,7 @@
                             <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-template">
                                 <a href="${editTemplateRoute}">Edit Template</a>
                             </li>
-                            
+
                         `)
                     );
 
@@ -229,7 +232,7 @@
                 const content = $('<div>').html(`
                     <h3 class="text-xl font-bold text-gray-700">${item.reportName}</h3>
                     <p class="text-gray-600">${item.siteAddress}</p>
-                    <p class="text-gray-600">${item.description}</p>
+                     <div class="text-gray-600 break-words">${item.description}</div>
                     <p class="text-gray-800 font-bold mt-2">${item.price}</p>
                 `);
 
@@ -265,12 +268,14 @@
                             $.each(errors, function(field, messages) {
                                 let errorContainer = $(`[data-error="${field}"]`);
                                 messages.forEach(function(message) {
-                                    errorContainer.append(`<div>${message}</div>`);
+                                    errorContainer.append(
+                                        `<div>${message}</div>`);
                                 });
                             });
                         } else {
                             await showErrorNotification('An error occurred. Please try again.');
-                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
+                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled',
+                                false);
                         }
                     }
                 });
