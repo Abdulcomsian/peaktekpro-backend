@@ -5,92 +5,89 @@
         @if (isset($pageData->json_data['sections']) && count($pageData->json_data['sections']) > 0)
 
             @forelse ($pageData->json_data['sections'] as $section)
-
-            <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
-                data-id="{{ $section['id'] }}">
-                <!-- Section Header -->
-                <div class="flex justify-between items-center mb-4 gap-1">
-                    <div class="flex items-center space-x-2">
-                        <div>
-                            <input type="text"
-                                class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1 quote-section-title"
-                                placeholder="Section Title" value="{{ $section['title'] }}"/>
-                        </div>
-                        <div>
-                            <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
-                                X
-                            </button>
-                            <span class="section-drag-handle cursor-pointer">↑↓</span>
-                        </div>
-                    </div>
-                    <div class="relative flex items-center">
-                        <span id="toggle-tooltip"
-                            class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
-                            Show or Hide this section, It's total is always included.
-                        </span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer section-toggle" @checked($section['isActive'] == 'true')>
-                            <div
-                                class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+                <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
+                    data-id="{{ $section['id'] }}">
+                    <!-- Section Header -->
+                    <div class="flex justify-between items-center mb-4 gap-1">
+                        <div class="flex items-center space-x-2">
+                            <div>
+                                <input type="text"
+                                    class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1 quote-section-title"
+                                    placeholder="Section Title" value="{{ $section['title'] }}" />
                             </div>
-                        </label>
-                    </div>
-                </div>
-                <!-- Rows Container -->
-                <div class="rows-container space-y-4">
-                    <!-- Default Row -->
-                    @forelse ($section['sectionItems'] as $item)
-
-                    <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
-                        <span class="row-drag-handle cursor-pointer">↑↓</span>
-                        <!-- Item Description -->
-                        <input type="text" class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
-                            placeholder="Item Description" value="{{ $item['description'] }}">
-
-                        <!-- Quantity -->
-                        <input type="number" class="item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
-                            placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] }}">
-
-                        <!-- Unit Price -->
-                        <input type="number" class="item-price w-20 border border-gray-300 rounded-md px-2 py-1"
-                            placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] }}">
-
-                        <!-- Line Total -->
-                        <div class="line-total-container w-24 text-right flex-1">
-                            <span class="line-total block">
-                                ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
-                            </span>
+                            <div>
+                                <button class="remove-section-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                                    X
+                                </button>
+                                <span class="section-drag-handle cursor-pointer">↑↓</span>
+                            </div>
                         </div>
-
-                        <!-- Remove Button -->
-                        <button class="remove-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
-                            X
-                        </button>
+                        <div class="relative flex items-center">
+                            <span id="toggle-tooltip"
+                                class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
+                                Show or Hide this section, It's total is always included.
+                            </span>
+                            <label class=" inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer section-toggle" @checked($section['isActive'] == 'true')>
+                                <div
+                                    class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+                                </div>
+                            </label>
+                        </div>
                     </div>
+                    <!-- Rows Container -->
+                    <div class="rows-container space-y-4">
+                        <!-- Default Row -->
+                        @forelse ($section['sectionItems'] as $item)
+                            <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
+                                <span class="row-drag-handle cursor-pointer">↑↓</span>
+                                <!-- Item Description -->
+                                <input type="text"
+                                    class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
+                                    placeholder="Item Description" value="{{ $item['description'] }}">
 
-                    @empty
+                                <!-- Quantity -->
+                                <input type="number" class="item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
+                                    placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] }}">
 
-                    @endforelse
+                                <!-- Unit Price -->
+                                <input type="number"
+                                    class="item-price w-20 border border-gray-300 rounded-md px-2 py-1"
+                                    placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] }}">
 
+                                <!-- Line Total -->
+                                <div class="line-total-container w-24 text-right flex-1">
+                                    <span class="line-total block">
+                                        ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
+                                    </span>
+                                </div>
+
+                                <!-- Remove Button -->
+                                <button class="remove-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                                    X
+                                </button>
+                            </div>
+
+                        @empty
+                        @endforelse
+
+                    </div>
+                    <!-- Add Row Button -->
+                    <button class="add-row-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">
+                        + Add Row
+                    </button>
+                    <!-- Section Total -->
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="text-lg font-medium text-gray-700">Section Total:</span>
+                        <span class="section-total text-lg font-semibold text-gray-800">
+                            ${{ number_format($section['sectionTotal'] ?? 0, 2, '.', '') }}
+                        </span>
+                    </div>
                 </div>
-                <!-- Add Row Button -->
-                <button class="add-row-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">
-                    + Add Row
-                </button>
-                <!-- Section Total -->
-                <div class="flex justify-between items-center mt-4">
-                    <span class="text-lg font-medium text-gray-700">Section Total:</span>
-                    <span class="section-total text-lg font-semibold text-gray-800">
-                        ${{ number_format($section['sectionTotal'] ?? 0, 2, '.', '') }}
-                    </span>
-                </div>
-            </div>
 
             @empty
-
             @endforelse
-            @else
-
+        @else
             <div class="section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
                 data-id="{{ \Str::random(8) }}">
                 <!-- Section Header -->
@@ -113,7 +110,7 @@
                             class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
                             Show or Hide this section, It's total is always included.
                         </span>
-                        <label class="relative inline-flex items-center cursor-pointer">
+                        <label class=" inline-flex items-center cursor-pointer">
                             <input type="checkbox" class="sr-only peer section-toggle">
                             <div
                                 class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
@@ -127,7 +124,8 @@
                     <div class="row flex flex-wrap items-center space-x-4" data-id="{{ \Str::random(8) }}">
                         <span class="row-drag-handle cursor-pointer">↑↓</span>
                         <!-- Item Description -->
-                        <input type="text" class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
+                        <input type="text"
+                            class="item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
                             placeholder="Item Description">
 
                         <!-- Quantity -->
@@ -287,7 +285,7 @@
                     class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-sm bg-black text-white px-2 py-1 rounded-md hidden">
                     Show or Hide this section, It's total is always included.
                 </span>
-                <label class="relative inline-flex items-center cursor-pointer">
+                <label class=" inline-flex items-center cursor-pointer">
                     <input type="checkbox" class="sr-only peer section-toggle">
                     <div
                         class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
@@ -411,28 +409,28 @@
             update: function(event, ui) {
                 // Update order via AJAX after drag stop
                 const quoteSectionsOrder = $("#sections-container .section").map(function() {
-                        return $(this).data("id");
-                    }).get();
-                    $.ajax({
-                        url: "{{ route('reports.page.quote-sections-ordering.update') }}",
-                        method: 'POST',
-                        data: {
-                            page_id: pageId,
-                            sections_order: quoteSectionsOrder,
-                        },
-                        success: function(response) {
-                            if (response.status) {
+                    return $(this).data("id");
+                }).get();
+                $.ajax({
+                    url: "{{ route('reports.page.quote-sections-ordering.update') }}",
+                    method: 'POST',
+                    data: {
+                        page_id: pageId,
+                        sections_order: quoteSectionsOrder,
+                    },
+                    success: function(response) {
+                        if (response.status) {
 
-                                // show a success message
-                                showSuccessNotification(response.message);
-                            } else {
-                                showErrorNotification(response.message);
-                            }
-                        },
-                        error: function(xhr) {
-                            showErrorNotification("Failed to reorder sections:", xhr.responseText);
+                            // show a success message
+                            showSuccessNotification(response.message);
+                        } else {
+                            showErrorNotification(response.message);
                         }
-                    });
+                    },
+                    error: function(xhr) {
+                        showErrorNotification("Failed to reorder sections:", xhr.responseText);
+                    }
+                });
 
             },
             cancel: ".remove-section-btn, input, button" // Prevent drag interference

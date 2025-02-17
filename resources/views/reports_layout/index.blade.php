@@ -17,45 +17,45 @@
             <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table class="min-w-full border border-gray-300">
                     <!-- <thead>
-                                                                                                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                                                                                            <th class="py-3 px-6 text-left">S.No</th>
-                                                                                                            <th class="py-3 px-6 text-left">Title</th>
-                                                                                                            @if ($reports->where('status', 'published')->count() > 0)
+                                                                                                                                                                                                <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                                                                                                                                                                                    <th class="py-3 px-6 text-left">S.No</th>
+                                                                                                                                                                                                    <th class="py-3 px-6 text-left">Title</th>
+                                                                                                                                                                                                    @if ($reports->where('status', 'published')->count() > 0)
     <th class="py-3 px-6 text-left">File</th>
     @endif
-                                                                                                            <th class="py-3 px-6 text-left">Status</th>
-                                                                                                            <th class="py-3 px-6 text-center">Actions</th>
-                                                                                                        </tr>
-                                                                                                    </thead> -->
+                                                                                                                                                                                                    <th class="py-3 px-6 text-left">Status</th>
+                                                                                                                                                                                                    <th class="py-3 px-6 text-center">Actions</th>
+                                                                                                                                                                                                </tr>
+                                                                                                                                                                                            </thead> -->
                     <tbody class="text-gray-700 text-sm font-light">
                         @forelse ($reports as $report)
                             <!-- <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                                                                                                <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
-                                                                                                                <td class="py-3 px-6 text-left">{{ $report->title }}</td>
-                                                                                                                <td class="py-3 px-6 text-left">
-                                                                                                                    @if ($report->status == 'published')
+                                                                                                                                                                                                        <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
+                                                                                                                                                                                                        <td class="py-3 px-6 text-left">{{ $report->title }}</td>
+                                                                                                                                                                                                        <td class="py-3 px-6 text-left">
+                                                                                                                                                                                                            @if ($report->status == 'published')
     <a class="downloadReportPDF text-blue-500 hover:text-blue-600 cursor-pointer"
-                                                                                                                            data-id="{{ $report->id }}">
-                                                                                                                            Download PDF
-                                                                                                                        </a>
+                                                                                                                                                                                                                    data-id="{{ $report->id }}">
+                                                                                                                                                                                                                    Download PDF
+                                                                                                                                                                                                                </a>
     @endif
-                                                                                                                </td>
-                                                                                                                <td class="py-3 px-6 text-left">
-                                                                                                                    @if ($report->status === 'draft')
+                                                                                                                                                                                                        </td>
+                                                                                                                                                                                                        <td class="py-3 px-6 text-left">
+                                                                                                                                                                                                            @if ($report->status === 'draft')
     <span
-                                                                                                                            class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
+                                                                                                                                                                                                                    class="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Draft</span>
 @else
     <span
-                                                                                                                            class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
+                                                                                                                                                                                                                    class="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-200 rounded-full">Published</span>
     @endif
-                                                                                                                </td>
-                                                                                                                <td class="py-3 px-6 text-center">
-                                                                                                                    <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
-                                                                                                                        class="text-blue-500 hover:text-blue-600">Edit</a>
-                                                                                                                    <button onclick="openDeleteModal({{ $report->id }})"
-                                                                                                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button>
-                                                                                                                </td>
-                                                                                                            </tr> -->
+                                                                                                                                                                                                        </td>
+                                                                                                                                                                                                        <td class="py-3 px-6 text-center">
+                                                                                                                                                                                                            <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
+                                                                                                                                                                                                                class="text-blue-500 hover:text-blue-600">Edit</a>
+                                                                                                                                                                                                            <button onclick="openDeleteModal({{ $report->id }})"
+                                                                                                                                                                                                                class="text-red-500 hover:text-red-600 ml-4">Delete</button>
+                                                                                                                                                                                                        </td>
+                                                                                                                                                                                                    </tr> -->
                         @empty
                             <tr>
                                 <td colspan="4" class="py-3 px-6 text-center">No reports found.</td>
@@ -64,7 +64,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
 
             <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
                 <!-- Cards will be dynamically inserted here -->
@@ -137,6 +137,7 @@
             // Check if reportPage exists and fetch page data
             const reportPageData = reportPage ? reportPage.page_data : null;
             const reportPageData6 = reportPage6 ? reportPage6.page_data : null;
+            console.log("Reports Page Data", reportPageData);
 
             // Debugging: Log reportPage and reportPageData
 
@@ -238,9 +239,9 @@
                 imageContainer.append(image).append(statusTag);
 
                 // Three Dots Menu
-                const menuContainer = $('<div>').addClass('absolute top-2 right-6 cursor-pointer');
+                const menuContainer = $('<div>').addClass('relative ');
                 const threeDots = $('<div>').html('...').addClass(
-                    'text-3xl text-white');
+                    'text-5xl text-blue-600 absolute -top-40 right-4 cursor-pointer');
 
                 let editReportRoute = "{{ route('reports.edit', ['id' => ':id']) }}"
                 editReportRoute = editReportRoute.replace(':id', item.id)
@@ -250,7 +251,8 @@
 
                 // Dropdown Menu
                 const dropdownMenu = $('<div>')
-                    .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
+                    .addClass(
+                        'absolute right-4 -top-36 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
                     .append(
                         $('<ul>').addClass('text-sm text-gray-700').html(`<a href="${editReportRoute}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</a>
                                 <a href="${downloadReportPdfRoute}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</a>
@@ -283,7 +285,7 @@
                 const content = $('<div class="flex flex-col gap-1">').html(`
                     <h3 class="text-xl font-bold text-gray-700 mb-2">${item.reportName}</h3>
                     <p class="text-gray-600">${item.siteAddress}</p>
-                    <p class="text-gray-600">${item.description}</p>
+                    <div class="text-gray-600 break-words">${item.description}</div>
                     <p class="text-gray-800">${item.createdAt}</p>
                     <p class="text-gray-800 font-bold ">${item.price}</p>
                 `);

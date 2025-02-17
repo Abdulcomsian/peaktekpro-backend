@@ -3,7 +3,7 @@
 
         <!-- Text -->
         <div class="mb-4">
-            <div id="applicable-code-guidelines-text-quill" class="bg-white"></div>
+            <div id="applicable-code-guidelines-text-quill" class="bg-white" style="position: static"></div>
             <textarea class="hidden" id="applicable-code-guidelines-text" name="applicable_code_guidelines_text" required>{{ $pageData->json_data['applicable_code_guidelines_text'] ?? '' }}</textarea>
         </div>
 
