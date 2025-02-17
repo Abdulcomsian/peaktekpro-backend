@@ -47,7 +47,8 @@
             <label for="company-address" class="block text-gray-700 text-sm font-medium mb-2">Address</label>
             <input type="text" id="company-address" name="company_address"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                placeholder="Enter your address" value="{{ $pageData->json_data['company_address'] ?? '' }}" autocomplete="off" required />
+                placeholder="Enter your address" value="{{ $pageData->json_data['company_address'] ?? '' }}"
+                autocomplete="off" required />
             <!-- Container for suggestions -->
             <div id="suggestions"></div>
         </div>
@@ -67,7 +68,8 @@
                     class="block text-gray-700 text-sm font-medium mb-2">State/Province</label>
                 <input type="text" id="company-province" name="company_province"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="State/Province" value="{{ $pageData->json_data['company_province'] ?? '' }}" required />
+                    placeholder="State/Province" value="{{ $pageData->json_data['company_province'] ?? '' }}"
+                    required />
             </div>
 
             <!-- Zip Code / Postal Code -->
@@ -76,14 +78,15 @@
                     code</label>
                 <input type="text" id="company-postal-code" name="company_postal_code"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="Postal Code" value="{{ $pageData->json_data['company_postal_code'] ?? '' }}" required />
+                    placeholder="Postal Code" value="{{ $pageData->json_data['company_postal_code'] ?? '' }}"
+                    required />
             </div>
         </div>
 
         <!-- Introductory Text -->
         <div class="mb-4">
             <label for="intro-text" class="block text-gray-700 text-sm font-medium mb-2">Introductory Text</label>
-            <div id="intro-text-quill" class="bg-white"></div>
+            <div id="intro-text-quill" class="bg-white" style="position: static"></div>
             <textarea class="hidden" id="intro-text" name="intro_text" required>{{ $pageData->json_data['intro_text'] ?? '' }}</textarea>
         </div>
 
@@ -119,61 +122,66 @@
 
 @push('scripts')
     <!-- Google Maps API (Include Places Library) -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxqWY-xr9Pm9ZYMAYL08XOWu3X6Tz-Brw&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxqWY-xr9Pm9ZYMAYL08XOWu3X6Tz-Brw&libraries=places">
+    </script>
 
-<script>
-    function initAutocomplete() {
-        // Target the address input field
-        const addressInput = document.getElementById('company-address');
+    <script>
+        function initAutocomplete() {
+            // Target the address input field
+            const addressInput = document.getElementById('company-address');
 
-        // Initialize Google Places Autocomplete
-        const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-            types: ['geocode'], // Restrict to address suggestions
-            componentRestrictions: { country: "us" } // Restrict to a specific country (optional)
-        });
-
-        // Extract address details when a suggestion is selected
-        autocomplete.addListener('place_changed', function () {
-            const place = autocomplete.getPlace();
-            if (!place.geometry) {
-                console.error("No details available for input: " + addressInput.value);
-                return;
-            }
-
-            // Populate the address field with the formatted address
-            addressInput.value = place.formatted_address;
-
-            // Extract components (city, state, zip code)
-            let city = '', province = '', postalCode = '';
-            place.address_components.forEach(component => {
-                if (component.types.includes('locality')) {
-                    city = component.long_name;
-                    console.log("city",city);
-
-                }
-                if (component.types.includes('administrative_area_level_1')) {
-                    province = component.short_name;
-                    console.log("province",province);
-
-                }
-                if (component.types.includes('postal_code')) {
-                    postalCode = component.long_name;
-                    console.log("postalcode",postalCode);
-                }
-                
+            // Initialize Google Places Autocomplete
+            const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                types: ['geocode'], // Restrict to address suggestions
+                componentRestrictions: {
+                    country: "us"
+                } // Restrict to a specific country (optional)
             });
 
-            $('#company-city').val(city);
-            $('#company-province').val(province);
-            $('#company-postal-code').val(postalCode);
+            // Extract address details when a suggestion is selected
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    console.error("No details available for input: " + addressInput.value);
+                    return;
+                }
 
-            saveAddressData();
-        });
-    }
+                // Populate the address field with the formatted address
+                addressInput.value = place.formatted_address;
 
-    // Initialize the autocomplete when the page loads
-    window.onload = initAutocomplete;
-</script>
+                // Extract components (city, state, zip code)
+                let city = '',
+                    province = '',
+                    postalCode = '';
+                place.address_components.forEach(component => {
+                    if (component.types.includes('locality')) {
+                        city = component.long_name;
+                        console.log("city", city);
+
+                    }
+                    if (component.types.includes('administrative_area_level_1')) {
+                        province = component.short_name;
+                        console.log("province", province);
+
+                    }
+                    if (component.types.includes('postal_code')) {
+                        postalCode = component.long_name;
+                        console.log("postalcode", postalCode);
+                    }
+
+                });
+
+                $('#company-city').val(city);
+                $('#company-province').val(province);
+                $('#company-postal-code').val(postalCode);
+
+                saveAddressData();
+            });
+        }
+
+        // Initialize the autocomplete when the page loads
+        window.onload = initAutocomplete;
+    </script>
 
 
 
@@ -276,15 +284,16 @@
                 //     }
                 // });
                 this.on("addedfile", function(file) {
-                if (this.files.length > 1) {
-                    this.removeFile(this.files[0]); // Remove the previous file if a new one is added
-                }
+                    if (this.files.length > 1) {
+                        this.removeFile(this.files[
+                            0]); // Remove the previous file if a new one is added
+                    }
 
-                if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                    this.removeFile(file);
-                    showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
-                }
-            });
+                    if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
+                        this.removeFile(file);
+                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
+                    }
+                });
 
                 this.on("success", function(file, response) {
                     showSuccessNotification(response.message);

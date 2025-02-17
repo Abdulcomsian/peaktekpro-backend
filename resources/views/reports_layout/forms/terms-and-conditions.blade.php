@@ -3,7 +3,7 @@
 
         <!-- Description -->
         <div class="mb-4">
-            <div id="terms-and-conditions-quill" class="bg-white"></div>
+            <div id="terms-and-conditions-quill" class="bg-white" style="position: static"></div>
             <textarea class="hidden" id="terms-and-conditions-text" name="terms_and_conditions_text" required>{{ $pageData->json_data['terms_and_conditions_text'] ?? '' }}</textarea>
         </div>
 
