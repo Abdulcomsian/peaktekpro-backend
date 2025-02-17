@@ -201,51 +201,6 @@
         }
 
     </style>
-
-<!-- <style>
-        @page {
-            margin: 0;
-        }
-
-        body {
-            font-family: sans-serif;
-            color: #333;
-            margin: 0;
-            padding: 450px 0 70px 0; /* Reserve space for header and footer */
-        }
-
-        header {
-            height: 450px;
-            margin-top: -450px; /* Pull header into the top padding */
-        }
-
-        .header-content {
-            width: 100%;
-            background-color: rgb(55, 179, 184);
-            color: white;
-            padding: 20px;
-        }
-
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            background-color: rgb(121, 128, 128);
-            color: white;
-        }
-
-        /* Keep existing styles for other elements */
-        .section {
-            page-break-after: always;
-        }
-
-        /* Adjust main content to account for header/footer */
-        main {
-            margin: 20px;
-        }
-</style> -->
 </head>
 
 <body>
@@ -396,8 +351,8 @@
                     {!! $item['content'] ?? 'No content available.' !!}
                 </div>
 
-                <div class="image">
-                    <img src="{{ public_path('storage/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? '')) }}" alt="repairability-or-compatibility-photos" />
+                <div>
+                    <img src="{{ public_path('storage/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? '')) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
                 </div>
 
             </div>
@@ -571,15 +526,21 @@
 
         <!-- 10th Section -->
         @case('warranty')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="terms-and-conditions" style="font-size:9.6px; font-family:sans-serif;">
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">
+            {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+        </h2>
+
+        <div class="terms-and-conditions" style="font-size:9.6px; font-family:sans-serif; padding:10px 20px; width:100%; box-sizing: border-box;">
             {!! $jsonData['warranty_text'] !!}
         </div>
+
+
         @break
 
+
         @case('')
-    <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-    <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
+        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
         @if(isset($jsonData['custom_page_text']))
             <div class="custom-page-text">
                 {!! $jsonData['custom_page_text'] !!}

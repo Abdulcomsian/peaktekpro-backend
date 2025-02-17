@@ -58,7 +58,7 @@
                 <label for="company-city" class="block text-gray-700 text-sm font-medium mb-2">City</label>
                 <input type="text" id="company-city" name="company_city"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="City" value="{{ $pageData->json_data['company_province'] ?? '' }}" required />
+                    placeholder="City" value="{{ $pageData->json_data['company_province'] ?? '' }}" readonly/>
             </div>
 
             <!-- State/Province -->
@@ -67,7 +67,7 @@
                     class="block text-gray-700 text-sm font-medium mb-2">State/Province</label>
                 <input type="text" id="company-province" name="company_province"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="State/Province" value="{{ $pageData->json_data['company_province'] ?? '' }}" required />
+                    placeholder="State/Province" value="{{ $pageData->json_data['company_province'] ?? '' }}" readonly />
             </div>
 
             <!-- Zip Code / Postal Code -->
@@ -76,7 +76,7 @@
                     code</label>
                 <input type="text" id="company-postal-code" name="company_postal_code"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="Postal Code" value="{{ $pageData->json_data['company_postal_code'] ?? '' }}" required />
+                    placeholder="Postal Code" value="{{ $pageData->json_data['company_postal_code'] ?? '' }}" readonly />
             </div>
         </div>
 
