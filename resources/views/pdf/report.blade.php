@@ -138,36 +138,6 @@
             height: auto;
             object-fit: cover;
         }
-
-        /* .section {
-            page-break-after: always; 
-            break-after: page; 
-            page-break-inside: avoid; 
-        } */
-
-        /* .section h2 {
-            color: rgb(55, 179, 184);
-            margin-left: 20px; 
-            margin-right: 20px; 
-        } */
-
-        /* .section p, .section .content,h4,a,h3 {
-            margin-left: 20px; 
-            margin-right: 20px; 
-        } */
-
-        /* .section img {
-            width: 100%; 
-            margin-left: 0; 
-            margin-right: 0; 
-        } */
-        /* / */
-        /* .section, .section-items, .item {
-            page-break-inside: avoid; 
-            page-break-before: auto;  
-            page-break-after: auto;
-        } */
-
         .grand-total {
             page-break-inside: avoid; /* Keep grand total on the same page */
             font-weight: bold;
@@ -185,15 +155,9 @@
             width: 100%;
         }
 
-        h2,h4,p,a {
+        /* h2,h4,p,a {
             margin: 20px;
-        }
-        .product-compatibility-text{
-            margin-left: 10px;
-            font-size: 12px;
-            color: black
-
-        }
+        } */
 
         .pdf-placeholder {
             color: transparent;
@@ -220,8 +184,8 @@
                     <!-- Left section -->
                     <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
                         <!-- <h2>{{ is_string($report->title) ? $report->title : 'Untitled Report' }}</h2> -->
-                        <h2 style="color:white;">{{ $jsonData['report_title'] ?? 'No title available.' }}</h2>
-                        <p>{{ $jsonData['report_date'] ?? 'No date available.' }}</p>
+                        <h2 style="color:white; margin:20px;">{{ $jsonData['report_title'] ?? 'No title available.' }}</h2>
+                        <p style="margin:20px;">{{ $jsonData['report_date'] ?? 'No date available.' }}</p>
                     </td>
                     <!-- Right section -->
                     <td style="width: 50%; background-color: white; text-align: right; padding: 10px; vertical-align:middle;">
@@ -272,12 +236,12 @@
                 <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
                     <!-- Text Column -->
                     <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3>
-                    <p style="margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
-                    <p style="margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p> <!-- Add space after phone -->
+                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
+                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p> <!-- Add space after phone -->
                     
-                    <p style="margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_address'] ?? '' }}</p>
-                    <p style="margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_province'] ?? '' }}</p>
-                    <p style="line-height: 2px;">{{ $jsonData['company_postal_code'] ?? '' }}</p>
+                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_address'] ?? '' }}</p>
+                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_province'] ?? '' }}</p>
+                    <p style="margin-left:15px; line-height: 2px;">{{ $jsonData['company_postal_code'] ?? '' }}</p>
 
                 </td>
                 <td style="width: 50%; vertical-align: middle; text-align: center;">
@@ -292,8 +256,8 @@
 
         <!-- first section -->
         @case('introduction')
-           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative;">
-           <h2 style=" padding-left: 10px; 
+           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative; padding-left:40px; padding-right:10px;">
+           <h2 style=" padding-left: 40px; 
             color: white; 
             margin: 0;
             position: absolute;
@@ -305,7 +269,7 @@
             </h2>
            </div>
             <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
-            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:20px">
+            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:35px; padding-right:10px;">
                 {!! $jsonData['intro_text'] ?? 'No introduction text available.' !!}
             </div>
         @break
@@ -314,13 +278,13 @@
 
         @case('repairability-assessment')
            <div style=" margin-top:-20px; height: 70px; width: 100%; background-color: rgb(33, 166, 228);">
-           <h2 style=" padding-left: 10px; 
+           <h2 style=" padding-left: 40px; 
             color: white;  padding-top: 25px; ">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
            </div>
             <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
-            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:20px; padding-right:20px">
+            <div class="roof-repair-limitations" style="margin-top:10px; padding-left:35px; padding-right:10px">
                 {!! $jsonData['roof_repair_limitations_text'] ?? 'No repair limitations text available.' !!}
             </div>
 
@@ -339,35 +303,48 @@
         <!-- third Section -->
 
         @case('repairability-or-compatibility-photos')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="comparison-sections" style="font-size:9.6px; font-family:sans-serif;">
-            <h4>Title</h4>
-            <p>{{ $jsonData['comparision_sections'][0]['title'] ?? 'No title available.' }}</p>
-            @foreach ($jsonData['comparision_sections'][0]['items'] ?? [] as $item)
-            <div class="comparison-item">
-                <h4>Item {{ $loop->iteration }}</h4>
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">
+                {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+            </h2>
 
-                <div class="content">
-                    {!! $item['content'] ?? 'No content available.' !!}
-                </div>
+            <div class="comparison-sections" style="padding-left:35px; padding-right:10px;margin-top:10px;">
+                
+                @foreach ($jsonData['comparision_sections'] ?? [] as $section)
+                    <h4>Title</h4>
+                    <p>{{ $section['title'] ?? 'No title available.' }}</p>
 
-                <div>
-                    <img src="{{ public_path('storage/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? '')) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
-                </div>
+                    @foreach ($section['items'] ?? [] as $item)
+                        <div class="comparison-item">
+                            <h4>Item {{ $loop->iteration }}</h4>
 
+                            <div class="content" style="margin-right:10px;">
+                                {!! $item['content'] ?? 'No content available.' !!}
+                            </div>
+
+                            @php
+                                $imagePath = storage_path('app/public/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? ''));
+                            @endphp
+
+                            @if(file_exists($imagePath))
+                                <div>
+                                    <img src="{{ $imagePath }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
+                                </div>
+                            @else
+                                <p>Image not found.</p>
+                            @endif
+                        </div>
+                    @endforeach
+                @endforeach
             </div>
-            @endforeach
-        </div>
         @break
        
-        <!-- <div style="page-break-after: always; break-after: page;"></div> -->
-
-        <!-- <div class="section"> -->
+       
+        <!-- 4th section -->
 
         @case('product-compatibility')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="product-compatibility-section">
-            <div class="product-compatibility-text">
+            <div class="product-compatibility-text" style="padding-left:35px; padding-right:10px;">
                 {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
             </div>
 
@@ -382,51 +359,21 @@
         <!-- <div style="page-break-after: always; break-after: page;"></div> -->
 
         @case('unfair-claims-practices')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="unfair-claims-section">
             <div class="pdf-placeholder" data-section="unfair-claims-practices">
                 [unfair-claims-practices-placeholder]
             </div>
         </div>
         @break
-        <!-- 4th section -->
-        <!-- @case('product-compatibility')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="product-compatibility-section" style="font-size:9.6px; font-family:sans-serif;">
-            <div class="product-compatibility-text">
-                {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
-            </div>
-        
-            @foreach ($jsonData['product_compatibility_files'] ?? [] as $file)
-            <div class="file-item">
-                <a href="{{ asset('storage/' . $file['path']) }}" download>
-                    Download {{ $file['file_name'] ?? 'No file available.' }}
-                </a>
-            </div>
-            @endforeach
-        </div>
-        @break
-    -->
-
-       <!-- 5th Section  -->
-        <!-- @case('unfair-claims-practices')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="unfair-claims-section" style="font-size:9.6px; font-family:sans-serif;">
-            <div class="file-item">
-                <a href="{{ asset('storage/' . $jsonData['unfair_claim_file']['path'] ?? '#') }}" download>
-                    Download {{ $jsonData['unfair_claim_file']['file_name'] ?? 'No file available.' }}
-                </a>
-            </div>
-        </div>
-        @break -->
 
 
         <!-- 6th Section -->
 
         @case('applicable-codes-guidelines')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="applicable-codes-guidelines-section" style="font-size:9.6px; font-family:sans-serif;">
-            <div class="text-content">
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <div class="applicable-codes-guidelines-section" >
+            <div class="text-content" style="padding-left:35px; padding-right:10px;">
                 {!! $jsonData['applicable_code_guidelines_text'] ?? 'No guidelines text available.' !!}
             </div>
         </div>
@@ -435,53 +382,53 @@
         <!-- 7th Section -->
 
         @case('quote-details')
-    <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-    <div class="quote-details-section" style="font-size:9.6px; font-family:sans-serif; margin: 0 20px;">
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+            <div class="quote-details-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
 
-        @foreach($jsonData['sections'] ?? [] as $section)
-            <h4>Section Name: {{ $section['title'] ?? 'No title available.' }}</h4>
-            <p>Status: {{ $section['isActive'] == 'true' ? 'Active' : 'Inactive' }}</p>
-            <p>Section Total: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
+                @foreach($jsonData['sections'] ?? [] as $section)
+                    <h4>Section Name: {{ $section['title'] ?? 'No title available.' }}</h4>
+                    <p>Status: {{ $section['isActive'] == 'true' ? 'Active' : 'Inactive' }}</p>
+                    <p>Section Total: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
 
-            <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
-                <thead style="background-color: #f2f2f2;">
-                    <tr>
-                        <th>Description</th>
-                        <th>Quantity</th>
-                        <th>Price ($)</th>
-                        <th>Line Total ($)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($section['sectionItems'] ?? [] as $item)
-                        <tr>
-                            <td>{{ $item['description'] ?? 'No description available.' }}</td>
-                            <td style="text-align: center;">{{ $item['qty'] ?? '0' }}</td>
-                            <td style="text-align: right;">{{ number_format($item['price'] ?? 0, 2) }}</td>
-                            <td style="text-align: right;">{{ number_format($item['lineTotal'] ?? 0, 2) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endforeach
+                    <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
+                        <thead style="background-color: #f2f2f2;">
+                            <tr>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>Price ($)</th>
+                                <th>Line Total ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($section['sectionItems'] ?? [] as $item)
+                                <tr>
+                                    <td>{{ $item['description'] ?? 'No description available.' }}</td>
+                                    <td style="text-align: center;">{{ $item['qty'] ?? '0' }}</td>
+                                    <td style="text-align: right;">{{ number_format($item['price'] ?? 0, 2) }}</td>
+                                    <td style="text-align: right;">{{ number_format($item['lineTotal'] ?? 0, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endforeach
 
-        <div class="grand-total" style="text-align: right; font-weight: bold; margin-top: 10px;">
-            <p>Grand Total: ${{ number_format($jsonData['grand_total'] ?? 0, 2) }}</p>
-        </div>
-    </div>
-@break
+                <div class="grand-total" style="text-align: right; font-weight: bold; margin-top: 10px;">
+                    <p>Grand Total: ${{ number_format($jsonData['grand_total'] ?? 0, 2) }}</p>
+                </div>
+            </div>
+        @break
 
         
 
         <!-- 8th Section -->
         @case('authorization-page')
-        <h2 style="margin-left: 20px; margin-right: 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
 
-        <div class="authorization-page-section" style="font-size:9.6px; font-family:sans-serif; margin: 0 20px;"> <!-- Added margin here -->
+        <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;"> 
 
             @foreach($jsonData['sections'] ?? [] as $section)
                 <h4 style="margin-top: 10px;">{{ $section['title'] ?? 'No Title Available' }}</h4>
-                <p>Total for Section: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
+                <p> Total for Section: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
 
                 <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
                     <thead style="background-color: #f2f2f2;">
@@ -505,7 +452,7 @@
                 </table>
             @endforeach
 
-            <div class="authorization-disclaimer" style="margin-top: 15px; font-style: italic;">
+            <div class="authorization-disclaimer" style="margin-top: 15px; padding-left:10px; padding-right:10px;">
                 <p>{{ $jsonData['authorization_disclaimer'] ?? 'No disclaimer available.' }}</p>
             </div>
 
@@ -515,71 +462,47 @@
         </div>
          @break
 
-
         <!-- 9th Section -->
         @case('terms-and-conditions')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="terms-and-conditions" style="font-size:9.6px; font-family:sans-serif;">
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <div class="terms-and-conditions" style="padding-left:35px; padding-right:10px;">
             {!! $jsonData['terms_and_conditions_text'] !!}
         </div>
         @break
 
         <!-- 10th Section -->
         @case('warranty')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 20px;">
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">
             {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
         </h2>
 
-        <div class="terms-and-conditions" style="font-size:9.6px; font-family:sans-serif; padding:10px 20px; width:100%; box-sizing: border-box;">
+        <div class="terms-and-conditions" style="padding-left:35px; padding-right:10px;">
             {!! $jsonData['warranty_text'] !!}
         </div>
-
-
         @break
 
 
+        <!-- custom page -->
         @case('')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
-        @if(isset($jsonData['custom_page_text']))
-            <div class="custom-page-text">
-                {!! $jsonData['custom_page_text'] !!}
-            </div>
-        @endif
-
-        <!-- Custom Page PDF Placeholder -->
-        @if(isset($jsonData['custom_page_file']))
-            <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
-                [custom-page-{{ $page->order_no }}-placeholder]
-            </div>
-        @endif
-    </div>
-    @break
-
-
-        <!-- @case('')
-        <h2>{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="custom-page-section" style="font-size:9.6px; font-family:sans-serif;">
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+            <div class="custom-page-section">
             @if(isset($jsonData['custom_page_text']))
-            <div class="custom-page-text">
-                {!! $jsonData['custom_page_text'] !!}
-            </div>
+                <div class="custom-page-text"  style="padding-left:35px; padding-right:10px;">
+                    {!! $jsonData['custom_page_text'] !!}
+                </div>
             @endif
 
+            <!-- Custom Page PDF Placeholder -->
             @if(isset($jsonData['custom_page_file']))
                 <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
                     [custom-page-{{ $page->order_no }}-placeholder]
                 </div>
             @endif
-            @if(isset($jsonData['custom_page_file']))
-            <div class="custom-page-file">
-                <a href="{{ asset('storage/' . $jsonData['custom_page_file']['path']) }}" download class="btn btn-primary">
-                    Download {{ $jsonData['custom_page_file']['file_name'] }}
-                </a>
-            </div>
-            @endif
         </div>
-        @break -->
+        @break
+
+
+       
         @endswitch
         @endif
     </div>

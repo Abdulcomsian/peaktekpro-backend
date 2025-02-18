@@ -501,7 +501,7 @@
         <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}"
             ${response.page.is_active === 1 ? 'checked' : ''} />
         <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
-            <span class="w-4 h-4 bg-white rounded-full shadow transform transition-transform"></span>
+            <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
         </span>
     </label>
 </li>
@@ -1056,6 +1056,7 @@
                 <select id="templateDropdownSelect" class="layout-select border p-2 lg:w-2/12 md:w-4/12 w-full"
                     style="margin-right: 60px;">
                     <option selected value="">Choose a Template</option>
+            
                     @forelse ($templates as $template)
                         <option value="{{ $template->id }}">{{ $template->title }}</option>
                     @empty
@@ -1098,6 +1099,8 @@
                             style="margin-right:100px;" data-id="{{ $report->id }}" data-status="{{ $report->status }}">
                             {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
                         </button>
+                        <a href="{{route('reports.download-pdf',$report->id)}}" class="text-blue-500 hover:text-blue-600" style="margin-right:100px;">Generate pdf</a>
+                     
                         <div id="publishReportModal"
                             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
                             <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
@@ -1135,7 +1138,7 @@
                                                                     Download PDF
                                                                 </button>
     @endif -->
-                        <button class="text-blue-500 hover:text-blue-600" id="editTitleBtn">Edit</button>
+                        <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
                     </div>
                 </div>
 

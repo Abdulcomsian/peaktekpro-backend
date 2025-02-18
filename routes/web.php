@@ -29,12 +29,14 @@ Route::get('user-logout', function () {
     session()->forget('job_id');
     dd('Logout successfully done and session cleared!');
 });
-Route::get('download-report-pdf/{report_id}', [ReportLayoutController::class, 'downloadReportPdf'])->name('download-report-pdf');
+// Route::get('testPdf/{report_id}', [ReportLayoutController::class, 'testPdf'])->name('testPdf');
 Route::get('update/customer-agreement/{id}', [CustomerController::class, 'updateCustomerAgreement']);
 Route::get('auth', ReactAuthController::class)->middleware('check.react.auth');
 // templates
 // Route::middleware(['check.react.auth', 'check.user.role'])->group(function () {
 Route::middleware(['check.react.auth'])->group(function () {
+    Route::get('testPdf/{report_id}', [ReportLayoutController::class,'testPdf'])->name('testPdf');
+
     Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::get('/templates/create', [TemplateController::class, 'create'])->name('templates.create');
     Route::post('/templates/store', [TemplateController::class, 'store'])->name('templates.store');
