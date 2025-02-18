@@ -4,7 +4,7 @@
     <style>
         @page {
             margin: 0;
-            
+
         }
         body {
             font-family: sans-serif;
@@ -215,7 +215,7 @@
 
         <!-- Wrap the content of your PDF inside a main tag -->
     <main>
-        
+
         <div class="image">
             @if (isset($jsonData['primary_image']))
             <div class="primary-image">
@@ -232,16 +232,16 @@
                 <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
                     <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3>
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
-                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p> 
-                    
+                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p>
+
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_address'] ?? '' }}</p>
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_province'] ?? '' }}</p>
                     <p style="margin-left:15px; line-height: 2px;">{{ $jsonData['company_postal_code'] ?? '' }}</p>
 
                 </td>
                 <td style="width: 50%; vertical-align: middle; text-align: center;">
-                    <img src="{{ public_path('assets/logo/secondaryImage.PNG') }}" 
-                        alt="Secondary Image" 
+                    <img src="{{ public_path('assets/logo/secondaryImage.PNG') }}"
+                        alt="Secondary Image"
                         style="width: 50%; height: auto; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
                 </td>
 
@@ -251,8 +251,8 @@
         <!-- first section -->
         @case('introduction')
            <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative; padding-left:40px; padding-right:10px;">
-           <h2 style=" padding-left: 40px; 
-            color: white; 
+           <h2 style=" padding-left: 40px;
+            color: white;
             margin: 0;
             position: absolute;
             top: 50%;
@@ -271,7 +271,7 @@
 
         @case('repairability-assessment')
            <div style=" margin-top:-20px; height: 70px; width: 100%; background-color: rgb(33, 166, 228);">
-           <h2 style=" padding-left: 40px; 
+           <h2 style=" padding-left: 40px;
             color: white;  padding-top: 25px; ">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
@@ -282,9 +282,9 @@
             </div>
 
             <div class="repairability-assessment-images">
-                
 
-                @if (isset($jsonData['repariability_assessment_images']))
+
+                @if (isset($jsonData['repariability_assessment_images']) && isset($jsonData['repariability_assessment_images']['path']))
                 <div class="image">
                     <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" style="width: 100%; max-width: 1800px; height:auto; display: block;" />
                     <!-- <img src="{{ asset($jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" height="200px" width="300px" /> -->
@@ -304,7 +304,7 @@
             </h2>
 
             <div class="comparison-sections" style="padding: 20px 40px; margin: 20px auto; width: 95%;">
-                
+
                 @foreach ($jsonData['comparision_sections'] ?? [] as $section)
                     <h4 style="margin-top: 20px;">Title</h4>
                     <p>{{ $section['title'] ?? 'No title available.' }}</p>
@@ -343,7 +343,7 @@
             </h2>
 
             <div class="comparison-sections" style="padding-left:35px; padding-right:10px; padding-top:20px;margin-top:10px;">
-                
+
                 @foreach ($jsonData['comparision_sections'] ?? [] as $section)
                     <h4>Title</h4>
                     <p>{{ $section['title'] ?? 'No title available.' }}</p>
@@ -375,7 +375,7 @@
             </div>
         @break
         -->
-       
+
         <!-- 4th section -->
 
         @case('product-compatibility')
@@ -455,13 +455,13 @@
             </div>
         @break
 
-        
+
 
         <!-- 8th Section -->
         @case('authorization-page')
         <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
 
-        <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;"> 
+        <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
 
             @foreach($jsonData['sections'] ?? [] as $section)
                 <h4 style="margin-top: 10px;">{{ $section['title'] ?? 'No Title Available' }}</h4>
@@ -539,7 +539,7 @@
         @break
 
 
-       
+
         @endswitch
         @endif
     </div>
