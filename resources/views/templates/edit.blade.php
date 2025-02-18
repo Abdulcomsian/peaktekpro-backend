@@ -527,7 +527,7 @@
                                     </form>
                                 </div>
                                 <div id="custom-page-text-section-${secondRandom}" class="hidden" data-selected="single_text">
-                                    <div class="bg-white custom-page-quill-editor"></div>
+                                    <div class="bg-white custom-page-quill-editor" style="position: static"></div>
                                     <textarea class="custom-page-text hidden" name="custom_page_text" required>{{ $pageData->json_data['custom_page_text'] ?? '' }}</textarea>
                                 </div>
                             </div>
