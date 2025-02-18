@@ -286,8 +286,11 @@
 
                 @if (isset($jsonData['repariability_assessment_images']))
                 <div class="image">
-                    <!-- <img src="{{ public_path('storage/template-files/introduction/1738234447_sample_1920×1280.jpeg') }}" alt="Primary Image" style="width: 100%; max-width: 800px; display: block; margin: 0 auto;" /> -->
-                    <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="Primary Image" style="width: 100%; max-width: 1800px; height:800px; display: block;" />
+                    <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" style="width: 100%; max-width: 1800px; height:auto; display: block;" />
+                    <!-- <img src="{{ asset($jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" height="200px" width="300px" /> -->
+                    <!-- <img src="{{ asset('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="Repairability Assessment Image" height="200px" width="300px" /> -->
+
+
                 </div>
                 @endif
             </div>
@@ -321,7 +324,9 @@
 
                             @if(file_exists($imagePath))
                                 <div style="padding-top: 20px; page-break-before: always;">
-                                    <img src="{{ asset($item['image']['path']) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
+                                    <!-- <img src="{{ asset($item['image']['path']) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" /> -->
+                                    <img src="{{ public_path('storage/' . $item['image']['path']) }}" alt="repariability_assessment_images" style="width: 100%; max-width: 1800px; height:auto; display: block;" />
+
                                 </div>
                             @else
                                 <p>Image not found.</p>
