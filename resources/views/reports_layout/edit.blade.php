@@ -155,9 +155,10 @@
                             if (customPageFileData && customPageFileData.name) {
                                 // If there is an existing file, show it in the Dropzone
                                 this.emit("addedfile", customPageFileData);
+                                let thumbnailUrl = "{{ asset('assets/images/pdf.png') }}"
                                 // Emitting the correct full path for the thumbnail
-                                this.emit("thumbnail", customPageFileData, customPageFileData
-                                    .url); // Use the URL from jsonData
+                                this.emit("thumbnail", customPageFileData, thumbnailUrl); // Use the URL from jsonData
+                                // this.emit("thumbnail", customPageFileData, customPageFileData.url); // Use the URL from jsonData
                                 this.emit("complete", customPageFileData);
                                 this.files.push(
                                     customPageFileData); // Add to the Dropzone files array
@@ -177,6 +178,11 @@
                                     // If the file type doesn't match, remove the file from preview
                                     this.removeFile(file);
                                     showErrorNotification('Only PDF files are allowed.');
+                                }
+                                else
+                                {
+                                    let thumbnailUrl = "{{ asset('assets/images/pdf.png') }}"
+                                    this.emit("thumbnail", file, thumbnailUrl);
                                 }
                             });
 
