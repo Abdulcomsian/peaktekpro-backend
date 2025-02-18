@@ -547,7 +547,7 @@
             </form>
         </div>
         <div id="custom-page-text-section-${secondRandom}" class="hidden" data-selected="single_text">
-            <div class="bg-white custom-page-quill-editor"></div>
+            <div class="bg-white custom-page-quill-editor" style="position: static"></div>
             <textarea class="custom-page-text hidden" name="custom_page_text" required>{{ $pageData->json_data['custom_page_text'] ?? '' }}</textarea>
         </div>
     </div>
@@ -738,36 +738,37 @@
             });
         }
 
-    // save the company address function
-    const saveReportPageInputDataAddress = debounce(function() {
-        let fieldName = $(this).attr('name');
-        let fieldValue = $(this).val();
-        console.log("Input Event Triggered -> Field:", fieldName, "Value:", fieldValue);
+        // save the company address function
+        const saveReportPageInputDataAddress = debounce(function() {
+            let fieldName = $(this).attr('name');
+            let fieldValue = $(this).val();
+            console.log("Input Event Triggered -> Field:", fieldName, "Value:", fieldValue);
 
-        // Check if the changed field is part of the address-related fields
-        if (['company_address', 'company_city', 'company_province', 'company_postal_code'].includes(fieldName)) {
-            saveAddressData();
-            return;
-        }
-
-        $.ajax({
-            url: saveReportPageDataAddress,
-            method: 'POST',
-            data: {
-                page_id: pageId,
-                [fieldName]: fieldValue
-            },
-            success: function(response) {
-                showSuccessNotification(response.message);
-            },
-            error: function(xhr) {
-                showErrorNotification('An error occurred while saving data.');
+            // Check if the changed field is part of the address-related fields
+            if (['company_address', 'company_city', 'company_province', 'company_postal_code'].includes(
+                    fieldName)) {
+                saveAddressData();
+                return;
             }
-        });
-    }, 500); // Delay in milliseconds
 
-    // Apply debounced function to save data on keyup or change
-    $('.inp-data-address').on('keyup change', saveReportPageInputDataAddress);
+            $.ajax({
+                url: saveReportPageDataAddress,
+                method: 'POST',
+                data: {
+                    page_id: pageId,
+                    [fieldName]: fieldValue
+                },
+                success: function(response) {
+                    showSuccessNotification(response.message);
+                },
+                error: function(xhr) {
+                    showErrorNotification('An error occurred while saving data.');
+                }
+            });
+        }, 500); // Delay in milliseconds
+
+        // Apply debounced function to save data on keyup or change
+        $('.inp-data-address').on('keyup change', saveReportPageInputDataAddress);
 
 
 
@@ -1098,7 +1099,7 @@
                             {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
                         </button>
                         <div id="publishReportModal"
-                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
                             <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
                                 <h2 class="text-lg font-semibold mb-4">Publish Report</h2>
                                 <p>Are you sure you want to update this report to Published?</p>
@@ -1128,11 +1129,11 @@
 
                         <!-- @if ($report->status === 'published')
     <button
-                                                        class="text-blue-500 hover:text-blue-600 update-status-button"
-                                                        id="downloadReportPDF" style="margin-right:100px;"
-                                                        data-id="{{ $report->id }}">
-                                                        Download PDF
-                                                    </button>
+                                                                    class="text-blue-500 hover:text-blue-600 update-status-button"
+                                                                    id="downloadReportPDF" style="margin-right:100px;"
+                                                                    data-id="{{ $report->id }}">
+                                                                    Download PDF
+                                                                </button>
     @endif -->
                         <button class="text-blue-500 hover:text-blue-600" id="editTitleBtn">Edit</button>
                     </div>

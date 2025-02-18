@@ -19,13 +19,13 @@
         @if (isset($pageData->json_data['sections']) && count($pageData->json_data['sections']) > 0)
             @forelse ($pageData->json_data['sections'] as $section)
                 <div class="authorization-section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
-                data-id="{{ $section['id'] }}">
+                    data-id="{{ $section['id'] }}">
                     <!-- Section Header -->
                     <div class="flex justify-start items-center mb-4 gap-1">
                         <div>
                             <input type="text"
                                 class="authorization-section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Section Title" value="{{ $section['title'] }}"/>
+                                placeholder="Section Title" value="{{ $section['title'] }}" />
                         </div>
                         <div>
                             <button
@@ -39,37 +39,38 @@
                     <div class="rows-container space-y-4 authorization-rows-container">
                         <!-- Default Row -->
                         @forelse ($section['sectionItems'] as $item)
-                        <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
-                            <span class="row-drag-handle cursor-pointer">↑↓</span>
-                            <!-- Item Description -->
-                            <input type="text"
-                                class="auth-item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Item Description" value="{{ $item['description'] }}">
+                            <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
+                                <span class="row-drag-handle cursor-pointer">↑↓</span>
+                                <!-- Item Description -->
+                                <input type="text"
+                                    class="auth-item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
+                                    placeholder="Item Description" value="{{ $item['description'] }}">
 
-                            <!-- Quantity -->
-                            <input type="number" class="auth-item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] }}">
+                                <!-- Quantity -->
+                                <input type="number"
+                                    class="auth-item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
+                                    placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] }}">
 
-                            <!-- Unit Price -->
-                            <input type="number" class="auth-item-price w-20 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] }}">
+                                <!-- Unit Price -->
+                                <input type="number"
+                                    class="auth-item-price w-20 border border-gray-300 rounded-md px-2 py-1"
+                                    placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] }}">
 
-                            <!-- Line Total -->
-                            <div class="line-total-container w-24 text-right flex-1">
-                                <span class="line-total block">
-                                    ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
-                                </span>
+                                <!-- Line Total -->
+                                <div class="line-total-container w-24 text-right flex-1">
+                                    <span class="line-total block">
+                                        ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
+                                    </span>
+                                </div>
+
+                                <!-- Remove Button -->
+                                <button
+                                    class="remove-authorization-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
+                                    X
+                                </button>
                             </div>
 
-                            <!-- Remove Button -->
-                            <button
-                                class="remove-authorization-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
-                                X
-                            </button>
-                        </div>
-
                         @empty
-
                         @endforelse
                     </div>
                     <!-- Add Row Button -->
@@ -172,7 +173,7 @@
         <!-- Text -->
         <div class="mb-4">
             <label for="authorization-footer-text" class="block text-gray-700 text-sm font-medium">Footer</label>
-            <div id="authorization-footer-text-quill" class="bg-white"></div>
+            <div id="authorization-footer-text-quill" class="bg-white" style="position: static"></div>
             <textarea class="hidden" id="authorization-footer-text" name="authorization_footer_text" required>{{ $pageData->json_data['authorization_footer_text'] ?? '' }}</textarea>
         </div>
 
