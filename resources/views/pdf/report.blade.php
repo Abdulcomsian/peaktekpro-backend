@@ -303,25 +303,25 @@
             <div class="comparison-sections" style="padding: 20px 40px; margin: 20px auto; width: 95%;">
                 
                 @foreach ($jsonData['comparision_sections'] ?? [] as $section)
-                    <h4 style="margin-top: 30px;">Title</h4>
+                    <h4 style="margin-top: 20px;">Title</h4>
                     <p>{{ $section['title'] ?? 'No title available.' }}</p>
 
                     @foreach ($section['items'] ?? [] as $item)
                         <div class="comparison-item" style="margin-bottom: 40px; page-break-inside: avoid;">
                             <h4>Item {{ $loop->iteration }}</h4>
 
-                            <div class="content" style="padding-top: 10px; width:10%;">
+                            <div class="content" style="padding-top: 10px; width:90%;">
                                 {!! $item['content'] ?? 'No content available.' !!}
                             </div>
 
                             @php
-                                $imagePath = storage_path('app/public/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? ''));
+                                $imagePath = storage_path('app/public/' . ($item['image']['path'] ?? ''));
+
                             @endphp
 
                             @if(file_exists($imagePath))
                                 <div style="padding-top: 20px; page-break-before: always;">
-                                    <!-- <img src="{{ $imagePath }}" alt="repairability-or-compatibility-photos" style="width: 300px; height: 200px; display: block; margin: auto;" /> -->
-                                    <img src="{{ asset($item['image']['path']) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
+                                    <img src="{{ $imagePath }}" alt="repairability-or-compatibility-photos" style="width: 300px; height: 200px; display: block; margin: auto;" />
 
                                 </div>
                             @else
