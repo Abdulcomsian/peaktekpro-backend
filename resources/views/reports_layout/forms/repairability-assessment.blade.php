@@ -2,10 +2,10 @@
     <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone"
         id="repairabilityAssessmentDropzone">
         <div class="dz-message text-gray-600">
-            <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Image</span>
+            <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Image111</span>
             <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
         </div>
-        
+
     </form>
 
     <form action="/upload" method="POST">
@@ -75,19 +75,14 @@
             });
 
             this.on("success", function(file, response) {
-                if (response.status) {
-                    file.file_id = response.file_details.file_id; // Attach file ID to the uploaded file
                     showSuccessNotification(response.message);
-                } else {
-                    showErrorNotification("File upload failed.");
-                }
             });
 
             this.on("removedfile", function(file) {
+                // delete file from dropzone
                 deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
                     page_id: pageId,
                     file_key: 'repariability_assessment_images',
-                    file_id: file.file_id,
                 });
             });
         }
