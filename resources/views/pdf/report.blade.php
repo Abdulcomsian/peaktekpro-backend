@@ -321,8 +321,7 @@
 
                             @if(file_exists($imagePath))
                                 <div style="padding-top: 20px; page-break-before: always;">
-                                    <img src="{{ $imagePath }}" alt="repairability-or-compatibility-photos" style="width: 300px; height: 200px; display: block; margin: auto;" />
-
+                                    <img src="{{ asset($item['image']['path']) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
                                 </div>
                             @else
                                 <p>Image not found.</p>
