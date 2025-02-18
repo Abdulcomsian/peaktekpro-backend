@@ -63,36 +63,30 @@
                         0]); // Remove the previous file if a new one is added
                     }
 
-                    if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                        this.removeFile(file);
-                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
-                    }
-                });
+                if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
+                    this.removeFile(file);
+                    showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
+                }
+            });
 
-                this.on("sending", function(file, xhr, formData) {
-                    formData.append('type', 'repariability_assessment_images');
-                    formData.append('page_id', pageId);
-                    formData.append('folder', 'repairability_assessment');
-                });
+            this.on("sending", function(file, xhr, formData) {
+                formData.append('type', 'repariability_assessment_images');
+                formData.append('page_id', pageId);
+                formData.append('folder', 'repairability_assessment');
+            });
 
-                this.on("success", function(file, response) {
-                    if (response.status) {
-                        file.file_id = response.file_details
-                        .file_id; // Attach file ID to the uploaded file
-                        showSuccessNotification(response.message);
-                    } else {
-                        showErrorNotification("File upload failed.");
-                    }
-                });
+            this.on("success", function(file, response) {
+                    showSuccessNotification(response.message);
+            });
 
-                this.on("removedfile", function(file) {
-                    deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
-                        page_id: pageId,
-                        file_key: 'repariability_assessment_images',
-                        file_id: file.file_id,
-                    });
+            this.on("removedfile", function(file) {
+                // delete file from dropzone
+                deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
+                    page_id: pageId,
+                    file_key: 'repariability_assessment_images',
                 });
-            }
+            });
+        }
         });
 
 
