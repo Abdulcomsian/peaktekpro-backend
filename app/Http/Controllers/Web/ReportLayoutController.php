@@ -344,20 +344,7 @@ private function insertEntirePdf($pdf, $pdfPath)
                                 $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
                             }
                         }
-                        
-
-                        // if ($page->order_no === 10) {
-                        //     if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
-                        //         $sectionPdfs[$page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
-                        //     }
-                        // }
-
-                        // if (in_array($page->order_no, [10, 11, 12])) {
-                        //     if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
-                        //         $sectionPdfs[$page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
-                        //     }
-                        // }
-                        
+                         
                     }
                 }
 
@@ -396,8 +383,6 @@ private function insertEntirePdf($pdf, $pdfPath)
         try {
             $report = Report::findOrFail($id);
             $filePath = storage_path('app/public/' . $report->file_path);
-
-            \Log::info('File path11: ' . $filePath);
 
             if (!$report->file_path) {
                 return response()->json([
