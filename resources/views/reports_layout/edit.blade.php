@@ -1056,7 +1056,7 @@
                 <select id="templateDropdownSelect" class="layout-select border p-2 lg:w-2/12 md:w-4/12 w-full"
                     style="margin-right: 60px;">
                     <option selected value="">Choose a Template</option>
-            
+
                     @forelse ($templates as $template)
                         <option value="{{ $template->id }}">{{ $template->title }}</option>
                     @empty
@@ -1100,7 +1100,7 @@
                             {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
                         </button>
                         <a href="{{route('reports.download-pdf',$report->id)}}" class="text-blue-500 hover:text-blue-600" style="margin-right:100px;">Generate pdf</a>
-                     
+
                         <div id="publishReportModal"
                             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
                             <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
@@ -1117,7 +1117,7 @@
 
                         <!-- Modal for saving report as draft -->
                         <div id="draftReportModal"
-                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
                             <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
                                 <h2 class="text-lg font-semibold mb-4">Draft Report</h2>
                                 <p>Are you sure you want to update this report to Draft?</p>
