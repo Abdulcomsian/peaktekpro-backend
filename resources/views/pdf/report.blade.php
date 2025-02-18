@@ -4,8 +4,8 @@
     <style>
         @page {
             margin: 0;
+            
         }
-
         body {
             font-family: sans-serif;
             color: #333;
@@ -181,13 +181,10 @@
         <header>
             <table width="100%" style="border-collapse: collapse;">
                 <tr>
-                    <!-- Left section -->
                     <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
-                        <!-- <h2>{{ is_string($report->title) ? $report->title : 'Untitled Report' }}</h2> -->
                         <h2 style="color:white; margin:20px;">{{ $jsonData['report_title'] ?? 'No title available.' }}</h2>
                         <p style="margin:20px;">{{ $jsonData['report_date'] ?? 'No date available.' }}</p>
                     </td>
-                    <!-- Right section -->
                     <td style="width: 50%; background-color: white; text-align: right; padding: 10px; vertical-align:middle;">
                         <img src="{{ public_path('assets/logo/logoTest.PNG') }}" style="width:420px; height:auto;" alt="Logo">
                     </td>
@@ -230,14 +227,12 @@
         </div>
 
 
-        <!-- //this is table  -->
         <table style="width: 100%; border: none; padding: 10px;">
             <tr>
                 <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
-                    <!-- Text Column -->
                     <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3>
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
-                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p> <!-- Add space after phone -->
+                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p> 
                     
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_address'] ?? '' }}</p>
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_province'] ?? '' }}</p>
@@ -245,7 +240,6 @@
 
                 </td>
                 <td style="width: 50%; vertical-align: middle; text-align: center;">
-                    <!-- Image Column -->
                     <img src="{{ public_path('assets/logo/secondaryImage.PNG') }}" 
                         alt="Secondary Image" 
                         style="width: 50%; height: auto; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
@@ -268,7 +262,6 @@
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
            </div>
-            <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
             <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:35px; padding-right:10px;">
                 {!! $jsonData['intro_text'] ?? 'No introduction text available.' !!}
             </div>
@@ -303,31 +296,32 @@
         <!-- third Section -->
 
         @case('repairability-or-compatibility-photos')
-            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0 auto; width: 100%; display: block; line-height: 50px; padding: 10px;">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
 
-            <div class="comparison-sections" style="padding-left:35px; padding-right:10px;margin-top:10px;">
+            <div class="comparison-sections" style="padding: 20px 40px; margin: 20px auto; width: 95%;">
                 
                 @foreach ($jsonData['comparision_sections'] ?? [] as $section)
-                    <h4>Title</h4>
+                    <h4 style="margin-top: 20px;">Title</h4>
                     <p>{{ $section['title'] ?? 'No title available.' }}</p>
 
                     @foreach ($section['items'] ?? [] as $item)
-                        <div class="comparison-item">
+                        <div class="comparison-item" style="margin-bottom: 40px; page-break-inside: avoid;">
                             <h4>Item {{ $loop->iteration }}</h4>
 
-                            <div class="content" style="margin-right:10px;">
+                            <div class="content" style="padding-top: 10px; width:90%;">
                                 {!! $item['content'] ?? 'No content available.' !!}
                             </div>
 
                             @php
-                                $imagePath = storage_path('app/public/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? ''));
+                                $imagePath = storage_path('app/public/' . ($item['image']['path'] ?? ''));
+
                             @endphp
 
                             @if(file_exists($imagePath))
-                                <div>
-                                    <img src="{{ $imagePath }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
+                                <div style="padding-top: 20px; page-break-before: always;">
+                                    <img src="{{ asset($item['image']['path']) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
                                 </div>
                             @else
                                 <p>Image not found.</p>
@@ -337,7 +331,45 @@
                 @endforeach
             </div>
         @break
-       
+
+        <!-- @case('repairability-or-compatibility-photos')
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">
+                {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+            </h2>
+
+            <div class="comparison-sections" style="padding-left:35px; padding-right:10px; padding-top:20px;margin-top:10px;">
+                
+                @foreach ($jsonData['comparision_sections'] ?? [] as $section)
+                    <h4>Title</h4>
+                    <p>{{ $section['title'] ?? 'No title available.' }}</p>
+
+                    @foreach ($section['items'] ?? [] as $item)
+                        <div class="comparison-item">
+                            <h4>Item {{ $loop->iteration }}</h4>
+
+                            <div class="content" style="padding-top: 20px;">
+                                {!! $item['content'] ?? 'No content available.' !!}
+                            </div>
+
+                            @php
+                                $imagePath = storage_path('app/public/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? ''));
+
+                            @endphp
+
+                            @if(file_exists($imagePath))
+                                <div style="padding-top: 20px;">
+                                    <img src="{{ $imagePath }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
+
+                                </div>
+                            @else
+                                <p>Image not found.</p>
+                            @endif
+                        </div>
+                    @endforeach
+                @endforeach
+            </div>
+        @break
+        -->
        
         <!-- 4th section -->
 
@@ -486,18 +518,18 @@
         @case('')
             <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
             <div class="custom-page-section">
-            @if(isset($jsonData['custom_page_text']))
-                <div class="custom-page-text"  style="padding-left:35px; padding-right:10px;">
-                    {!! $jsonData['custom_page_text'] !!}
-                </div>
-            @endif
+                @if(isset($jsonData['custom_page_text']))
+                    <div class="custom-page-text"  style="padding-left:35px; padding-right:10px;">
+                        {!! $jsonData['custom_page_text'] !!}
+                    </div>
+                @endif
 
-            <!-- Custom Page PDF Placeholder -->
-            @if(isset($jsonData['custom_page_file']))
-                <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
-                    [custom-page-{{ $page->order_no }}-placeholder]
-                </div>
-            @endif
+                <!-- Custom Page PDF Placeholder -->
+                @if(isset($jsonData['custom_page_file']))
+                    <div class="pdf-placeholder" data-section="custom-page-{{ $page->order_no }}">
+                        [custom-page-{{ $page->order_no }}-placeholder]
+                    </div>
+                @endif
         </div>
         @break
 
