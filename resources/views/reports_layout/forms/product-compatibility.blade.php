@@ -64,14 +64,17 @@
             addRemoveLinks: true,
             dictRemoveFile: "Remove",
             dictDefaultMessage: "Drag & Drop or Click to Upload",
+            createImageThumbnails: true,
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             init: function() {
                 let productCompatibilityFiles = {
                     files : JSON.parse(`{!! json_encode($pageData->json_data['product_compatibility_files'] ?? []) !!}`),
-                    file_url : "{{ $pageData->file_url ?? '' }}"
+                    file_url : "{{ $pageData->file_url ?? '' }}",
+                    filesType : "pdf"
                 }
+
                 // Show images on load
                 showMultipleFilesOnLoadInDropzone(this, productCompatibilityFiles, 'product_compatibility_files');
 
@@ -81,6 +84,10 @@
                         // If the file type doesn't match, remove the file from preview
                         this.removeFile(file);
                         showErrorNotification('Only PDFs are allowed.')
+                    }
+                    else{
+                        let thumnailUrl = "{{ asset('assets/images/pdf.png') }}"
+                        this.emit("thumbnail", file, thumnailUrl);
                     }
                 });
 

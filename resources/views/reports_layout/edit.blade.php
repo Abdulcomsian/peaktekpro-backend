@@ -233,7 +233,9 @@
 
                     dropzoneInstance.emit("addedfile", mockFile); // Add the file to Dropzone
                     let fileUrl = `${filesData.file_url}/${fileData.path}`;
-                    dropzoneInstance.emit("thumbnail", mockFile, fileUrl); // Set the thumbnail
+                    let pdfThumbnail = "{{ asset('assets/images/pdf.png') }}"
+                    let thumnailUrl = filesData.filesType === 'pdf' ? pdfThumbnail : fileUrl
+                    dropzoneInstance.emit("thumbnail", mockFile, thumnailUrl); // Set the thumbnail
 
                     mockFile.status = Dropzone.SUCCESS;
                     dropzoneInstance.emit("complete", mockFile); // Mark as complete
