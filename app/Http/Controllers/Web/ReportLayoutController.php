@@ -394,29 +394,28 @@ private function insertEntirePdf($pdf, $pdfPath)
     public function downloadPdf($id) //this is used for pdf downloading
     {
         try {
-            // dd($id);
-            // Find the report by its ID
             $report = Report::findOrFail($id);
-
-            // Get the full path of the file to download (ensure it's stored in the public disk)
-            $filePath = public_path('storage/' . $report->file_path);
+            $filePath = storage_path('app/public/' . $report->file_path);
 
             \Log::info('File path11: ' . $filePath);
 
+            if (!$report->file_path) {
+                return response()->json([
+                    'status_code' => 404,
+                    'status' => false,
+                    'message' => 'File path not found in the database.'
+                ], 404);
+            }
+            
             // Check if the file exists
             if (file_exists($filePath)) {
-                // Return the file as a download response
-                $timestamp = now()->format('Ymd_His'); // Format: YYYYMMDD_HHMMSS
-
-                // Generate the file name with timestamp
+                $timestamp = now()->format('Ymd_His'); 
                 $fileName = "report-{$id}_{$timestamp}.pdf";
 
-                // Return the file as a download response with the updated file name
                 return response()->download($filePath, $fileName, [
                     'Content-Type' => 'application/pdf',
                 ]);
             } else {
-                // If the file doesn't exist, return an error response
                 return response()->json([
                     'status_code' => 404,
                     'status' => false,
@@ -426,7 +425,6 @@ private function insertEntirePdf($pdf, $pdfPath)
         } catch (\Exception $e) {
             \Log::error('Error downloading file: ' . $e->getMessage());
 
-            // Handle any exceptions that occur
             return response()->json([
                 'status_code' => 500,
                 'status' => false,
@@ -1527,4 +1525,43 @@ private function insertEntirePdf($pdf, $pdfPath)
             ], 500);
         }
     }
+
+    public function testPdf($id)
+    {
+        // dd($id);
+        try {
+            // Find the report by its ID
+            $report = Report::findOrFail($id);
+
+            // Get the full path of the file to stream
+            $filePath = public_path('storage/' . $report->file_path);
+
+            \Log::info('File path: ' . $filePath);
+
+            // Check if the file exists
+            if (file_exists($filePath)) {
+                return response()->file($filePath, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="report.pdf"',
+                ]);
+            } else {
+                // If the file doesn't exist, return an error response
+                return response()->json([
+                    'status_code' => 404,
+                    'status' => false,
+                    'message' => 'File not found.'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error streaming file: ' . $e->getMessage());
+
+            // Handle any exceptions that occur
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'message' => 'An error occurred while streaming the file: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }
