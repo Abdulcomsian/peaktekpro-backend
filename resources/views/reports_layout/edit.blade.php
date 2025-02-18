@@ -477,14 +477,21 @@
 
                             // Append the new page to the list dynamically
                             $('#tabsList').append(`
-<li class="tab-item bg-blue-200 p-2 rounded cursor-pointer flex justify-between items-center"
+<li class="tab-item bg-blue-200 p-2 rounded cursor-pointer relative flex justify-between items-center"
     data-target="#tab${response.page.id}" data-id="${response.page.id}">
-    <span>${response.page.name}</span>
+    <div class="flex gap-2">
+        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M1 1h15M1 7h15M1 13h15"></path>
+        </svg>
+        <span id="leftMenuPageName-${response.page.id}" class="text-sm">${response.page.name}</span>
+    </div>
     <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
         <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}"
             ${response.page.is_active === 1 ? 'checked' : ''} />
         <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
-            <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
+            <span class="w-4 h-4 bg-white rounded-full shadow transform transition-transform"></span>
         </span>
     </label>
 </li>
@@ -493,8 +500,21 @@
                             // Append the new page content
                             $('#tabContent').append(`
 <div id="tab${response.page.id}" class="tab-content hidden bg-blue-50 p-4 rounded shadow mb-4">
-    <h3 class="text-lg font-medium mb-2">${response.page.name}</h3>
-    <p>Content for ${response.page.name}</p>
+    <div class="flex items-center justify-between">
+        <h3 id="pageName-${response.page.id}" class="text-lg font-medium mb-2">${response.page.name}</h3>
+        <button class="text-blue-500 hover:text-blue-600 edit-button"
+            data-id="${response.page.id}" data-name="${response.page.name}">Edit</button>
+    </div>
+    <div id="editPageForm-${response.page.id}" class="edit-form hidden mb-2">
+        <input type="text" id="editInput-${response.page.id}"
+            class="border rounded p-2 w-full" value="${response.page.name}" />
+        <div class="flex space-x-2 mt-2">
+            <button class="bg-blue-500 text-white text-sm px-4 py-2 rounded update-button"
+                data-id="${response.page.id}">Update</button>
+            <button class="bg-gray-500 text-white text-sm px-4 py-2 rounded cancel-button"
+                data-id="${response.page.id}">Cancel</button>
+        </div>
+    </div>
     <div class="w-full mx-auto p-6 bg-white shadow rounded-lg custom-page-container">
         <div class="mb-6">
             <div class="flex flex-col justify-start">
@@ -1099,13 +1119,13 @@
 
                         <!-- @if ($report->status === 'published')
     <button
-                                                                class="text-blue-500 hover:text-blue-600 update-status-button"
-                                                                id="downloadReportPDF" style="margin-right:100px;"
-                                                                data-id="{{ $report->id }}">
-                                                                Download PDF
-                                                            </button>
+                                                                    class="text-blue-500 hover:text-blue-600 update-status-button"
+                                                                    id="downloadReportPDF" style="margin-right:100px;"
+                                                                    data-id="{{ $report->id }}">
+                                                                    Download PDF
+                                                                </button>
     @endif -->
-                        <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
+                        <button class="text-blue-500 hover:text-blue-600" id="editTitleBtn">Edit</button>
                     </div>
                 </div>
 
