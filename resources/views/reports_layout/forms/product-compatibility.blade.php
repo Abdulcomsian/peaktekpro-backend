@@ -72,7 +72,7 @@
                 let productCompatibilityFiles = {
                     files : JSON.parse(`{!! json_encode($pageData->json_data['product_compatibility_files'] ?? []) !!}`),
                     file_url : "{{ $pageData->file_url ?? '' }}",
-                    filesType : "pdf"
+                    filesExtension : "pdf"
                 }
 
                 // Show images on load
@@ -86,8 +86,8 @@
                         showErrorNotification('Only PDFs are allowed.')
                     }
                     else{
-                        let thumnailUrl = "{{ asset('assets/images/pdf.png') }}"
-                        this.emit("thumbnail", file, thumnailUrl);
+                        let thumbnailUrl = "{{ asset('assets/images/pdf.png') }}"
+                        this.emit("thumbnail", file, thumbnailUrl);
                     }
                 });
 

@@ -49,7 +49,8 @@
                     size: "{{ $pageData->json_data['unfair_claim_file']['size'] ?? '' }}",
                     url: "{{ $pageData->file_url ?? '' }}",
                     path : "{{ $pageData->json_data['unfair_claim_file']['path'] ?? '' }}",
-                    type : 'unfair_claim_file'
+                    type : 'unfair_claim_file',
+                    fileExtension : 'pdf'
                 }
 
                 // Show image on load
@@ -66,6 +67,11 @@
                         // If the file type doesn't match, remove the file from preview
                         this.removeFile(file);
                         showErrorNotification('Only PDF files are allowed.')
+                    }
+                    else
+                    {
+                        let thumbnailUrl = "{{ asset('assets/images/pdf.png') }}"
+                        this.emit("thumbnail", file, thumbnailUrl);
                     }
                 });
 

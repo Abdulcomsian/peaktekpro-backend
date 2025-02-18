@@ -208,7 +208,9 @@
                 // Simulate adding the existing file
                 dropzoneInstance.emit("addedfile", fileData);
                 let fileUrl = `${fileData.url}/${fileData.path}`;
-                dropzoneInstance.emit("thumbnail", fileData, fileUrl); // Set the thumbnail
+                let pdfThumbnail = "{{ asset('assets/images/pdf.png') }}"
+                let thumbnailUrl = fileData.fileExtension === 'pdf' ? pdfThumbnail : fileUrl
+                dropzoneInstance.emit("thumbnail", fileData, thumbnailUrl); // Set the thumbnail
 
                 // Set the file as already uploaded
                 fileData.status = Dropzone.SUCCESS;
@@ -234,8 +236,8 @@
                     dropzoneInstance.emit("addedfile", mockFile); // Add the file to Dropzone
                     let fileUrl = `${filesData.file_url}/${fileData.path}`;
                     let pdfThumbnail = "{{ asset('assets/images/pdf.png') }}"
-                    let thumnailUrl = filesData.filesType === 'pdf' ? pdfThumbnail : fileUrl
-                    dropzoneInstance.emit("thumbnail", mockFile, thumnailUrl); // Set the thumbnail
+                    let thumbnailUrl = filesData.filesExtension === 'pdf' ? pdfThumbnail : fileUrl
+                    dropzoneInstance.emit("thumbnail", mockFile, thumbnailUrl); // Set the thumbnail
 
                     mockFile.status = Dropzone.SUCCESS;
                     dropzoneInstance.emit("complete", mockFile); // Mark as complete
