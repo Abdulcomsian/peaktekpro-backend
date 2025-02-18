@@ -113,7 +113,7 @@ class ReportLayoutController extends Controller
             );
         }
     }
- 
+
 
     // private function insertSectionPdfs($mainPdfPath, $outputPath, $sectionPdfs)
     // {
@@ -271,14 +271,14 @@ private function insertEntirePdf($pdf, $pdfPath)
     //             $tplIdx = $pdf->importPage($i);
     //             $size = $pdf->getTemplateSize($tplIdx);
 
-    //             if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) { 
+    //             if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) {
     //                 $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
     //                 $pdf->useTemplate($tplIdx);
     //             }
     //             // $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
     //             // $pdf->useTemplate($tplIdx);
 
-                
+
     //         } catch (\Exception $e) {
     //             Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
     //             continue;
@@ -339,12 +339,12 @@ private function insertEntirePdf($pdf, $pdfPath)
                                 $sectionPdfs['unfair-claims-practices'][] = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
                             }
                         }
-                        if (isset($page->order_no)) { 
+                        if (isset($page->order_no)) {
                             if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
                                 $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
                             }
                         }
-                         
+
                     }
                 }
 
@@ -391,10 +391,10 @@ private function insertEntirePdf($pdf, $pdfPath)
                     'message' => 'File path not found in the database.'
                 ], 404);
             }
-            
+
             // Check if the file exists
             if (file_exists($filePath)) {
-                $timestamp = now()->format('Ymd_His'); 
+                $timestamp = now()->format('Ymd_His');
                 $fileName = "report-{$id}_{$timestamp}.pdf";
 
                 return response()->download($filePath, $fileName, [
@@ -557,7 +557,7 @@ private function insertEntirePdf($pdf, $pdfPath)
                     'order_no' => $lastReportPage->order_no + 1
                 ]);
             }
-            
+
             $reportPage = ReportPage::findOrFail($reportPage->id);
 
             return response()->json([
@@ -660,7 +660,7 @@ private function insertEntirePdf($pdf, $pdfPath)
     public function savePageFile(Request $request)
     {
         try {
-        
+
 
             if ($request->hasFile('file')) {
 
@@ -1175,7 +1175,7 @@ private function insertEntirePdf($pdf, $pdfPath)
                         // Prepare image data (file name, path, and size)
                         $imageData = [
                             'file_name' => $filename,
-                            'path' => asset('storage/' . $path),
+                            'path' => $path,
                             'size' => Storage::disk('public')->size($path),
                         ];
                     } else {
@@ -1466,7 +1466,7 @@ private function insertEntirePdf($pdf, $pdfPath)
 
         return response()->json(['success' => 'File deleted successfully']);
     }
-  
+
     public function downloadReportPdf($id)
     {
         try {

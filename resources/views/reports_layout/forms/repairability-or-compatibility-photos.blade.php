@@ -22,15 +22,15 @@
                     </div>
 
                     <!-- Compatibility Items Container -->
-                    <div class="compatibility-items-container flex flex-wrap items-center gap-1">
+                    <div class="compatibility-items-container flex flex-wrap items-center w-full">
                         @if (is_array($section['items']) && count($section['items']) > 0)
                             @foreach ($section['items'] as $item)
-                                <div class="item flex flex-row gap-2" data-id="{{ $item['id'] }}">
+                                <div class="item flex flex-row w-1/2" data-id="{{ $item['id'] }}">
                                     <!-- Drag Handle -->
                                     <div class="mb-2">
                                         <span class="item-drag-handle cursor-pointer">⇄</span>
                                     </div>
-                                    <div class="flex flex-col flex-wrap">
+                                    <div class="flex flex-col flex-wrap w-full">
                                         <!-- Image Upload -->
                                         <div class="mb-2">
                                             <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center"
@@ -40,13 +40,11 @@
                                             </div>
                                         </div>
                                         <!-- Image Preview -->
-                                        <div
-                                            class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4">
-                                        </div>
+
                                         <!-- Quill Editor -->
-                                        <div class="mb-14">
+                                        <div class="mb-14 w-full">
                                             <div id="repairability-or-compatibility-text-quill-{{ $item['id'] }}"
-                                                class="item-editor bg-white" style="position: static"></div>
+                                                class="item-editor bg-white"></div>
                                             <textarea class="hidden" id="repairability-or-compatibility-text-{{ $item['id'] }}"
                                                 name="repairability_or_compatibility_text[]" required>{{ $item['content'] }}</textarea>
                                         </div>
@@ -98,12 +96,12 @@
                 <!-- Items Container -->
                 <div class="compatibility-items-container flex flex-wrap items-center gap-1">
                     <!-- Initial Item -->
-                    <div class="item flex flex-row gap-2" data-id="{{ \Str::random(8) }}">
+                    <div class="item flex flex-row w-1/2" data-id="{{ \Str::random(8) }}">
                         <!-- Drag Handle -->
                         <div class="mb-2">
                             <span class="item-drag-handle cursor-pointer">⇄</span>
                         </div>
-                        <div class="flex flex-col flex-wrap">
+                        <div class="flex flex-col flex-wrap w-full">
                             <!-- Image Upload -->
                             <div class="mb-2">
                                 <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center"
@@ -114,13 +112,10 @@
                                 </div>
                             </div>
                             <!-- Image Preview (Outside Dropzone) -->
-                            <div
-                                class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4">
-                            </div>
 
                             <!-- Quill Editor -->
-                            <div class="mb-14">
-                                <div id="repairability-or-compatibility-text-quill-1" class="item-editor bg-white">
+                            <div class="mb-14 w-full">
+                                <div id="repairability-or-compatibility-text-quill-1" class="item-editor bg-white" style="position: static;">
                                 </div>
                                 <textarea class="hidden" id="repairability-or-compatibility-text-1" name="repairability_or_compatibility_text[]"
                                     required>{{ '' }}</textarea>
@@ -224,10 +219,11 @@
                         const item = section.items.find(item => item.id === itemId);
 
                         if (item && item.image && item.image.path) {
+                            let imageUrl = `${repairabilityAssessmentImages.file_url}/${item.image.path}`;
                             // Generate the image preview HTML
                             const imagePreviewHtml = `
             <div class="image-preview lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] flex justify-center items-center">
-                <img src="${item.image.path}" alt="Preloaded Image" class="object-cover w-full h-full">
+                <img src="${imageUrl}" alt="Preloaded Image" class="object-cover w-full h-full">
                 <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute">Remove</button>
             </div>
         `;
@@ -272,7 +268,20 @@
                     });
 
                     this.on("success", function(file, response) {
-                        console.log('Upload successful:', response);
+                        // Add event listener for the remove button
+                        $(`#compatibility-dropzone-${itemId}`).on("click", ".remove-image-btn", function() {
+                            deleteFileFromRepairablityDropzone(
+                                deleteFileFromRepairablityDropZoneRoute, {
+                                    page_id: pageId,
+                                    'item_id': itemId
+                                });
+                                $(`#compatibility-dropzone-${itemId}`).html(
+                                '<div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>'
+                            ); // Restore the default message
+                        });
+
+                        this.removeFile(file); //to remove the file
+
                         sendDataToAjax(dropzoneElement.closest('.compatibility-section'));
                     });
 
@@ -370,20 +379,19 @@
         $(document).on('click', '.add-compatibility-item-btn', function() {
             const uniqueKey = generateBase64Key(8); // Generate the key once and reuse it
             const newCompatibilityItem = `
-            <div class="item flex flex-row gap-2" data-id="${uniqueKey}">
+            <div class="item flex flex-row w-1/2" data-id="${uniqueKey}">
                 <div class="mb-2">
                     <span class="item-drag-handle cursor-pointer">⇄</span>
                 </div>
-                <div class="flex flex-col flex-wrap">
+                <div class="flex flex-col flex-wrap w-full">
                     <div class="mb-2">
                         <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center"
                             id="compatibility-dropzone-${uniqueKey}">
                             <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
                         </div>
                     </div>
-                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-2"></div>
-                    <div class="mb-14">
-                        <div id="repairability-or-compatibility-text-quill-${uniqueKey}" class="item-editor bg-white" style="position: static"></div>
+                    <div class="mb-14 w-full">
+                        <div id="repairability-or-compatibility-text-quill-${uniqueKey}" class="item-editor bg-white"></div>
                         <textarea class="hidden" id="repairability-or-compatibility-text-${uniqueKey}" name="repairability_or_compatibility_text[]"
                             required></textarea>
                     </div>
