@@ -81,13 +81,19 @@ class ReportLayoutController extends Controller
     public function edit($reportId)
     {
         try {
+            // here
+            $jobId = session('job_id');
+            $job = CompanyJob::where('id',$jobId)->first();
+            $address = $job ? json_decode($job->address) : null;
+            // dd($address);
             $companyId = Auth::user()->company_id;
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
             $templates = Template::where('company_id',$companyId)->latest()->get();
-            return view('reports_layout.edit', compact('report', 'templates'));
+            return view('reports_layout.edit', compact('report', 'templates','address'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');
         }
+
     }
 
     public function updateTitle(UpdateRequest $request, $reportId)

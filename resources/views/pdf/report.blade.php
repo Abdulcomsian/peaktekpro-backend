@@ -219,9 +219,7 @@
         <div class="image">
             @if (isset($jsonData['primary_image']))
             <div class="primary-image">
-                <!-- <img src="{{ public_path('storage/template-files/introduction/1738234447_sample_1920×1280.jpeg') }}" alt="Primary Image" style="width: 100%; max-width: 800px; display: block; margin: 0 auto;" /> -->
                 <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" alt="Primary Image" style="width: 100%; max-width: 1800px; height:800px; display: block;" />
-
             </div>
             @endif
         </div>
@@ -240,11 +238,14 @@
 
                 </td>
                 <td style="width: 50%; vertical-align: middle; text-align: center;">
-                    <img src="{{ public_path('assets/logo/secondaryImage.PNG') }}"
-                        alt="Secondary Image"
-                        style="width: 50%; height: auto; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
-                </td>
-
+                @if(file_exists(public_path('assets/logo/secondaryImage.PNG')))
+                        <img src="{{ asset('assets/logo/secondaryImage.PNG') }}" 
+                            alt="Secondary Image" 
+                            style="width: 50%; height: auto; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
+                    @else
+                        <p style="text-align: center; font-style: italic; color: gray;">No secondary image available</p>
+                    @endif
+                 </td>
             </tr>
         </table>
 
