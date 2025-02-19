@@ -2,23 +2,25 @@
 
 namespace App\Http\Controllers\Web;
 
+use DateTime;
+use Carbon\Carbon;
+use setasign\Fpdf\Fpdf;
+use setasign\Fpdi\Fpdi;
 use App\Models\Template;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use setasign\Fpdi\PdfReader;
+use setasign\Fpdi\TcpdfFpdi;
+use Smalot\PdfParser\Parser;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\Snappy\Facades\SnappyPdf;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
-use App\Models\{CompanyJob, Page, Report, ReportPageData, ReportPage};
 use App\Http\Requests\Report\{StoreRequest, UpdateRequest};
-use Smalot\PdfParser\Parser;
-use setasign\Fpdi\Fpdi;
-use setasign\Fpdi\TcpdfFpdi;
-use setasign\Fpdf\Fpdf;
-use setasign\Fpdi\PdfReader;
+use App\Models\{CompanyJob, Page, Report, ReportPageData, ReportPage};
 
 
 class ReportLayoutController extends Controller
@@ -84,12 +86,21 @@ class ReportLayoutController extends Controller
             // here
             $jobId = session('job_id');
             $job = CompanyJob::where('id',$jobId)->first();
+            // dd($job);
+            $name = $job->name;
+            $nameParts = explode(' ', $name, 2);
+
+            $firstName = $nameParts[0] ?? ''; 
+            $lastName = $nameParts[1] ?? ''; 
+            $date = $job->created_at;
+            // $formattedDate = Carbon::createFromFormat("m/d/y", $created_at)->format("Y-m-d");
+            // dd($formattedDate);
             $address = $job ? json_decode($job->address) : null;
             // dd($address);
             $companyId = Auth::user()->company_id;
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
             $templates = Template::where('company_id',$companyId)->latest()->get();
-            return view('reports_layout.edit', compact('report', 'templates','address'));
+            return view('reports_layout.edit', compact('report', 'templates','address','firstName','lastName','date'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');
         }
