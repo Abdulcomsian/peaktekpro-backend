@@ -5,7 +5,7 @@
             <label for="report-title" class="block text-gray-700 text-sm font-medium mb-2">Report Title</label>
             <input type="text" id="report-title" name="report_title" placeholder="Enter report title"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $pageData->json_data['report_title'] ?? '' }}" required />
+                value="{{ $report->title ?? '' }}" readonly />
         </div>
 
         <!-- Date -->
@@ -35,20 +35,20 @@
         </div>
 
         <!-- Company Name -->
-        <div class="mb-4">
+        <!-- <div class="mb-4">
             <label for="company-name" class="block text-gray-700 text-sm font-medium mb-2">Company Name</label>
             <input type="text" id="company-name" name="company_name"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
                 value="{{ $pageData->json_data['company_name'] ?? '' }}" required />
-        </div>
+        </div> -->
 
         <!-- Address -->
         <div class="mb-4">
             <label for="company-address" class="block text-gray-700 text-sm font-medium mb-2">Address</label>
             <input type="text" id="company-address" name="company_address"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                placeholder="Enter your address" value="{{ $pageData->json_data['company_address'] ?? '' }}"
-                autocomplete="off" required />
+                placeholder="Enter your address" value="{{ $address->formatedAddress ?? '' }}"
+                autocomplete="off" readonly />
             <!-- Container for suggestions -->
             <div id="suggestions"></div>
         </div>
@@ -59,7 +59,7 @@
                 <label for="company-city" class="block text-gray-700 text-sm font-medium mb-2">City</label>
                 <input type="text" id="company-city" name="company_city"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="City" value="{{ $pageData->json_data['company_city'] ?? '' }}" readonly/>
+                    placeholder="City" value="{{ $address->city ?? '' }}" readonly/>
             </div>
 
             <!-- State/Province -->
@@ -68,7 +68,7 @@
                     class="block text-gray-700 text-sm font-medium mb-2">State/Province</label>
                 <input type="text" id="company-province" name="company_province"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="State/Province" value="{{ $pageData->json_data['company_province'] ?? '' }}" readonly />
+                    placeholder="State/Province" value="{{ $address->state ?? '' }}" readonly />
             </div>
 
             <!-- Zip Code / Postal Code -->
@@ -77,7 +77,7 @@
                     code</label>
                 <input type="text" id="company-postal-code" name="company_postal_code"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data-address"
-                    placeholder="Postal Code" value="{{ $pageData->json_data['company_postal_code'] ?? '' }}" readonly />
+                    placeholder="Postal Code" value="{{ $address->postalCode ?? '' }}" readonly />
             </div>
         </div>
 
@@ -120,7 +120,7 @@
 
 @push('scripts')
     <!-- Google Maps API (Include Places Library) -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxqWY-xr9Pm9ZYMAYL08XOWu3X6Tz-Brw&libraries=places">
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxqWY-xr9Pm9ZYMAYL08XOWu3X6Tz-Brw&libraries=places"> -->
     </script>
 
     <script>

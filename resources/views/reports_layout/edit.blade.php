@@ -1099,9 +1099,7 @@
                             style="margin-right:100px;" data-id="{{ $report->id }}" data-status="{{ $report->status }}">
                             {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
                         </button>
-                        @if($report->status === 'published')
-                        <a href="{{route('reports.download-pdf',$report->id)}}" class="text-blue-500 hover:text-blue-600" style="margin-right:100px;">Generate pdf</a>
-                        @endif
+                       
                         <div id="publishReportModal"
                             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
                             <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
@@ -1175,12 +1173,12 @@
                                         data-id="{{ $page->id }}">Update</button>
                                     <button class="bg-gray-500 text-white text-sm px-4 py-2 rounded cancel-button"
                                         data-id="{{ $page->id }}">Cancel</button>
-                                </div>
+                                </div> 
                             </div>
 
                             @includeIf(
                                 'reports_layout.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
-                                ['pageData' => $page->pageData]
+                                ['pageData' => $page->pageData, 'address'=> $address]
                             )
                         </div>
                     @empty
