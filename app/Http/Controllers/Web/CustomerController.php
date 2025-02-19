@@ -35,78 +35,7 @@ class CustomerController extends Controller
             $companyId = 1;
 
             $agreement_content = AgreementContent::where('company_id',$companyId)->first();
-            // dd($agreement_content,$agreement);
-            //here I will parse the data before generating the pdf
-
-            // // Parse the content using DOMDocument
-            // $dom = new DOMDocument();
-            // libxml_use_internal_errors(true); // Suppress HTML parsing warnings
-
-            // $agreementContent = mb_convert_encoding($agreement_content->content, 'HTML-ENTITIES', 'UTF-8');
-
-            // $dom->loadHTML('<div>' . $agreementContent  . '</div>'); // Wrap content in a div for parsing
-            // libxml_clear_errors();
-
-            // function parseContent($element)
-            // {
-            //     $parsed = [];
-            //     foreach ($element->childNodes as $child) {
-            //         $tagName = $child->nodeName;
-
-            //         if (preg_match('/^h[1-6]$/', $tagName)) {
-            //             // Heading
-            //             $parsed[] = [
-            //                 'type' => 'heading',
-            //                 'level' => substr($tagName, 1),
-            //                 'content' => trim($child->nodeValue),
-            //             ];
-            //         } elseif ($tagName === 'p') {
-            //             // Paragraph
-            //             $parsed[] = [
-            //                 'type' => 'paragraph',
-            //                 'content' => trim($child->nodeValue),
-            //             ];
-            //         } elseif ($tagName === 'ol' || $tagName === 'ul') {
-            //             // Ordered or Unordered List
-            //             $listType = $tagName === 'ol' ? 'orderedList' : 'unorderedList';
-            //             $items = [];
-            //             foreach ($child->childNodes as $li) {
-            //                 if ($li->nodeName === 'li') {
-            //                     // Recursively parse nested lists
-            //                     $items[] = [
-            //                         'content' => trim($li->nodeValue),
-            //                         'subList' => parseContent($li),
-            //                     ];
-            //                 }
-            //             }
-            //             $parsed[] = [
-            //                 'type' => $listType,
-            //                 'items' => $items,
-            //             ];
-            //         }
-            //     }
-            //     return $parsed;
-            // }
-
-            // // Start parsing from the body or div element
-            // $body = $dom->getElementsByTagName('div')->item(0);
-            // $parsedContent = parseContent($body);
-
-            // dd($)
-            // return response()->json([
-            //     'data'=> $parsedContent
-            // ]);
-
-            // $data = [
-            //     'title' => 'Welcome to Techsolutionstuff'
-            // ];
-            //Generate PDF
-            // $pdf = PDF::loadView('pdf.customer-agreement', ['data' => $agreement, 'content'=>$parsedContent]);
-        
-            // dd(['data' => $agreement,'content'=>$agreement_content]);
-
-            // dd($agreement_content->content);
-     
+            
             $pdf = Pdf::loadView('pdf.customer',['data' => $agreement,'content'=>$agreement_content]);
             $pdf->setPaper('A4', 'portrait');
             // $pdf = Pdf::loadView('pdf.customer', $data);

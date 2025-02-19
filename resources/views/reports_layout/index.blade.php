@@ -127,9 +127,10 @@
         // Pass the $reports data to the frontend and adjust its structure
         const reportsData = @json($reports->items()).map(report => {
             // Fetch the first report page's data
-            // const reportPage = report.report_pages?.[0];
+            // const reportTitle = report.title;
             // const reportPage6 = report.report_pages?.[6];
 
+            // console.log('title',reportTitle);
             const reportPage = report.report_pages.find(page => page.slug === 'introduction');
             const reportPage6 = report.report_pages.find(page => page.slug === 'quote-details');
 
@@ -137,12 +138,13 @@
             // Check if reportPage exists and fetch page data
             const reportPageData = reportPage ? reportPage.page_data : null;
             const reportPageData6 = reportPage6 ? reportPage6.page_data : null;
-            console.log("Reports Page Data", reportPageData);
 
             // Debugging: Log reportPage and reportPageData
 
             // Extract required data
-            const title = reportPageData ? reportPageData.json_data.report_title : 'No company name available';
+            // const title = reportPageData ? reportPageData.json_data.report_title : 'No company name available';
+            const title = report.title;
+
             const grandTotal = reportPageData6 ? reportPageData6.json_data.grand_total : null;
             const price = grandTotal ? `$${parseFloat(grandTotal).toFixed(2)}` :
                 `$${report.price ? report.price.toFixed(2) : '0.00'}`;
