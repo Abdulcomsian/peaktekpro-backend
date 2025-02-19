@@ -10,6 +10,8 @@ input[type="checkbox"].toggle:checked + span > span {
 .toggle-switch {
     position: relative;
     display: inline-block;
+
+    
     width: 40px;
     height: 24px;
     background-color: #E5E7EB; /* Tailwind's gray-200 */
