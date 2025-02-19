@@ -43,7 +43,7 @@ class CheckReactAuth
                 //     abort(401, 'User not found.');
                 // }
                 // Attach the user to the request
-                // $request->attributes->add(['user' => $user]);
+                // $request->attributes->add(['user' => $user]); 
                 $arr = [
                     'email' => 'peaktek@gmail.com',
                     'password' => 'Abc@123!'
