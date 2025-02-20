@@ -4,9 +4,10 @@
 
 @section('content')
     <section>
+   
         <div class=" mx-auto p-4">
             <!-- Header with Title and Create Button -->
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-4 mr-4">
                 <h1 class="text-2xl font-bold text-gray-700">Reports</h1>
                 <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 btn-gradient">
                     Create Report
@@ -151,15 +152,17 @@
 
             const companyName = reportPageData ? reportPageData.json_data.company_name :
                 'No company name available';
-            const companyAddress = reportPageData && reportPageData.json_data.company_address ? reportPageData
-                .json_data.company_address :
-                'No address available';
+            // const companyAddress = reportPageData && reportPageData.json_data.company_address ? reportPageData
+            //     .json_data.company_address :
+            //     'No address available';
             const createdAt = reportPageData ? report.created_at :
                 'Not yet Created';
             // const primaryImagePath = reportPageData && reportPageData.json_data.primary_image ? reportPageData.json_data.primary_image.path : 'https://picsum.photos/536/354';
             const primaryImagePath = reportPageData && reportPageData.json_data.primary_image ?
                 reportPageData.file_url + '/' + reportPageData.json_data.primary_image.path :
                 'https://picsum.photos/536/354';
+                const companyData = @json($company);
+                const companyAddress = @json($address);
 
             return {
                 id: report.id, // Map ID
@@ -174,6 +177,7 @@
                 createdAt: timeAgo(report.created_at)
             };
         });
+
 
         function timeAgo(dateString) {
             const date = new Date(dateString);

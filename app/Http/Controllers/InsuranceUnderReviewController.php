@@ -20,7 +20,7 @@ class InsuranceUnderReviewController extends Controller
             // 'label' => 'nullable|array',         
             // 'label.*' => 'nullable|string', 
             'pdf_path'=>  'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt', 
-            // 'file_name' => 'nullable|string'   
+            'status' => 'nullable|in:approved,overturn'   
         ]);
         $filePath = null;
 
@@ -51,12 +51,25 @@ class InsuranceUnderReviewController extends Controller
             }else {
                 $newFilePath = $existingFilePath ? str_replace('/storage/', 'public/', $existingFilePath) : null;
             }
+
+            //job status update
+            if($request->status == "approved"){
+                $company->status_id = 8;
+                $company->save();
+            }elseif($request->status == "overturn"){
+                $company->status_id = 6;
+                $company->save();
+            }
+
+
+            //save the insurance data
             $insurance = InsuranceUnderReview::updateOrCreate(
                 ['company_job_id' => $id],
                 [
-                    'notes' => $request->notes,
+                    // 'notes' => $request->notes,
                     'pdf_path' => $filePath ? Storage::url($filePath) : null,
                     'file_name' => $request->file_name,
+                    'status' => $request->status,
 
                 ]
             );

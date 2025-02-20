@@ -12,7 +12,20 @@
         .dropzone .dz-preview .dz-details .dz-filename {
             display: none;
         }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield; /* for Firefox */
+        }
     </style>
+
+   
+
 @endpush
 
 
@@ -1065,6 +1078,14 @@
                 </select>
                 <button id="templateDropdown"
                     class="bg-blue-500 text-white px-4 py-2 rounded-lg btn-gradient">Submit</button>
+
+                    <div class="flex space-x-4">
+                <a href="{{ route('reports.index') }}"
+                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded" style="margin-left: 10px;">Reports</a>
+                <a href="{{ route('templates.index') }}"
+                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded" style="margin-right: 0px;">Templates</a>
+
+            </div>
             </div>
             <!-- Modal for confirmation -->
             <!-- Modal for confirmation (small version) -->
@@ -1077,6 +1098,7 @@
                         <button id="cancelBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
                         <button id="confirmBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Confirm</button>
                     </div>
+                    
                 </div>
             </div>
 
@@ -1087,7 +1109,11 @@
                     <div class="flex justify-end mt-4">
                         <button id="closeErrorModal" class="bg-gray-500 text-white px-4 py-2 rounded-lg">Close</button>
                     </div>
+                  
+                    
                 </div>
+                
+               
             </div>
 
             <!-- Content area with a card-like design for report and actions -->
@@ -1095,6 +1121,7 @@
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold" id="reportTitleText">{{ $report->title }}</h2>
                     <div>
+                        
                         <button class="text-blue-500 hover:text-blue-600 update-status-button" id="updateToPublishedBtn"
                             style="margin-right:100px;" data-id="{{ $report->id }}" data-status="{{ $report->status }}">
                             {{ $report->status === 'draft' ? 'Publish Report' : 'Save as Draft' }}
