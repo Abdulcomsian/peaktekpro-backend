@@ -868,37 +868,45 @@
         function updateReportStatus(reportId, newStatus) {
             const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
 
-            // AJAX Request to update the status
             fetch(updateStatusUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    },
-                    body: JSON.stringify({
-                        status: newStatus
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status) { // Check for success
-                        console.log('data', data);
-                        // Update the button text and data-status attribute dynamically
-                        const button = document.getElementById('updateToPublishedBtn');
-                        button.setAttribute('data-status', newStatus);
-                        button.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
-                        showSuccessNotification(data.message);
-                        setTimeout(() => {
-                            window.location.reload(); // Reload the page after a short delay
-                        }, 2000); // Delay of 2 seconds
-                    } else {
-                        showErrorNotification(data.message || 'An error occurred while updating the status.');
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status) {
+                    // Trigger PDF download if published
+                    if (newStatus === 'published' && data.file_url) {
+                        const link = document.createElement('a');
+                        link.href = data.file_url;
+                        link.setAttribute('download', 'report.pdf');
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showErrorNotification('An error occurred. Please try again.');
-                });
+
+                    // Update UI and reload
+                    const button = document.getElementById('updateToPublishedBtn');
+                    button.setAttribute('data-status', newStatus);
+                    button.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
+                    showSuccessNotification(data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showErrorNotification(data.message || 'An error occurred.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorNotification('An error occurred. Please try again.');
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
