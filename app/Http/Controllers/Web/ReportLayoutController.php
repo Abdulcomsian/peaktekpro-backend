@@ -97,7 +97,9 @@ class ReportLayoutController extends Controller
 
             $firstName = $nameParts[0] ?? ''; 
             $lastName = $nameParts[1] ?? ''; 
-            $date = $job->created_at;
+            // $date = $job->date;
+            //  $format = $date->date_format($date);
+            // dd("my date is",$format);
             // $formattedDate = Carbon::createFromFormat("m/d/y", $created_at)->format("Y-m-d");
             // dd($formattedDate);
             $address = $job ? json_decode($job->address) : null;
@@ -269,7 +271,7 @@ private function insertEntirePdf($pdf, $pdfPath)
     }
 }
 
-    public function updateStatus(Request $request, $id)
+    public function updateStatus200(Request $request, $id)
     {
         try {
             $jobId = session('job_id');
@@ -361,7 +363,7 @@ private function insertEntirePdf($pdf, $pdfPath)
         }
     }
 
-    public function updateStatus404(Request $request, $id)
+    public function updateStatus(Request $request, $id)
     {
         try {
             $jobId = session('job_id');
@@ -431,23 +433,15 @@ private function insertEntirePdf($pdf, $pdfPath)
 
                 // Step 4: Update report file path
                 $report->update(['file_path' => "pdf-files/merged-report-{$id}_{$timestamp}.pdf"]);
+                $downloadUrl = route('reports.download-pdf', $report->id);
 
-                // return response()->json([
-                //     'status' => true,
-                //     'message' => 'Report Published Successfully',
-                //     'response' => $report,
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Report Published Successfully',
+                    'response' => $report,
+                    'file_url' => $downloadUrl,
+                ], 200);
 
-                // ], 200);
-                $downloadResponse  = $this->downloadPdf($report->id);
-                // return $this->downloadPdf($report->id)->send();
-                if ($request->ajax()) {
-                    // Frontend must handle this as a blob (see frontend solution below)
-                    return $downloadResponse;
-                }
-                
-                return $downloadResponse;
-
-                // exit;
             } elseif ($report->status == 'draft') {
                 if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
                     Storage::disk('public')->delete($report->file_path);
@@ -469,11 +463,8 @@ private function insertEntirePdf($pdf, $pdfPath)
 
     public function downloadPdf($id) //this is used for pdf downloading
     {
-        // dd("you are here",$id);
         try {
             $report = Report::findOrFail($id);
-            // dd($report->file_path, Storage::disk('public')->exists($report->file_path));
-
             // dd($fileName);
             $fileName = basename($report->file_path);
             Log::info("my file name is", [$fileName]);
@@ -493,11 +484,6 @@ private function insertEntirePdf($pdf, $pdfPath)
             if (file_exists($filePath)) {
                 Log::info("file inside check is", [$filePath]);
                 return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
-
-                // return response()->download($filePath, $fileName, [
-                //     'Content-Type' => 'application/pdf',
-                //     'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-                // ])->deleteFileAfterSend(true);
                 
             }
              else {
@@ -517,58 +503,6 @@ private function insertEntirePdf($pdf, $pdfPath)
             ], 500);
         }
     }
-
-   
-
-    public function downloadPdf1($id) //this is used for pdf downloading
-    {
-        // dd("you are here",$id);
-        try {
-            $report = Report::findOrFail($id);
-            // $fileName = $report->file_path;
-            // dd($fileName);
-            $fileName = basename($report->file_path);
-            // dd($fileName);
-
-            $filePath = storage_path('app/public/' . $report->file_path);
-
-            if (!$report->file_path) {
-                return response()->json([
-                    'status_code' => 404,
-                    'status' => false,
-                    'message' => 'File path not found in the database.'
-                ], 404);
-            }
-
-            // Check if the file exists
-            if (file_exists($filePath)) {
-                
-                // dd($fileName);
-                $timestamp = now()->format('Ymd_His');
-
-                return response()->download($filePath, $fileName, [
-                    'Content-Type' => 'application/pdf',
-                ]);
-            } else {
-                return response()->json([
-                    'status_code' => 404,
-                    'status' => false,
-                    'message' => 'File not found.'
-                ], 404);
-            }
-        } catch (\Exception $e) {
-            \Log::error('Error downloading file: ' . $e->getMessage());
-
-            return response()->json([
-                'status_code' => 500,
-                'status' => false,
-                'message' => 'An error occurred while downloading the file: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-   
-
 
 
     public function copyTemplate(Request $request)

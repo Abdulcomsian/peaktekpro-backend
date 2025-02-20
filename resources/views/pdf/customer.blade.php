@@ -96,7 +96,6 @@
             color: white;
             text-align: center;
             line-height: 35px;
-            /* border: 2px solid green; */
         }
         .empty-field {
             visibility: hidden; /* Space is preserved */
@@ -200,6 +199,7 @@
             {!! $content->content !!}
         </section>
 
+
         <table style="width: 100%; max-width: 1200px; margin: auto;">
             <tbody>
                 <tr>
@@ -302,11 +302,12 @@
                 </tr>
             </tbody>
         </table>
+        <br>
 
 <!-- show the cancellation section at the end of page -->
        
 
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; align-items: center;">
+        <div style="position: absolute; margin-top:20px; bottom: 0; left: 0; right: 0; padding: 10px; align-items: center;">
             <div>
                 I 
                 <span style="border: .1rem solid gray; border-top: none; border-left: none; border-right: none; color: {{ !empty($data->customer_name) ? 'black' : 'transparent' }}">
