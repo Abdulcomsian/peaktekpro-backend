@@ -307,26 +307,28 @@
 <!-- show the cancellation section at the end of page -->
        
 
-        <div style="position: absolute; margin-top:20px; bottom: 0; left: 0; right: 0; padding: 10px; align-items: center;">
-            <div>
-                I 
-                <span style="border: .1rem solid gray; border-top: none; border-left: none; border-right: none; color: {{ !empty($data->customer_name) ? 'black' : 'transparent' }}">
-                    {{ !empty($data->customer_name) ? $data->customer_name : '......................................'}}
-                </span>, the undersigned, hereby cancel this transaction as of 
-                <span style="border: .1rem solid gray; border-top: none; border-left: none; border-right: none; display: inline-block; color: {{ !empty($data->agreement_date) ? 'black' : 'transparent' }}">
-                    {{ !empty($data->agreement_date) 
-                        ? explode('/', $data->agreement_date)[0] . '/' . explode('/', $data->agreement_date)[1] . '/' . explode('/', $data->agreement_date)[2] 
-                        : '...... / ...... / ............' }}
-                </span>
-            </div>
+    <!-- Replace the existing cancellation section with this -->
+    <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 10px;">
+    <div>
+        I 
+        <span style="border: .1rem solid gray; border-top: none; border-left: none; border-right: none; color: {{ !empty($data->customer_name) ? 'black' : 'transparent' }}">
+            {{ !empty($data->customer_name) ? $data->customer_name : '......................................'}}
+        </span>, the undersigned, hereby cancel this transaction as of 
+        <span style="border: .1rem solid gray; border-top: none; border-left: none; border-right: none; display: inline-block; color: {{ !empty($data->agreement_date) ? 'black' : 'transparent' }}">
+            {{ !empty($data->agreement_date) 
+                ? explode('/', $data->agreement_date)[0] . '/' . explode('/', $data->agreement_date)[1] . '/' . explode('/', $data->agreement_date)[2] 
+                : '...... / ...... / ............' }}
+        </span>
+    </div>
 
-            <div style="margin-top : 1rem;">
-                Customer Signature:
-                <span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none; color:transparent">
-                    ............................................................
-                </span>
-            </div>
-        </div>
+    <div style="margin-top : 1rem;">
+        Customer Signature:
+        <span style="border: .1rem solid gray;border-top: none;border-left:none;border-right:none; color:transparent">
+            ............................................................
+        </span>
+    </div>
+</div>
+
 
     </main>
 </body>
