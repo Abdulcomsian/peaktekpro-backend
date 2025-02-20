@@ -21,14 +21,13 @@
             </div>
 
             <!-- Navigation Links -->
-            <div class="flex space-x-4">
+            <!-- <div class="flex space-x-4">
                 <a href="{{ route('reports.index') }}"
-                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded">Reports</a>
+                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded" style="margin-right: 0px;">Reports</a>
                 <a href="{{ route('templates.index') }}"
-                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded">Templates</a>
+                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded" style="margin-right: 140px;">Templates</a>
 
-                <!-- Add more links as needed -->
-            </div>
+            </div> -->
         </nav>
     </header>
 
