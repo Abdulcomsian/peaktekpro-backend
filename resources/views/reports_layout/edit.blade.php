@@ -1213,7 +1213,7 @@
 
                             @includeIf(
                                 'reports_layout.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
-                                ['pageData' => $page->pageData, 'address'=> $address,'firstName' => $firstName, 'lastName' => $lastName,'date'=> $date]
+                                ['pageData' => $page->pageData, 'address'=> $address,'firstName' => $firstName, 'lastName' => $lastName]
                             )
                         </div>
                     @empty
