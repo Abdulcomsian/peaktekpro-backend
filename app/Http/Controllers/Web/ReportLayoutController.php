@@ -97,17 +97,11 @@ class ReportLayoutController extends Controller
 
             $firstName = $nameParts[0] ?? ''; 
             $lastName = $nameParts[1] ?? ''; 
-            // $date = $job->date;
-            //  $format = $date->date_format($date);
-            // dd("my date is",$format);
-            // $formattedDate = Carbon::createFromFormat("m/d/y", $created_at)->format("Y-m-d");
-            // dd($formattedDate);
             $address = $job ? json_decode($job->address) : null;
-            // dd($address);
             $companyId = Auth::user()->company_id;
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
             $templates = Template::where('company_id',$companyId)->latest()->get();
-            return view('reports_layout.edit', compact('report', 'templates','address','firstName','lastName','date'));
+            return view('reports_layout.edit', compact('report', 'templates','address','firstName','lastName'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');
         }
