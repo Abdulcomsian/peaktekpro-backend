@@ -298,84 +298,63 @@
         @break
 
         <!-- third Section -->
-
+   
         @case('repairability-or-compatibility-photos')
-            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0 auto; width: 100%; display: block; line-height: 50px; padding: 10px;">
-                {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
-            </h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">
+            {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+        </h2>
 
-            <div class="comparison-sections" style="padding: 20px 40px; margin: 20px auto; width: 95%;">
+        <div class="comparison-sections" style="padding: 20px;">
+            @foreach ($jsonData['comparision_sections'] ?? [] as $section)
+                <h4>Title</h4>
+                <p>{{ $section['title'] ?? 'No title available.' }}</p>
 
-                @foreach ($jsonData['comparision_sections'] ?? [] as $section)
-                    <h4 style="margin-top: 20px;">Title</h4>
-                    <p>{{ $section['title'] ?? 'No title available.' }}</p>
+                @php
+                    $items = $section['items'] ?? [];
+                    $sectionPdfValue = max(1, (int) ($section['section_pdf'] ?? 2));
+                    
+                    // Determine columns based on section_pdf value
+                    $columns = match ($sectionPdfValue) {
+                        1 => 1,
+                        2 => 2,
+                        3 => 3,
+                        default => 4, // 4 or more
+                    };
+                    
+                    $chunks = array_chunk($items, $columns);
+                @endphp
 
-                    @foreach ($section['items'] ?? [] as $item)
-                        <div class="comparison-item" style="margin-bottom: 40px; page-break-inside: avoid;">
-                            <h4>Item {{ $loop->iteration }}</h4>
+                <table width="100%" border="1" cellspacing="0" cellpadding="5" style="table-layout: fixed; word-wrap: break-word;">
+                    @foreach ($chunks as $row)
+                        <tr style="width: 100%; ">
+                            @foreach ($row as $item)
+                                <td style="width: {{ 100 / $columns }}% !important; padding: 10px; overflow-wrap: break-word; word-break: break-word;">
+                                    <h4>Item {{ $loop->parent->iteration }}.{{ $loop->iteration }}</h4>
 
-                            <div class="content" style="padding-top: 10px; width:90%;">
-                                {!! $item['content'] ?? 'No content available.' !!}
-                            </div>
+                                    <div class="content" style="word-break: break-word; overflow-wrap: break-word;">
+                                        {!! $item['content'] ?? 'No content available.' !!}
+                                    </div>
 
-                            @php
-                                $imagePath = storage_path('app/public/' . ($item['image']['path'] ?? ''));
+                                    @php
+                                        $imagePath = public_path('storage/' . ($item['image']['path'] ?? ''));
+                                    @endphp
 
-                            @endphp
-
-                            @if(file_exists($imagePath))
-                                <div style="padding-top: 20px; page-break-before: always;">
-                                    <!-- <img src="{{ asset($item['image']['path']) }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" /> -->
-                                    <img src="{{ public_path('storage/' . $item['image']['path']) }}" alt="repariability_assessment_images" style="width: 100%; max-width: 1800px; height:auto; display: block;" />
-
-                                </div>
-                            @else
-                                <p>Image not found.</p>
-                            @endif
-                        </div>
+                                    @if (!empty($item['image']['path']) && file_exists($imagePath))
+                                        <img src="{{ asset('storage/' . $item['image']['path']) }}" alt="repairability image" style="max-width: 100px; height: auto;">
+                                    @else
+                                        <p>Image not found.</p>
+                                    @endif
+                                </td>
+                            @endforeach
+                        </tr>
                     @endforeach
-                @endforeach
-            </div>
-        @break
+                </table>
+            @endforeach
+        </div>
+@break
 
-        <!-- @case('repairability-or-compatibility-photos')
-            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">
-                {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
-            </h2>
 
-            <div class="comparison-sections" style="padding-left:35px; padding-right:10px; padding-top:20px;margin-top:10px;">
-
-                @foreach ($jsonData['comparision_sections'] ?? [] as $section)
-                    <h4>Title</h4>
-                    <p>{{ $section['title'] ?? 'No title available.' }}</p>
-
-                    @foreach ($section['items'] ?? [] as $item)
-                        <div class="comparison-item">
-                            <h4>Item {{ $loop->iteration }}</h4>
-
-                            <div class="content" style="padding-top: 20px;">
-                                {!! $item['content'] ?? 'No content available.' !!}
-                            </div>
-
-                            @php
-                                $imagePath = storage_path('app/public/' . str_replace('http://127.0.0.1:8000/storage/', '', $item['image']['path'] ?? ''));
-
-                            @endphp
-
-                            @if(file_exists($imagePath))
-                                <div style="padding-top: 20px;">
-                                    <img src="{{ $imagePath }}" alt="repairability-or-compatibility-photos" height="200px" width="300px" />
-
-                                </div>
-                            @else
-                                <p>Image not found.</p>
-                            @endif
-                        </div>
-                    @endforeach
-                @endforeach
-            </div>
-        @break
-        -->
+       
 
         <!-- 4th section -->
 

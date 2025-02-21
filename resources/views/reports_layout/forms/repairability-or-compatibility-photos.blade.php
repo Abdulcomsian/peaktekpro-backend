@@ -14,6 +14,13 @@
                                 class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
                                 placeholder="Section Title" value="{{ $section['title'] }}" />
                         </div>
+
+                        <div>
+                            <input type="text"
+                                class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
+                                placeholder="Section pdf" value="{{ $section['section_pdf']?? '' }}" />
+                        </div>
+                    
                         <div>
                             <button
                                 class="remove-compatibility-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
@@ -76,6 +83,11 @@
                         <input type="text"
                             class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
                             placeholder="Section Title" />
+                    </div>
+                    <div>
+                        <input type="text"
+                            class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
+                            placeholder="item in each row" />
                     </div>
                     <div>
 
@@ -299,11 +311,15 @@
             const sectionContainer = $(element).closest('.compatibility-section');
             const sectionId = sectionContainer.data('id');
             const sectionTitle = sectionContainer.find('.section-title').val();
+            const sectionPdf = sectionContainer.find('.section-pdf').val();
+
             const sectionOrder = sectionContainer.index();
 
             const repairabilityCompatibilitySection = {
                 id: sectionId,
                 title: sectionTitle,
+                section_pdf: sectionPdf,
+
                 sectionOrder: sectionOrder
             };
 
@@ -351,6 +367,15 @@
             }, 500); // Delay of 500 milliseconds
         });
 
+        $('#compatibility-sections-container').on('input', '.section-pdf, .item-editor', function() {
+            clearTimeout(typingTimer); // Clear the previous timeout
+            const $this = $(this);
+
+            typingTimer = setTimeout(function() {
+                sendDataToAjax($this); // Call the AJAX function after the delay
+            }, 500); // Delay of 500 milliseconds
+        });
+
 
         // Add new section
         $(document).on('click', '#add-compatibility-section-btn', function() {
@@ -361,6 +386,11 @@
                     <input type="text"
                         class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
                         placeholder="Section Title" />
+                </div>
+                 <div>
+                    <input type="text"
+                        class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
+                        placeholder="Section pdf" />
                 </div>
                 <div>
                     <button class="remove-compatibility-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
