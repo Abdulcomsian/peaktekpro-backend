@@ -10,7 +10,7 @@ class MaterailDropDown extends Model
     use HasFactory;
      protected $fillable = [
         'order_key',
-        'quantity',
+        'material_name',
         'color'
      ];
      protected $casts = [
