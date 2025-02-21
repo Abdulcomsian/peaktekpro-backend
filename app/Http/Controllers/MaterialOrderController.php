@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use App\Jobs\ConfirmationJob;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
+use App\Models\MaterailDropDown;
 use App\Models\CustomerAgreement;
 use App\Models\MaterialSelection;
 use App\Models\MaterialOrderMedia;
@@ -24,8 +25,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\MaterialOrderConfirmation;
 use App\Jobs\MaterialOrderConfirmationJob;
 use App\Models\MaterialOrderDeliveryInformation;
-use App\Notifications\MaterialOrderConfirmationNotification;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use App\Notifications\MaterialOrderConfirmationNotification;
 
 class MaterialOrderController extends Controller
 {
@@ -1235,7 +1236,69 @@ class MaterialOrderController extends Controller
         }
     }
 
+    public function materailOrderDropdown(Request $request)
+    {
+        try {
+            $request->validate([
+                'id'        => 'nullable|exists:materail_drop_downs,id', 
+                'order_key' => 'nullable|string',
+                'quantity'  => 'nullable|string',
+                'color'     => 'nullable|array',
+                'color.*'   => 'string', 
+            ]);
 
+            // Check if we are updating or creating a new record
+            $materialOrder = MaterailDropDown::updateOrCreate(
+                ['id' => $request->id], 
+                [
+                    'order_key' => $request->order_key,
+                    'quantity'  => $request->quantity,
+                    'color'     => $request->color, 
+                    // 'color'     => json_encode($request->color), 
+
+                ]
+            );
+
+            return response()->json([
+                'status'  => true,
+                'message' => $request->id ? 'Data Updated Successfully' : 'Data Added Successfully',
+                'data'=> [
+                    'id'=> $materialOrder->id,
+                    'quantity' => $materialOrder->quantity,
+                    'order_key' => $materialOrder->order_key,
+                    'order_key' => $materialOrder->color,
+
+                    // 'color' => json_decode($materialOrder->color),
+                ]           
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false, // Change status to false on error
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function getMaterailOrderDropdown()
+    {
+        try{
+            $materialOrder = MaterailDropDown::get();
+            return response()->json([
+                'status'=> true,
+                'message' => 'Data Fetched Successfully',
+                'data'=> $materialOrder
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status'=> true,
+                'message' => 'Data Fetched Successfully'. $e->getMessage(),
+            ]);
+        }
+
+    }
 
     // public function confirmationEmail(Request $request, $id)
     // {

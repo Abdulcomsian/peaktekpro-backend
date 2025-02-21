@@ -265,6 +265,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('material-order/confirmation-email/{jobId}', [MaterialOrderController::class, 'materialOrderconfirmationEmail']);
     Route::post('material-order/confirmation-email-status/{jobId}', [MaterialOrderController::class, 'materialOrderconfirmationEmailStatus']);
     Route::get('get-material-order/confirmation-email-status/{jobId}', [MaterialOrderController::class, 'getMaterialOrderconfirmationEmailStatus']);
+
+    // materail order drop down apis
+    Route::post('add-materailOrder-dropDown', [MaterialOrderController::class, 'materailOrderDropdown']);
+    Route::get('get-materailOrder-dropDown', [MaterialOrderController::class, 'getMaterailOrderDropdown']);
+
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
     //Project Design Title
@@ -386,4 +391,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('user-reports', [ReportController::class, 'userReports']); //performance api
     Route::get('get-pipeline-data', [ReportController::class, 'getPipelineData']);  //pipeline api
     Route::get('get-own-pipeline-data', [ReportController::class, 'getOwnPipelineData']);  //when click on my job pipeline api
+
+    //get job details 
+    Route::get('get/job-reports/{jobId}', [ReportController::class, 'userReports']); //performance api
+
+
 });
