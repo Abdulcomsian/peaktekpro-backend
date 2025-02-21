@@ -4,13 +4,34 @@
     <style>
         @page {
             margin: 0;
-
+            size: A4;
+            margin: 20mm 10mm 30mm 10mm; /* Bottom margin to accommodate footer */
         }
+        @page:first {
+      @top-center {
+            content: "First Page Header";
+        }
+        }
+
+        @page {
+            @top-center {
+                content: "Second Page Header";
+            }
+        }
+
+        .header {
+            position: running(header);
+        }
+
         body {
             font-family: sans-serif;
             color: #333;
             margin: 0; /* Ensure no default body margin */
             padding: 0; /* Ensure no default body padding */
+            height: 100%;
+            /* border:2px solid orange; */
+            display: flex;
+            flex-direction: column;
         }
 
         header {
@@ -70,10 +91,13 @@
             /* border: 2px solid #ccc;
             border-radius: 10px;  */
         }
-
+        .content-main {
+            /* border:3px solid green; */
+            flex: 1; /* Pushes footer down */
+        }
         footer {
             position: fixed;
-            bottom: -110px;
+            /* bottom: -110px; */
             left: 0;
             right: 0;
             height: 70px;
@@ -85,6 +109,8 @@
             align-items: center;
             padding: 10px;
             margin: 0; /* Remove any extra space */
+            
+            /* border:2px solid blue; */
         }
 
         .footer-left {
@@ -178,7 +204,7 @@
         @case('introduction')
 
         <!-- Define header and footer blocks before your content -->
-        <header>
+        <header style="  height:20%;"> 
             <table width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
@@ -192,20 +218,21 @@
             </table>
         </header>
 
-        <footer style="position: fixed; bottom: 0; width: 100%; background-color:rgb(121, 128, 128);">
-            <table width="100%" style="color: white; padding: 10px; font-size: 12px; border-collapse: collapse;">
+        <footer style="position: absolute; bottom: 0; width: 96%;
+        background-color:rgb(121, 128, 128);">
+            <table width="90%" style="color: white; padding: 10px; font-size: 12px; border-collapse: collapse;">
                 <tr>
                     <!-- Left Content -->
-                    <td style="width: 28%; text-align: center; font-weight: bold;">
+                    <td style="text-align: center; font-weight: bold;">
                         Thank you for choosing<br>
                         PeakTek Roofing & Restoration
                     </td>
 
                     <!-- Vertical Divider -->
-                    <td style="width: 4%; border-left: 2px solid white;"></td>
+                    <td style="border-left: 2px solid white;"></td>
 
                     <!-- Right Content -->
-                    <td style="width: 68%; text-align: center;">
+                    <td style="text-align: center;">
                         <strong>admin@peaktekpro.com</strong><br>
                         (629) 333-6170
                     </td>
@@ -214,12 +241,14 @@
         </footer>
 
         <!-- Wrap the content of your PDF inside a main tag -->
-    <main>
+    <main class="content-main">
 
-        <div class="image">
+        <div class="image" style=" height:600px;">
             @if (isset($jsonData['primary_image']))
-            <div class="primary-image">
-                <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" alt="Primary Image" style="width: 100%; max-width: 1800px; height:800px; display: block;" />
+            <div class="primary-image" style="height: 400px;">
+                <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" alt="Primary Image" 
+                style="width: 100%;  height: 100%;
+  object-fit: contain; margin-top:25%; display: block;" />
             </div>
             @endif
         </div>
@@ -251,8 +280,8 @@
 
         <!-- first section -->
         @case('introduction')
-           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative; padding-left:40px; padding-right:10px;">
-           <h2 style=" padding-left: 40px;
+           <div style="  height: 70px; width: 93%; background-color: rgb(33, 166, 228);   position: relative; padding-left:40px; padding-right:10px;">
+           <h2 style=" 
             color: white;
             margin: 0;
             position: absolute;
@@ -278,16 +307,18 @@
             </h2>
            </div>
             <!-- <h2 style="margin-bottom: 5px; background-color:rgb(33, 166, 228); color:white;width:100%; height:70px;padding-top:30px;padding-left:5px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2> -->
-            <div class="roof-repair-limitations" style="margin-top:10px; padding-left:35px; padding-right:10px">
+            <div class="roof-repair-limitations"
+            style="margin-top:10px; padding-left:35px; padding-right:10px">
                 {!! $jsonData['roof_repair_limitations_text'] ?? 'No repair limitations text available.' !!}
             </div>
-
             <div class="repairability-assessment-images">
 
 
                 @if (isset($jsonData['repariability_assessment_images']) && isset($jsonData['repariability_assessment_images']['path']))
-                <div class="image">
-                    <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" style="width: 100%; max-width: 1800px; height:auto; display: block;" />
+                <div class="image" style="height:400px;">
+                    <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}"
+                     alt="repariability_assessment_images"
+                      style="width: 100%; height:100%;  display: block;" />
                     <!-- <img src="{{ asset($jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" height="200px" width="300px" /> -->
                     <!-- <img src="{{ asset('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="Repairability Assessment Image" height="200px" width="300px" /> -->
 
@@ -380,9 +411,10 @@
         <!-- 4th section -->
 
         @case('product-compatibility')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
+        width: 92%; display: block; line-height:50px; padding: 10px 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="product-compatibility-section">
-            <div class="product-compatibility-text" style="padding-left:35px; padding-right:10px;">
+            <div class="product-compatibility-text" style="padding-left:25px; padding-right:10px;">
                 {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
             </div>
 
@@ -397,7 +429,8 @@
         <!-- <div style="page-break-after: always; break-after: page;"></div> -->
 
         @case('unfair-claims-practices')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+         margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="unfair-claims-section">
             <div class="pdf-placeholder" data-section="unfair-claims-practices">
                 [unfair-claims-practices-placeholder]
@@ -409,9 +442,10 @@
         <!-- 6th Section -->
 
         @case('applicable-codes-guidelines')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+         margin: 0; width: 92%; display: block; line-height:50px; padding: 10px 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
         <div class="applicable-codes-guidelines-section" >
-            <div class="text-content" style="padding-left:35px; padding-right:10px;">
+            <div class="text-content" style="padding-left:25px; padding-right:10px;">
                 {!! $jsonData['applicable_code_guidelines_text'] ?? 'No guidelines text available.' !!}
             </div>
         </div>
@@ -420,8 +454,9 @@
         <!-- 7th Section -->
 
         @case('quote-details')
-            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-            <div class="quote-details-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+             margin: 0; width: 92%; display: block; line-height:50px; padding: 0 40px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+            <div class="quote-details-section" style="padding-left:25px; padding-right:10px; margin: 0 20px;">
 
                 @foreach($jsonData['sections'] ?? [] as $section)
                     <h4>Section Name: {{ $section['title'] ?? 'No title available.' }}</h4>
@@ -460,7 +495,8 @@
 
         <!-- 8th Section -->
         @case('authorization-page')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
+         width: 92%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
 
         <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
 
