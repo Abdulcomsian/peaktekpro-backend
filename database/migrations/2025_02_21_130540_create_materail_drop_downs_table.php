@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('materail_drop_downs', function (Blueprint $table) {
             $table->id();
             $table->string('order_key')->nullable();
-            $table->string('quantity')->nullable();
+            $table->string('material_name')->nullable();
             $table->json('color')->nullable(); // Store multiple colors as JSON
             $table->timestamps();
         });

@@ -1238,11 +1238,12 @@ class MaterialOrderController extends Controller
 
     public function materailOrderDropdown(Request $request)
     {
+        // dd($request->all());
         try {
             $request->validate([
                 'id'        => 'nullable|exists:materail_drop_downs,id', 
                 'order_key' => 'nullable|string',
-                'quantity'  => 'nullable|string',
+                'material_name'  => 'nullable|string',
                 'color'     => 'nullable|array',
                 'color.*'   => 'string', 
             ]);
@@ -1252,7 +1253,7 @@ class MaterialOrderController extends Controller
                 ['id' => $request->id], 
                 [
                     'order_key' => $request->order_key,
-                    'quantity'  => $request->quantity,
+                    'material_name'  => $request->material_name,
                     'color'     => $request->color, 
                     // 'color'     => json_encode($request->color), 
 
@@ -1264,7 +1265,7 @@ class MaterialOrderController extends Controller
                 'message' => $request->id ? 'Data Updated Successfully' : 'Data Added Successfully',
                 'data'=> [
                     'id'=> $materialOrder->id,
-                    'quantity' => $materialOrder->quantity,
+                    'material_name' => $materialOrder->material_name,
                     'order_key' => $materialOrder->order_key,
                     'order_key' => $materialOrder->color,
 
