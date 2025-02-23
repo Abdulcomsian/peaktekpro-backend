@@ -1121,7 +1121,7 @@ class MaterialOrderController extends Controller
             //     }
             // }
 
-            $attachments = [];
+            $attachments = [];  
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $path = $file->store('temp'); 
@@ -1294,8 +1294,34 @@ class MaterialOrderController extends Controller
 
         }catch(\Exception $e){
             return response()->json([
-                'status'=> true,
+                'status'=> false,
                 'message' => 'Data Fetched Successfully'. $e->getMessage(),
+            ]);
+        }
+
+    }
+
+    public function deleteMaterailOrderDropdown($id)
+    {
+        try{
+            $materialOrder = MaterailDropDown::find($id);
+            if(!$materialOrder)
+            {
+                return response()->json([
+                    'status'=> true,
+                    'message' => 'Not found',
+                ]);
+            }
+            $materialOrder->delete();
+            return response()->json([
+                'status'=> true,
+                'message' => 'Delete Successfully',
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status'=> false,
+                'message' => 'issue occured'. $e->getMessage(),
             ]);
         }
 

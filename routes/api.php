@@ -269,6 +269,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     // materail order drop down apis
     Route::post('add-materailOrder-dropDown', [MaterialOrderController::class, 'materailOrderDropdown']);
     Route::get('get-materailOrder-dropDown', [MaterialOrderController::class, 'getMaterailOrderDropdown']);
+    Route::post('delete-materailOrder-dropDown/{id}', [MaterialOrderController::class, 'deleteMaterailOrderDropdown']);
+
 
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);

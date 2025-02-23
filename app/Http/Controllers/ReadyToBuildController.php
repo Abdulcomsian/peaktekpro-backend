@@ -23,9 +23,9 @@ class ReadyToBuildController extends Controller
     {
         // Validation Request
         $this->validate($request, [
-            'home_owner' => 'nullable|string|max:255',
-            'home_owner_email' => 'nullable|email',
-            'date' => 'nullable|date_format:m/d/Y',
+            // 'home_owner' => 'nullable|string|max:255',
+            // 'home_owner_email' => 'nullable|email',
+            // 'date' => 'nullable|date_format:m/d/Y',
             'notes' => 'nullable|string',
             'attachements.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'status' => 'nullable|in:true,false',
@@ -65,9 +65,9 @@ class ReadyToBuildController extends Controller
                 'company_job_id' => $jobId,
             ], [
                 'company_job_id' => $jobId,
-                'home_owner' => $request->home_owner,
-                'home_owner_email' => $request->home_owner_email,
-                'date' => $request->date,
+                // 'home_owner' => $request->home_owner,
+                // 'home_owner_email' => $request->home_owner_email,
+                // 'date' => $request->date,
                 'notes' => $request->notes,
                 'status' => $request->status,
                 'supplier_id' => $request->supplier_id
@@ -119,14 +119,20 @@ class ReadyToBuildController extends Controller
             ],[
                 'company_job_id' => $jobId,
                 'po_number' => $poNumber, 
+                'date_needed' => $request->date_needed,
                 'square_count' => $request->square_count,
                 'total_perimeter' => $request->total_perimeter,
                 'ridge_lf' => $request->ridge_lf,
+
+                'build_date'=> $request->build_date,
+                'valley_sf' => $request->valley_sf,
+                'hip_and_ridge_lf' => $request->hip_and_ridge_lf,
+                'drip_edge_lf' => $request->drip_edge_lf,
             ]);
 
             if($material_order)
             {
-               $materialOrder =  MaterialOrder::select('id','po_number','square_count','total_perimeter','ridge_lf')->where('company_job_id',$jobId)->first();
+               $materialOrder =  MaterialOrder::select('id','po_number','date_needed','square_count','total_perimeter','ridge_lf','build_date','valley_sf','hip_and_ridge_lf','drip_edge_lf')->where('company_job_id',$jobId)->first();
             }
 
             MaterialOrderMaterial::where('material_order_id', $material_order->id)->delete();
