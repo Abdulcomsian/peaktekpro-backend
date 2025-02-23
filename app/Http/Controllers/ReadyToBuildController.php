@@ -362,9 +362,8 @@ class ReadyToBuildController extends Controller
                 ], 200);
             }
 
-            $material_order = MaterialOrder::select('id', 'square_count', 'total_perimeter', 'ridge_lf')
-            ->where('company_job_id', $jobId)
-            ->first();
+            $material_order =  MaterialOrder::select('id','po_number','date_needed','square_count','total_perimeter','ridge_lf','build_date','valley_sf','hip_and_ridge_lf','drip_edge_lf')->where('company_job_id',$jobId)->first();
+
         
             // Check if material order exists
             if ($material_order) {
