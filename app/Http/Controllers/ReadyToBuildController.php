@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Log;
-use PDF;
+// use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\CompanyJob;
@@ -11,9 +13,11 @@ use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
+use App\Mail\ReadyToBuildEmail;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ReadyToBuildMedia;
+use Illuminate\Support\Facades\Mail;
 use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
 
@@ -53,12 +57,6 @@ class ReadyToBuildController extends Controller
                     'message' => 'Job not found',
                 ], 422);
             }
-
-            // $customer_info = CompanyJob::select('name','phone','address')->where('id',$jobId)->first();
-            // if($customer_info)
-            // {
-            //     $customer_info->address = json_decode($customer_info->address, true);
-            // }
 
             // Update Ready To Build
             $ready_to_build = ReadyToBuild::updateOrCreate([
@@ -154,21 +152,42 @@ class ReadyToBuildController extends Controller
                     $add_material->save();
                 }
             }
-            
-            // // Update Status
-            // if (isset($request->status) && $request->status == 'true') {
-            //     $job->status_id = 9;
-            //     $job->date = Carbon::now()->format('Y-m-d');
-            //     $job->save();
-            // }
+            $ready_to_build->load('documents');
+            $material_order->load('materials');
+            $agreement = CompanyJob::with('aggrement')->where('id', $jobId)->first();
+
+            //create the pdf and share the link also for signature
+            $pdf = Pdf::loadView('pdf.readyTobuild',['data'=>$agreement,'readybuild' => $ready_to_build,'material_order'=>$material_order]);
+            $pdf->setPaper('A4', 'portrait');
+
+            $pdf_fileName = time() . '.pdf';
+            $pdf_filePath = 'ready_to_build_pdf/' . $pdf_fileName;
+            // Check if the old PDF exists and delete it
+            if ($material_order->sign_pdf_url) {
+                $oldPdfPath = public_path($material_order->sign_pdf_url);
+                if (file_exists($oldPdfPath)) {
+                    unlink($oldPdfPath);
+                }
+            }
+            // Save the new PDF
+            Storage::put('public/' . $pdf_filePath, $pdf->output());
+            //Save PDF Path
+            $material_order->sign_pdf_url = '/storage/' . $pdf_filePath;
+            $material_order->save();
+            // return $pdf->stream('readytobuild.pdf');
+
+            $supplier = User::where('id',$request->supplier_id)->first();
+            // dd($user);
+            //after saving data and making pdf file now send the pdf to supplier for signature               
+             Mail::to($supplier->email)->send(new ReadyToBuildEmail($agreement, $ready_to_build, $material_order));
 
             return response()->json([
                 'status' => 200,
                 'message' => 'Ready To Build Added Successfully',
                 'data' => [
-                    // 'customer_info' => $customer_info,
-                    'readybuild'=>$ready_to_build->load('documents'), 
-                     'material_order' => $materialOrder->load('materials')
+                    'customer_info' => $agreement,
+                    'readybuild'=>$ready_to_build, 
+                     'material_order' => $material_order
                     // 'material_order'=>$materialOrder
                 ],
             ], 200);
