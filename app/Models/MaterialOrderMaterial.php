@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class MaterialOrderMaterial extends Model
 {
     use HasFactory;
+   
 
     protected $guarded = [];
     public function materialOrder()

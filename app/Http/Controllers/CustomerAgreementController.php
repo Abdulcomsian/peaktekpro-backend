@@ -31,10 +31,10 @@ class CustomerAgreementController extends Controller
 
             //Validate Request
             $this->validate($request, [
-                'street' => 'nullable',
-                'city' => 'nullable',
-                'state' => 'nullable',
-                'zip_code' => 'nullable',
+                // 'street' => 'nullable',
+                // 'city' => 'nullable',
+                // 'state' => 'nullable',
+                // 'zip_code' => 'nullable',
                 'insurance' => 'nullable',
                 'claim_number' => 'nullable',
                 'policy_number' => 'nullable',
@@ -111,10 +111,10 @@ class CustomerAgreementController extends Controller
                 'company_job_id' => $id,
             ],[
                 'company_job_id' => $id,
-                'street' => $request->street,
-                'city' => $request->city,
-                'state' => $request->state,
-                'zip_code' => $request->zip_code,
+                // 'street' => $request->street,
+                // 'city' => $request->city,
+                // 'state' => $request->state,
+                // 'zip_code' => $request->zip_code,
                 'insurance' => $request->insurance,
                 'claim_number' => $request->claim_number,
                 'policy_number' => $request->policy_number,
