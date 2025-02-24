@@ -5,7 +5,7 @@
         @page {
             margin: 0;
             size: A4;
-            margin: 20mm 10mm 30mm 10mm; /* Bottom margin to accommodate footer */
+            margin: 0mm 0mm 0mm 0mm; /* Bottom margin to accommodate footer */
         }
         @page:first {
       @top-center {
@@ -24,7 +24,8 @@
         }
 
         body {
-            font-family: sans-serif;
+            /* font-family: sans-serif; */
+            font-family: 'Segoe UI', Tahoma, sans-serif !important;
             color: #333;
             margin: 0; /* Ensure no default body margin */
             padding: 0; /* Ensure no default body padding */
@@ -92,12 +93,17 @@
             border-radius: 10px;  */
         }
         .content-main {
-            /* border:3px solid green; */
-            flex: 1; /* Pushes footer down */
+            
+            /* flex: 1; Pushes footer down */
+        }
+        .first-wrapper {
+            /* border:2px solid red; */
+            height: 1000px;
+            margin-bottom: 10%;
         }
         footer {
             position: fixed;
-            /* bottom: -110px; */
+            bottom: -110px;
             left: 0;
             right: 0;
             height: 70px;
@@ -204,7 +210,7 @@
         @case('introduction')
 
         <!-- Define header and footer blocks before your content -->
-        <header style="  height:20%;"> 
+        <header style="height:20%;"> 
             <table width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
@@ -218,7 +224,7 @@
             </table>
         </header>
 
-        <footer style="position: absolute; bottom: 0; width: 96%;
+        <footer style="position: absolute; bottom: 0; width: 100%;
         background-color:rgb(121, 128, 128);">
             <table width="90%" style="color: white; padding: 10px; font-size: 12px; border-collapse: collapse;">
                 <tr>
@@ -242,13 +248,14 @@
 
         <!-- Wrap the content of your PDF inside a main tag -->
     <main class="content-main">
-
+    <div class="first-wrapper">
         <div class="image" style=" height:600px;">
             @if (isset($jsonData['primary_image']))
             <div class="primary-image" style="height: 400px;">
-                <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" alt="Primary Image" 
+                <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" 
+                alt="Primary Image" 
                 style="width: 100%;  height: 100%;
-  object-fit: contain; margin-top:25%; display: block;" />
+                object-fit: contain; margin-top:22%; display: block;" />
             </div>
             @endif
         </div>
@@ -261,13 +268,13 @@
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
                     <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p>
 
-                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $address->formatedAddress ?? '' }}</p>
+                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 22px;">{{ $address->formatedAddress ?? '' }}</p>
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $address->state ?? '' }}</p>
                     <p style="margin-left:15px; line-height: 2px;">{{ $address->postalCode ?? '' }}</p>
 
                 </td>
-                <td style="width: 50%; vertical-align: middle; text-align: center;">
-                @if (isset($jsonData['secondary_image']))
+                 <td style="width: 50%; vertical-align: middle; text-align: center;">
+                     @if (isset($jsonData['secondary_image']))
                         <img src="{{ public_path('storage/' . $jsonData['secondary_image']['path']) }}"
                             alt="Secondary Image" 
                             style="width: 50%; height: auto; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
@@ -277,10 +284,10 @@
                  </td>
             </tr>
         </table>
-
+        </div>
         <!-- first section -->
         @case('introduction')
-           <div style="  height: 70px; width: 93%; background-color: rgb(33, 166, 228);   position: relative; padding-left:40px; padding-right:10px;">
+           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative; padding-left:40px; padding-right:10px;">
            <h2 style=" 
             color: white;
             margin: 0;
@@ -300,7 +307,7 @@
         <!-- second section -->
 
         @case('repairability-assessment')
-           <div style=" margin-top:-20px; height: 70px; width: 92%;
+           <div style=" margin-top:-20px; height: 70px; width:100%;
             background-color: rgb(33, 166, 228);">
            <h2 style=" padding-left: 40px;
             color: white;  padding-top: 25px; padding-bottom: 25px; ">
@@ -356,11 +363,15 @@
                             $chunks = array_chunk($items, $columns);
                         @endphp
 
-                        <table width="100%" border="1" cellspacing="0" cellpadding="5" style="table-layout: fixed; word-wrap: break-word;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="5" style="table-layout: fixed; word-wrap: break-word;">
                             @foreach ($chunks as $row)
-                                <tr style="width: 100%; ">
+                                <tr style="width: 100%; border:0px;">
                                     @foreach ($row as $item)
-                                        <td style="width: {{ 100 / $columns }}% !important; padding: 10px; overflow-wrap: break-word; word-break: break-word;">
+                                        <td style="
+                                        width: {{ 100 / $columns }}% !important;
+                                         padding: 10px; border:0px;
+                                         overflow-wrap: break-word; word-break: break-word;">
+                                       <div style="border:2px solid white;">
                                             <h4>Item {{ $loop->parent->iteration }}.{{ $loop->iteration }}</h4>
 
                                             <div class="content" style="word-break: break-word; overflow-wrap: break-word;">
@@ -379,7 +390,7 @@
                                                 @else
                                                     <p>Image not found.</p>
                                                 @endif
-
+                                                </div>
                                         </td>
                                     @endforeach
                                 </tr>
