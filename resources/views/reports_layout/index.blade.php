@@ -164,6 +164,7 @@
                 const companyData = @json($company);
                 const companyAddress = @json($address);
 
+
             return {
                 id: report.id, // Map ID
                 reportName: title, // Map title to reportName

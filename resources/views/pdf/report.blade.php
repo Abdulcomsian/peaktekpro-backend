@@ -208,8 +208,8 @@
             <table width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
-                        <h2 style="color:white; margin:20px;">{{ $jsonData['report_title'] ?? 'No title available.' }}</h2>
-                        <p style="margin:20px;">{{ $jsonData['report_date'] ?? 'No date available.' }}</p>
+                        <h2 style="color:white; margin:20px;">{{ $report->title ?? 'No title available.' }}</h2>
+                        <p style="margin:20px;">{{ $created_At ?? 'No date available.' }}</p>
                     </td>
                     <td style="width: 50%; background-color: white; text-align: right; padding: 10px; vertical-align:middle;">
                         <img src="{{ public_path('assets/logo/logoTest.PNG') }}" style="width:420px; height:auto;" alt="Logo">
@@ -257,18 +257,18 @@
         <table style="width: 100%; border: none; padding: 10px;">
             <tr>
                 <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
-                    <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3>
+                    <!-- <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3> -->
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
                     <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p>
 
-                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_address'] ?? '' }}</p>
-                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $jsonData['company_province'] ?? '' }}</p>
-                    <p style="margin-left:15px; line-height: 2px;">{{ $jsonData['company_postal_code'] ?? '' }}</p>
+                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $address->formatedAddress ?? '' }}</p>
+                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $address->state ?? '' }}</p>
+                    <p style="margin-left:15px; line-height: 2px;">{{ $address->postalCode ?? '' }}</p>
 
                 </td>
                 <td style="width: 50%; vertical-align: middle; text-align: center;">
-                @if(file_exists(public_path('assets/logo/secondaryImage.PNG')))
-                        <img src="{{ asset('assets/logo/secondaryImage.PNG') }}" 
+                @if (isset($jsonData['secondary_image']))
+                        <img src="{{ public_path('storage/' . $jsonData['secondary_image']['path']) }}"
                             alt="Secondary Image" 
                             style="width: 50%; height: auto; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
                     @else

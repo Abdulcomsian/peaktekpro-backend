@@ -31,6 +31,7 @@ class ReportLayoutController extends Controller
             $jobId = session('job_id');
             $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->paginate(5);
             $company = CompanyJob::find($jobId);
+
             $companyAddress = json_decode($company->address);
             $address = $companyAddress->formatedAddress;
             // dd($address);
@@ -99,9 +100,15 @@ class ReportLayoutController extends Controller
             $lastName = $nameParts[1] ?? ''; 
             $address = $job ? json_decode($job->address) : null;
             $companyId = Auth::user()->company_id;
+            if ($job) {
+                $date = Carbon::parse($job->created_at)->format('Y-m-d'); // Format for input[type="date"]
+            } else {
+                $date = null;
+            }            
+
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
             $templates = Template::where('company_id',$companyId)->latest()->get();
-            return view('reports_layout.edit', compact('report', 'templates','address','firstName','lastName'));
+            return view('reports_layout.edit', compact('report', 'templates','address','firstName','lastName','date'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');
         }
@@ -279,6 +286,14 @@ private function insertEntirePdf($pdf, $pdfPath)
             $email = $company->email ?? null;
             $phone = $company->phone ?? null;
 
+            $address = $company ? json_decode($company->address) : null;
+            $companyId = Auth::user()->company_id;
+            if ($company) {
+                $date = Carbon::parse($company->created_at)->format('Y-m-d'); // Format for input[type="date"]
+            } else {
+                $date = null;
+            } 
+
             $report = Report::findOrFail($id);
             $newStatus = $request->input('status', 'draft');
             $report->status = $newStatus;
@@ -287,7 +302,7 @@ private function insertEntirePdf($pdf, $pdfPath)
             if ($report->status == 'published') {
                 // Step 1: Generate Main Report PDF
                 $reportData = $report->getAllReportData();
-                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone,'created_At'=>$date,'address'=> $address]);
                 // return $pdf->stream('pdf.report');
                 $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
 
@@ -1519,6 +1534,15 @@ private function insertEntirePdf($pdf, $pdfPath)
             $email = $company->email ?? null;
             $phone = $company->phone ?? null;
 
+            $address = $company ? json_decode($company->address) : null;
+             
+            $companyId = Auth::user()->company_id;
+            if ($company) {
+                $date = Carbon::parse($company->created_at)->format('Y-m-d'); // Format for input[type="date"]
+            } else {
+                $date = null;
+            }
+
             $report = Report::findOrFail($id);
             $newStatus = $request->input('status', 'draft');
             $report->status = $newStatus;
@@ -1529,7 +1553,7 @@ private function insertEntirePdf($pdf, $pdfPath)
                 $reportData = $report->getAllReportData();
 
                 // dd($reportData->toArray());
-                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone]);
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone,'created_At'=>$date,'address'=>$address]);
                 // return $pdf->stream('pdf.report');
                 $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
                 return $pdf->stream('report.pdf');
