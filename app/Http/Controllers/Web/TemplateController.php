@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Web;
 
+use Carbon\Carbon;
+use App\Models\CompanyJob;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -16,12 +18,17 @@ class TemplateController extends Controller
     {
         try {
             // dd("hi bye hi");
+            $jobId = session('job_id');
+            // dd($jobId);
             $companyId = Auth::user()->company_id;
 
             $templates = Template::with('templatePages.pageData')->where('company_id',$companyId)->paginate(5);
+            $company = CompanyJob::find($jobId);
+            $companyAddress = json_decode($company->address);
+            $address = $companyAddress->formatedAddress;
             // dd($templates);
 
-            return view('templates.index', compact('templates'));
+            return view('templates.index', compact('templates', 'company', 'address',));
         } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching templates.');
         }
@@ -73,9 +80,24 @@ class TemplateController extends Controller
     public function edit($templateId)
     {
         try {
+            $jobId = session('job_id');
+            $job = CompanyJob::where('id', $jobId)->first();
+            // dd($job);
+            $name = $job->name;
+            $nameParts = explode(' ', $name, 2);
+
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
+            $address = $job ? json_decode($job->address) : null;
+            $companyId = Auth::user()->company_id;
+            if ($job) {
+                $date = Carbon::parse($job->created_at)->format('Y-m-d'); // Format for input[type="date"]
+            } else {
+                $date = null;
+            }
             $template = Template::with('templatePages.pageData')->findOrFail($templateId);
             // dd($template->templatePages->toArray());
-            return view('templates.edit', compact('template'));
+            return view('templates.edit', compact('template','address', 'firstName', 'lastName', 'date'));
         } catch (\Exception $e) {
             return redirect()->route('templates.index')->with('error', 'Template not found');
         }
