@@ -117,7 +117,10 @@
 
 
             // Extract required data
-            const title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
+            const template_title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
+            const title = template.title || template_title;
+            console.log(title);
+
             const siteAddress = templatePageData ? templatePageData.json_data.company_address :
                 'No address available';
             const description = templatePageData ? templatePageData.json_data.intro_text :
@@ -127,11 +130,11 @@
             const image = templatePageData && templatePageData.json_data.primary_image ?
                 templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path :
                 'https://picsum.photos/536/354';
-
+            const companyAddress = @json($address);
             return {
                 templateId: template.id, // Map title to reportName
                 reportName: title, // Map title to reportName
-                siteAddress: siteAddress, // Use company_address
+                siteAddress: companyAddress, // Use company_address
                 description: description, // Use intro_text
                 price: price, // Format price if available
                 // tag: tag, // Map status to tag

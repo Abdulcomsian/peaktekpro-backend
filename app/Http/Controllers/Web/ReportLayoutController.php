@@ -29,6 +29,7 @@ class ReportLayoutController extends Controller
     {
         try {
             $jobId = session('job_id');
+            // dd($jobId);
             $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->paginate(5);
             $company = CompanyJob::find($jobId);
 
@@ -118,7 +119,6 @@ class ReportLayoutController extends Controller
     public function edit($reportId)
     {
         try {
-            // here
             $jobId = session('job_id');
             $job = CompanyJob::where('id', $jobId)->first();
             // dd($job);
@@ -1188,7 +1188,7 @@ class ReportLayoutController extends Controller
                     ->firstWhere('id', $item['id']);
 
                 // Check if the item already has an image, and whether the new image should be updated
-                
+
                 if (isset($item['image']) && strpos($item['image'], 'data:image') === 0) {
                     // Only update image if the existing image is null or does not exist
                     if (empty($existingItem['image'])) {
