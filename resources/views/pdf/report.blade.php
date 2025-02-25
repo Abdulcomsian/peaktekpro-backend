@@ -278,11 +278,12 @@
                     <p style="margin-left:15px; line-height: 2px;">{{ $address->postalCode ?? '' }}</p>
 
                 </td>
-                 <td style="width: 50%; vertical-align: middle; text-align: center;">
+                 <td style="width:50%;height:20px; margin-left:auto;margin-right:auto;
+                  vertical-align: middle; text-align: center; ">
                      @if (isset($jsonData['secondary_image']))
                         <img src="{{ public_path('storage/' . $jsonData['secondary_image']['path']) }}"
                             alt="Secondary Image" 
-                            style="width: 50%; height: auto; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
+                            style="width: 200px; height: 80px; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
                     @else
                         <p style="text-align: center; font-style: italic; color: gray;">No secondary image available</p>
                     @endif
@@ -306,7 +307,7 @@
             </h2>
            </div>
             <div class="roof-repair-limitations main-text page-break" style="font-size:12px; font-family:sans-serif; 
-            
+             
             margin-top:10px; padding-left:35px; padding-right:25px;">
                 {!! $jsonData['intro_text'] ?? 'No introduction text available.' !!}
         </div>
@@ -347,7 +348,8 @@
         <!-- third Section -->
    
         @case('repairability-or-compatibility-photos')
-                <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px;">
+                <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); 
+                margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px; padding-bottom:15px;">
                     {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
                 </h2>
 
