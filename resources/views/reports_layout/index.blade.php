@@ -78,31 +78,56 @@
 
     <!-- Create Report Modal -->
     <div id="modal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Create Report Layout</h2>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-            <form action="{{ route('reports.store') }}" method="post" id="storeReportLayoutForm">
-                @csrf
-                <!-- Modal Body -->
-                <div class="mb-4">
-                    <label for="title" class="block text-gray-700 mb-2">Title</label>
-                    <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
-                    <!-- Error messages will be appended here dynamically -->
-                    <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="flex justify-end">
-                    <button type="button" onclick="closeModal()"
-                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
-                    <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
-                </div>
-            </form>
+    <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Create Report Layout</h2>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
         </div>
+        
+        <form action="{{ route('reports.store') }}" method="post" id="storeReportLayoutForm">
+            @csrf
+            <!-- Template Selection -->
+            <div class="mb-4">
+                <label for="templateDropdownSelect" class="block text-gray-700 mb-2">Choose a Template</label>
+                <select id="templateDropdownSelect" name="template_id" class="w-full border border-gray-300 rounded p-2">
+                    <option selected value="">Create New</option>
+                    @forelse ($templates as $template)
+                        <option value="{{ $template->id }}">{{ $template->title }}</option>
+                    @empty
+                        <option disabled>No templates available</option>
+                    @endforelse
+                </select>
+            </div>
+
+            <!-- Title Input (Disabled if a template is selected) -->
+            <div class="mb-4">
+                <label for="title" class="block text-gray-700 mb-2">Title</label>
+                <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
+                <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-end">
+                <button type="button" onclick="closeModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
+                <button id="templateDropdown" class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+            </div>
+        </form>
     </div>
+</div>
+
+<script>
+    document.getElementById('templateDropdownSelect').addEventListener('change', function () {
+        let titleInput = document.getElementById('title');
+        if (this.value) {
+            titleInput.disabled = true;
+            titleInput.value = ""; // Clear title if selecting a template
+        } else {
+            titleInput.disabled = false;
+        }
+    });
+</script>
+
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
@@ -129,22 +154,28 @@
         const reportsData = @json($reports->items()).map(report => {
             // Fetch the first report page's data
             // const reportTitle = report.title;
+
             // const reportPage6 = report.report_pages?.[6];
 
             // console.log('title',reportTitle);
             const reportPage = report.report_pages.find(page => page.slug === 'introduction');
             const reportPage6 = report.report_pages.find(page => page.slug === 'quote-details');
 
-
+            // console.log(reportPage);
             // Check if reportPage exists and fetch page data
             const reportPageData = reportPage ? reportPage.page_data : null;
+            // console.log(reportPageData);
             const reportPageData6 = reportPage6 ? reportPage6.page_data : null;
 
             // Debugging: Log reportPage and reportPageData
 
             // Extract required data
-            // const title = reportPageData ? reportPageData.json_data.report_title : 'No company name available';
-            const title = report.title;
+            // const report_title = reportPageData ? reportPageData.json_data.report_title;
+            // console.log(report_title);
+            const report_title = reportPageData?.json_data?.report_title || "No title available";
+
+
+            const title = report.title || report_title;
 
             const grandTotal = reportPageData6 ? reportPageData6.json_data.grand_total : null;
             const price = grandTotal ? `$${parseFloat(grandTotal).toFixed(2)}` :
@@ -412,6 +443,79 @@
                     .catch(error => {
                         alert('An error occurred. Please try again.');
                     });
+            });
+        });
+
+        //CHOOSE THE TEMPLATE
+        document.addEventListener('DOMContentLoaded', () => {
+            const url = "{{ route('reports.copy-template') }}";
+            const reportId = @json($report->id ?? '');
+
+            const confirmationModal = document.getElementById('confirmationModal');
+            const errorModal = document.getElementById('errorModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const confirmBtn = document.getElementById('confirmBtn');
+            const closeErrorModalBtn = document.getElementById('closeErrorModal');
+
+            // Handle button click for template copy
+            document.getElementById('templateDropdown').addEventListener('click', function() {
+                const selectedTemplateId = document.getElementById('templateDropdownSelect').value;
+
+                // Check if template is selected
+                if (!selectedTemplateId) {
+                    // Show the error modal if no template is selected
+                    errorModal.classList.remove('hidden');
+                    return; // Do not proceed if no template is selected
+                }
+
+                // Show the confirmation modal
+                confirmationModal.classList.remove('hidden');
+
+                // Handle confirmation button click
+                confirmBtn.addEventListener('click', () => {
+                    fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').getAttribute('content'),
+                            },
+                            body: JSON.stringify({
+                                template_id: selectedTemplateId,
+                                report_id: reportId
+                            }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            showSuccessNotification(data
+                                .message); // Display success notification
+                            setTimeout(() => {
+                                document.getElementById('templateDropdownSelect')
+                                    .value = ''; // Reset dropdown
+                                window.location
+                                    .reload(); // Reload the page after a short delay
+                            }, 2000); // Delay of 2 seconds
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showErrorNotification(
+                                'An error occurred while copying the template.');
+                        });
+
+                    // Close the modal after action is taken
+                    confirmationModal.classList.add('hidden');
+                });
+
+                // Handle cancel button click
+                cancelBtn.addEventListener('click', () => {
+                    // Close the modal without doing anything
+                    confirmationModal.classList.add('hidden');
+                });
+            });
+
+            // Close the error modal when close button is clicked
+            closeErrorModalBtn.addEventListener('click', () => {
+                errorModal.classList.add('hidden');
             });
         });
     </script>
