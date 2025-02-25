@@ -5,11 +5,12 @@
         @page {
             margin: 0;
             size: A4;
-            margin: 0mm 0mm 0mm 0mm; /* Bottom margin to accommodate footer */
+            margin: 10mm 0mm 0mm 0mm; /* Bottom margin to accommodate footer */
         }
         @page:first {
       @top-center {
             content: "First Page Header";
+            margin: 0mm 0mm 0mm 0mm !important;
         }
         }
 
@@ -115,7 +116,6 @@
             align-items: center;
             padding: 10px;
             margin: 0; /* Remove any extra space */
-            
             /* border:2px solid blue; */
         }
 
@@ -163,6 +163,8 @@
         .roof-repair-limitations {
             margin-top: 70px;
             margin-bottom: 10px;
+            line-height: 20px;
+
         }
 
         img {
@@ -195,6 +197,9 @@
             color: transparent;
             font-size: 0;
         }
+        
+        
+      
 
     </style>
 </head>
@@ -295,13 +300,16 @@
             top: 50%;
             -ms-transform: translateY(-50%);
             transform: translateY(-50%);
+            
                         ">
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
            </div>
-            <div class="roof-repair-limitations" style="font-size:12px; font-family:sans-serif; margin-top:10px; padding-left:35px; padding-right:10px;">
+            <div class="roof-repair-limitations main-text page-break" style="font-size:12px; font-family:sans-serif; 
+            
+            margin-top:10px; padding-left:35px; padding-right:25px;">
                 {!! $jsonData['intro_text'] ?? 'No introduction text available.' !!}
-            </div>
+        </div>
         @break
 
         <!-- second section -->
@@ -584,6 +592,7 @@
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.16.0/pdf-lib.min.js"></script>
 <script>
+
     document.addEventListener('DOMContentLoaded', function () {
         const pdfPlaceholders = document.querySelectorAll('.pdf-placeholder');
         pdfPlaceholders.forEach(async (placeholder) => {
