@@ -215,10 +215,12 @@
     const item = section.items.find(item => item.id === itemId);
 
     if (item && item.image && item.image.path) {
+        let imageUrl = `${repairabilityAssessmentImages.file_url}/${item.image.path}`;
+
         // Generate the image preview HTML
         const imagePreviewHtml = `
             <div class="image-preview lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] flex justify-center items-center relative">
-                <img src="${item.image.path}" alt="Preloaded Image" class="object-cover w-full h-full">
+                <img src="${imageUrl}" alt="Preloaded Image" class="object-cover w-full h-full">
                 <button type="button" class="remove-image-btn text-red-500 hover:text-red-700 absolute">Remove</button>
             </div>
         `;

@@ -385,9 +385,7 @@
                 });
             });
 
-            // edit report title end
-
-            // left menu pages start
+           
 
             // Show the first tab content by default
             $(".tab-content").hide();
@@ -395,15 +393,7 @@
 
             // Tab click handler
             $(document).on('click', '.tab-item', function() {
-                // $(".tab-item").removeClass("bg-blue-400").addClass("bg-blue-200");
-                // $(this).addClass("bg-blue-400");
-
-                // // Show the related content
-                // $(".tab-content").hide();
-                // $($(this).data("target")).fadeIn();
-
-                // // assign active page id
-                // pageId = $(this).data('id')
+             
                 $(".tab-item").removeClass("bg-blue-400").addClass("bg-blue-200");
 
                 // Remove any existing arrow-indicator from all tab items
@@ -980,45 +970,6 @@
                 errorModal.classList.add('hidden');
             });
         });
-
-        //     document.getElementById('downloadReportPDF').addEventListener('click', function() {
-        //     const reportId = this.getAttribute('data-id');
-        //     const downloadPdfUrl = "{{ route('reports.download-pdf', ':id') }}";
-        //     const url = downloadPdfUrl.replace(':id', reportId);
-
-        //     // Show the loader before starting the download
-        //     document.getElementById('loadingSpinner').style.display = 'block';
-
-        //     // Fetch PDF URL
-        //     fetch(url, {
-        //             method: 'GET',
-        //             headers: {
-        //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        //             },
-        //         })
-        //         .then(response => {
-        //             if (!response.ok) {
-        //                 throw new Error('Network response was not ok');
-        //             }
-        //             return response.json(); // Parse the JSON response
-        //         })
-        //         .then(data => {
-        //             if (data.status) {
-        //                 const fileUrl = data.file_url; // Get the full file URL
-        //                 window.open(fileUrl, '_blank'); // Open the PDF in a new tab
-        //             } else {
-        //                 alert(data.message);
-        //             }
-        //         })
-        //         .catch(error => {
-        //             console.error('Error:', error);
-        //             alert('An error occurred. Please try again.');
-        //         })
-        //         .finally(() => {
-        //             // Hide the loader after the PDF is opened
-        //             document.getElementById('loadingSpinner').style.display = 'none';
-        //         });
-        // });
     </script>
 @endpush
 
@@ -1164,14 +1115,6 @@
                             </div>
                         </div>
 
-                        <!-- @if ($report->status === 'published')
-    <button
-                                                                    class="text-blue-500 hover:text-blue-600 update-status-button"
-                                                                    id="downloadReportPDF" style="margin-right:100px;"
-                                                                    data-id="{{ $report->id }}">
-                                                                    Download PDF
-                                                                </button>
-    @endif -->
                         <button class="text-blue-500 hover:text-blue-600 edit-button" id="editTitleBtn">Edit</button>
                     </div>
                 </div>

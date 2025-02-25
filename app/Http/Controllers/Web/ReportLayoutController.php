@@ -35,8 +35,11 @@ class ReportLayoutController extends Controller
             $companyAddress = json_decode($company->address);
             $address = $companyAddress->formatedAddress;
             // dd($address);
-            
-            return view('reports_layout.index', compact('reports','company','address'));
+            $companyId = Auth::user()->company_id;
+            $templates = Template::where('company_id', $companyId)->latest()->get();
+
+
+            return view('reports_layout.index', compact('reports', 'company', 'address', 'templates'));
         } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching reports.');
         }
@@ -52,22 +55,48 @@ class ReportLayoutController extends Controller
 
     public function store(StoreRequest $request)
     {
+
         try {
+
             $jobId = session('job_id');
 
             $report = Report::create([
                 'title' => $request->title,
                 'job_id' => $jobId,
             ]);
-            // sync pages with report pages
-            $pages = Page::all();
-            $pages->each(function ($page, $index) use ($report) {
-                $report->reportPages()->create([
-                    'name' => $page->name,
-                    'slug' => $page->slug,
-                    'order_no' => $index
-                ]);
-            });
+
+            $templateId = $request->template_id ?? '';
+            if ($templateId) {
+
+                $template = Template::with('templatePages.pageData')->findOrFail($templateId);
+                // Copy template pages to report pages
+                foreach ($template->templatePages as $templatePage) {
+                    // Create a new ReportPage
+                    $reportPage = $report->reportPages()->create([
+                        'name' => $templatePage->name,
+                        'slug' => $templatePage->slug,
+                        'is_active' => $templatePage->is_active,
+                        'order_no' => $templatePage->order_no,
+                    ]);
+
+                    // Copy the template page data to the report page data
+                    if ($templatePage->pageData) {
+                        $reportPage->pageData()->create([
+                            'json_data' => json_encode($templatePage->pageData->json_data),
+                        ]);
+                    }
+                }
+            } else {
+                // sync pages with report pages
+                $pages = Page::all();
+                $pages->each(function ($page, $index) use ($report) {
+                    $report->reportPages()->create([
+                        'name' => $page->name,
+                        'slug' => $page->slug,
+                        'order_no' => $index
+                    ]);
+                });
+            }
 
             return response()->json([
                 'status' => true,
@@ -91,28 +120,27 @@ class ReportLayoutController extends Controller
         try {
             // here
             $jobId = session('job_id');
-            $job = CompanyJob::where('id',$jobId)->first();
+            $job = CompanyJob::where('id', $jobId)->first();
             // dd($job);
             $name = $job->name;
             $nameParts = explode(' ', $name, 2);
 
-            $firstName = $nameParts[0] ?? ''; 
-            $lastName = $nameParts[1] ?? ''; 
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
             $address = $job ? json_decode($job->address) : null;
             $companyId = Auth::user()->company_id;
             if ($job) {
                 $date = Carbon::parse($job->created_at)->format('Y-m-d'); // Format for input[type="date"]
             } else {
                 $date = null;
-            }            
+            }
 
             $report = Report::with('reportPages.pageData')->findOrFail($reportId);
-            $templates = Template::where('company_id',$companyId)->latest()->get();
-            return view('reports_layout.edit', compact('report', 'templates','address','firstName','lastName','date'));
+            $templates = Template::where('company_id', $companyId)->latest()->get();
+            return view('reports_layout.edit', compact('report', 'templates', 'address', 'firstName', 'lastName', 'date'));
         } catch (\Exception $e) {
             return redirect()->route('reports.index')->with('error', 'Report not found');
         }
-
     }
 
     public function updateTitle(UpdateRequest $request, $reportId)
@@ -188,91 +216,91 @@ class ReportLayoutController extends Controller
     // }
 
     private function insertSectionPdfs($mainPdfPath, $outputPath, $sectionPdfs)
-{
-    $pdf = new TcpdfFpdi();
-    $pdf->setPrintHeader(false);
-    $pdf->setPrintFooter(false);
+    {
+        $pdf = new TcpdfFpdi();
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
 
-    $mainPdfPageCount = $pdf->setSourceFile($mainPdfPath);
-    Log::info("Main PDF has {$mainPdfPageCount} pages.");
+        $mainPdfPageCount = $pdf->setSourceFile($mainPdfPath);
+        Log::info("Main PDF has {$mainPdfPageCount} pages.");
 
-    for ($i = 1; $i <= $mainPdfPageCount; $i++) {
-        $pdf->setSourceFile($mainPdfPath);
-        $tplIdx = $pdf->importPage($i);
-        $size = $pdf->getTemplateSize($tplIdx);
-
-        // ✅ Add the page ONLY if it's not completely blank
-        if ($tplIdx && $this->hasContent($mainPdfPath, $i)) {
-            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-            $pdf->useTemplate($tplIdx);
-        }
-
-        $parser = new \Smalot\PdfParser\Parser();
-        $mainPdf = $parser->parseFile($mainPdfPath);
-        $pages = $mainPdf->getPages();
-        $text = $pages[$i - 1]->getText();
-
-        // ✅ Insert only if placeholder exists
-        foreach ($sectionPdfs as $section => $pdfPaths) {
-            $placeholder = "[{$section}-placeholder]";
-            if (strpos($text, $placeholder) !== false) {
-                foreach ($pdfPaths as $pdfPath) {
-                    Log::info("Inserting PDF for section: {$section}");
-                    $this->insertEntirePdf($pdf, $pdfPath);
-                }
-            }
-        }
-    }
-
-    $pdf->Output($outputPath, 'F');
-}
-
-private function hasContent($pdfPath, $pageNumber)
-{
-    $parser = new \Smalot\PdfParser\Parser();
-    $pdf = $parser->parseFile($pdfPath);
-    $pages = $pdf->getPages();
-
-    if (isset($pages[$pageNumber - 1])) {
-        $text = trim($pages[$pageNumber - 1]->getText());
-        return !empty($text); // Returns true if there's content
-    }
-    return false;
-}
-
-private function insertEntirePdf($pdf, $pdfPath)
-{
-    if (!file_exists($pdfPath)) {
-        Log::error("File not found: " . $pdfPath);
-        return;
-    }
-
-    $sectionPageCount = $pdf->setSourceFile($pdfPath);
-    Log::info("Section PDF has {$sectionPageCount} pages. Path: {$pdfPath}");
-
-    if ($sectionPageCount < 1) {
-        Log::error("Section PDF has no pages: " . $pdfPath);
-        return;
-    }
-
-    for ($i = 1; $i <= $sectionPageCount; $i++) {
-        try {
+        for ($i = 1; $i <= $mainPdfPageCount; $i++) {
+            $pdf->setSourceFile($mainPdfPath);
             $tplIdx = $pdf->importPage($i);
             $size = $pdf->getTemplateSize($tplIdx);
 
-            // ✅ Insert only if the page has size (content exists)
-            if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) {
+            // ✅ Add the page ONLY if it's not completely blank
+            if ($tplIdx && $this->hasContent($mainPdfPath, $i)) {
                 $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
                 $pdf->useTemplate($tplIdx);
             }
-        } catch (\Exception $e) {
-            Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
-            continue;
+
+            $parser = new \Smalot\PdfParser\Parser();
+            $mainPdf = $parser->parseFile($mainPdfPath);
+            $pages = $mainPdf->getPages();
+            $text = $pages[$i - 1]->getText();
+
+            // ✅ Insert only if placeholder exists
+            foreach ($sectionPdfs as $section => $pdfPaths) {
+                $placeholder = "[{$section}-placeholder]";
+                if (strpos($text, $placeholder) !== false) {
+                    foreach ($pdfPaths as $pdfPath) {
+                        Log::info("Inserting PDF for section: {$section}");
+                        $this->insertEntirePdf($pdf, $pdfPath);
+                    }
+                }
+            }
+        }
+
+        $pdf->Output($outputPath, 'F');
+    }
+
+    private function hasContent($pdfPath, $pageNumber)
+    {
+        $parser = new \Smalot\PdfParser\Parser();
+        $pdf = $parser->parseFile($pdfPath);
+        $pages = $pdf->getPages();
+
+        if (isset($pages[$pageNumber - 1])) {
+            $text = trim($pages[$pageNumber - 1]->getText());
+            return !empty($text); // Returns true if there's content
+        }
+        return false;
+    }
+
+    private function insertEntirePdf($pdf, $pdfPath)
+    {
+        if (!file_exists($pdfPath)) {
+            Log::error("File not found: " . $pdfPath);
+            return;
+        }
+
+        $sectionPageCount = $pdf->setSourceFile($pdfPath);
+        Log::info("Section PDF has {$sectionPageCount} pages. Path: {$pdfPath}");
+
+        if ($sectionPageCount < 1) {
+            Log::error("Section PDF has no pages: " . $pdfPath);
+            return;
+        }
+
+        for ($i = 1; $i <= $sectionPageCount; $i++) {
+            try {
+                $tplIdx = $pdf->importPage($i);
+                $size = $pdf->getTemplateSize($tplIdx);
+
+                // ✅ Insert only if the page has size (content exists)
+                if ($tplIdx && $size['width'] > 0 && $size['height'] > 0) {
+                    $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                    $pdf->useTemplate($tplIdx);
+                }
+            } catch (\Exception $e) {
+                Log::error("Error processing page {$i} of section PDF '{$pdfPath}': " . $e->getMessage());
+                continue;
+            }
         }
     }
-}
 
-   
+
 
     public function updateStatus(Request $request, $id)
     {
@@ -292,7 +320,7 @@ private function insertEntirePdf($pdf, $pdfPath)
                 $date = Carbon::parse($company->created_at)->format('Y-m-d'); // Format for input[type="date"]
             } else {
                 $date = null;
-            } 
+            }
 
             $report = Report::findOrFail($id);
             $newStatus = $request->input('status', 'draft');
@@ -302,7 +330,7 @@ private function insertEntirePdf($pdf, $pdfPath)
             if ($report->status == 'published') {
                 // Step 1: Generate Main Report PDF
                 $reportData = $report->getAllReportData();
-                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone,'created_At'=>$date,'address'=> $address]);
+                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone, 'created_At' => $date, 'address' => $address]);
                 // return $pdf->stream('pdf.report');
                 $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
 
@@ -340,7 +368,6 @@ private function insertEntirePdf($pdf, $pdfPath)
                                 $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
                             }
                         }
-
                     }
                 }
 
@@ -360,7 +387,6 @@ private function insertEntirePdf($pdf, $pdfPath)
                     'response' => $report,
                     'file_url' => $downloadUrl,
                 ], 200);
-
             } elseif ($report->status == 'draft') {
                 if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
                     Storage::disk('public')->delete($report->file_path);
@@ -373,7 +399,6 @@ private function insertEntirePdf($pdf, $pdfPath)
                 'message' => $report->status === 'published' ? 'Report Published Successfully' : 'Report Draft Successfully',
                 'response' => $report
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Update Status Error: ' . $e->getMessage());
             return response()->json(['status' => false, 'message' => 'Something went wrong', 'errors' => $e->getMessage()], 500);
@@ -403,9 +428,7 @@ private function insertEntirePdf($pdf, $pdfPath)
             if (file_exists($filePath)) {
                 Log::info("file inside check is", [$filePath]);
                 return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
-                
-            }
-             else {
+            } else {
                 return response()->json([
                     'status_code' => 404,
                     'status' => false,
@@ -426,6 +449,7 @@ private function insertEntirePdf($pdf, $pdfPath)
 
     public function copyTemplate(Request $request)
     {
+        dd("try to copy the template");
         // Validate the input
         $request->validate([
             'template_id' => 'required|exists:templates,id',
@@ -547,15 +571,14 @@ private function insertEntirePdf($pdf, $pdfPath)
     {
         try {
             $lastReportPage = ReportPage::where('report_id', $reportId)->orderBy('order_no', 'desc')->first();
-            if(!$lastReportPage)
-            {
+            if (!$lastReportPage) {
                 $reportPage = ReportPage::create([
                     'report_id' => $reportId,
                     'name' => $request->title,
                     'order_no' => 10, //for the first custome page id is 10
                     // 'order_no' => $lastReportPage->order_no + 1
                 ]);
-            }else{
+            } else {
                 // dd($lastReportPage);
                 $reportPage = ReportPage::create([
                     'report_id' => $reportId,
@@ -1165,6 +1188,7 @@ private function insertEntirePdf($pdf, $pdfPath)
                     ->firstWhere('id', $item['id']);
 
                 // Check if the item already has an image, and whether the new image should be updated
+                
                 if (isset($item['image']) && strpos($item['image'], 'data:image') === 0) {
                     // Only update image if the existing image is null or does not exist
                     if (empty($existingItem['image'])) {
@@ -1535,7 +1559,7 @@ private function insertEntirePdf($pdf, $pdfPath)
             $phone = $company->phone ?? null;
 
             $address = $company ? json_decode($company->address) : null;
-             
+
             $companyId = Auth::user()->company_id;
             if ($company) {
                 $date = Carbon::parse($company->created_at)->format('Y-m-d'); // Format for input[type="date"]
@@ -1548,84 +1572,77 @@ private function insertEntirePdf($pdf, $pdfPath)
             $report->status = $newStatus;
             $report->save();
 
-           
-                // Step 1: Generate Main Report PDF
-                $reportData = $report->getAllReportData();
 
-                // dd($reportData->toArray());
-                $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone,'created_At'=>$date,'address'=>$address]);
-                // return $pdf->stream('pdf.report');
-                $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
-                return $pdf->stream('report.pdf');
+            // Step 1: Generate Main Report PDF
+            $reportData = $report->getAllReportData();
 
-                dd('asfaf');
+            // dd($reportData->toArray());
+            $pdf = PDF::loadView('pdf.report', ['report' => $reportData, 'email' => $email, 'phone' => $phone, 'created_At' => $date, 'address' => $address]);
+            // return $pdf->stream('pdf.report');
+            $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
+            return $pdf->stream('report.pdf');
+
+            dd('asfaf');
 
 
-                // $pdf->setPaper('A4', 'portrait');
+            // $pdf->setPaper('A4', 'portrait');
 
-                $timestamp = now()->format('Ymd_His');
-                $mainPdfPath = storage_path("app/public/pdf-files/report-{$id}_{$timestamp}.pdf");
-                Storage::disk('public')->put("pdf-files/report-{$id}_{$timestamp}.pdf", $pdf->output());
+            $timestamp = now()->format('Ymd_His');
+            $mainPdfPath = storage_path("app/public/pdf-files/report-{$id}_{$timestamp}.pdf");
+            Storage::disk('public')->put("pdf-files/report-{$id}_{$timestamp}.pdf", $pdf->output());
 
-                // Step 2: Gather Section PDFs
-                $sectionPdfs = [];
-                $reportPages = $report->reportPages()->with('pageData')->get();
+            // Step 2: Gather Section PDFs
+            $sectionPdfs = [];
+            $reportPages = $report->reportPages()->with('pageData')->get();
 
-                foreach ($reportPages as $page) {
-                    if (isset($page->pageData->json_data)) {
-                        $jsonData = $page->pageData->json_data;
+            foreach ($reportPages as $page) {
+                if (isset($page->pageData->json_data)) {
+                    $jsonData = $page->pageData->json_data;
 
-                        if ($page->slug === 'product-compatibility') {
-                            if (isset($jsonData['product_compatibility_files'])) {
-                                foreach ($jsonData['product_compatibility_files'] as $file) {
-                                    if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
-                                        $sectionPdfs['product-compatibility'][] = storage_path("app/public/{$file['path']}");
-                                    }
+                    if ($page->slug === 'product-compatibility') {
+                        if (isset($jsonData['product_compatibility_files'])) {
+                            foreach ($jsonData['product_compatibility_files'] as $file) {
+                                if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
+                                    $sectionPdfs['product-compatibility'][] = storage_path("app/public/{$file['path']}");
                                 }
                             }
                         }
+                    }
 
-                        if ($page->slug === 'unfair-claims-practices') {
-                            if (isset($jsonData['unfair_claim_file']['path']) && Storage::disk('public')->exists($jsonData['unfair_claim_file']['path'])) {
-                                $sectionPdfs['unfair-claims-practices'][] = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
-                            }
+                    if ($page->slug === 'unfair-claims-practices') {
+                        if (isset($jsonData['unfair_claim_file']['path']) && Storage::disk('public')->exists($jsonData['unfair_claim_file']['path'])) {
+                            $sectionPdfs['unfair-claims-practices'][] = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
                         }
-                        if (isset($page->order_no)) {
-                            if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
-                                $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
-                            }
+                    }
+                    if (isset($page->order_no)) {
+                        if (isset($jsonData['custom_page_file']['path']) && Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
+                            $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
                         }
-
                     }
                 }
+            }
 
-                // Step 3: Merge PDFs into the correct sections
-                $mergedPdfPath = storage_path("app/public/pdf-files/merged-report-{$id}_{$timestamp}.pdf");
-                // $mergedPdfPath = storage_path("app/public/pdf-files/report-{$id}_{$timestamp}.pdf");
+            // Step 3: Merge PDFs into the correct sections
+            $mergedPdfPath = storage_path("app/public/pdf-files/merged-report-{$id}_{$timestamp}.pdf");
+            // $mergedPdfPath = storage_path("app/public/pdf-files/report-{$id}_{$timestamp}.pdf");
 
-                $this->insertSectionPdfs($mainPdfPath, $mergedPdfPath, $sectionPdfs);
+            $this->insertSectionPdfs($mainPdfPath, $mergedPdfPath, $sectionPdfs);
 
-                // Step 4: Update report file path
-                $report->update(['file_path' => "pdf-files/merged-report-{$id}_{$timestamp}.pdf"]);
-                return $pdf->stream("report-{$id}.pdf");
+            // Step 4: Update report file path
+            $report->update(['file_path' => "pdf-files/merged-report-{$id}_{$timestamp}.pdf"]);
+            return $pdf->stream("report-{$id}.pdf");
 
-                $downloadUrl = route('reports.download-pdf', $report->id);
+            $downloadUrl = route('reports.download-pdf', $report->id);
 
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Report Published Successfully',
-                    'response' => $report,
-                    'file_url' => $downloadUrl,
-                ], 200);
-
-           
-
-
+            return response()->json([
+                'status' => true,
+                'message' => 'Report Published Successfully',
+                'response' => $report,
+                'file_url' => $downloadUrl,
+            ], 200);
         } catch (\Exception $e) {
             Log::error('Update Status Error: ' . $e->getMessage());
             return response()->json(['status' => false, 'message' => 'Something went wrong', 'errors' => $e->getMessage()], 500);
         }
     }
-  
-
 }
