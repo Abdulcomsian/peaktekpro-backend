@@ -5,7 +5,7 @@
             <label for="report-title" class="block text-gray-700 text-sm font-medium mb-2">Report Title</label>
             <input type="text" id="report-title" name="report_title" placeholder="Enter report title"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $report->title ?? $pageData->json_data['report_title'] }}" readonly />
+                value="{{ $report->title ?? ''] }}" readonly />
         </div>
 
         <!-- Date -->
