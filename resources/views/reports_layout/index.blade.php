@@ -4,7 +4,7 @@
 
 @section('content')
     <section>
-   
+
         <div class=" mx-auto p-4">
             <!-- Header with Title and Create Button -->
             <div class="flex items-center justify-between mb-4 mr-4">
@@ -84,8 +84,8 @@
             <h2 class="text-xl font-semibold">Create Report Layout</h2>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
         </div> -->
-        
-      
+
+
         <form action="{{ route('reports.store') }}" method="post" id="storeReportLayoutForm">
             @csrf
 
@@ -106,7 +106,7 @@
                         <option disabled>No templates available</option>
                     @endforelse
                 </select>
-                
+
             </div>
 
              <!-- Modal Footer -->
@@ -123,7 +123,7 @@
                 <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
             </div>
 
-           
+
 
             <!-- Modal Footer -->
             <div class="flex justify-end">
@@ -131,12 +131,12 @@
                 <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
             </div>
 
-           
+
         </form>
 
     </div>
 
-    
+
 
 </div>
 
@@ -167,7 +167,7 @@
         </div>
     </div>
 
-<script>
+{{-- <script>
     document.getElementById('templateDropdownSelect').addEventListener('change', function () {
         let titleInput = document.getElementById('title');
         if (this.value) {
@@ -177,7 +177,7 @@
             titleInput.disabled = false;
         }
     });
-</script>
+</script> --}}
 
 
     <!-- Delete Confirmation Modal -->
@@ -281,7 +281,7 @@
             return `${yearsAgo} years ago`;
         }
         //for template
-      
+
     function openTemplateModal() {
         closeModal(); // Close the report modal before opening the template modal
 
