@@ -10,7 +10,7 @@
             <div class="flex items-center justify-between mb-4 mr-4">
                 <h1 class="text-2xl font-bold text-gray-700">Reports</h1>
                 <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 btn-gradient">
-                    Create Report
+                    Manage Report
                 </button>
             </div>
 
@@ -80,41 +80,92 @@
     <div id="modal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
     <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
         <!-- Modal Header -->
-        <div class="flex justify-between items-center mb-4">
+        <!-- <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold">Create Report Layout</h2>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
-        </div>
+        </div> -->
         
+      
         <form action="{{ route('reports.store') }}" method="post" id="storeReportLayoutForm">
             @csrf
-            <!-- Template Selection -->
+
+            <!-- Choose a Template -->
             <div class="mb-4">
-                <label for="templateDropdownSelect" class="block text-gray-700 mb-2">Choose a Template</label>
-                <select id="templateDropdownSelect" name="template_id" class="w-full border border-gray-300 rounded p-2">
-                    <option selected value="">Create New</option>
+                <!-- <label class="block text-gray-700 mb-2">Import From Templates</label> -->
+                <div class="flex items-center justify-between">
+                    <label class="text-gray-700">Import From Templates</label>
+                    <button type="button" onclick="openTemplateModal()" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
+                        + Create New Template
+                    </button>
+                </div>
+                <select id="templateDropdownSelect" name="template_id" class="w-full border border-gray-300 rounded p-2 mt-2">
+                    <option selected value="">Select Template</option>
                     @forelse ($templates as $template)
                         <option value="{{ $template->id }}">{{ $template->title }}</option>
                     @empty
                         <option disabled>No templates available</option>
                     @endforelse
                 </select>
+                
             </div>
 
-            <!-- Title Input (Disabled if a template is selected) -->
-            <div class="mb-4">
-                <label for="title" class="block text-gray-700 mb-2">Title</label>
-                <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
-                <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
+             <!-- Modal Footer -->
+             <div class="flex justify-end">
+                <button type="button" onclick="closeModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
             </div>
+
+            <div class="text-center font-bold">OR Create a New Report</div>
+
+            <!-- Create a New Report -->
+            <div class="mb-4">
+                <label for="title" class="block text-gray-700 mb-2">Report Title</label>
+                <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
+            </div>
+
+           
 
             <!-- Modal Footer -->
             <div class="flex justify-end">
                 <button type="button" onclick="closeModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
-                <button id="templateDropdown" class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
             </div>
+
+           
         </form>
+
     </div>
+
+    
+
 </div>
+
+<!-- Create Template Modal -->
+<div id="templateModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Create Template</h2>
+                <button onclick="closeTemplateModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <form action="{{ route('templates.store') }}" method="post" id="storeTemplateForm">
+                @csrf
+                <!-- Modal Body -->
+                <div class="mb-4">
+                    <label for="template_title" class="block text-gray-700 mb-2">Title</label>
+                    <input type="text" id="template_title" name="title" class="w-full border border-gray-300 rounded p-2" />
+                    <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex justify-end">
+                    <button type="button" onclick="closeTemplateModal()"
+                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 <script>
     document.getElementById('templateDropdownSelect').addEventListener('change', function () {
@@ -229,6 +280,58 @@
 
             return `${yearsAgo} years ago`;
         }
+        //for template
+      
+    function openTemplateModal() {
+        closeModal(); // Close the report modal before opening the template modal
+
+        document.getElementById('templateModal').classList.remove('hidden');
+    }
+
+    function closeTemplateModal() {
+        document.getElementById('templateModal').classList.add('hidden');
+    }
+
+    // Submit form with AJAX and update dropdown
+    $('#storeTemplateForm').submit(function(e) {
+                e.preventDefault();
+                $(this).find('button[type="submit"]').prop('disabled', true);
+                $('.error-message').text('');
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: $(this).attr('method'),
+                    data: $(this).serialize(),
+                    success: async function(response) {
+                        if (response.status) {
+                            closeModal();
+                            await showSuccessNotification('Template created successfully!');
+                            window.location.href = response.redirect_to;
+                        } else {
+                            showErrorNotification('Error creating template!');
+                        }
+                    },
+                    error: async function(xhr) {
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            $.each(errors, function(field, messages) {
+                                let errorContainer = $(`[data-error="${field}"]`);
+                                messages.forEach(function(message) {
+                                    errorContainer.append(
+                                        `<div>${message}</div>`);
+                                });
+                            });
+                        } else {
+                            await showErrorNotification('An error occurred. Please try again.');
+                            $('button[type="submit"]', '#storeTemplateForm').prop('disabled',
+                                false);
+                        }
+                    }
+                });
+            });
+
+
+        //end
 
         function openModal() {
 

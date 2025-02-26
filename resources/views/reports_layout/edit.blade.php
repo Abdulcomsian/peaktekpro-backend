@@ -1022,7 +1022,7 @@
         <!-- Main Content Area -->
         <section class="w-3/4 p-6">
             <!-- Template dropdown positioned above the content area -->
-            <div class="flex justify-end w-full">
+            <!-- <div class="flex justify-end w-full">
                 <label for="layout-select" class="font-bold lg:w-2/12 md:w-4/12 w-full" style="margin-top: 8px;">Copy
                     Template:</label>
                 <select id="templateDropdownSelect" class="layout-select border p-2 lg:w-2/12 md:w-4/12 w-full"
@@ -1044,7 +1044,7 @@
                 <a href="{{ route('templates.index') }}"
                     class="hover:text-gray-300 text-white btn-gradient p-2 rounded" style="margin-right: 0px;">Templates</a>
 
-            </div>
+            </div> -->
             </div>
             <!-- Modal for confirmation -->
             <!-- Modal for confirmation (small version) -->
