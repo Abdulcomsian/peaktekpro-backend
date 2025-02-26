@@ -5,7 +5,7 @@
             <label for="report-title" class="block text-gray-700 text-sm font-medium mb-2">Report Title</label>
             <input type="text" id="report-title" name="report_title" placeholder="Enter report title"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $pageData->json_data['report_title'] ?? '' }}" required />
+                value="{{ $template->title ?? $pageData->json_data['template_title'] ?? '' }}" required />
         </div>
 
         <!-- Date -->
@@ -13,7 +13,7 @@
             <label for="report-date" class="block text-gray-700 text-sm font-medium mb-2">Date</label>
             <input type="date" id="report-date" name="report_date"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $pageData->json_data['report_date'] ?? '' }}" required />
+                value="{{  $created_At ?? ''  }}" required />
         </div>
         <div class="flex flex-wrap lg:gap-4 md:gap-4">
 
@@ -22,32 +22,27 @@
                 <label for="first-name" class="block text-gray-700 text-sm font-medium mb-2">First Name</label>
                 <input type="text" id="first-name" name="first_name"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{ $pageData->json_data['first_name'] ?? '' }}" required />
+                    value="{{ $firstName ?? '' }}" required />
             </div>
             <!-- Last Name -->
             <div class="mb-4 grow">
                 <label for="last-name" class="block text-gray-700 text-sm font-medium mb-2">Last Name</label>
                 <input type="text" id="last-name" name="last_name"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{ $pageData->json_data['last_name'] ?? '' }}" required />
+                    value="{{ $lastName ?? '' }}" required />
             </div>
 
         </div>
 
         <!-- Company Name -->
-        <div class="mb-4">
-            <label for="company-name" class="block text-gray-700 text-sm font-medium mb-2">Company Name</label>
-            <input type="text" id="company-name" name="company_name"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $pageData->json_data['company_name'] ?? '' }}" required />
-        </div>
+    
 
         <!-- Address -->
         <div class="mb-4">
             <label for="company-address" class="block text-gray-700 text-sm font-medium mb-2">Address</label>
             <input type="text" id="company-address" name="company_address"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $pageData->json_data['company_address'] ?? '' }}" required />
+                value="{{ $address->formatedAddress ?? '' }}" required />
         </div>
 
         <div class="flex flex-wrap lg:gap-4 md:gap-4">
@@ -57,7 +52,7 @@
                 <label for="company-city" class="block text-gray-700 text-sm font-medium mb-2">City</label>
                 <input type="text" id="company-city" name="company_city"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{ $pageData->json_data['company_city'] ?? '' }}" required />
+                    value="{{ $address->city ?? ''}}" required />
             </div>
 
             <!-- State/Province -->
@@ -66,7 +61,7 @@
                     class="block text-gray-700 text-sm font-medium mb-2">State/Province</label>
                 <input type="text" id="company-province" name="company_province"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{ $pageData->json_data['company_province'] ?? '' }}" required />
+                    value="{{  $address->state ?? ''}}" required />
             </div>
 
             <!-- Zip Code / Postal Code -->
@@ -75,7 +70,7 @@
                     code</label>
                 <input type="text" id="company-postal-code" name="company_postal_code"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{ $pageData->json_data['company_postal_code'] ?? '' }}" required />
+                    value="{{ $address->postalCode ?? '' }}" required />
             </div>
         </div>
 

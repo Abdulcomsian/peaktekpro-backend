@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Web;
 
+use Carbon\Carbon;
+use App\Models\CompanyJob;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -15,12 +17,18 @@ class TemplateController extends Controller
     public function index(Request $request)
     {
         try {
+            // dd("hi bye hi");
+            $jobId = session('job_id');
+            // dd($jobId);
             $companyId = Auth::user()->company_id;
 
             $templates = Template::with('templatePages.pageData')->where('company_id',$companyId)->paginate(5);
+            $company = CompanyJob::find($jobId);
+            $companyAddress = json_decode($company->address);
+            $address = $companyAddress->formatedAddress;
             // dd($templates);
 
-            return view('templates.index', compact('templates'));
+            return view('templates.index', compact('templates', 'company', 'address',));
         } catch (\Exception $e) {
             abort(500, 'An error occurred while fetching templates.');
         }
@@ -72,9 +80,24 @@ class TemplateController extends Controller
     public function edit($templateId)
     {
         try {
+            $jobId = session('job_id');
+            $job = CompanyJob::where('id', $jobId)->first();
+            // dd($job);
+            $name = $job->name;
+            $nameParts = explode(' ', $name, 2);
+
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
+            $address = $job ? json_decode($job->address) : null;
+            $companyId = Auth::user()->company_id;
+            if ($job) {
+                $date = Carbon::parse($job->created_at)->format('Y-m-d'); // Format for input[type="date"]
+            } else {
+                $date = null;
+            }
             $template = Template::with('templatePages.pageData')->findOrFail($templateId);
             // dd($template->templatePages->toArray());
-            return view('templates.edit', compact('template'));
+            return view('templates.edit', compact('template','address', 'firstName', 'lastName', 'date'));
         } catch (\Exception $e) {
             return redirect()->route('templates.index')->with('error', 'Template not found');
         }
@@ -736,8 +759,139 @@ class TemplateController extends Controller
         }
     }
 
+    public function saveRepairibility1(Request $request)
+{
+    try {
+        // Get input data from request
+        $pageId = $request->input('page_id');
+        $repairabilityCompatibilitySection = $request->input('repairabilityCompatibilitySection');
+        $items = $request->input('items', []);
+
+        // Validate inputs
+        if (!$pageId || !$repairabilityCompatibilitySection || !is_array($items)) {
+            return response()->json(['status' => false, 'message' => 'Invalid inputs provided.'], 400);
+        }
+
+        // Get or create repairability data
+        $repairibility = TemplatePageData::where('template_page_id', $pageId)->first();
+
+        if (!$repairibility) {
+            $repairibility = TemplatePageData::create([
+                'template_page_id' => $pageId,
+                'json_data' => json_encode(['comparision_sections' => []], true),
+            ]);
+        }
+
+        // Decode existing JSON data
+        $repairibilityDetails = $repairibility->json_data
+            ? (is_array($repairibility->json_data) ? $repairibility->json_data : json_decode($repairibility->json_data, true))
+            : ['comparision_sections' => []];
+
+        // Search for the section
+        $sectionIndex = collect($repairibilityDetails['comparision_sections'])->search(function ($section) use ($repairabilityCompatibilitySection) {
+            return $section['id'] === $repairabilityCompatibilitySection['id'];
+        });
+
+        $processedItems = array_map(function ($item) use ($repairibilityDetails, $request) {
+            $imageData = null;
+
+            // Find the existing item in the database by ID
+            $existingItem = collect($repairibilityDetails['comparision_sections'])
+                ->flatMap(function ($section) {
+                    return $section['items'];
+                })
+                ->firstWhere('id', $item['id']);
+
+            // Check if the item already has an image, and whether the new image should be updated
+            if (isset($item['image']) && strpos($item['image'], 'data:image') === 0) {
+                // Only update image if the existing image is null or does not exist
+                if (empty($existingItem['image'])) {
+                    // Extract and decode base64 image string
+                    $imageData = explode(',', $item['image'])[1];
+                    $decodedImage = base64_decode($imageData);
+
+                    // Generate a unique filename for the image
+                    $filename = time() . '_' . uniqid() . '.png';
+                    $path = 'template-files/repairability-photos/' . $filename;
+
+                    // Save the image to storage
+                    Storage::disk('public')->put($path, $decodedImage);
+
+                    // Prepare image data (file name, relative path, and size)
+                    $imageData = [
+                        'file_name' => $filename,
+                        'path' => 'storage/' . $path, // Only store relative path
+                        'size' => Storage::disk('public')->size($path),
+                    ];
+                } else {
+                    // Keep the existing image if it's already set
+                    $imageData = $existingItem['image'];
+                }
+            }
+
+            // Return processed item with image data (if available)
+            return [
+                'id' => $item['id'],
+                'order' => $item['order'],
+                'content' => strip_tags($item['content'], '<p><b><i><u><br>'),
+                'image' => $imageData,  // Save the image object if it's new or changed
+            ];
+        }, $items);
+
+        // Update or add new section
+        if ($sectionIndex !== false) {
+            // Update items in the section, preserving image data for non-matching items
+            $updatedItems = collect($repairibilityDetails['comparision_sections'][$sectionIndex]['items'])->map(function ($existingItem) use ($processedItems) {
+                $matchingItem = collect($processedItems)->firstWhere('id', $existingItem['id']);
+
+                if ($matchingItem) {
+                    // If the item has a new image, update it; otherwise, keep the existing image
+                    $existingItem['image'] = $matchingItem['image'] ?: $existingItem['image'];
+                    $existingItem['content'] = $matchingItem['content'] ?: $existingItem['content'];
+                    $existingItem['order'] = $matchingItem['order'] ?: $existingItem['order'];
+                }
+
+                return $existingItem;
+            })->toArray();
+
+            // Add any new items that don't exist in the section
+            $newItems = collect($processedItems)->filter(function ($processedItem) use ($repairibilityDetails, $sectionIndex) {
+                return !collect($repairibilityDetails['comparision_sections'][$sectionIndex]['items'])->contains('id', $processedItem['id']);
+            })->toArray();
+
+            // Merge updated and new items
+            $updatedItems = array_merge($updatedItems, $newItems);
+
+            // Update section with new or unchanged items
+            $repairibilityDetails['comparision_sections'][$sectionIndex] = [
+                'id' => $repairabilityCompatibilitySection['id'],
+                'title' => $repairabilityCompatibilitySection['title'],
+                'order' => $repairabilityCompatibilitySection['sectionOrder'],
+                'items' => $updatedItems ?: null,
+            ];
+        } else {
+            // Add new section with processed items
+            $repairibilityDetails['comparision_sections'][] = [
+                'id' => $repairabilityCompatibilitySection['id'],
+                'title' => $repairabilityCompatibilitySection['title'],
+                'order' => $repairabilityCompatibilitySection['sectionOrder'],
+                'items' => $processedItems ?: null,
+            ];
+        }
+
+        // Save updated data to the database
+        $repairibility->update(['json_data' => json_encode($repairibilityDetails, true)]);
+
+        return response()->json(['status' => true, 'message' => 'Data saved successfully']);
+    } catch (\Exception $e) {
+        // Return error message in case of exception
+        return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+
     public function saveRepairibility(Request $request)
     {
+        // dd("helo");
         try {
             // Get input data from request
             $pageId = $request->input('page_id');
@@ -797,7 +951,8 @@ class TemplateController extends Controller
                         // Prepare image data (file name, path, and size)
                         $imageData = [
                             'file_name' => $filename,
-                            'path' => asset('storage/' . $path),
+                            // 'path' => asset('storage/' . $path),
+                            'path' => $path,
                             'size' => Storage::disk('public')->size($path),
                         ];
                     } else {

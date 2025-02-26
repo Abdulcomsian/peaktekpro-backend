@@ -844,7 +844,7 @@
                             {{-- <p>Content for {{ $page->name }}</p> --}}
                             @includeIf(
                                 'templates.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
-                                ['pageData' => $page->pageData]
+                                ['pageData' => $page->pageData, 'address'=> $address,'firstName' => $firstName, 'lastName' => $lastName,'created_At'=> $date]
                             )
                         </div>
                     @empty

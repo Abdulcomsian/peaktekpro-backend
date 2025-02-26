@@ -16,9 +16,9 @@
                         </div>
 
                         <div>
-                            <input type="text"
+                            <input type="number"
                                 class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Section pdf" value="{{ $section['section_pdf']?? '' }}" />
+                                placeholder="Section pdf" value="{{ $section['section_pdf']?? '' }}" max="4" oninput="if (this.value > 4) this.value = 4;" />
                         </div>
                     
                         <div>
@@ -388,9 +388,9 @@
                         placeholder="Section Title" />
                 </div>
                  <div>
-                    <input type="text"
+                    <input type="number"
                         class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                        placeholder="Section pdf" />
+                        placeholder="divide into Sections " />
                 </div>
                 <div>
                     <button class="remove-compatibility-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>

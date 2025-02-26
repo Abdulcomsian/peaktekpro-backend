@@ -24,67 +24,68 @@
         Dropzone.autoDiscover = false;
 
         const repairabilityAssessmentDropzone = new Dropzone("#repairabilityAssessmentDropzone", {
-            url: saveMultipleFilesFromDropZoneRoute,
-            uploadMultiple: true,
-            parallelUploads: 100,
-            maxFiles: 100,
+            url: saveFileFromDropZoneRoute,
+            // uploadMultiple: false, // Change to false to prevent multiple file uploads
+            // parallelUploads: 1,
+            maxFiles: 1, // Allows only one file at a time
             acceptedFiles: ".jpeg,.jpg,.png",
-            addRemoveLinks: true,
+            // addRemoveLinks: true,
             dictRemoveFile: "Remove",
-            dictDefaultMessage: "Drag & Drop or Click to Upload",
+            addRemoveLinks: true,
+
+            // dictDefaultMessage: "Drag & Drop or Click to Upload",
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             init: function() {
+                // let repairabilityAssessmentImages = {
+                //     files: JSON.parse(`{!! json_encode($pageData->json_data['repariability_assessment_images'] ?? []) !!}`),
+                //     file_url: "{{ $pageData->file_url ?? '' }}"
+                // };
 
                 let repairabilityAssessmentImages = {
-                    files : JSON.parse(`{!! json_encode($pageData->json_data['repariability_assessment_images'] ?? []) !!}`),
-                    file_url : "{{ $pageData->file_url ?? '' }}"
+                    name: "{{ $pageData->json_data['repariability_assessment_images']['file_name'] ?? '' }}",
+                    size: "{{ $pageData->json_data['repariability_assessment_images']['size'] ?? '' }}",
+                    url: "{{ $pageData->file_url ?? '' }}",
+                    path: "{{ $pageData->json_data['repariability_assessment_images']['path'] ?? '' }}",
+                    type: 'repariability_assessment_images'
                 }
-                // Show images on load
-                showMultipleFilesOnLoadInDropzone(this, repairabilityAssessmentImages, 'repariability_assessment_images');
 
-                // When a file is added, check if it's valid based on accepted file types
+                // Show existing image on load
+                // showMultipleFilesOnLoadInDropzone(this, repairabilityAssessmentImages, 'repariability_assessment_images');
+
+                showFileOnLoadInDropzone(this, repairabilityAssessmentImages);
+
                 this.on("addedfile", function(file) {
-                    if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                        // If the file type doesn't match, remove the file from preview
-                        this.removeFile(file);
-                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.')
+                    if (this.files.length > 1) {
+                        this.removeFile(this.files[
+                        0]); // Remove the previous file if a new one is added
                     }
+
+                if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
+                    this.removeFile(file);
+                    showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
+                }
+            });
+
+            this.on("sending", function(file, xhr, formData) {
+                formData.append('type', 'repariability_assessment_images');
+                formData.append('page_id', pageId);
+                formData.append('folder', 'repairability_assessment');
+            });
+
+            this.on("success", function(file, response) {
+                    showSuccessNotification(response.message);
+            });
+
+            this.on("removedfile", function(file) {
+                // delete file from dropzone
+                deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
+                    page_id: pageId,
+                    file_key: 'repariability_assessment_images',
                 });
-                this.on("sending", function(file, xhr, formData) {
-                    formData.append('type', 'repariability_assessment_images');
-                    formData.append('page_id', pageId);
-                    formData.append('folder', 'repairability_assessment');
-                });
-
-                this.on("successmultiple", function(files, response) {
-                    if (response.status && response.file_details.length === files.length) {
-                        // Iterate through each uploaded file and its corresponding server response
-                        files.forEach((file, index) => {
-                            const fileData = response.file_details[index];  // Match file with its response data
-
-                            // Add custom keys from the server response to the file object
-                            file.file_id = fileData.file_id;
-
-                        });
-                        showSuccessNotification(response.message);
-                    } else {
-                        showErrorNotification("Mismatch between uploaded files and server response.");
-                    }
-                });
-
-                this.on("removedfile", function(file) {
-
-                    // delete file from dropzone
-                    deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
-                        page_id: pageId,
-                        file_key: 'repariability_assessment_images',
-                        file_id: file.file_id,
-                    });
-
-                });
-            }
+            });
+        }
         });
 
 
