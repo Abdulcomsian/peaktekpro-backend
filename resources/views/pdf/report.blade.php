@@ -82,19 +82,14 @@
 
         .primary-image {
             width: 100%;
-            max-width: 1500px; /* Adjust the image size */
-            display: block;
-            margin: 0 auto;
+            /* max-width: auto; Adjust the image size */
+            display: inline-block;
+            /* height: 100px; */
+           overflow: hidden;
         }
 
-        .primary-image img {
-            width: 100%; /* Ensure the image takes up the full width */
-            height: auto; /* Maintain aspect ratio */
-            /* border: 2px solid #ccc;
-            border-radius: 10px;  */
-        }
+      
         .content-main {
-            
             /* flex: 1; Pushes footer down */
         }
         .first-wrapper {
@@ -137,8 +132,11 @@
         }
 
         .primary-image {
-            margin-bottom: 20px; /* Add spacing below the image */
-            text-align: center; /* Center the image and text */
+            /* margin-bottom: 10px; Add spacing below the image */
+            /* text-align: center; Center the image and text */
+            width: 100%;
+        height: 750px;
+        overflow: hidden;
         }
 
         .primary-image h3 {
@@ -188,17 +186,32 @@
             display: inline-block;
             width: 100%;
         }
-
-        /* h2,h4,p,a {
-            margin: 20px;
-        } */
-
+        .main-text {
+            word-spacing: normal;
+            word-spacing: 3px !important;
+        }
         .pdf-placeholder {
             color: transparent;
             font-size: 0;
         }
         
-        
+        /* ---------styling-- */
+        .wrapper-custom {
+        border: 1px solid red;
+        /* width: auto;  */
+        height: 100px;
+        overflow: hidden;
+        }
+        .wrapper-custom .fit {
+            /* display: block; */
+            /* transform: scaleY(1.2);  */
+            /* transform: scaleX(1.2); */
+              
+            /* width: auto; */
+            /* height: auto; */
+        }
+
+        /* ---------styling-- */
       
 
     </style>
@@ -254,14 +267,24 @@
         <!-- Wrap the content of your PDF inside a main tag -->
     <main class="content-main">
     <div class="first-wrapper">
-        <div class="image" style=" height:600px;">
+        <div class="image" style=" height:810px;">
             @if (isset($jsonData['primary_image']))
-            <div class="primary-image" style="height: 400px;">
+            <div class="primary-image" style="height: 660px;">
                 <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" 
                 alt="Primary Image" 
-                style="width: 100%;  height: 100%;
-                object-fit: contain; margin-top:22%; display: block;" />
+                style="
+                 object-fit: cover;
+                width: 100%;
+                height: 800px;
+                object-position: center center;
+    " />
             </div>
+            <!-- <div class="wrapper-custom primary-image"  style="height: 400px;">
+                <img  src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" 
+                alt="Primary Image" 
+
+                />
+            </div> -->
             @endif
         </div>
 
@@ -271,8 +294,7 @@
                 <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
                     <!-- <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3> -->
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
-                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p>
-
+                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p>  
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 22px;">{{ $address->formatedAddress ?? '' }}</p>
                     <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $address->state ?? '' }}</p>
                     <p style="margin-left:15px; line-height: 2px;">{{ $address->postalCode ?? '' }}</p>
@@ -293,7 +315,8 @@
         </div>
         <!-- first section -->
         @case('introduction')
-           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228);   position: relative; padding-left:40px; padding-right:10px;">
+           <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228); 
+           position: relative; padding-left:40px; padding-right:10px;">
            <h2 style=" 
             color: white;
             margin: 0;
@@ -306,7 +329,8 @@
                 {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
             </h2>
            </div>
-            <div class="roof-repair-limitations main-text page-break" style="font-size:12px; font-family:sans-serif; 
+            <div class="roof-repair-limitations main-text page-break" 
+            style="font-size:12px; font-family:sans-serif; 
              
             margin-top:10px; padding-left:35px; padding-right:25px;">
                 {!! $jsonData['intro_text'] ?? 'No introduction text available.' !!}
