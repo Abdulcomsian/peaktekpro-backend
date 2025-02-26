@@ -88,6 +88,14 @@
            overflow: hidden;
         }
 
+        .second-image {
+            width: 100%;
+            /* max-width: auto; Adjust the image size */
+            display: inline-block;
+            /* height: 100px; */
+           overflow: hidden;
+        }
+
       
         .content-main {
             /* flex: 1; Pushes footer down */
@@ -132,6 +140,14 @@
         }
 
         .primary-image {
+            /* margin-bottom: 10px; Add spacing below the image */
+            /* text-align: center; Center the image and text */
+            width: 100%;
+        height: 750px;
+        overflow: hidden;
+        }
+
+        .second-image {
             /* margin-bottom: 10px; Add spacing below the image */
             /* text-align: center; Center the image and text */
             width: 100%;
@@ -356,10 +372,15 @@
 
 
                 @if (isset($jsonData['repariability_assessment_images']) && isset($jsonData['repariability_assessment_images']['path']))
-                <div class="image" style="height:400px;">
+                <div class="second-image" style="height:400px;">
                     <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}"
                      alt="repariability_assessment_images"
-                      style="width: 100%; height:100%;  display: block;" />
+                      style="
+                       object-fit: cover;
+                width: 100%;
+                height: 800px;
+                object-position: center center; 
+                      " />
                     <!-- <img src="{{ asset($jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" height="200px" width="300px" /> -->
                     <!-- <img src="{{ asset('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="Repairability Assessment Image" height="200px" width="300px" /> -->
 
