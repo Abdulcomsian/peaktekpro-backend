@@ -449,7 +449,6 @@ class ReportLayoutController extends Controller
 
     public function copyTemplate(Request $request)
     {
-        dd("try to copy the template");
         // Validate the input
         $request->validate([
             'template_id' => 'required|exists:templates,id',

@@ -31,6 +31,7 @@ class StatusSeeder extends Seeder
             ['name' => 'Overturn'],
             ['name' => 'Appraisal'],
             ['name' => 'Approved'],
+            ['name' => 'Crew Information'],
             ['name' => 'Ready To Build'],
             ['name' => 'Build Scheduled'],
             ['name' => 'In Progress'],
