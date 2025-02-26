@@ -34,6 +34,7 @@ use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CompanyLocationController;
+use App\Http\Controllers\CrewInformationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\InsuranceUnderReviewController;
 
@@ -272,6 +273,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('delete-materailOrder-dropDown/{id}', [MaterialOrderController::class, 'deleteMaterailOrderDropdown']);
 
 
+    /////////////crew information Apis/////////
+    Route::post('add-crewInformation/{jobId}', [CrewInformationController::class, 'addCrewInformation']);
+    Route::get('get-crewInformation/{jobId}', [CrewInformationController::class, 'getCrewInformation']);
+    Route::post('delete-crewInformation/{jobId}', [CrewInformationController::class, 'deleteCrewInformation']);
+
     //Project Design Api's
     Route::post('update/project-design-page-status/{jobId}', [ProjectDesignController::class, 'updateProjectDesignPageStatus']);
     //Project Design Title
@@ -394,8 +400,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get-pipeline-data', [ReportController::class, 'getPipelineData']);  //pipeline api
     Route::get('get-own-pipeline-data', [ReportController::class, 'getOwnPipelineData']);  //when click on my job pipeline api
 
-    //get job details 
-    Route::get('get/job-reports/{jobId}', [ReportController::class, 'userReports']); //performance api
+
+    //get job reports////
+    Route::get('get/companyJob-reports/{jobId}', [ReportController::class, 'getJobReports']); //get job reports api
+
 
 
 });

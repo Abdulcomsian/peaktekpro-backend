@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class CrewInformation extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'id',
+        'company_job_id',
+        'build_date',
+        'status',
+        'crew_name'
+    ];
 }

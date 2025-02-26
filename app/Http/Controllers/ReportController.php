@@ -207,14 +207,19 @@ class ReportController extends Controller
     public function getJobReports($jobId)
     {
         try {
-            $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->paginate(5);
-            $company = CompanyJob::find($jobId);
-            $companyAddress = json_decode($company->address);
-            $address = $companyAddress->formatedAddress;
+            $reports = Report::where('job_id', $jobId)->where('status','published')->get();
+            return response()->json([
+                'status_code' => 200,
+                'status' => true,
+                'message' => 'Data fetched Successfully',
+                'data' => $reports,
+            ]);
             
-            return view('reports_layout.index', compact('reports','company','address'));
         } catch (\Exception $e) {
-            abort(500, 'An error occurred while fetching reports.');
-        }
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'message' => 'An error occurred while fetching the data: ' . $e->getMessage(),
+            ], 500);        }
     }
 }
