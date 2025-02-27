@@ -347,7 +347,7 @@ class ReadyToBuildController extends Controller
     }
 
 
-    public function getReadyToBuild($jobId)
+    public function getReadyToBuilddata($jobId) //here we are getting all info before pdf url, get whole data of ready to build
     {
         try {
             // Check Job
@@ -381,7 +381,7 @@ class ReadyToBuildController extends Controller
                 ], 200);
             }
 
-            $material_order =  MaterialOrder::select('id','po_number','date_needed','square_count','total_perimeter','ridge_lf','build_date','valley_sf','hip_and_ridge_lf','drip_edge_lf')->where('company_job_id',$jobId)->first();
+            $material_order =  MaterialOrder::select('id','po_number','date_needed','square_count','total_perimeter','ridge_lf','build_date','valley_sf','hip_and_ridge_lf','drip_edge_lf','sign_pdf_url')->where('company_job_id',$jobId)->first();
 
         
             // Check if material order exists
@@ -405,6 +405,40 @@ class ReadyToBuildController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+   
+    public function getReadyToBuild($jobId) //use it to get the document and customer name in ready to build instead of whole data
+    {
+        try {
+            // Check Job
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found'
+                ], 422);
+            }
+
+            // Get customer information
+            $customer_info = CompanyJob::where('id', $jobId)->select('name')->first();
+            
+            $material_order = MaterialOrder::select('sign_pdf_url')->where('company_job_id', $jobId)->first();
+
+            // Return response with updated key names
+            return response()->json([
+                'status' => 200,
+                'message' => 'Ready To Build Found Successfully',
+                'data' => [
+                    'custome_name' => $customer_info->name ?? null, // Change key from 'name' to 'custome_name'
+                    'sign_pdf_url' => $material_order->sign_pdf_url ?? null, // Keep same key
+                ],
+            ], 200);
+        
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
 
     //file name saved
     public function changeReadyToBuildFileName(Request $request, $id)
