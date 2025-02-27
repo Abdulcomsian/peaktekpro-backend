@@ -6,8 +6,10 @@ use App\Http\Controllers\CocController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobLogController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\WonClosedController;
@@ -19,24 +21,23 @@ use App\Http\Controllers\QcInspectionController;
 use App\Http\Controllers\ReadyToBuildController;
 use App\Http\Controllers\ReadyToCloseController;
 use App\Http\Controllers\BuildCompleteController;
+use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\MaterialOrderController;
 use App\Http\Controllers\ProjectDesignController;
 use App\Http\Controllers\RoofComponentController;
 use App\Http\Controllers\SubContractorController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\CompanyLocationController;
+use App\Http\Controllers\CrewInformationController;
 use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
 use App\Http\Controllers\EstimatePreparedController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
-use App\Http\Controllers\ProjectDesignAuthorizationController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\CompanyLocationController;
-use App\Http\Controllers\CrewInformationController;
-use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\InsuranceUnderReviewController;
+use App\Http\Controllers\ProjectDesignAuthorizationController;
 
 
 /*
@@ -353,6 +354,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('store/supplier', [SupplierController::class, 'storeSupplier']);
     Route::post('update/supplier/{id}', [SupplierController::class, 'updateSupplier']);
     Route::post('delete/supplier/{id}', [SupplierController::class, 'deleteSupplier']);
+
+    ///Email Template for ready to build
+    Route::post('store/EmailTemplate/{companyId}', [EmailTemplateController::class, 'storeEmailTemplate']);
+    Route::get('get/EmailTemplate/{companyId}', [EmailTemplateController::class, 'getEmailTemplate']);
 
 
     //Sub Contractor Api's
