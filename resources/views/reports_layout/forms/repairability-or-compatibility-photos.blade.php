@@ -80,11 +80,7 @@
                             class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
                             placeholder="Section Title" />
                     </div>
-                    <div>
-                        <input type="text"
-                            class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                            placeholder="item in each row" />
-                    </div>
+                  
                     <div>
 
                         <button
@@ -307,7 +303,6 @@
             const sectionContainer = $(element).closest('.compatibility-section');
             const sectionId = sectionContainer.data('id');
             const sectionTitle = sectionContainer.find('.section-title').val();
-            const sectionPdf = sectionContainer.find('.section-pdf').val();
 
             const sectionOrder = sectionContainer.index();
 
@@ -362,7 +357,7 @@
             }, 500); // Delay of 500 milliseconds
         });
 
-        $('#compatibility-sections-container').on('input', '.section-pdf, .item-editor', function() {
+        $('#compatibility-sections-container').on('input', '.item-editor', function() {
             clearTimeout(typingTimer); // Clear the previous timeout
             const $this = $(this);
 
@@ -382,11 +377,7 @@
                         class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
                         placeholder="Section Title" />
                 </div>
-                 <div>
-                    <input type="number"
-                        class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                        placeholder="divide into Sections " />
-                </div>
+                
                 <div>
                     <button class="remove-compatibility-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
                     <span class="compatiblility-section-drag-handle cursor-pointer">↑↓</span>
