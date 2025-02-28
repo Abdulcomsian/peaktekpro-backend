@@ -60,7 +60,7 @@
             justify-content: center;
         }
          .comparison-sections  {
-            /* border:2px solid red; */
+            /* border:2px solid blue; */
          }
          .comparison-sections h2:first-child {
             display:none !important;
@@ -400,7 +400,7 @@
         <!-- third Section -->
     
 
-@case('repairability-or-compatibility-photos')
+   @case('repairability-or-compatibility-photos')
                 <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
                     margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px; padding-bottom:15px;">
                     {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
@@ -409,7 +409,7 @@
                     @foreach ($jsonData['comparision_sections'] ?? [] as $section)
                     <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
                     margin: 0; width: 100%; display: block; line-height:50px;
-                     padding: 0 40px; padding-bottom:15px;">
+                     padding: 0 40px; padding-bottom:15px; page-break-before: always;">
                   {{ $section['title'] ?? 'No title available.' }}</h2>
                     <table width="100%" border="0" cellspacing="0" cellpadding="5" 
                      style="table-layout: fixed; word-wrap: break-word; ">
