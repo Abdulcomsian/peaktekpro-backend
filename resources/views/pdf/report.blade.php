@@ -59,7 +59,14 @@
             align-items: center;
             justify-content: center;
         }
-
+         .comparison-sections  {
+            /* border:2px solid red; */
+         }
+         .comparison-sections h2:first-child {
+            display:none !important;
+            border:2px solid red;
+         }
+         
         .header-box.blue {
             background-color:rgb(55, 179, 184);
             color: white; /* Ensure text is visible */
@@ -391,72 +398,57 @@
         @break
 
         <!-- third Section -->
-   
-        @case('repairability-or-compatibility-photos')
-                <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); 
-                margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px; padding-bottom:15px;">
+    
+
+@case('repairability-or-compatibility-photos')
+                <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+                    margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px; padding-bottom:15px;">
                     {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
                 </h2>
-
-                <div class="comparison-sections" style="padding: 20px;">
+                <div class="comparison-sections" style="padding: 0px;">
                     @foreach ($jsonData['comparision_sections'] ?? [] as $section)
-                        <h4>Title</h4>
-                        <p>{{ $section['title'] ?? 'No title available.' }}</p>
-
-                        @php
-                            $items = $section['items'] ?? [];
-                            $sectionPdfValue = max(1, (int) ($section['section_pdf'] ?? 2));
+                    <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+                    margin: 0; width: 100%; display: block; line-height:50px;
+                     padding: 0 40px; padding-bottom:15px;">
+                  {{ $section['title'] ?? 'No title available.' }}</h2>
+                    <table width="100%" border="0" cellspacing="0" cellpadding="5" 
+                     style="table-layout: fixed; word-wrap: break-word; ">
+                        @foreach ($section['items'] ?? [] as $item)
+                        <tr style="width: 100%; border:0px;    vertical-align:top;">
                             
-                            // Determine columns based on section_pdf value
-                            $columns = match ($sectionPdfValue) {
-                                1 => 1,
-                                2 => 2,
-                                3 => 3,
-                                default => 4, // 4 or more
-                            };
-                            
-                            $chunks = array_chunk($items, $columns);
-                        @endphp
-
-                        <table width="100%" border="0" cellspacing="0" cellpadding="5" style="table-layout: fixed; word-wrap: break-word;">
-                            @foreach ($chunks as $row)
-                                <tr style="width: 100%; border:0px;">
-                                    @foreach ($row as $item)
-                                        <td style="
-                                        width: {{ 100 / $columns }}% !important;
-                                         padding: 10px; border:0px;
-                                         overflow-wrap: break-word; word-break: break-word;">
-                                       <div style="border:2px solid white;">
-                                            <h4>Item {{ $loop->parent->iteration }}.{{ $loop->iteration }}</h4>
-
-                                            <div class="content" style="word-break: break-word; overflow-wrap: break-word;">
+                            <td>
+                            <div style=" margin-top:7%;margin-left:5%;  vertical-align:top; width: 90% !important; ">
+                                    @php
+                                    $imageRelativePath = 'storage/' . ($item['image']['path'] ?? '');
+                                    $imageFullPath = public_path($imageRelativePath);
+                                    @endphp
+                                    @if (!empty($item['image']['path']) && file_exists($imageFullPath))
+                                    <img src="{{ public_path($imageRelativePath) }}"
+                                        alt="repairability image"
+                                        style="max-width: 100%; ">
+                                    @else
+                                    <p>Image not found.</p>
+                                    @endif
+                                    </div>
+                            </td>
+                            <td style="width: 50% !important; padding: 10px; border:0px;
+                             overflow-wrap: break-word; word-break: break-word;">
+                                <div style=" display:flex;">
+                                   
+                                    <div class="content"
+                                        style="
+                                    word-break: break-word; overflow-wrap: break-word;">
                                                 {!! $item['content'] ?? 'No content available.' !!}
-                                            </div>
-
-                                            @php
-                                                    $imageRelativePath = 'storage/' . ($item['image']['path'] ?? '');
-                                                    $imageFullPath = public_path($imageRelativePath);
-                                                @endphp
-
-                                                @if (!empty($item['image']['path']) && file_exists($imageFullPath))
-                                                    <img src="{{ public_path($imageRelativePath) }}" 
-                                                        alt="repairability image" 
-                                                        style="max-width: 100px; height: auto;">
-                                                @else
-                                                    <p>Image not found.</p>
-                                                @endif
-                                                </div>
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        </table>
+                                    </div>
+                                    
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </table>
                     @endforeach
                 </div>
-        @break
-
-
-       
+            @break
 
         <!-- 4th section -->
 
@@ -542,50 +534,47 @@
         @break
 
 
-
-        <!-- 8th Section -->
-        @case('authorization-page')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
-         width: 92%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-
-        <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
-
-            @foreach($jsonData['sections'] ?? [] as $section)
-                <h4 style="margin-top: 10px;">{{ $section['title'] ?? 'No Title Available' }}</h4>
-                <p> Total for Section: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
-
-                <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
-                    <thead style="background-color: #f2f2f2;">
-                        <tr>
-                            <th>Description</th>
-                            <th>Quantity</th>
-                            <th>Price ($)</th>
-                            <th>Line Total ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($section['sectionItems'] ?? [] as $item)
+<!-- 8th Section -->
+@case('authorization-page')
+                <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
+                width: 92%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+                <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
+                    @foreach($jsonData['sections'] ?? [] as $section)
+                    <h4 style="margin-top: 10px;">{{ $section['title'] ?? 'No Title Available' }}</h4>
+                    <p> Total for Section: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
+                    <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
+                        <thead style="background-color: #F2F2F2;">
+                            <tr>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>Price ($)</th>
+                                <th>Line Total ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($section['sectionItems'] ?? [] as $item)
                             <tr>
                                 <td>{{ $item['description'] ?? 'No description available.' }}</td>
                                 <td style="text-align: center;">{{ $item['qty'] ?? '0' }}</td>
                                 <td style="text-align: right;">{{ number_format($item['price'] ?? 0, 2) }}</td>
                                 <td style="text-align: right;">{{ number_format($item['lineTotal'] ?? 0, 2) }}</td>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endforeach
-
-            <div class="authorization-disclaimer" style="margin-top: 15px; padding-left:10px; padding-right:10px;">
-                <p>{{ $jsonData['authorization_disclaimer'] ?? 'No disclaimer available.' }}</p>
-            </div>
-
-            <div class="grand-total" style="text-align: right; font-weight: bold; margin-top: 10px;">
-                <p>Grand Total: ${{ number_format($jsonData['authorization_sections_grand_total'] ?? 0, 2) }}</p>
-            </div>
-        </div>
-         @break
-
+                            @endforeach
+                        </tbody>
+                    </table>
+                    @endforeach
+                    <div class="authorization-disclaimer" style="margin-top: 15px; padding-left:10px; padding-right:10px;">
+                        <p>{{ $jsonData['authorization_disclaimer'] ?? 'No disclaimer available.' }}</p>
+                    </div>
+                    <div class="grand-total" style="text-align: right; font-weight: bold; margin-top: 10px;">
+                        <p>Grand Total: ${{ number_format($jsonData['authorization_sections_grand_total'] ?? 0, 2) }}</p>
+                    </div>
+                    <!-- authorization footer -->
+                    <div class="authorization-disclaimer" style="margin-top: 15px; padding-left:10px; padding-right:10px;">
+                        <p>{!! $jsonData['authorization_footer_text'] ?? 'No footer available.' !!}</p>
+                    </div>
+                </div>
+            @break
         <!-- 9th Section -->
         @case('terms-and-conditions')
         <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
