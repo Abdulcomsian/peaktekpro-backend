@@ -413,16 +413,19 @@ class ReportLayoutController extends Controller
         }
     }
 
-    public function downloadPdf($id) //this is used for pdf downloading
+    public function downloadPdf11($id) //this is used for pdf downloading
     {
         try {
+            // dd("download");
             $report = Report::findOrFail($id);
             // dd($fileName);
             $fileName = basename($report->file_path);
             Log::info("my file name is", [$fileName]);
 
             $filePath = storage_path('app/public/' . $report->file_path);
+            dd($filePath);
             Log::info("my file path is", [$filePath]);
+            // dd($filePath);
 
             if (!$report->file_path) {
                 return response()->json([
@@ -436,6 +439,49 @@ class ReportLayoutController extends Controller
             if (file_exists($filePath)) {
                 Log::info("file inside check is", [$filePath]);
                 return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
+            } else {
+                return response()->json([
+                    'status_code' => 404,
+                    'status' => false,
+                    'message' => 'File not found.'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error downloading file: ' . $e->getMessage());
+
+            return response()->json([
+                'status_code' => 500,
+                'status' => false,
+                'message' => 'An error occurred while downloading the file: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function downloadPdf($id)
+    {
+        try {
+            $report = Report::findOrFail($id);
+
+            if (!$report->file_path) {
+                return response()->json([
+                    'status_code' => 404,
+                    'status' => false,
+                    'message' => 'File path not found in the database.'
+                ], 404);
+            }
+
+            // Get filename and possible alternative names
+            $storedFilePath = $report->file_path; // pdf-files/merged-report-*.pdf
+            $actualFilePath = str_replace('merged-', '', $storedFilePath); // pdf-files/report-*.pdf
+
+            $filePath1 = storage_path('app/public/' . $storedFilePath);
+            $filePath2 = storage_path('app/public/' . $actualFilePath);
+
+            // Check if either file exists
+            if (file_exists($filePath1)) {
+                return response()->download($filePath1, basename($filePath1))->deleteFileAfterSend(true);
+            } elseif (file_exists($filePath2)) {
+                return response()->download($filePath2, basename($filePath2))->deleteFileAfterSend(true);
             } else {
                 return response()->json([
                     'status_code' => 404,
@@ -1259,7 +1305,7 @@ class ReportLayoutController extends Controller
                 $repairibilityDetails['comparision_sections'][$sectionIndex] = [
                     'id' => $repairabilityCompatibilitySection['id'],
                     'title' => $repairabilityCompatibilitySection['title'],
-                    'section_pdf' => $repairabilityCompatibilitySection['section_pdf'],
+                    // 'section_pdf' => $repairabilityCompatibilitySection['section_pdf'],
 
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
                     'items' => $updatedItems ?: null,
@@ -1269,7 +1315,7 @@ class ReportLayoutController extends Controller
                 $repairibilityDetails['comparision_sections'][] = [
                     'id' => $repairabilityCompatibilitySection['id'],
                     'title' => $repairabilityCompatibilitySection['title'],
-                    'section_pdf' => $repairabilityCompatibilitySection['section_pdf'],
+                    // 'section_pdf' => $repairabilityCompatibilitySection['section_pdf'],
 
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
                     'items' => $processedItems ?: null,

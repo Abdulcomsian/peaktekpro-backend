@@ -11,7 +11,8 @@ class MaterailDropDown extends Model
      protected $fillable = [
         'order_key',
         'material_name',
-        'color'
+        'color',
+        'pdf_url',
      ];
      protected $casts = [
         'color' => 'array', // Automatically convert JSON to an array

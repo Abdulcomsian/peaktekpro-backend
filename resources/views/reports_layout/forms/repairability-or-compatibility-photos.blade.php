@@ -15,11 +15,7 @@
                                 placeholder="Section Title" value="{{ $section['title'] }}" />
                         </div>
 
-                        <div>
-                            <input type="number"
-                                class="section-pdf w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Section pdf" value="{{ $section['section_pdf']?? '' }}" max="4" oninput="if (this.value > 4) this.value = 4;" />
-                        </div>
+                       
                     
                         <div>
                             <button
@@ -318,7 +314,6 @@
             const repairabilityCompatibilitySection = {
                 id: sectionId,
                 title: sectionTitle,
-                section_pdf: sectionPdf,
 
                 sectionOrder: sectionOrder
             };
