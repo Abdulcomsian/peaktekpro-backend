@@ -13,7 +13,7 @@
             <label for="report-date" class="block text-gray-700 text-sm font-medium mb-2">Date</label>
             <input type="date" id="report-date" name="report_date"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $pageData->json_data['report_title'] ?? '' }}"  required />
+                value="{{ $pageData->json_data['report_date'] ?? '' }}"  required />
         </div>
         <div class="flex flex-wrap lg:gap-4 md:gap-4">
 
@@ -341,7 +341,18 @@
                     formData.append('folder', 'introduction');
                 });
                 // adding file
+                // this.on("addedfile", function(file) {
+                //     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
+                //         this.removeFile(file);
+                //         showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
+                //     }
+                // });
                 this.on("addedfile", function(file) {
+                    if (this.files.length > 1) {
+                        this.removeFile(this.files[
+                            0]); // Remove the previous file if a new one is added
+                    }
+
                     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
                         this.removeFile(file);
                         showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
