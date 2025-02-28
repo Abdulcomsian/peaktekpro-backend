@@ -13,7 +13,8 @@ class Report extends Model
         'title',
         'job_id',
         'status',
-        'file_path'
+        'file_path',
+        'report_type',
     ];
 
     public $appends = [
@@ -34,4 +35,10 @@ class Report extends Model
     {
         return $this->file_path ? asset('storage/' . $this->file_path) : null;
     }
+
+    public function template()
+    {
+        return $this->belongsTo(Template::class, 'template_id');
+    }
+
 }

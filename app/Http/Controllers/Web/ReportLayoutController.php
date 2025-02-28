@@ -28,9 +28,12 @@ class ReportLayoutController extends Controller
     public function index(Request $request)
     {
         try {
+            // dd("hi reports");
             $jobId = session('job_id');
-            // dd($jobId);
-            $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->paginate(5);
+            $reportType = session('report_type');
+
+            // dd($reportType);
+            $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->where('report_type',$reportType)->paginate(5);
             $company = CompanyJob::find($jobId);
 
             $companyAddress = json_decode($company->address);
@@ -60,10 +63,15 @@ class ReportLayoutController extends Controller
         try {
 
             $jobId = session('job_id');
+            $reportType = session('report_type');
+
+            // dd($reportType);
+
 
             $report = Report::create([
                 'title' => $request->title,
                 'job_id' => $jobId,
+                'report_type' => $reportType
             ]);
 
             $templateId = $request->template_id ?? '';
