@@ -1246,8 +1246,20 @@ class MaterialOrderController extends Controller
                 'material_name'  => 'nullable|string',
                 'color'     => 'nullable|array',
                 'color.*'   => 'string', 
+                'pdf_url' => 'file|nullable',
             ]);
 
+            if ($request->hasFile('pdf_url')) {
+                $document = $request->file('pdf_url'); // Get the single file
+                $fileName = time() . '_' . $document->getClientOriginalName();
+                $filePath = $document->storeAs('public/material_drop_down', $fileName);
+            
+                // Store Path in Database
+                
+                $image_url = Storage::url($filePath);
+               
+            }
+            
             // Check if we are updating or creating a new record
             $materialOrder = MaterailDropDown::updateOrCreate(
                 ['id' => $request->id], 
@@ -1255,6 +1267,7 @@ class MaterialOrderController extends Controller
                     'order_key' => $request->order_key,
                     'material_name'  => $request->material_name,
                     'color'     => $request->color, 
+                    'pdf_url' => $image_url
                     // 'color'     => json_encode($request->color), 
 
                 ]
@@ -1268,6 +1281,8 @@ class MaterialOrderController extends Controller
                     'material_name' => $materialOrder->material_name,
                     'order_key' => $materialOrder->order_key,
                     'order_key' => $materialOrder->color,
+                    'pdf_url' => $materialOrder->pdf_url,
+
 
                     // 'color' => json_decode($materialOrder->color),
                 ]           

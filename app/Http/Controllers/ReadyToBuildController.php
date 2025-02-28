@@ -67,7 +67,7 @@ class ReadyToBuildController extends Controller
                 // 'home_owner_email' => $request->home_owner_email,
                 // 'date' => $request->date,
                 'notes' => $request->notes,
-                'status' => $request->status,
+                'status' => "true",
                 'supplier_id' => $request->supplier_id
             ]);
 
@@ -92,7 +92,7 @@ class ReadyToBuildController extends Controller
                     $media->ready_build_id = $ready_to_build->id;
                     $media->image_url = Storage::url($filePath);
                     $media->file_name = $documents->getClientOriginalName();
-                    $media->save();
+                    $media->save( );
                 }
             } else {
                 // No new attachments in the request, retain existing attachments
@@ -424,6 +424,8 @@ class ReadyToBuildController extends Controller
             
             $material_order = MaterialOrder::select('sign_pdf_url')->where('company_job_id', $jobId)->first();
 
+            $readyToBuild = ReadyToBuild::with('documents')->where('company_job_id', $jobId)->first();
+
             // Return response with updated key names
             return response()->json([
                 'status' => 200,
@@ -431,6 +433,7 @@ class ReadyToBuildController extends Controller
                 'data' => [
                     'custome_name' => $customer_info->name ?? null, // Change key from 'name' to 'custome_name'
                     'sign_pdf_url' => $material_order->sign_pdf_url ?? null, // Keep same key
+                    'status' => $readyToBuild->status,
                 ],
             ], 200);
         
