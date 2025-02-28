@@ -23,10 +23,14 @@ class CheckReactAuth
         try {
             $token = $request->query('t') ?? '';
             $jobId = $request->query('j') ?? '';
+            $type = $request->query('t') ?? '';
+
 
             if (Auth::check()) {    
                 if ($jobId) {
                     session(['job_id' => $jobId]);
+                    session(['report_type' => $type]);
+
                 }
                 return $next($request);
             } else {
@@ -60,6 +64,8 @@ class CheckReactAuth
 
                 if ($jobId) {
                     session(['job_id' => $jobId]);
+                    session(['report_type' => $type]);
+
                 }
 
                 return $next($request);
