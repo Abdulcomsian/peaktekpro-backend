@@ -94,7 +94,8 @@
                 <!-- <label class="block text-gray-700 mb-2">Import From Templates</label> -->
                 <div class="flex items-center justify-between">
                     <label class="text-gray-700">Import From Templates</label>
-                    <button type="button" onclick="openTemplateModal()" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
+                    <button type="button" onclick="openTemplateModal()"
+                     class="bg-blue-500 btn-gradient text-white px-4 py-2 rounded text-sm">
                         + Create New Template
                     </button>
                 </div>
@@ -115,9 +116,10 @@
                 <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
             </div>
 
-            <div class="text-center font-bold">OR Create a New Report</div>
+            <div class="text-center font-bold mt-3 ">OR Create a New Report</div>
 
             <!-- Create a New Report -->
+
             <div class="mb-4">
                 <label for="title" class="block text-gray-700 mb-2">Report Title</label>
                 <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
