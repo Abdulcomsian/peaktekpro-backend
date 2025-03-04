@@ -9,11 +9,14 @@
                     data-id="{{ $section['id'] }}">
                     <!-- Section Header -->
                     <div class="flex flex-wrap justify-start items-center gap-1 mb-4">
-                        <div>
-                            <input type="text"
-                                class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Section Title" value="{{ $section['title'] }}" />
-                        </div>
+                    @if(!$loop->first)  <!-- ADD THIS CONDITION -->
+                    <div>
+                        <input type="text"
+                            class="section-title ..."
+                            placeholder="Section Title" 
+                            value="{{ $section['title'] }}" />
+                    </div>
+                    @endif
 
                        
                     
@@ -75,11 +78,11 @@
                 data-id="{{ \Str::random(8) }}">
                 <!-- Section Header -->
                 <div class="flex flex-wrap justify-start items-center gap-1 mb-4">
-                    <div>
+                    <!-- <div>
                         <input type="text"
                             class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                            placeholder="Section Title" />
-                    </div>
+                            placeholder="Section Title101" />
+                    </div> -->
                   
                     <div>
 
