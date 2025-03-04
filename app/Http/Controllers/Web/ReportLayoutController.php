@@ -1304,7 +1304,7 @@ class ReportLayoutController extends Controller
                 // Update section with new or unchanged items
                 $repairibilityDetails['comparision_sections'][$sectionIndex] = [
                     'id' => $repairabilityCompatibilitySection['id'],
-                    'title' => $repairabilityCompatibilitySection['title'],
+                    'title' => $repairabilityCompatibilitySection['title'] ?? '',
                     // 'section_pdf' => $repairabilityCompatibilitySection['section_pdf'],
 
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
@@ -1314,7 +1314,7 @@ class ReportLayoutController extends Controller
                 // Add new section with processed items
                 $repairibilityDetails['comparision_sections'][] = [
                     'id' => $repairabilityCompatibilitySection['id'],
-                    'title' => $repairabilityCompatibilitySection['title'],
+                    'title' => $repairabilityCompatibilitySection['title'] ?? '',
                     // 'section_pdf' => $repairabilityCompatibilitySection['section_pdf'],
 
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
@@ -1331,6 +1331,8 @@ class ReportLayoutController extends Controller
             return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+   
 
     public function updateRepairibilitySectionsOrdering(Request $request)
     {
