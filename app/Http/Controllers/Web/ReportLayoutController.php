@@ -710,6 +710,7 @@ class ReportLayoutController extends Controller
             $pageId = $request->input('page_id');
             $jsonData = $request->except('page_id');
 
+            $reportTitle = 
             // Find if the report exists by page_id
             $report = ReportPageData::where('report_page_id', $pageId)->first();
 

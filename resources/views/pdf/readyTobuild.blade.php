@@ -89,7 +89,7 @@
 <body>
     <!-- Define header and footer blocks before your content -->
     <header>
-        <img src="{{ public_path('assets/pdf_header.png') }}" width="800" />
+        <img src="{{ public_path('assets/material-order.png') }}" width="800" />
     </header>
 
     <footer>
@@ -103,7 +103,7 @@
             <tbody>
                 <tr>
                     <th colspan="6">
-                        <h2 style="text-align: left">Material Order</h2>
+                        <h2 style="text-align: left">Customer Information</h2>
                     </th>
                 </tr>
 
@@ -271,17 +271,16 @@
 
    
 
-    <h2 style="text-align:left">Attachments</h2>
-<div style="width:100%;">
-    @foreach ($readybuild->documents as $document)
-        <p>
-            <a href="{{ asset($document->image_url) }}" target="_blank">
-                {{ asset($document->image_url) }}
-                <!-- {{public_path('/storage/', '', $document->image_url)}} -->
-            </a>
-        </p>
-    @endforeach
-</div>
+    <!-- <h2 style="text-align:left">Attachments</h2>
+    <div style="width:100%;">
+        @foreach ($readybuild->documents as $document)
+            <p>
+                <a href="{{ asset($document->image_url) }}" target="_blank">
+                    {{ asset($document->image_url) }}
+                </a>
+            </p>
+        @endforeach
+    </div> -->
 
 
 
