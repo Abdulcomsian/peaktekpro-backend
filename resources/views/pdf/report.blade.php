@@ -256,7 +256,7 @@
                 <tr>
                     <td style="width: 50%; background-color:rgb(55, 179, 184); color: white; text-align: left; padding: 5px;">
                         <h2 style="color:white; margin:20px;">{{ $report->title ?? $jsonData['report_title'] }}</h2>
-                        <p style="margin:20px;">{{ $jsonData['report_date'] ?? $created_At ?? }}</p>
+                        <p style="margin:20px;">{{ $jsonData['report_date'] ?? $created_At }}</p>
                     </td>
                     <td style="width: 50%; background-color: white; text-align: right; padding: 10px; vertical-align:middle;">
                         <img src="{{ public_path('assets/logo/logoTest.PNG') }}" style="width:420px; height:auto;" alt="Logo">
