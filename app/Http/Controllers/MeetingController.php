@@ -28,7 +28,7 @@ class MeetingController extends Controller
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable',
             'sent' => 'nullable',
-            'status' => 'nullable|in:approved,overturn,appraisal',
+            'status' => 'nullable',
             'attachments.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
             'images .*' => 'nullable|image|max:10240|mimes:png,jpg,jpeg,gif',
             'notes' => 'nullable'
