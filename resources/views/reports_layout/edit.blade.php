@@ -500,13 +500,15 @@
         </svg>
         <span id="leftMenuPageName-${response.page.id}" class="text-sm">${response.page.name}</span>
     </div>
-    <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
+   <label for="toggle-${response.page.id}" class="inline-flex relative items-center cursor-pointer">
         <input type="checkbox" id="toggle-${response.page.id}" class="sr-only toggle" data-page-id="${response.page.id}"
             ${response.page.is_active === 1 ? 'checked' : ''} />
-        <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center">
-            <span class="w-6 h-6 bg-white rounded-full shadow transform transition-transform"></span>
+        <span class="w-10 h-4 bg-gray-300 rounded-full flex items-center relative">
+            <span class="w-4 h-4 bg-white rounded-full shadow transform transition-transform absolute left-0"></span>
         </span>
+        
     </label>
+
 </li>
 `);
 

@@ -586,6 +586,52 @@ class ReportLayoutController extends Controller
     }
 
     public function updateReportPagesOrdering(Request $request, $reportId)
+{
+    try {
+        $order = $request->input('order');
+
+        if (empty($order)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Pages ordering not updated successfully',
+            ], 500);
+        }
+
+        // Find the page with slug 'introduction'
+        $introductionPage = ReportPage::where('report_id', $reportId)
+            ->where('slug', 'introduction')
+            ->first();
+
+        if ($introductionPage) {
+            $introductionPage->update(['order_no' => 0]);
+        }
+
+        // Update the rest of the pages starting from 1
+        $position = 1;
+        foreach ($order as $id) {
+            if ($introductionPage && $introductionPage->id == $id) {
+                continue; // Skip introduction page
+            }
+
+            ReportPage::where('id', $id)->update(['order_no' => $position]);
+            $position++;
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Pages ordering updated successfully',
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Something went wrong',
+            'errors' => $e->getMessage(),
+        ]);
+    }
+}
+
+
+    public function updateReportPagesOrdering200(Request $request, $reportId)
     {
         try {
 
