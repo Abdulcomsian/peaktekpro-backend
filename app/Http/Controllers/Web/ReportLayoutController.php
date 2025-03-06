@@ -602,7 +602,7 @@ class ReportLayoutController extends Controller
             // update page ordering
             foreach ($order as $position => $id) {
 
-                ReportPage::where('id', $id)->update(['order_no' => $position+1]);
+                ReportPage::where('id', $id)->update(['order_no' => $position]);
             }
 
             return response()->json([
