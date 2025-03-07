@@ -1089,7 +1089,7 @@
                         </button>
                        
                         <div id="publishReportModal"
-                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
+                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
                             <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
                                 <h2 class="text-lg font-semibold mb-4">Publish Report</h2>
                                 <p>Are you sure you want to update this report to Published?</p>
@@ -1104,7 +1104,7 @@
 
                         <!-- Modal for saving report as draft -->
                         <div id="draftReportModal"
-                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
+                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
                             <div class="bg-white p-4 rounded-lg w-1/4 shadow-lg">
                                 <h2 class="text-lg font-semibold mb-4">Draft Report</h2>
                                 <p>Are you sure you want to update this report to Draft?</p>

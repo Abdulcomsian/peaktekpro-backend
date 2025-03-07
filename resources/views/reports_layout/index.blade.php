@@ -225,10 +225,10 @@
             // Extract required data
             // const report_title = reportPageData ? reportPageData.json_data.report_title;
             // console.log(report_title);
-            const report_title = reportPageData?.json_data?.report_title || "No title available";
+            const report_title = reportPageData?.json_data?.report_title;
 
 
-            const title = report.title || report_title;
+            const title = report_title || report.title;
 
             const grandTotal = reportPageData6 ? reportPageData6.json_data.grand_total : null;
             const price = grandTotal ? `$${parseFloat(grandTotal).toFixed(2)}` :
@@ -398,8 +398,7 @@
                         'absolute right-4 -top-36 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
                     .append(
                         $('<ul>').addClass('text-sm text-gray-700').html(`<a href="${editReportRoute}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer edit-report">Edit Report</a>
-                                <a href="${downloadReportPdfRoute}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</a>
-                        `)
+                        ${item.tag === 'PUBLISHED' ? `<a href="${downloadReportPdfRoute}" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer view-report">View Report</a>` : ''}                        `)
                     );
 
                 // Toggle menu on click

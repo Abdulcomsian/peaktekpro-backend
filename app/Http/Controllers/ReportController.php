@@ -204,10 +204,12 @@ class ReportController extends Controller
     }
 
     ///////////////////job details section of reports ////////////////////////////
-    public function getJobReports($jobId)
+    public function getJobReports1($jobId)
     {
         try {
-            $reports = Report::where('job_id', $jobId)->where('status','published')->get();
+            // $reports = Report::where('job_id', $jobId)->where('status','published')->get();
+            $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->where('status','published')->get();
+
             return response()->json([
                 'status_code' => 200,
                 'status' => true,
@@ -222,4 +224,46 @@ class ReportController extends Controller
                 'message' => 'An error occurred while fetching the data: ' . $e->getMessage(),
             ], 500);        }
     }
+    public function getJobReports2($jobId)
+{
+    $reports = Report::where('job_id', $jobId)
+        ->select('id','title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at')
+        ->get()
+        ->map(function ($report) {
+            $report->pdf_path = asset('storage/' . $report->file_path);
+            $report->report_title = "Report Title"; // Static or dynamic title if needed
+            return $report;
+        });
+
+    return response()->json($reports);
+}
+
+public function getJobReports($jobId)
+{
+    $reports = Report::where('job_id', $jobId)
+        ->with(['reportPages.pageData']) // Load related report pages and page data
+        ->select('id', 'title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at')
+        ->get()
+        ->map(function ($report) {
+            // Extract report title from the first report page's page_data JSON
+            $reportTitle = optional($report->reportPages->first()->pageData)->json_data['report_title'] ?? 'N/A';
+
+            return [
+                'title' => $reportTitle ?? $report->title,
+                'job_id' => $report->job_id,
+                'status' => $report->status,
+                'file_path' => $report->file_path,
+                'report_type' => $report->report_type,
+                'created_at' => $report->created_at,
+                'updated_at' => $report->updated_at,
+                'pdf_path' => asset('storage/' . $report->file_path),
+                'report_title' => $reportTitle,
+            ];
+        });
+
+    return response()->json($reports);
+}
+
+
+
 }
