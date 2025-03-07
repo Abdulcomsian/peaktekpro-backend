@@ -891,7 +891,6 @@ class TemplateController extends Controller
 
     public function saveRepairibility(Request $request)
     {
-        // dd("helo");
         try {
             // Get input data from request
             $pageId = $request->input('page_id');
@@ -997,7 +996,7 @@ class TemplateController extends Controller
                 // Update section with new or unchanged items
                 $repairibilityDetails['comparision_sections'][$sectionIndex] = [
                     'id' => $repairabilityCompatibilitySection['id'],
-                    'title' => $repairabilityCompatibilitySection['title'],
+                    'title' => $repairabilityCompatibilitySection['title'] ?? '',
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
                     'items' => $updatedItems ?: null,
                 ];
@@ -1005,7 +1004,7 @@ class TemplateController extends Controller
                 // Add new section with processed items
                 $repairibilityDetails['comparision_sections'][] = [
                     'id' => $repairabilityCompatibilitySection['id'],
-                    'title' => $repairabilityCompatibilitySection['title'],
+                    'title' => $repairabilityCompatibilitySection['title'] ?? '',
                     'order' => $repairabilityCompatibilitySection['sectionOrder'],
                     'items' => $processedItems ?: null,
                 ];

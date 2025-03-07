@@ -5,7 +5,7 @@
             <label for="report-title" class="block text-gray-700 text-sm font-medium mb-2">Report Title</label>
             <input type="text" id="report-title" name="report_title" placeholder="Enter report title"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $report->title ?? $pageData->json_data['report_title'] ?? '' }}" required  />
+                value="{{  $pageData->json_data['report_title'] ?? $report->title }}" required  />
         </div>
 
         <!-- Date -->
@@ -13,7 +13,7 @@
             <label for="report-date" class="block text-gray-700 text-sm font-medium mb-2">Date</label>
             <input type="date" id="report-date" name="report_date"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{ $pageData->json_data['report_date'] ?? '' }}"  required />
+                value="{{ $pageData->json_data['report_date'] ?? $created_At ?? '' }}"  required />
         </div>
         <div class="flex flex-wrap lg:gap-4 md:gap-4">
 

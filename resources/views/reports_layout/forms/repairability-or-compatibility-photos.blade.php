@@ -83,7 +83,6 @@
                             class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
                             placeholder="Section Title101" />
                     </div> -->
-                  
                     <div>
 
                         <button

@@ -32,9 +32,10 @@ class ReportLayoutController extends Controller
             $jobId = session('job_id');
             $reportType = session('report_type');
 
-            // dd($reportType);
+            // dd($jobId);
             $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->where('report_type',$reportType)->paginate(5);
             $company = CompanyJob::find($jobId);
+            // dd($company);
 
             $companyAddress = json_decode($company->address);
             $address = $companyAddress->formatedAddress;
