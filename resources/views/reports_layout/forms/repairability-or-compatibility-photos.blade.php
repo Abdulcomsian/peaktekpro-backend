@@ -151,6 +151,33 @@
     </button>
 </div>
 
+<!-- Global Loader (initially hidden) -->
+<div id="global-loader" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50" style="display: none;">
+    <div class="spinner"></div>
+    <span class="mt-2 text-white text-lg">Uploading...</span>
+</div>
+
+<style>
+    /* Global Loader Styles */
+#global-loader {
+    /* Already defined in the element's class above */
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+</style>
 @push('scripts')
     <script>
         let compatibilitySectionCount = 1;
@@ -266,6 +293,20 @@
                         };
                         reader.readAsDataURL(file);
                     });
+
+                    this.on("sending", function(file, xhr, formData) {
+                formData.append('page_id', pageId);
+                formData.append('item_id', itemId);
+                // Show the global loader
+                document.getElementById('global-loader').style.display = 'flex';
+            });
+            
+            this.on("complete", function(file) {
+                // Hide the global loader when the upload completes
+                document.getElementById('global-loader').style.display = 'none';
+            });
+
+           
 
                     this.on("removedfile", function() {
                         $(`.item[data-id='${itemId}'] .image-preview-container`).html("").addClass(

@@ -248,13 +248,21 @@
                 const companyData = @json($company);
                 const companyAddress = @json($address);
 
+            // Get the intro text or a fallback message
+            const fullDescription = reportPageData && reportPageData.json_data.intro_text ? reportPageData.json_data.intro_text : 'No description available';
+
+            // Truncate the description to, for example, 200 characters (adjust as needed)
+            const maxLength = 120;
+            const truncatedDescription = fullDescription.length > maxLength ?
+                fullDescription.substring(0, maxLength) + '...' : fullDescription;
+
 
             return {
                 id: report.id, // Map ID
                 reportName: title, // Map title to reportName
                 siteAddress: companyAddress, // Use company_address
-                description: reportPageData && reportPageData.json_data.intro_text ? reportPageData.json_data
-                    .intro_text : 'No description available', // Use intro_text
+                description: truncatedDescription,
+                    
                 price: price, // Format price if available
                 tag: report.status === 'published' ? 'PUBLISHED' : 'DRAFT', // Map status to tag
                 image: primaryImagePath, // Use primary_image path
