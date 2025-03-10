@@ -91,32 +91,86 @@
     </form>
 
 
-    <!-- Form for Primary Image -->
-    <div class="mb-4">
+    <!-- Primary Image Dropzone -->
+<div class="w-full bg-white shadow rounded-lg relative">
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone"
+        id="introduction-upload-primary-image">
+        <div class="dz-message text-gray-600">
+            <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Primary Image</span>
+            <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
+        </div>
+    </form>
 
-        <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone"
-            id="introduction-upload-primary-image">
-            <div class="dz-message text-gray-600">
-                <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Primary Image</span>
-                <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
-            </div>
-        </form>
+    <!-- Primary Image Loader -->
+    <div id="primary-image-loader" class="upload-box-loader hidden">
+        <div class="spinner"></div>
+        <p>Uploading...</p>
     </div>
+</div>
+<br>
+<!-- Secondary Image Dropzone -->
+<div class="w-full bg-white shadow rounded-lg relative">
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone"
+        id="introduction-upload-secondary-image">
+        <div class="dz-message text-gray-600">
+            <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Secondary Image</span>
+            <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
+        </div>
+    </form>
 
-    <div class="mb-4">
-
-        <!-- Form for Certification/Secondary Logo Image -->
-        <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone"
-            id="introduction-upload-secondary-image">
-            <div class="dz-message text-gray-600">
-                <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Certification/Secondary
-                    Logo</span>
-                <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
-            </div>
-        </form>
+    <!-- Secondary Image Loader -->
+    <div id="secondary-image-loader" class="upload-box-loader hidden">
+        <div class="spinner"></div>
+        <p>Uploading...</p>
     </div>
+</div>
+
 
 </div>
+
+
+
+<style>
+    /* Spinner Animation */
+/* Loader inside dropzone */
+.upload-box-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+/* Spinner Animation */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top: 5px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Hide loader initially */
+.hidden {
+    display: none;
+}
+
+
+</style>
 
 @push('scripts')
     <!-- Google Maps API (Include Places Library) -->
@@ -275,17 +329,13 @@
                 showFileOnLoadInDropzone(this, primaryImageData);
 
                 this.on("sending", function(file, xhr, formData) {
+                    document.getElementById("primary-image-loader").classList.remove("hidden"); // Show loader
+
                     formData.append('type', 'primary_image');
                     formData.append('page_id', pageId);
                     formData.append('folder', 'introduction');
                 });
-                // adding file
-                // this.on("addedfile", function(file) {
-                //     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                //         this.removeFile(file);
-                //         showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
-                //     }
-                // });
+              
                 this.on("addedfile", function(file) {
                     if (this.files.length > 1) {
                         this.removeFile(this.files[
@@ -299,7 +349,13 @@
                 });
 
                 this.on("success", function(file, response) {
+                    document.getElementById("primary-image-loader").classList.add("hidden"); // Hide loader
+
                     showSuccessNotification(response.message);
+                });
+                this.on("error", function (file, errorMessage) {
+                    document.getElementById("primary-image-loader").classList.add("hidden"); // Hide loader
+                    showErrorNotification(errorMessage);
                 });
 
                 this.on("removedfile", function(file) {
@@ -336,17 +392,13 @@
                 showFileOnLoadInDropzone(this, secondaryImageData);
 
                 this.on("sending", function(file, xhr, formData) {
+                    document.getElementById("secondary-image-loader").classList.remove("hidden"); // Show loader
+
                     formData.append('type', 'secondary_image');
                     formData.append('page_id', pageId);
                     formData.append('folder', 'introduction');
                 });
-                // adding file
-                // this.on("addedfile", function(file) {
-                //     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                //         this.removeFile(file);
-                //         showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
-                //     }
-                // });
+              
                 this.on("addedfile", function(file) {
                     if (this.files.length > 1) {
                         this.removeFile(this.files[
@@ -360,7 +412,14 @@
                 });
 
                 this.on("success", function(file, response) {
+                    document.getElementById("secondary-image-loader").classList.add("hidden"); // Hide loader
+
                     showSuccessNotification(response.message);
+                });
+
+                this.on("error", function (file, errorMessage) {
+                    document.getElementById("secondary-image-loader").classList.add("hidden"); // Hide loader
+                    showErrorNotification(errorMessage);
                 });
 
                 this.on("removedfile", function(file) {
