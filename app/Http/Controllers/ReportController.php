@@ -257,11 +257,15 @@ public function getJobReports($jobId)
                 'created_at' => $report->created_at,
                 'updated_at' => $report->updated_at,
                 'pdf_path' => asset('storage/' . $report->file_path),
+                // 'pdf_path' => asset('storage/' . ltrim($report->file_path, '/')),
+
                 'report_title' => $reportTitle,
             ];
         });
+        return response()->json($reports, JSON_UNESCAPED_SLASHES);
 
-    return response()->json($reports);
+
+    // return response()->json($reports);
 }
 
 
