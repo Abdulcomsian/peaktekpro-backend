@@ -264,7 +264,6 @@ public function getJobReports($jobId)
         });
         return response()->json($reports, JSON_UNESCAPED_SLASHES);
 
-
     // return response()->json($reports);
 }
 
