@@ -241,30 +241,31 @@ class ReportController extends Controller
 public function getJobReports($jobId)
 {
     $reports = Report::where('job_id', $jobId)
-        ->with(['reportPages.pageData']) // Load related report pages and page data
-        ->select('id', 'title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at')
-        ->get()
-        ->map(function ($report) {
-            // Extract report title from the first report page's page_data JSON
-            $reportTitle = optional($report->reportPages->first()->pageData)->json_data['report_title'] ?? 'N/A';
+    ->with(['reportPages.pageData']) // Load related report pages and page data
+    ->select('id', 'title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at')
+    ->get()
+    ->map(function ($report) {
+        // Check if reportPages exists and has at least one item
+        $firstPage = optional($report->reportPages->first());
 
-            return [
-                'title' => $reportTitle ?? $report->title,
-                'job_id' => $report->job_id,
-                'status' => $report->status,
-                'file_path' => $report->file_path,
-                'report_type' => $report->report_type,
-                'created_at' => $report->created_at,
-                'updated_at' => $report->updated_at,
-                'pdf_path' => asset('storage/' . $report->file_path),
-                // 'pdf_path' => asset('storage/' . ltrim($report->file_path, '/')),
+        // Extract report title safely
+        $reportTitle = optional($firstPage->pageData)->json_data['report_title'] ?? 'N/A';
 
-                'report_title' => $reportTitle,
-            ];
-        });
-        return response()->json($reports, JSON_UNESCAPED_SLASHES);
+        return [
+            'title' => $reportTitle ?? $report->title,
+            'job_id' => $report->job_id,
+            'status' => $report->status,
+            'file_path' => $report->file_path,
+            'report_type' => $report->report_type,
+            'created_at' => $report->created_at,
+            'updated_at' => $report->updated_at,
+            'pdf_path' => asset('storage/' . ltrim($report->file_path, '/')),
+            'report_title' => $reportTitle,
+        ];
+    });
 
-    // return response()->json($reports);
+    return response()->json($reports, 200, [], JSON_UNESCAPED_SLASHES);
+
 }
 
 
