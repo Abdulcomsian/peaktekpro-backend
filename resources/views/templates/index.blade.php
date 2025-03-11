@@ -8,9 +8,14 @@
             <!-- Header with Title and Create Button -->
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold text-gray-700">Templates</h1>
-                <button onclick="openModal()" class="btn-gradient text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Create Templates
-                </button>
+                <div class="flex gap-2 ml-auto"> 
+        <a href="{{ route('reports.index') }}" class="text-white hover:text-gray-300 btn-gradient p-2 rounded">
+            Back To Reports
+        </a>
+        <button onclick="openModal()" class="btn-gradient text-white px-4 py-2 rounded hover:bg-blue-600">
+            Create Templates
+        </button>
+    </div>
             </div>
 
             <!-- Responsive Table -->

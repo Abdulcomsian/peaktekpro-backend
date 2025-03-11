@@ -252,7 +252,8 @@ public function getJobReports($jobId)
         $reportTitle = optional($firstPage->pageData)->json_data['report_title'] ?? 'N/A';
 
         return [
-            'title' => $reportTitle ?? $report->title,
+            'id'=> $report->id,
+            'title' => $reportTitle,
             'job_id' => $report->job_id,
             'status' => $report->status,
             'file_path' => $report->file_path,
