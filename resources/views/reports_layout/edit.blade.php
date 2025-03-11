@@ -1,6 +1,13 @@
 @extends('layouts.report-layout')
 
 @section('title', 'Create Report')
+<div class="flex justify-end mt-6 mr-12">
+    <a href="{{ route('reports.index') }}" class="hover:text-gray-300 text-white btn-gradient p-2 rounded">
+        Reports
+    </a>
+</div>
+
+
 
 @push('styles')
     {{-- load quill css --}}
