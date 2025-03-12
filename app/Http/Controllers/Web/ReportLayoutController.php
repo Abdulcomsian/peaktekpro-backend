@@ -395,7 +395,10 @@ class ReportLayoutController extends Controller
                     'message' => 'Report Published Successfully',
                     'response' => $report,
                     'file_url' => $downloadUrl,
+                    // 'redirect_url' => route('reports.index') // Add redirect URL in JSON response
+
                 ], 200);
+
             } elseif ($report->status == 'draft') {
                 if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
                     Storage::disk('public')->delete($report->file_path);

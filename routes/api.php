@@ -355,10 +355,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/supplier/{id}', [SupplierController::class, 'updateSupplier']);
     Route::post('delete/supplier/{id}', [SupplierController::class, 'deleteSupplier']);
 
-    ///Email Template for ready to build
+    ///Email Template for ready to build//now multiple
     Route::post('store/EmailTemplate/{companyId}', [EmailTemplateController::class, 'storeEmailTemplate']);
     Route::get('get/EmailTemplate/{companyId}', [EmailTemplateController::class, 'getEmailTemplate']);
-
+    Route::post('updateCompany/{companyId}/email-template/{templateId}', [EmailTemplateController::class, 'updateEmailTemplate']);
+    Route::post('deleteCompany/{companyId}/email-template/{templateId}', [EmailTemplateController::class, 'deleteEmailTemplate']);
 
     //Sub Contractor Api's
     Route::post('store/sub-contractor/{jobId}', [SubContractorController::class, 'storeSubContractor']);

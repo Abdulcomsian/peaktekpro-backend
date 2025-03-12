@@ -11,6 +11,7 @@ class EmailTemplate extends Model
 
     protected $fillable = [
         'company_id',
-        'content'
+        'content',
+        'title',
     ];
 }

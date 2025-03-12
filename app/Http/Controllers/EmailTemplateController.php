@@ -11,6 +11,7 @@ class EmailTemplateController extends Controller
     public function storeEmailTemplate($companyId, Request $request) //it is company id
     {
         $request->validate([
+            'title' => 'string',
             'content'=> 'string'
         ]);
 
@@ -27,10 +28,17 @@ class EmailTemplateController extends Controller
                 ]);
             }
 
-            $emailContent = EmailTemplate::updateOrCreate([
+            // $emailContent = EmailTemplate::updateOrCreate([
+            //     'company_id' => $companyId,
+            // ],[
+            //     'company_id' => $companyId,
+            //     'content' => $request->content,
+            // ]);
+
+            $emailContent = EmailTemplate::create([
+             
                 'company_id' => $companyId,
-            ],[
-                'company_id' => $companyId,
+                'title' => $request->title,
                 'content' => $request->content,
             ]);
 
@@ -62,7 +70,7 @@ class EmailTemplateController extends Controller
                 ]);
             }
     
-            $emailTemplate= EmailTemplate::where('company_id',$companyId)->first();
+            $emailTemplate= EmailTemplate::where('company_id',$companyId)->get();
             if($emailTemplate)
             {
                 return response()->json([
@@ -80,4 +88,93 @@ class EmailTemplateController extends Controller
         }
 
     }
+
+    public function updateEmailTemplate($companyId, $templateId, Request $request)
+    {
+        $request->validate([
+            'title' => 'string',
+            'content' => 'string'
+        ]);
+
+        try {
+            $company = Company::find($companyId);
+
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Company Not Found'
+                ]);
+            }
+
+            $emailTemplate = EmailTemplate::where('company_id', $companyId)
+                ->where('id', $templateId)
+                ->first();
+
+            if (!$emailTemplate) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Email Template Not Found'
+                ]);
+            }
+
+            // Update the email template
+            $emailTemplate->update([
+                'title' => $request->title,
+                'content' => $request->content
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Template Updated Successfully',
+                'data' => $emailTemplate
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function deleteEmailTemplate($companyId, $templateId)
+    {
+        try {
+            $company = Company::find($companyId);
+
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Company Not Found'
+                ]);
+            }
+
+            $emailTemplate = EmailTemplate::where('company_id', $companyId)
+                ->where('id', $templateId)
+                ->first();
+
+            if (!$emailTemplate) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Email Template Not Found'
+                ]);
+            }
+
+            // Delete the email template
+            $emailTemplate->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Template Deleted Successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+
 }
