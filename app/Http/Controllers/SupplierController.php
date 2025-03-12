@@ -130,10 +130,11 @@ class SupplierController extends Controller
             }
 
             $location = $summary->market;  //this is job location
+            // dd($location);
             $company_id = $job->created_by; //this is job company id
             // dd($location);Nashville
             $suppliers = User::where('role_id', 4)
-            ->where('location',$location)
+            // ->where('location',$location)
             ->whereHas('userRoles', function($query) use ($company_id){
                 $query->where('company_id', $company_id); //if you want to get all supplier whos company_id is same as my job company id, check user_roles table because each role have company id here in this table also
             })

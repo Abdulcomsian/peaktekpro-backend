@@ -897,7 +897,9 @@
                     showSuccessNotification(data.message);
                     setTimeout(() => {
                         window.location.reload();
-                    }, 2000);
+                        // window.location.href = response.data.redirect_url;
+
+                    }, 100);
                 } else {
                     showErrorNotification(data.message || 'An error occurred.');
                 }
