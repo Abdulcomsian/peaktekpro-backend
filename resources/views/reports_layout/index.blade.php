@@ -261,7 +261,6 @@
             const truncatedDescription = fullDescription.length > maxLength ?
                 fullDescription.substring(0, maxLength) + '...' : fullDescription;
 
-
             return {
                 id: report.id, // Map ID
                 reportName: title, // Map title to reportName

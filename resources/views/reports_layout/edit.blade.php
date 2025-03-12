@@ -864,51 +864,56 @@
         });
 
         // Function to update report status
+        
         function updateReportStatus(reportId, newStatus) {
-            const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
+    const button = document.getElementById('updateToPublishedBtn');
+    button.disabled = true; // Prevent multiple clicks
 
-            fetch(updateStatusUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({
-                    status: newStatus
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status) {
-                    // Trigger PDF download if published
-                    if (newStatus === 'published' && data.file_url) {
-                        const link = document.createElement('a');
-                        link.href = data.file_url;
-                        link.setAttribute('download', 'report.pdf');
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    }
+    const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
 
-                    // Update UI and reload
-                    const button = document.getElementById('updateToPublishedBtn');
-                    button.setAttribute('data-status', newStatus);
-                    button.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
-                    showSuccessNotification(data.message);
-                    setTimeout(() => {
-                        window.location.reload();
-                        // window.location.href = response.data.redirect_url;
+    fetch(updateStatusUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({
+            status: newStatus
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        button.disabled = false; // Re-enable after response
 
-                    }, 100);
-                } else {
-                    showErrorNotification(data.message || 'An error occurred.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorNotification('An error occurred. Please try again.');
-            });
+        if (data.status) {
+            showSuccessNotification(data.message); 
+
+            if (newStatus === 'published' && data.file_url) {
+                const link = document.createElement('a');
+                link.href = data.file_url;
+                link.setAttribute('download', 'report.pdf');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                setTimeout(() => {
+                    window.location.href = "{{ route('reports.index') }}";
+                }, 2000);
+            } else {
+                button.setAttribute('data-status', newStatus);
+                button.textContent = newStatus === 'draft' ? 'Publish Report' : 'Save as Draft';
+            }
+        } else {
+            showErrorNotification(data.message || 'An error occurred.');
         }
+    })
+    .catch(error => {
+        button.disabled = false;
+        console.error('Error:', error);
+        showErrorNotification('An error occurred. Please try again.');
+    });
+}
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const url = "{{ route('reports.copy-template') }}";

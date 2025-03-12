@@ -214,7 +214,9 @@ class SupplierController extends Controller
 
     public function getAllSuppliers()
     {
-        $users = User::where('role_id',4)->get();
+        $user = Auth::user();
+        $companyId = $user->company_id;
+        $users = User::where('role_id',4)->where('company_id',$companyId)->get();
         if($users)
         {
             return response()->json([
