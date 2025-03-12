@@ -13,10 +13,10 @@
             <label for="report-date" class="block text-gray-700 text-sm font-medium mb-2">Date</label>
             <input type="date" id="report-date" name="report_date"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                value="{{  $pageData->json_data['report_date'] ?? $created_At }}" required />
+                value="{{ $pageData->json_data['report_date'] ?? $created_At }}" required />
         </div>
+        
         <div class="flex flex-wrap lg:gap-4 md:gap-4">
-
             <!-- First Name -->
             <div class="mb-4 grow">
                 <label for="first-name" class="block text-gray-700 text-sm font-medium mb-2">First Name</label>
@@ -31,11 +31,7 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
                     value="{{ $lastName ?? '' }}" required />
             </div>
-
         </div>
-
-        <!-- Company Name -->
-    
 
         <!-- Address -->
         <div class="mb-4">
@@ -46,7 +42,6 @@
         </div>
 
         <div class="flex flex-wrap lg:gap-4 md:gap-4">
-
             <!-- City -->
             <div class="mb-4 grow">
                 <label for="company-city" class="block text-gray-700 text-sm font-medium mb-2">City</label>
@@ -61,7 +56,7 @@
                     class="block text-gray-700 text-sm font-medium mb-2">State/Province</label>
                 <input type="text" id="company-province" name="company_province"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{  $address->state ?? ''}}" required />
+                    value="{{ $address->state ?? ''}}" required />
             </div>
 
             <!-- Zip Code / Postal Code -->
@@ -74,19 +69,16 @@
             </div>
         </div>
 
-
         <!-- Introductory Text -->
         <div class="mb-4">
             <label for="intro-text" class="block text-gray-700 text-sm font-medium mb-2">Introductory Text</label>
             <div id="intro-text-quill" class="bg-white"></div>
             <textarea class="hidden" id="intro-text" name="intro_text" required>{{ $pageData->json_data['intro_text'] ?? '' }}</textarea>
         </div>
-
     </form>
 
-    <!-- Form for Primary Image -->
+    <!-- Primary Image Upload -->
     <div class="mb-4">
-
         <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone"
             id="introduction-upload-primary-image">
             <div class="dz-message text-gray-600">
@@ -96,184 +88,122 @@
         </form>
     </div>
 
+    <!-- Secondary Image Upload -->
     <div class="mb-4">
-
-        <!-- Form for Certification/Secondary Logo Image -->
         <form action="/upload" method="POST" enctype="multipart/form-data" class="dropzone"
             id="introduction-upload-secondary-image">
             <div class="dz-message text-gray-600">
-                <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Certification/Secondary
-                    Logo</span>
+                <span class="block text-lg font-semibold">Drag & Drop or Click to Upload Certification/Secondary Logo</span>
                 <small class="text-gray-500">Only jpeg, jpg and png files are allowed</small>
             </div>
         </form>
     </div>
-
 </div>
 
 @push('scripts')
-    <script type="text/javascript">
-        // quill
-        const introTextQuillOptions = [
-            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-            ['blockquote', 'code-block'],
-            ['link'],
-            [{
-                'header': 1
-            }, {
-                'header': 2
-            }], // custom button values
-            [{
-                'list': 'ordered'
-            }, {
-                'list': 'bullet'
-            }, {
-                'list': 'check'
-            }],
-            [{
-                'script': 'sub'
-            }, {
-                'script': 'super'
-            }], // superscript/subscript
-            [{
-                'header': [1, 2, 3, 4, 5, 6, false]
-            }],
+<script type="text/javascript">
+    // Quill Editor Initialization
+    const introTextQuillOptions = [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        ['link'],
+        [{ 'header': 1 }, { 'header': 2 }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+        ['clean']
+    ];
 
-            [{
-                'color': []
-            }, {
-                'background': []
-            }], // dropdown with defaults from theme
-            [{
-                'font': []
-            }],
-            [{
-                'align': []
-            }],
-            ['clean'] // remove formatting button
-        ];
-        var introTextQuill = new Quill('#intro-text-quill', {
-            theme: 'snow',
-            modules: {
-                toolbar: introTextQuillOptions
-            }
-        });
-        // Set the height dynamically via JavaScript
-        introTextQuill.root.style.height = '200px';
+    const introTextQuill = new Quill('#intro-text-quill', {
+        theme: 'snow',
+        modules: { toolbar: introTextQuillOptions }
+    });
+    
+    introTextQuill.root.style.height = '200px';
+    introTextQuill.clipboard.dangerouslyPasteHTML(@json($pageData->json_data['intro_text'] ?? ''));
+    
+    introTextQuill.on('text-change', function() {
+        $('#intro-text').val(introTextQuill.root.innerHTML);
+        saveTemplatePageTextareaData('#intro-text');
+    });
 
-        // old text value
-        let oldIntrolTextValue = "{!! $pageData->json_data['intro_text'] ?? '' !!}";
-
-        // Load the saved content into the editor
-        introTextQuill.clipboard.dangerouslyPasteHTML(oldIntrolTextValue);
-        introTextQuill.on('text-change', function() {
-            $('#intro-text').val(introTextQuill.root.innerHTML);
-
-            //save textarea data
-            saveTemplatePageTextareaData('#intro-text');
-        });
-
-        // dropzone
-
-        const uploadPrimaryImageDropzone = new Dropzone("#introduction-upload-primary-image", {
+    // Dropzone Configuration
+    function initDropzone(selector, type, fileData) {
+        return new Dropzone(selector, {
             url: saveFileFromDropZoneRoute,
             maxFiles: 1,
             acceptedFiles: ".jpeg,.jpg,.png",
             dictRemoveFile: "Remove",
             dictDefaultMessage: "Drag & Drop or Click to Upload",
             addRemoveLinks: true,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             init: function() {
-
-                let primaryImageData = {
-                    name: "{{ $pageData->json_data['primary_image']['file_name'] ?? '' }}",
-                    size: "{{ $pageData->json_data['primary_image']['size'] ?? '' }}",
-                    url: "{{ $pageData->file_url ?? '' }}",
-                    path : "{{ $pageData->json_data['primary_image']['path'] ?? '' }}",
-                    type : 'primary_image'
+                if (fileData.name && fileData.url) {
+                    const mockFile = { 
+                        name: fileData.name, 
+                        size: fileData.size, 
+                        dataURL: fileData.url,
+                        accepted: true
+                    };
+                    this.emit("addedfile", mockFile);
+                    this.emit("thumbnail", mockFile, fileData.url);
+                    this.emit("complete", mockFile);
+                    this.files.push(mockFile);
                 }
 
-                // Show image on load
-                showFileOnLoadInDropzone(this, primaryImageData);
-
-                this.on("sending", function(file, xhr, formData) {
-                    formData.append('type', 'primary_image');
+                this.on("sending", (file, xhr, formData) => {
+                    formData.append('type', type);
                     formData.append('page_id', pageId);
                     formData.append('folder', 'introduction');
                 });
-                // adding file
-                this.on("addedfile", function(file) {
+
+                this.on("addedfile", file => {
                     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
                         this.removeFile(file);
                         showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
                     }
                 });
 
-                this.on("success", function(file, response) {
+                this.on("success", (file, response) => {
                     showSuccessNotification(response.message);
+                    if(response.path) file.previewElement.dataset.path = response.path;
                 });
 
-                this.on("removedfile", function(file) {
-                    // delete file from dropzone
+                this.on("removedfile", file => {
                     deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
                         page_id: pageId,
-                        file_key: 'primary_image',
+                        file_key: type,
+                        file_path: file.previewElement?.dataset?.path
                     });
+                });
+
+                this.on("error", (file, message) => {
+                    showErrorNotification(message);
+                    this.removeFile(file);
                 });
             }
         });
+    }
 
-        const uploadSecondaryImageDropzone = new Dropzone("#introduction-upload-secondary-image", {
-            url: saveFileFromDropZoneRoute,
-            maxFiles: 1,
-            acceptedFiles: ".jpeg,.jpg,.png",
-            dictRemoveFile: "Remove",
-            dictDefaultMessage: "Drag & Drop or Click to Upload",
-            addRemoveLinks: true,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            init: function() {
+    // Initialize Dropzones
+    const primaryImageData = {
+        name: @json($pageData->json_data['primary_image']['file_name'] ?? ''),
+        size: @json($pageData->json_data['primary_image']['size'] ?? ''),
+        url: @json(isset($pageData->json_data['primary_image']['path']) ? asset('storage/'.$pageData->json_data['primary_image']['path']) : ''),
+        path: @json($pageData->json_data['primary_image']['path'] ?? '')
+    };
 
-                let secondaryImageData = {
-                    name: "{{ $pageData->json_data['secondary_image']['file_name'] ?? '' }}",
-                    size: "{{ $pageData->json_data['secondary_image']['size'] ?? '' }}",
-                    url: "{{ $pageData->file_url ?? '' }}",
-                    path : "{{ $pageData->json_data['secondary_image']['path'] ?? '' }}",
-                    type : 'secondary_image'
-                }
+    const secondaryImageData = {
+        name: @json($pageData->json_data['secondary_image']['file_name'] ?? ''),
+        size: @json($pageData->json_data['secondary_image']['size'] ?? ''),
+        url: @json(isset($pageData->json_data['secondary_image']['path']) ? asset('storage/'.$pageData->json_data['secondary_image']['path']) : ''),
+        path: @json($pageData->json_data['secondary_image']['path'] ?? '')
+    };
 
-                // Show image on load
-                showFileOnLoadInDropzone(this, secondaryImageData);
-
-                this.on("sending", function(file, xhr, formData) {
-                    formData.append('type', 'secondary_image');
-                    formData.append('page_id', pageId);
-                    formData.append('folder', 'introduction');
-                });
-                // adding file
-                this.on("addedfile", function(file) {
-                    if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
-                        this.removeFile(file);
-                        showErrorNotification('Only JPEG, JPG, and PNG images are allowed.');
-                    }
-                });
-
-                this.on("success", function(file, response) {
-                    showSuccessNotification(response.message);
-                });
-
-                this.on("removedfile", function(file) {
-                    // delete file from dropzone
-                    deleteFileFromDropzone(file, deleteFileFromDropZoneRoute, {
-                        page_id: pageId,
-                        file_key: 'secondary_image',
-                    });
-
-                });
-            }
-        });
-    </script>
+    const uploadPrimaryImageDropzone = initDropzone("#introduction-upload-primary-image", 'primary_image', primaryImageData);
+    const uploadSecondaryImageDropzone = initDropzone("#introduction-upload-secondary-image", 'secondary_image', secondaryImageData);
+</script>
 @endpush

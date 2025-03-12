@@ -4,70 +4,50 @@
             <div id="warranty-text-quill" class="bg-white"></div>
             <textarea class="hidden" id="warranty-text" name="warranty_text" required>{{ $pageData->json_data['warranty_text'] ?? '' }}</textarea>
         </div>
-
     </form>
 </div>
+
 @push('scripts')
     <script type="text/javascript">
-        // quill
-        const warrantyTextQuillOptions = [
-            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-            ['blockquote', 'code-block'],
-            ['link'],
-            [{
-                'header': 1
-            }, {
-                'header': 2
-            }], // custom button values
-            [{
-                'list': 'ordered'
-            }, {
-                'list': 'bullet'
-            }, {
-                'list': 'check'
-            }],
-            [{
-                'script': 'sub'
-            }, {
-                'script': 'super'
-            }], // superscript/subscript
-            [{
-                'header': [1, 2, 3, 4, 5, 6, false]
-            }],
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Quill editor
+            const warrantyQuill = new Quill('#warranty-text-quill', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        ['link'],
+                        [{ 'header': 1 }, { 'header': 2 }],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+                        [{ 'script': 'sub' }, { 'script': 'super' }],
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'font': [] }],
+                        [{ 'align': [] }],
+                        ['clean']
+                    ]
+                }
+            });
 
-            [{
-                'color': []
-            }, {
-                'background': []
-            }], // dropdown with defaults from theme
-            [{
-                'font': []
-            }],
-            [{
-                'align': []
-            }],
-            ['clean'] // remove formatting button
-        ];
-        var warrantyTextQuill = new Quill('#warranty-text-quill', {
-            theme: 'snow',
-            modules: {
-                toolbar: warrantyTextQuillOptions
-            }
-        });
-        // Set the height dynamically via JavaScript
-        warrantyTextQuill.root.style.height = '200px';
+            // Set initial height
+            warrantyQuill.root.style.height = '200px';
 
-        // old text value
-        let oldWarrantyTextValue = "{!! $pageData->json_data['warranty_text'] ?? '' !!}";
+            // Load saved content safely
+            const initialContent = document.getElementById('warranty-text').value;
+            warrantyQuill.root.innerHTML = initialContent;
 
-        // Load the saved content into the editor
-        warrantyTextQuill.clipboard.dangerouslyPasteHTML(oldWarrantyTextValue);
-        warrantyTextQuill.on('text-change', function() {
-            $('#warranty-text').val(warrantyTextQuill.root.innerHTML);
+            // Update textarea on content change
+            warrantyQuill.on('text-change', function() {
+                const htmlContent = warrantyQuill.root.innerHTML;
+                document.getElementById('warranty-text').value = htmlContent;
+                saveTemplatePageTextareaData('#warranty-text');
+            });
 
-            //save textarea data
-            saveTemplatePageTextareaData('#warranty-text');
-
+            // Add resize observer for layout stability
+            new ResizeObserver(() => {
+                warrantyQuill.update();
+            }).observe(warrantyQuill.root);
         });
     </script>
 @endpush

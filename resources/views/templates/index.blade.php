@@ -111,41 +111,45 @@
     <script>
         // Pass the $templates data to the frontend and adjust its structure
         const templatesData = @json($templates->items()).map(template => {
-            // Fetch the first template page's data (assuming a similar structure to reports)
-            // const templatePage = templates.template_pages[0]; // Adjust this based on your actual relationship
-            // const templatePageData = templatePage ? templatePage.page_data : null;
+    const templatePage = template.template_pages?.[0]; // Optional chaining to safely access the first element
+    const templatePageData = templatePage ? templatePage.page_data : null; // Safely access page_data
 
-            const templatePage = template.template_pages?.[
-            0]; // Optional chaining to safely access the first element
-            const templatePageData = templatePage ? templatePage.page_data : null; // Safely access page_data
+    // Extract required data
+    const template_title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
+    const title = template.title || template_title;
+    console.log(title);
 
+    const siteAddress = templatePageData ? templatePageData.json_data.company_address : 'No address available';
+    let fullDescription = templatePageData ? templatePageData.json_data.intro_text : 'No description available';
 
+    // Ensure fullDescription is a string (handle cases where it's null or undefined)
+    fullDescription = fullDescription ? String(fullDescription).trim() : '';
 
-            // Extract required data
-            const template_title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
-            const title = template.title || template_title;
-            console.log(title);
+    // Function to truncate description to 120 words safely
+    const truncateWords = (text, limit) => {
+        if (!text) return 'No description available'; // Handle empty descriptions
+        const words = text.split(/\s+/); // Split by spaces
+        return words.length > limit ? words.slice(0, limit).join(' ') + '...' : text;
+    };
 
-            const siteAddress = templatePageData ? templatePageData.json_data.company_address :
-                'No address available';
-            const description = templatePageData ? templatePageData.json_data.intro_text :
-                'No description available';
-            const price = template.price ? `$${template.price.toFixed(2)}` : '$0.00';
-            // const tag = template.status === 'published' ? 'PUBLISHED' : 'DRAFT';
-            const image = templatePageData && templatePageData.json_data.primary_image ?
-                templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path :
-                'https://picsum.photos/536/354';
-            const companyAddress = @json($address);
-            return {
-                templateId: template.id, // Map title to reportName
-                reportName: title, // Map title to reportName
-                siteAddress: companyAddress, // Use company_address
-                description: description, // Use intro_text
-                price: price, // Format price if available
-                // tag: tag, // Map status to tag
-                image: image, // Use primary_image path
-            };
-        });
+    const truncatedDescription = truncateWords(fullDescription, 50);
+
+    const price = template.price ? `$${template.price.toFixed(2)}` : '$0.00';
+    const image = templatePageData && templatePageData.json_data.primary_image 
+        ? templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path 
+        : 'https://picsum.photos/536/354';
+
+    const companyAddress = @json($address);
+
+    return {
+        templateId: template.id,
+        reportName: title,
+        siteAddress: companyAddress,
+        description: truncatedDescription, 
+        price: price,
+        image: image,
+    };
+});
 
         function openModal() {
 
