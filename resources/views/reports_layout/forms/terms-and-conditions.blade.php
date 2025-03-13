@@ -10,66 +10,43 @@
     </form>
 </div>
 @push('scripts')
-    <script type="text/javascript">
-        // quill
-        const termsAndConditionsQuillOptions = [
-            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-            ['blockquote', 'code-block'],
-            ['link'],
-            [{
-                'header': 1
-            }, {
-                'header': 2
-            }], // custom button values
-            [{
-                'list': 'ordered'
-            }, {
-                'list': 'bullet'
-            }, {
-                'list': 'check'
-            }],
-            [{
-                'script': 'sub'
-            }, {
-                'script': 'super'
-            }], // superscript/subscript
-            [{
-                'header': [1, 2, 3, 4, 5, 6, false]
-            }],
+<script type="text/javascript">
+    const termsAndConditionsQuillOptions = [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        ['link'],
+        [{ 'header': 1 }, { 'header': 2 }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+        ['clean']
+    ];
 
-            [{
-                'color': []
-            }, {
-                'background': []
-            }], // dropdown with defaults from theme
-            [{
-                'font': []
-            }],
-            [{
-                'align': []
-            }],
-            ['clean'] // remove formatting button
-        ];
-        var termsAndConditionsQuill = new Quill('#terms-and-conditions-quill', {
-            theme: 'snow',
-            modules: {
-                toolbar: termsAndConditionsQuillOptions
-            }
-        });
-        // Set the height dynamically via JavaScript
-        termsAndConditionsQuill.root.style.height = '200px';
+    var termsAndConditionsQuill = new Quill('#terms-and-conditions-quill', {
+        theme: 'snow',
+        modules: {
+            toolbar: termsAndConditionsQuillOptions
+        }
+    });
 
-        // old value
-        let oldTermsAndConditionsTextValue = "{!! $pageData->json_data['terms_and_conditions_text'] ?? '' !!}";
+    // Set the height dynamically via JavaScript
+    termsAndConditionsQuill.root.style.height = '200px';
 
-        // Load the saved content into the editor
+    // Load old value safely
+    let oldTermsAndConditionsTextValue = @json($pageData->json_data['terms_and_conditions_text'] ?? '');
+    console.log("Loaded content:", oldTermsAndConditionsTextValue);
+
+    if (oldTermsAndConditionsTextValue) {
         termsAndConditionsQuill.clipboard.dangerouslyPasteHTML(oldTermsAndConditionsTextValue);
-        termsAndConditionsQuill.on('text-change', function() {
-            $('#terms-and-conditions-text').val(termsAndConditionsQuill.root.innerHTML);
+    }
 
-            //save textarea data
-            saveReportPageTextareaData('#terms-and-conditions-text');
+    termsAndConditionsQuill.on('text-change', function() {
+        $('#terms-and-conditions-text').val(termsAndConditionsQuill.root.innerHTML);
+        saveReportPageTextareaData('#terms-and-conditions-text');
+    });
+</script>
 
-        });
-    </script>
 @endpush

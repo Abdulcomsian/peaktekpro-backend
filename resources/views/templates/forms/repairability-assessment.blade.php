@@ -9,18 +9,52 @@
     </form>
 
     <!-- Descriptive Text Form -->
-    <form action="/upload" method="POST">
+     <!-- Descriptive Text Form -->
+     <form action="/upload" method="POST">
         <div class="my-6">
             <label for="roof-repair-limitations-text" class="block text-gray-700 text-sm font-medium mb-2">
                 Descriptive Text for Roof Repair Limitations
             </label>
-            <div id="roof-repair-limitations-quill" class="bg-white"></div>
+            <div id="roof-repair-limitations-quill" class="bg-white quill-editor-container"></div>
             <textarea class="hidden" id="roof-repair-limitations-text" name="roof_repair_limitations_text" required>
                 {{ $pageData->json_data['roof_repair_limitations_text'] ?? '' }}
             </textarea>
         </div>
     </form>
 </div>
+
+<style>
+    /* Custom Quill Editor Styles */
+    .quill-editor-container {
+        height: 200px;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .ql-container.ql-snow {
+        border: none;
+        height: calc(100% - 42px); /* Account for toolbar height */
+    }
+
+    .ql-editor {
+        min-height: 150px !important;
+        padding: 12px 16px !important;
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-y: auto;
+    }
+
+    .ql-toolbar.ql-snow {
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 8px;
+    }
+
+    .ql-editor p {
+        margin: 0 0 8px 0;
+    }
+</style>
 
 @push('scripts')
 <script type="text/javascript">

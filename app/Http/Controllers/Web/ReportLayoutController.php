@@ -864,10 +864,10 @@ if ($newStatus === 'draft') {
         try {
             $pageId = $request->input('page_id');
             $jsonData = $request->except('page_id');
-
             $reportTitle = 
             // Find if the report exists by page_id
             $report = ReportPageData::where('report_page_id', $pageId)->first();
+            // dd($report);
 
             if ($report) {
 
@@ -891,7 +891,13 @@ if ($newStatus === 'draft') {
                 return response()->json(['status' => true, 'message' => 'Data saved successfully']);
             }
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'An error occurred while updating the page data'], 500);
+            
+            return response()->json(['status' => false,
+             'message' => 'An error occurred while updating the page data',
+             'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+            ], 500);
         }
     }
 

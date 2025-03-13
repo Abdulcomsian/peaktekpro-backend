@@ -44,6 +44,7 @@
 
     <script>
         var pageId = null
+        
         var deleteFileFromDropZoneRoute = "{{ route('reports.page.delete-file') }}"
         var deleteFileFromRepairablityDropZoneRoute = "{{ route('reports.page.repairability.delete-file') }}"
         var saveFileFromDropZoneRoute = "{{ route('reports.page.save-file') }}"
@@ -792,6 +793,9 @@
 
             let fieldName = $(element).attr('name');
             let fieldValue = $(element).val();
+
+            console.log('Sending page_id:', pageId); // Debugging line
+
 
             $.ajax({
                 url: saveReportPageData,

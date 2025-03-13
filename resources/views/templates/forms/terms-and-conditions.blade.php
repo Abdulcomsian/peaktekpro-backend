@@ -1,54 +1,52 @@
 <div class="w-full mx-auto p-6 bg-white shadow rounded-lg">
     <form action="/submit-report" method="POST">
+
         <!-- Description -->
         <div class="mb-4">
-            <div id="terms-and-conditions-quill" class="bg-white"></div>
+            <div id="terms-and-conditions-quill" class="bg-white" style="position: static"></div>
             <textarea class="hidden" id="terms-and-conditions-text" name="terms_and_conditions_text" required>{{ $pageData->json_data['terms_and_conditions_text'] ?? '' }}</textarea>
         </div>
+
     </form>
 </div>
-
 @push('scripts')
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Quill editor
-            const termsConditionsQuill = new Quill('#terms-and-conditions-quill', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        ['bold', 'italic', 'underline', 'strike'],
-                        ['blockquote', 'code-block'],
-                        ['link'],
-                        [{ 'header': 1 }, { 'header': 2 }],
-                        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
-                        [{ 'script': 'sub' }, { 'script': 'super' }],
-                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                        [{ 'color': [] }, { 'background': [] }],
-                        [{ 'font': [] }],
-                        [{ 'align': [] }],
-                        ['clean']
-                    ]
-                }
-            });
+<script type="text/javascript">
+    const termsAndConditionsQuillOptions = [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        ['link'],
+        [{ 'header': 1 }, { 'header': 2 }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+        ['clean']
+    ];
 
-            // Set initial height
-            termsConditionsQuill.root.style.height = '200px';
+    var termsAndConditionsQuill = new Quill('#terms-and-conditions-quill', {
+        theme: 'snow',
+        modules: {
+            toolbar: termsAndConditionsQuillOptions
+        }
+    });
 
-            // Load saved content safely
-            const initialContent = document.getElementById('terms-and-conditions-text').value;
-            termsConditionsQuill.root.innerHTML = initialContent;
+    // Set the height dynamically via JavaScript
+    termsAndConditionsQuill.root.style.height = '200px';
 
-            // Update textarea on content change
-            termsConditionsQuill.on('text-change', function() {
-                const htmlContent = termsConditionsQuill.root.innerHTML;
-                document.getElementById('terms-and-conditions-text').value = htmlContent;
-                saveTemplatePageTextareaData('#terms-and-conditions-text');
-            });
+    // Load old value safely
+    let oldTermsAndConditionsTextValue = @json($pageData->json_data['terms_and_conditions_text'] ?? '');
+    console.log("Loaded content:", oldTermsAndConditionsTextValue);
 
-            // Add resize observer
-            new ResizeObserver(() => {
-                termsConditionsQuill.update();
-            }).observe(termsConditionsQuill.root);
-        });
-    </script>
+    if (oldTermsAndConditionsTextValue) {
+        termsAndConditionsQuill.clipboard.dangerouslyPasteHTML(oldTermsAndConditionsTextValue);
+    }
+
+    termsAndConditionsQuill.on('text-change', function() {
+        $('#terms-and-conditions-text').val(termsAndConditionsQuill.root.innerHTML);
+        saveTemplatePageTextareaData('#terms-and-conditions-text');
+    });
+</script>
+
 @endpush

@@ -15,7 +15,7 @@
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
                 value="{{ $pageData->json_data['report_date'] ?? $created_At }}" required />
         </div>
-        
+
         <div class="flex flex-wrap lg:gap-4 md:gap-4">
             <!-- First Name -->
             <div class="mb-4 grow">
@@ -72,7 +72,7 @@
         <!-- Introductory Text -->
         <div class="mb-4">
             <label for="intro-text" class="block text-gray-700 text-sm font-medium mb-2">Introductory Text</label>
-            <div id="intro-text-quill" class="bg-white"></div>
+            <div id="intro-text-quill" class="bg-white no-scroll"></div>
             <textarea class="hidden" id="intro-text" name="intro_text" required>{{ $pageData->json_data['intro_text'] ?? '' }}</textarea>
         </div>
     </form>
@@ -99,7 +99,35 @@
         </form>
     </div>
 </div>
+<style>
+    /* Custom Quill Editor Styles */
+    #intro-text-quill {
+        height: 300px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+    }
 
+    .ql-container.ql-snow {
+        border: none;
+        height: calc(100% - 42px);
+        /* Account for toolbar height */
+    }
+
+    .ql-editor {
+        min-height: 150px !important;
+        padding: 12px 16px !important;
+        font-size: 14px;
+        line-height: 1.5;
+        overflow: hidden;
+    }
+
+    .ql-toolbar.ql-snow {
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 8px;
+    }
+</style>
 @push('scripts')
 <script type="text/javascript">
     // Quill Editor Initialization
@@ -107,29 +135,64 @@
         ['bold', 'italic', 'underline', 'strike'],
         ['blockquote', 'code-block'],
         ['link'],
-        [{ 'header': 1 }, { 'header': 2 }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
-        [{ 'script': 'sub' }, { 'script': 'super' }],
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'font': [] }],
-        [{ 'align': [] }],
+        [{
+            'header': 1
+        }, {
+            'header': 2
+        }],
+        [{
+            'list': 'ordered'
+        }, {
+            'list': 'bullet'
+        }, {
+            'list': 'check'
+        }],
+        [{
+            'script': 'sub'
+        }, {
+            'script': 'super'
+        }],
+        [{
+            'header': [1, 2, 3, 4, 5, 6, false]
+        }],
+        [{
+            'color': []
+        }, {
+            'background': []
+        }],
+        [{
+            'font': []
+        }],
+        [{
+            'align': []
+        }],
         ['clean']
     ];
 
     const introTextQuill = new Quill('#intro-text-quill', {
         theme: 'snow',
-        modules: { toolbar: introTextQuillOptions }
-    });
-    
-    introTextQuill.root.style.height = '200px';
-    introTextQuill.clipboard.dangerouslyPasteHTML(@json($pageData->json_data['intro_text'] ?? ''));
-    
-    introTextQuill.on('text-change', function() {
-        $('#intro-text').val(introTextQuill.root.innerHTML);
-        saveTemplatePageTextareaData('#intro-text');
+        modules: {
+            toolbar: introTextQuillOptions,
+            clipboard: {
+                matchVisual: false // Prevent extra empty lines
+            }
+        }
     });
 
+    // Load content safely and handle empty space
+    const initialContent = @json($pageData->json_data['intro_text'] ?? '');
+    if (initialContent.trim() === '') {
+        introTextQuill.root.innerHTML = '<p><br></p>'; // Minimal empty state
+    } else {
+        introTextQuill.clipboard.dangerouslyPasteHTML(initialContent);
+    }
+
+    // Handle content changes
+    introTextQuill.on('text-change', function() {
+        const content = introTextQuill.root.innerHTML;
+        document.getElementById('intro-text').value = content === '<p><br></p>' ? '' : content;
+        saveTemplatePageTextareaData('#intro-text');
+    });
     // Dropzone Configuration
     function initDropzone(selector, type, fileData) {
         return new Dropzone(selector, {
@@ -139,12 +202,14 @@
             dictRemoveFile: "Remove",
             dictDefaultMessage: "Drag & Drop or Click to Upload",
             addRemoveLinks: true,
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             init: function() {
                 if (fileData.name && fileData.url) {
-                    const mockFile = { 
-                        name: fileData.name, 
-                        size: fileData.size, 
+                    const mockFile = {
+                        name: fileData.name,
+                        size: fileData.size,
                         dataURL: fileData.url,
                         accepted: true
                     };
@@ -169,7 +234,7 @@
 
                 this.on("success", (file, response) => {
                     showSuccessNotification(response.message);
-                    if(response.path) file.previewElement.dataset.path = response.path;
+                    if (response.path) file.previewElement.dataset.path = response.path;
                 });
 
                 this.on("removedfile", file => {
@@ -190,17 +255,17 @@
 
     // Initialize Dropzones
     const primaryImageData = {
-        name: @json($pageData->json_data['primary_image']['file_name'] ?? ''),
-        size: @json($pageData->json_data['primary_image']['size'] ?? ''),
-        url: @json(isset($pageData->json_data['primary_image']['path']) ? asset('storage/'.$pageData->json_data['primary_image']['path']) : ''),
-        path: @json($pageData->json_data['primary_image']['path'] ?? '')
+        name: @json($pageData-> json_data['primary_image']['file_name'] ?? ''),
+        size: @json($pageData -> json_data['primary_image']['size'] ?? ''),
+        url: @json(isset($pageData -> json_data['primary_image']['path']) ? asset('storage/'.$pageData -> json_data['primary_image']['path']) : ''),
+        path: @json($pageData -> json_data['primary_image']['path'] ?? '')
     };
 
     const secondaryImageData = {
-        name: @json($pageData->json_data['secondary_image']['file_name'] ?? ''),
-        size: @json($pageData->json_data['secondary_image']['size'] ?? ''),
-        url: @json(isset($pageData->json_data['secondary_image']['path']) ? asset('storage/'.$pageData->json_data['secondary_image']['path']) : ''),
-        path: @json($pageData->json_data['secondary_image']['path'] ?? '')
+        name: @json($pageData -> json_data['secondary_image']['file_name'] ?? ''),
+        size: @json($pageData -> json_data['secondary_image']['size'] ?? ''),
+        url: @json(isset($pageData -> json_data['secondary_image']['path']) ? asset('storage/'.$pageData -> json_data['secondary_image']['path']) : ''),
+        path: @json($pageData -> json_data['secondary_image']['path'] ?? '')
     };
 
     const uploadPrimaryImageDropzone = initDropzone("#introduction-upload-primary-image", 'primary_image', primaryImageData);

@@ -8,7 +8,6 @@
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
                 required value="{{ $pageData->json_data['authorization_disclaimer'] ?? '' }}" />
         </div>
-
     </form>
 </div>
 
@@ -37,48 +36,35 @@
                     </div>
                     <!-- Rows Container -->
                     <div class="rows-container space-y-4 authorization-rows-container">
-                        <!-- Default Row -->
                         @forelse ($section['sectionItems'] as $item)
                             <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
                                 <span class="row-drag-handle cursor-pointer">↑↓</span>
-                                <!-- Item Description -->
                                 <input type="text"
                                     class="auth-item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
                                     placeholder="Item Description" value="{{ $item['description'] }}">
-
-                                <!-- Quantity -->
                                 <input type="number"
                                     class="auth-item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
                                     placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] }}">
-
-                                <!-- Unit Price -->
                                 <input type="number"
                                     class="auth-item-price w-20 border border-gray-300 rounded-md px-2 py-1"
                                     placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] }}">
-
-                                <!-- Line Total -->
                                 <div class="line-total-container w-24 text-right flex-1">
                                     <span class="line-total block">
                                         ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
                                     </span>
                                 </div>
-
-                                <!-- Remove Button -->
                                 <button
                                     class="remove-authorization-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
                                     X
                                 </button>
                             </div>
-
                         @empty
                         @endforelse
                     </div>
-                    <!-- Add Row Button -->
                     <button
                         class="add-authorization-row-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">
                         + Add Row
                     </button>
-                    <!-- Section Total -->
                     <div class="flex justify-between items-center mt-4">
                         <span class="text-lg font-medium text-gray-700">Section Total:</span>
                         <span class="authorization-section-total text-lg font-semibold text-gray-800">
@@ -89,9 +75,9 @@
             @empty
             @endforelse
         @else
+            <!-- Default Section -->
             <div class="authorization-section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
                 data-id="{{ \Str::random(8) }}">
-                <!-- Section Header -->
                 <div class="flex justify-start items-center mb-4 gap-1">
                     <div>
                         <input type="text"
@@ -106,48 +92,34 @@
                         <span class="authorization-section-drag-handle cursor-pointer">↑↓</span>
                     </div>
                 </div>
-                <!-- Rows Container -->
                 <div class="rows-container space-y-4 authorization-rows-container">
-                    <!-- Default Row -->
                     <div class="row flex flex-wrap items-center space-x-4" data-id="{{ \Str::random(8) }}">
                         <span class="row-drag-handle cursor-pointer">↑↓</span>
-                        <!-- Item Description -->
                         <input type="text"
                             class="auth-item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
                             placeholder="Item Description">
-
-                        <!-- Quantity -->
                         <input type="number" class="auth-item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
                             placeholder="Qty" min="0" step="0.01">
-
-                        <!-- Unit Price -->
                         <input type="number" class="auth-item-price w-20 border border-gray-300 rounded-md px-2 py-1"
                             placeholder="Unit Price" min="0" step="0.01">
-
-                        <!-- Line Total -->
                         <div class="line-total-container w-24 text-right flex-1">
                             <span class="line-total block">$0.00</span>
                         </div>
-
-                        <!-- Remove Button -->
                         <button
                             class="remove-authorization-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
                             X
                         </button>
                     </div>
                 </div>
-                <!-- Add Row Button -->
                 <button class="add-authorization-row-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">
                     + Add Row
                 </button>
-                <!-- Section Total -->
                 <div class="flex justify-between items-center mt-4">
                     <span class="text-lg font-medium text-gray-700">Section Total:</span>
                     <span class="authorization-section-total text-lg font-semibold text-gray-800">$0.00</span>
                 </div>
             </div>
         @endif
-
     </div>
 
     <!-- Grand Total -->
@@ -167,16 +139,16 @@
     </div>
 </div>
 
+<!-- Footer Section - Fixed Version -->
 <div class="w-full mx-auto p-6 bg-white shadow rounded-lg">
     <form action="/submit-report" method="POST">
-
-        <!-- Text -->
         <div class="mb-4">
             <label for="authorization-footer-text" class="block text-gray-700 text-sm font-medium">Footer</label>
-            <div id="authorization-footer-text-quill" class="bg-white" style="position: static"></div>
-            <textarea class="hidden" id="authorization-footer-text" name="authorization_footer_text" required>{{ $pageData->json_data['authorization_footer_text'] ?? '' }}</textarea>
+            <div id="authorization-footer-text-quill" class="bg-white h-[200px]"></div>
+            <textarea class="hidden" id="authorization-footer-text" name="authorization_footer_text" required>
+                {{ $pageData->json_data['authorization_footer_text'] ?? '' }}
+            </textarea>
         </div>
-
     </form>
 </div>
 
@@ -231,73 +203,47 @@
         }, 500); // Delay in milliseconds
 
         // quill
-        const authorizationFooterTextQuillOptions = [
-            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-            ['blockquote', 'code-block'],
-            ['link'],
-            [{
-                'header': 1
-            }, {
-                'header': 2
-            }], // custom button values
-            [{
-                'list': 'ordered'
-            }, {
-                'list': 'bullet'
-            }, {
-                'list': 'check'
-            }],
-            [{
-                'script': 'sub'
-            }, {
-                'script': 'super'
-            }], // superscript/subscript
-            [{
-                'header': [1, 2, 3, 4, 5, 6, false]
-            }],
+     document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Footer Quill Editor
+            const footerQuillOptions = [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                ['link'],
+                [{ header: 1 }, { header: 2 }],
+                [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
+                [{ script: 'sub' }, { script: 'super' }],
+                [{ header: [1, 2, 3, 4, 5, 6, false] }],
+                [{ color: [] }, { background: [] }],
+                [{ font: [] }],
+                [{ align: [] }],
+                ['clean']
+            ];
 
-            [{
-                'color': []
-            }, {
-                'background': []
-            }], // dropdown with defaults from theme
-            [{
-                'font': []
-            }],
-            [{
-                'align': []
-            }],
-            ['clean'] // remove formatting button
-        ];
-        var authorizationFooterTextQuill = new Quill('#authorization-footer-text-quill', {
-            theme: 'snow',
-            modules: {
-                toolbar: authorizationFooterTextQuillOptions
-            }
-        });
-        // Set the height dynamically via JavaScript
-        authorizationFooterTextQuill.root.style.height = '200px';
-
-        // old text value
-        let oldAuthorizationlFooterTextValue = "{!! $pageData->json_data['authorization_footer_text'] ?? '' !!}";
-
-        // Load the saved content into the editor
-        authorizationFooterTextQuill.clipboard.dangerouslyPasteHTML(oldAuthorizationlFooterTextValue);
-        authorizationFooterTextQuill.on('text-change', function() {
-            $('#authorization-footer-text').val(authorizationFooterTextQuill.root.innerHTML);
-
-            //save textarea data
-            saveReportPageTextareaData('#authorization-footer-text');
-        });
-
-        // Update Grand Total
-        function updateAuthorizationGrandTotal() {
-            let grandTotal = 0;
-            $(".authorization-section-total").each(function() {
-                grandTotal += parseFloat($(this).text().replace("$", "")) || 0;
+            const footerQuill = new Quill('#authorization-footer-text-quill', {
+                theme: 'snow',
+                modules: { toolbar: footerQuillOptions }
             });
-            $("#authorization-grand-total").text(`$${grandTotal.toFixed(2)}`);
-        }
+
+            // Initialize Footer Content
+            const initialFooterContent = @json($pageData->json_data['authorization_footer_text'] ?? '');
+            if(initialFooterContent.trim() === '') {
+                footerQuill.root.innerHTML = '<p><br></p>';
+            } else {
+                footerQuill.clipboard.dangerouslyPasteHTML(initialFooterContent);
+            }
+
+            // Footer Content Sync
+            footerQuill.on('text-change', () => {
+                const content = footerQuill.root.innerHTML;
+                document.getElementById('authorization-footer-text').value = 
+                    content === '<p><br></p>' ? '' : content;
+                saveReportPageTextareaData('#authorization-footer-text');
+            });
+
+            // Maintain Footer Editor Height
+            new ResizeObserver(() => footerQuill.update()).observe(footerQuill.root);
+            footerQuill.root.style.height = '200px';
+        });
 
         // Function to Create a New Row
         function createRow() {
