@@ -105,7 +105,7 @@
 
                 </div>
                 <select id="templateDropdownSelect" name="template_id" class="w-full border border-gray-300 rounded p-2 mt-2">
-                    <option selected value="">Select Template</option>
+                    <option selected>Select Template</option>
                     @forelse ($templates as $template)
                         <option value="{{ $template->id }}">{{ $template->title }}</option>
                     @empty
@@ -184,6 +184,8 @@
             titleInput.disabled = false;
         }
     });
+
+    
 </script> --}}
 
 

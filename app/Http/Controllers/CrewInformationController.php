@@ -29,10 +29,17 @@ class CrewInformationController extends Controller
                 ]);
             }
     
+            // $crewInformation = CrewInformation::updateOrCreate([
+            //     'company_job_id' => $jobId,
+            // ],
+            // [
+            //     'company_job_id' => $jobId,
+            //     'build_date' => $request->build_date,
+            //     'status' => $request->status,
+            //     'crew_name' => $request->crew_name,
+            //     // 'data' => $request->data,
+            // ]);
             $crewInformation = CrewInformation::updateOrCreate([
-                'company_job_id' => $jobId,
-            ],
-            [
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'status' => $request->status,

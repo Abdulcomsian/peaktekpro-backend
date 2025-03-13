@@ -1,74 +1,60 @@
 <div class="w-full mx-auto p-6 bg-white shadow rounded-lg">
     <form action="/submit-report" method="POST">
-
-        <!-- Text -->
-        <div class="mb-4">
-            <div id="applicable-code-guidelines-text-quill" class="bg-white" style="position: static"></div>
-            <textarea class="hidden" id="applicable-code-guidelines-text" name="applicable_code_guidelines_text" required>{{ $pageData->json_data['applicable_code_guidelines_text'] ?? '' }}</textarea>
+        <!-- Text Editor Container -->
+        <div class="mb-4 h-[200px]">
+            <div id="applicable-code-guidelines-text-quill" class="bg-white h-full"></div>
+            <textarea class="hidden" id="applicable-code-guidelines-text" name="applicable_code_guidelines_text" required>
+                {{ $pageData->json_data['applicable_code_guidelines_text'] ?? '' }}
+            </textarea>
         </div>
-
     </form>
 </div>
+
 @push('scripts')
-    <script type="text/javascript">
-        // quill
-        const applicableCodeGuidelinesQuillOptions = [
-            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+<script type="text/javascript">
+    // Initialize Quill with proper content handling
+    const initializeQuillEditor = () => {
+        const quillOptions = [
+            ['bold', 'italic', 'underline', 'strike'],
             ['blockquote', 'code-block'],
             ['link'],
-            [{
-                'header': 1
-            }, {
-                'header': 2
-            }], // custom button values
-            [{
-                'list': 'ordered'
-            }, {
-                'list': 'bullet'
-            }, {
-                'list': 'check'
-            }],
-            [{
-                'script': 'sub'
-            }, {
-                'script': 'super'
-            }], // superscript/subscript
-            [{
-                'header': [1, 2, 3, 4, 5, 6, false]
-            }],
-
-            [{
-                'color': []
-            }, {
-                'background': []
-            }], // dropdown with defaults from theme
-            [{
-                'font': []
-            }],
-            [{
-                'align': []
-            }],
-            ['clean'] // remove formatting button
+            [{ header: 1 }, { header: 2 }],
+            [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
+            [{ script: 'sub' }, { script: 'super' }],
+            [{ header: [1, 2, 3, 4, 5, 6, false] }],
+            [{ color: [] }, { background: [] }],
+            [{ font: [] }],
+            [{ align: [] }],
+            ['clean']
         ];
-        var applicableCodeGuidelinesQuill = new Quill('#applicable-code-guidelines-text-quill', {
+
+        const quill = new Quill('#applicable-code-guidelines-text-quill', {
             theme: 'snow',
-            modules: {
-                toolbar: applicableCodeGuidelinesQuillOptions
-            }
+            modules: { toolbar: quillOptions }
         });
-        // Set the height dynamically via JavaScript
-        applicableCodeGuidelinesQuill.root.style.height = '200px';
 
-        // old text value
-        let oldApplicableCodeGuidelinesValue = "{!! $pageData->json_data['applicable_code_guidelines_text'] ?? '' !!}";
+        // Set initial content safely
+        const initialContent = @json($pageData->json_data['applicable_code_guidelines_text'] ?? '');
+        if(initialContent.trim() === '') {
+            quill.root.innerHTML = '<p><br></p>'; // Maintain editor visibility
+        } else {
+            quill.clipboard.dangerouslyPasteHTML(initialContent);
+        }
 
-        // Load the saved content into the editor
-        applicableCodeGuidelinesQuill.clipboard.dangerouslyPasteHTML(oldApplicableCodeGuidelinesValue);
-        applicableCodeGuidelinesQuill.on('text-change', function() {
-            $('#applicable-code-guidelines-text').val(applicableCodeGuidelinesQuill.root.innerHTML);
+        // Sync with textarea
+        quill.on('text-change', () => {
+            const content = quill.root.innerHTML;
+            document.getElementById('applicable-code-guidelines-text').value = 
+                content === '<p><br></p>' ? '' : content;
+                saveReportPageTextareaData('#applicable-code-guidelines-text');
+        });
 
-            //save textarea data
-            saveReportPageTextareaData('#applicable-code-guidelines-text');
-        })
-    </script>
+        // Force height maintenance
+        quill.root.style.height = '200px';
+        new ResizeObserver(() => quill.update()).observe(quill.root);
+    };
+
+    // Initialize when ready
+    document.addEventListener('DOMContentLoaded', initializeQuillEditor);
+</script>
 @endpush

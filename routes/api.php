@@ -34,6 +34,7 @@ use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
 use App\Http\Controllers\EstimatePreparedController;
 use App\Http\Controllers\TermAndConditionController;
+use App\Http\Controllers\CrewEmailTemplateController;
 use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\InsuranceUnderReviewController;
@@ -355,7 +356,13 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('update/supplier/{id}', [SupplierController::class, 'updateSupplier']);
     Route::post('delete/supplier/{id}', [SupplierController::class, 'deleteSupplier']);
 
-    ///Email Template for ready to build//now multiple
+    ///Email Template for ready to build//now multiple 
+    Route::post('store/crew/EmailTemplate/{companyId}', [CrewEmailTemplateController::class, 'storeCrewEmailTemplate']);
+    Route::get('get/crew/EmailTemplate/{companyId}', [CrewEmailTemplateController::class, 'getCrewEmailTemplate']);
+    Route::post('updateCrew/email-template/{companyId}', [CrewEmailTemplateController::class, 'updateCrewEmailTemplate']);
+    Route::post('deleteCrew/email-template/{companyId}', [CrewEmailTemplateController::class, 'deleteCrewEmailTemplate']);
+
+    //crew eamil template controller
     Route::post('store/EmailTemplate/{companyId}', [EmailTemplateController::class, 'storeEmailTemplate']);
     Route::get('get/EmailTemplate/{companyId}', [EmailTemplateController::class, 'getEmailTemplate']);
     Route::post('updateCompany/{companyId}/email-template/{templateId}', [EmailTemplateController::class, 'updateEmailTemplate']);
