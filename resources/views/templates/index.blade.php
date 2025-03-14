@@ -117,7 +117,6 @@
     // Extract required data
     const template_title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
     const title = template.title || template_title;
-    console.log(title);
 
     const siteAddress = templatePageData ? templatePageData.json_data.company_address : 'No address available';
     let fullDescription = templatePageData ? templatePageData.json_data.intro_text : 'No description available';

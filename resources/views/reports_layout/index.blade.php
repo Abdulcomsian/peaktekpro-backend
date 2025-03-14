@@ -470,7 +470,7 @@
                                 'Report Layout created successfully!');
                             window.location.href = response.redirect_to;
                         } else {
-                            showErrorNotification('Error creating report layout!');
+                            showErrorNotification('Please Select a Template!');
                         }
                     },
                     error: async function(xhr) {
