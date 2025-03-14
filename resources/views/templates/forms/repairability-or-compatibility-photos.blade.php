@@ -39,9 +39,9 @@
                                         </div>
                                     </div>
                                     <!-- Image Preview -->
-                                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4"></div>
+                                    <div class="image-preview-container lg:w-[28.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4"></div>
                                     <!-- Quill Editor -->
-                                    <div class="mb-14">
+                                    <div class="mb-14 lg:w-[28.9875rem] md:w-[28.9875rem] w-full">
                                         <div id="repairability-or-compatibility-text-quill-{{ $item['id'] }}" class="item-editor bg-white"></div>
                                         <textarea class="hidden" id="repairability-or-compatibility-text-{{ $item['id'] }}" name="repairability_or_compatibility_text[]"
                                             required>{{ $item['content'] }}</textarea>
@@ -108,11 +108,11 @@
                         </div>
                         <!-- Image Preview (Outside Dropzone) -->
                         <div
-                            class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4">
+                            class="image-preview-container lg:w-[28.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4">
                         </div>
 
                         <!-- Quill Editor -->
-                        <div class="mb-14">
+                        <div class="mb-14 lg:w-[28.9875rem] md:w-[28.9875rem] w-full">
                             <div id="repairability-or-compatibility-text-quill-1" class="item-editor bg-white"></div>
                             <textarea class="hidden" id="repairability-or-compatibility-text-1" name="repairability_or_compatibility_text[]"
                                 required>{{ '' }}</textarea>
@@ -369,8 +369,8 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
                             <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
                         </div>
                     </div>
-                    <div class="image-preview-container lg:w-[18.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-2"></div>
-                    <div class="mb-14">
+                    <div class="image-preview-container lg:w-[28.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-2"></div>
+                    <div class="mb-14 lg:w-[28.9875rem] md:w-[28.9875rem] w-full">
                         <div id="repairability-or-compatibility-text-quill-${uniqueKey}" class="item-editor bg-white"></div>
                         <textarea class="hidden" id="repairability-or-compatibility-text-${uniqueKey}" name="repairability_or_compatibility_text[]"
                             required></textarea>
