@@ -452,6 +452,18 @@
             });
         }
 
+        // this function to calculate grand total
+        function updateAuthorizationGrandTotal() {
+            let grandTotal = 0;
+            $(".authorization-section-total").each(function() {
+                grandTotal += parseFloat($(this).text().replace('$', '')) || 0;
+            });
+            $("#authorization-grand-total").text(`$${grandTotal.toFixed(2)}`);
+            
+            // Update hidden field if needed
+            $('input[name="authorization_grand_total"]').val(grandTotal.toFixed(2));
+        }
+
         // Initially apply sortable to the rowscontainer
         makeSectionRowContainerSortable();
     </script>
