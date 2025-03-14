@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
-
+use App\Models\User;
 class EmailTemplateController extends Controller
 {
     public function storeEmailTemplate($companyId, Request $request) //it is company id
     {
         $request->validate([
             'title' => 'string',
-            'content'=> 'string'
+            'content'=> 'string',
+            'supplier_id' =>'integer',
+
         ]);
 
         try{
@@ -28,18 +30,22 @@ class EmailTemplateController extends Controller
                 ]);
             }
 
-            // $emailContent = EmailTemplate::updateOrCreate([
-            //     'company_id' => $companyId,
-            // ],[
-            //     'company_id' => $companyId,
-            //     'content' => $request->content,
-            // ]);
+            $user = User::where('id',$request->supplier_id)
+            ->first();
+            if(!$user)
+            {
+                return response()->json([
+                    'status' => 404,
+                    'message'=> 'supplier Not Found'
+                ]);
+            }
 
             $emailContent = EmailTemplate::create([
              
                 'company_id' => $companyId,
                 'title' => $request->title,
                 'content' => $request->content,
+                'supplier_id'=> $request->supplier_id,
             ]);
 
             return response()->json([
@@ -93,7 +99,8 @@ class EmailTemplateController extends Controller
     {
         $request->validate([
             'title' => 'string',
-            'content' => 'string'
+            'content' => 'string',
+            'supplier_id' => 'integer',
         ]);
 
         try {
@@ -103,6 +110,16 @@ class EmailTemplateController extends Controller
                 return response()->json([
                     'status' => 404,
                     'message' => 'Company Not Found'
+                ]);
+            }
+
+            $user = User::where('id',$request->supplier_id)
+            ->first();
+            if(!$user)
+            {
+                return response()->json([
+                    'status' => 404,
+                    'message'=> 'supplier Not Found'
                 ]);
             }
 
@@ -120,7 +137,8 @@ class EmailTemplateController extends Controller
             // Update the email template
             $emailTemplate->update([
                 'title' => $request->title,
-                'content' => $request->content
+                'content' => $request->content,
+                'supplier_id'=> $request->supplier_id,
             ]);
 
             return response()->json([
