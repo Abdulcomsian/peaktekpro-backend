@@ -814,6 +814,16 @@
 
         }, 500)
 
+        // In the publish button click handler
+            const confirmPublishHandler = () => {
+            updateReportStatus(reportId, newStatus);
+            document.getElementById('publishReportModal').classList.add('hidden');
+            };
+
+            // Remove existing listener first
+            document.getElementById('confirmPublishBtn').removeEventListener('click', confirmPublishHandler);
+            document.getElementById('confirmPublishBtn').addEventListener('click', confirmPublishHandler, {once: true});
+
         // generate key
         function generateBase64Key(length) {
             const array = new Uint8Array(length);
@@ -835,43 +845,58 @@
         }
 
         document.getElementById('updateToPublishedBtn').addEventListener('click', function() {
-            const reportId = this.getAttribute('data-id');
-            const currentStatus = this.getAttribute('data-status');
-            const newStatus = currentStatus === 'draft' ? 'published' : 'draft';
+    const reportId = this.getAttribute('data-id');
+    const currentStatus = this.getAttribute('data-status');
+    const newStatus = currentStatus === 'draft' ? 'published' : 'draft';
 
-            // Show the appropriate modal based on the current status
-            if (newStatus === 'published') {
-                document.getElementById('publishReportModal').classList.remove('hidden');
-            } else {
-                document.getElementById('draftReportModal').classList.remove('hidden');
-            }
+    // Show the appropriate modal based on the current status
+    if (newStatus === 'published') {
+        document.getElementById('publishReportModal').classList.remove('hidden');
+    } else {
+        document.getElementById('draftReportModal').classList.remove('hidden');
+    }
 
-            // Handle confirm action for publishing
-            document.getElementById('confirmPublishBtn').addEventListener('click', function() {
-                updateReportStatus(reportId, newStatus);
-                document.getElementById('publishReportModal').classList.add('hidden');
-            });
+    // Save the report ID and new status in a global variable (or data attribute)
+    document.getElementById('confirmPublishBtn').setAttribute('data-id', reportId);
+    document.getElementById('confirmPublishBtn').setAttribute('data-status', newStatus);
 
-            // Handle confirm action for saving as draft
-            document.getElementById('confirmDraftBtn').addEventListener('click', function() {
-                updateReportStatus(reportId, newStatus);
-                document.getElementById('draftReportModal').classList.add('hidden');
-            });
+    document.getElementById('confirmDraftBtn').setAttribute('data-id', reportId);
+    document.getElementById('confirmDraftBtn').setAttribute('data-status', newStatus);
+});
 
-            // Handle cancel actions for both modals
-            document.getElementById('cancelPublishBtn').addEventListener('click', function() {
-                document.getElementById('publishReportModal').classList.add('hidden');
-            });
-            document.getElementById('cancelDraftBtn').addEventListener('click', function() {
-                document.getElementById('draftReportModal').classList.add('hidden');
-            });
-        });
+// Handle confirm action for publishing (attach only once)
+document.getElementById('confirmPublishBtn').addEventListener('click', function() {
+    const reportId = this.getAttribute('data-id');
+    const newStatus = this.getAttribute('data-status');
+    updateReportStatus(reportId, newStatus);
+    document.getElementById('publishReportModal').classList.add('hidden');
+});
+
+// Handle confirm action for saving as draft (attach only once)
+document.getElementById('confirmDraftBtn').addEventListener('click', function() {
+    const reportId = this.getAttribute('data-id');
+    const newStatus = this.getAttribute('data-status');
+    updateReportStatus(reportId, newStatus);
+    document.getElementById('draftReportModal').classList.add('hidden');
+});
+
+// Handle cancel actions (attach only once)
+document.getElementById('cancelPublishBtn').addEventListener('click', function() {
+    document.getElementById('publishReportModal').classList.add('hidden');
+});
+document.getElementById('cancelDraftBtn').addEventListener('click', function() {
+    document.getElementById('draftReportModal').classList.add('hidden');
+});
+
 
         // Function to update report status
         
         function updateReportStatus(reportId, newStatus) {
     const button = document.getElementById('updateToPublishedBtn');
+    const spinner = document.getElementById('loadingSpinner');
+
     button.disabled = true; // Prevent multiple clicks
+    spinner.style.display = 'block'; // Show spinner when request starts
 
     const updateStatusUrl = "{{ route('reports.update-status', ':id') }}".replace(':id', reportId);
 
@@ -888,6 +913,7 @@
     .then(response => response.json())
     .then(data => {
         button.disabled = false; // Re-enable after response
+        spinner.style.display = 'none'; // Hide spinner on success
 
         if (data.status) {
             showSuccessNotification(data.message); 
@@ -913,6 +939,8 @@
     })
     .catch(error => {
         button.disabled = false;
+        spinner.style.display = 'none'; // Hide spinner on error
+
         console.error('Error:', error);
         showErrorNotification('An error occurred. Please try again.');
     });
@@ -997,7 +1025,8 @@
 @section('content')
     <section class="h-screen flex">
         <img id="loadingSpinner" src="{{ asset('assets/images/loader2.gif') }}" alt="Loading"
-            style="display: none; position: fixed; top: 50%; left: 60%; transform: translate(-50%, -50%); z-index: 9999; width: 100px; height: 100px;" />
+            style="display: none; position: fixed; top: 50%; left: 60%; transform: translate(-50%, -50%); z-index: 9999; width: 100px; height: 100px;filter: grayscale(100%) brightness(0%);" />
+                
         <!-- Sidebar with Tabs -->
 
         <aside class="w-auto p-4 bg-white shadow h-full scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-blue-300">

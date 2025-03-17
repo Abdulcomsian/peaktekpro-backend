@@ -4,19 +4,19 @@
         <!-- Check if sections exist -->
         @if (isset($pageData->json_data['comparision_sections']) && count($pageData->json_data['comparision_sections']) > 0)
             <!-- Loop through sections -->
-            @foreach ($pageData->json_data['comparision_sections'] as $section)
-                <div class="compatibility-section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200"
-                    data-id="{{ $section['id'] }}">
+            @foreach ($pageData->json_data['comparision_sections'] as $index => $section)
+                <div class="compatibility-section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200" data-id="{{ $section['id'] }}">
                     <!-- Section Header -->
                     <div class="flex flex-wrap justify-start items-center gap-1 mb-4">
+                        @if($index !== 0 || !empty($section['title']))
+                            <div>
+                                <input type="text"
+                                    class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
+                                    placeholder="Section Title" value="{{ $section['title'] }}" />
+                            </div>
+                        @endif
                         <div>
-                            <input type="text"
-                                class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Section Title" value="{{ $section['title'] }}" />
-                        </div>
-                        <div>
-                            <button
-                                class="remove-compatibility-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+                            <button class="remove-compatibility-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
                             <span class="compatiblility-section-drag-handle cursor-pointer">↑↓</span>
                         </div>
                     </div>
@@ -332,15 +332,25 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
 
 
     // Add new section
-    $(document).on('click', '#add-compatibility-section-btn', function() {
-        const newCompatibilitySection = `
-         <div class="compatibility-section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200" data-id="${ generateBase64Key(8) }">
+ // Add new section
+$(document).on('click', '#add-compatibility-section-btn', function() {
+    const sectionsContainer = $('#compatibility-sections-container');
+    const hasExistingSections = sectionsContainer.children('.compatibility-section').length > 0;
+    const newSectionId = generateBase64Key(8);
+
+    // Conditionally include the title input based on existing sections
+    const titleInput = hasExistingSections ? `
+        <div>
+            <input type="text"
+                class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
+                placeholder="Section Title" />
+        </div>
+    ` : '';
+
+    const newCompatibilitySection = `
+        <div class="compatibility-section bg-white shadow-md rounded-lg mb-6 p-4 border border-gray-200" data-id="${newSectionId}">
             <div class="flex flex-wrap justify-start items-center gap-1 mb-4">
-                <div>
-                    <input type="text"
-                        class="section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                        placeholder="Section Title" />
-                </div>
+                ${titleInput}
                 <div>
                     <button class="remove-compatibility-section-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
                     <span class="compatiblility-section-drag-handle cursor-pointer">↑↓</span>
@@ -349,12 +359,13 @@ $('#compatibility-sections-container').on('input', '.section-title, .item-editor
             <div class="compatibility-items-container flex flex-wrap items-center gap-1"></div>
             <button class="add-compatibility-item-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">+ Add Item</button>
         </div>
-            `;
-        $('#compatibility-sections-container').append(newCompatibilitySection);
-        makeCompatibilitySectionItemsContainerSortable();
-    });
+    `;
 
-    // Add new item
+        sectionsContainer.append(newCompatibilitySection);
+            makeCompatibilitySectionItemsContainerSortable();
+        });
+
+        // Add new item
         $(document).on('click', '.add-compatibility-item-btn', function() {
         const uniqueKey = generateBase64Key(8); // Generate the key once and reuse it
         const newCompatibilityItem = `

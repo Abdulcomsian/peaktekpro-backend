@@ -799,7 +799,10 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            // $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+            $supplier = User::where('id',$readyBuild->supplier_id)->first();
+            $supplier_name = $supplier->first_name . ' ' . $supplier->last_name;
+
 
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
@@ -814,7 +817,7 @@ class MaterialOrderController extends Controller
                 'homeowner_email' => $request->homeowner_email,
                 'contractor' => $request->contractor,
                 'contractor_email' => $request->contractor_email,
-                'supplier' => $request->supplier,
+                'supplier' => $supplier_name,
                 'supplier_email' => $request->supplier_email,
                 // 'confirmed' => $request->confirmed,
             ]);
@@ -915,8 +918,11 @@ class MaterialOrderController extends Controller
              //get Build Detail
              $build_detail = BuildDetail::where('company_job_id',$jobId)->first();
              //get Ready to Build
-            //  $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
-
+             $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+             $supplier = User::where('id',$readyBuild->supplier_id)->first();
+             $supplier_name = $supplier->first_name . ' ' . $supplier->last_name;
+ 
+ 
             //  if (!$build_detail) {
             //     return response()->json([
             //         'status' => 200,
@@ -940,7 +946,7 @@ class MaterialOrderController extends Controller
                         // 'home_owner_email' => $build_detail->homeowner_email,
                         'contractor' => $build_detail->contractor ?? '',
                         'contractor_email' => $build_detail->contractor_email ?? '',
-                        'supplier' => $build_detail->supplier ?? '',
+                        'supplier' => $supplier_name ?? '', 
                         'supplier_email' => $build_detail->supplier_email ?? '',
                         'confirmed' => $build_detail->confirmed ?? '',
                         'created_at' => $build_detail->created_at ?? '',
