@@ -312,6 +312,8 @@ class ReportLayoutController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        DB::beginTransaction();
+
         try {
             $jobId = session('job_id');
             $company = CompanyJob::where('id', $jobId)->first();
@@ -331,78 +333,81 @@ class ReportLayoutController extends Controller
             $report->save();
 
         // Ensure we only send one response message
-if ($newStatus === 'published') {
-    // Step 1: Generate Main Report PDF
-    $reportData = $report->getAllReportData();
-    $pdf = PDF::loadView('pdf.report', [
-        'report' => $reportData,
-        'email' => $email,
-        'phone' => $phone,
-        'created_At' => $date,
-        'address' => $address
-    ]);
-    $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
+        if ($newStatus === 'published') {
+            // Step 1: Generate Main Report PDF
+            $reportData = $report->getAllReportData();
+            $pdf = PDF::loadView('pdf.report', [
+                'report' => $reportData,
+                'email' => $email,
+                'phone' => $phone,
+                'created_At' => $date,
+                'address' => $address
+            ]);
+            $pdf->setPaper('A4', 'portrait')->setOption('margin-left', 20)->setOption('margin-right', 20);
 
-    $timestamp = now()->format('Ymd_His');
-    $mainPdfPath = storage_path("app/public/pdf-files/report-{$id}_{$timestamp}.pdf");
-    Storage::disk('public')->put("pdf-files/report-{$id}_{$timestamp}.pdf", $pdf->output());
+            $timestamp = now()->format('Ymd_His');
+            $mainPdfPath = storage_path("app/public/pdf-files/report-{$id}_{$timestamp}.pdf");
+            Storage::disk('public')->put("pdf-files/report-{$id}_{$timestamp}.pdf", $pdf->output());
 
-    // Step 2: Gather Section PDFs
-    $sectionPdfs = [];
-    $reportPages = $report->reportPages()->with('pageData')->get();
-    foreach ($reportPages as $page) {
-        if (isset($page->pageData->json_data)) {
-            $jsonData = $page->pageData->json_data;
-            if ($page->slug === 'product-compatibility' && isset($jsonData['product_compatibility_files'])) {
-                foreach ($jsonData['product_compatibility_files'] as $file) {
-                    if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
-                        $sectionPdfs['product-compatibility'][] = storage_path("app/public/{$file['path']}");
+            // Step 2: Gather Section PDFs
+            $sectionPdfs = [];
+            $reportPages = $report->reportPages()->with('pageData')->get();
+            foreach ($reportPages as $page) {
+                if (isset($page->pageData->json_data)) {
+                    $jsonData = $page->pageData->json_data;
+                    if ($page->slug === 'product-compatibility' && isset($jsonData['product_compatibility_files'])) {
+                        foreach ($jsonData['product_compatibility_files'] as $file) {
+                            if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
+                                $sectionPdfs['product-compatibility'][] = storage_path("app/public/{$file['path']}");
+                            }
+                        }
+                    }
+                    if ($page->slug === 'unfair-claims-practices' && isset($jsonData['unfair_claim_file']['path'])) {
+                        if (Storage::disk('public')->exists($jsonData['unfair_claim_file']['path'])) {
+                            $sectionPdfs['unfair-claims-practices'][] = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
+                        }
+                    }
+                    if (isset($page->order_no) && isset($jsonData['custom_page_file']['path'])) {
+                        if (Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
+                            $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
+                        }
                     }
                 }
             }
-            if ($page->slug === 'unfair-claims-practices' && isset($jsonData['unfair_claim_file']['path'])) {
-                if (Storage::disk('public')->exists($jsonData['unfair_claim_file']['path'])) {
-                    $sectionPdfs['unfair-claims-practices'][] = storage_path("app/public/{$jsonData['unfair_claim_file']['path']}");
-                }
-            }
-            if (isset($page->order_no) && isset($jsonData['custom_page_file']['path'])) {
-                if (Storage::disk('public')->exists($jsonData['custom_page_file']['path'])) {
-                    $sectionPdfs['custom-page-' . $page->order_no][] = storage_path("app/public/{$jsonData['custom_page_file']['path']}");
-                }
-            }
+
+            // Step 3: Merge PDFs
+            $mergedPdfPath = storage_path("app/public/pdf-files/merged-report-{$id}_{$timestamp}.pdf");
+            $this->insertSectionPdfs($mainPdfPath, $mergedPdfPath, $sectionPdfs);
+
+            // Step 4: Update Report File Path
+            $report->update(['file_path' => "pdf-files/merged-report-{$id}_{$timestamp}.pdf"]);
+            $downloadUrl = route('reports.download-pdf', $report->id);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'response' => $report,
+                'message' => 'Report Published Successfully',
+                'file_url' => $downloadUrl,
+                'redirect_url' => route('reports.index') // Redirect only for published reports
+            ], 200);
         }
-    }
 
-    // Step 3: Merge PDFs
-    $mergedPdfPath = storage_path("app/public/pdf-files/merged-report-{$id}_{$timestamp}.pdf");
-    $this->insertSectionPdfs($mainPdfPath, $mergedPdfPath, $sectionPdfs);
+        // If it's draft, send the draft message
+        if ($newStatus === 'draft') {
+            if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
+                Storage::disk('public')->delete($report->file_path);
+            }
+            $report->update(['file_path' => null]);
+            DB::commit();
 
-    // Step 4: Update Report File Path
-    $report->update(['file_path' => "pdf-files/merged-report-{$id}_{$timestamp}.pdf"]);
-    $downloadUrl = route('reports.download-pdf', $report->id);
-
-    return response()->json([
-        'status' => true,
-        'response' => $report,
-        'message' => 'Report Published Successfully',
-        'file_url' => $downloadUrl,
-        'redirect_url' => route('reports.index') // Redirect only for published reports
-    ], 200);
-}
-
-// If it's draft, send the draft message
-if ($newStatus === 'draft') {
-    if ($report->file_path && Storage::disk('public')->exists($report->file_path)) {
-        Storage::disk('public')->delete($report->file_path);
-    }
-    $report->update(['file_path' => null]);
-
-    return response()->json([
-        'status' => true,
-        'message' => 'Report Drafted Successfully',
-        'response' => $report
-    ], 200);
-}
+            return response()->json([
+                'status' => true,
+                'message' => 'Report Drafted Successfully',
+                'response' => $report
+            ], 200);
+        }
 
 
         } catch (\Exception $e) {
