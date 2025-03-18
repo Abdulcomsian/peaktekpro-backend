@@ -19,8 +19,10 @@ class CrewInformationResource extends JsonResource
             'id' => $this->id,
             'company_job_id' => $this->company_job_id,
             'build_date' => $this->build_date,
-            'status' => $this->status,
+            // 'status' => $this->status,
             'crew_name'=> $this->crew_name,
+            'content'=> $this->content,
+
         ];
     }
 }
