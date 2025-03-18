@@ -68,6 +68,9 @@ Route::middleware(['check.react.auth'])->group(function () {
     Route::post('/templates/page/authorization-section/save', [TemplateController::class, 'saveAuthorizationSectionDetails'])->name('templates.authorization-section.update');
     Route::delete('/templates/page/authorization-section/destroy', [TemplateController::class, 'removeAuthorizationSection'])->name('template.authorization.remove-section');
     Route::post('/templates/page/authorization-section/ordering', [TemplateController::class, 'updateAuthorizationSectionsOrdering'])->name('templates.page.authorization-sections-ordering.update');
+    Route::post('/authorization-section/delete', [TemplateController::class, 'deleteAuthorizationSectionItemRow'])
+    ->name('authorization.section.delete');
+
     // repairibility assessment
     Route::post('/templates/repairibility-assessment', function () {
         return response()->json(['url' => asset('assets/pdf_header.png')], 200);
@@ -105,6 +108,8 @@ Route::middleware(['check.react.auth'])->group(function () {
     Route::post('/reports/page/authorization-section/save', [ReportLayoutController::class, 'saveAuthorizationSectionDetails'])->name('reports.authorization-section.update');
     Route::delete('/reports/page/authorization-section/destroy', [ReportLayoutController::class, 'removeAuthorizationSection'])->name('report.authorization.remove-section');
     Route::post('/reports/page/authorization-section/ordering', [ReportLayoutController::class, 'updateAuthorizationSectionsOrdering'])->name('reports.page.authorization-sections-ordering.update');
+    Route::post('/report/authorization-section/delete', [ReportLayoutController::class, 'deleteAuthorizationSectionItemRow'])
+    ->name('report.authorization.section.delete');
     // repairibility assessment
     Route::post('/reports/repairibility-assessment', function () {
         return response()->json(['url' => asset('assets/pdf_header.png')], 200);

@@ -213,7 +213,9 @@
         // Pass the $reports data to the frontend and adjust its structure
         const reportsData = @json($reports->items()).map(report => {
             // Fetch the first report page's data
-            // const reportTitle = report.title;
+            const templateTitle =report.template?.title  // Add this line
+
+            console.log(templateTitle);
 
             // const reportPage6 = report.report_pages?.[6];
 
@@ -235,7 +237,7 @@
             const report_title = reportPageData?.json_data?.report_title;
 
 
-            const title = report_title || report.title;
+            const title = report_title || templateTitle;
 
             const grandTotal = reportPageData6 ? reportPageData6.json_data.grand_total : null;
             const price = grandTotal ? `$${parseFloat(grandTotal).toFixed(2)}` :
