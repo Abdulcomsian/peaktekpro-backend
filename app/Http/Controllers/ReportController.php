@@ -204,70 +204,84 @@ class ReportController extends Controller
     }
 
     ///////////////////job details section of reports ////////////////////////////
+   
+
+    public function getJobReports($jobId)
+    {
+        $reports = Report::where('job_id', $jobId)
+            ->with(['reportPages.pageData', 'template']) // Ensure template is loaded
+            ->select('id', 'title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at', 'template_id') // Add template_id
+            ->get()
+            ->map(function ($report) {
+                // Check if reportPages exists and has at least one item
+                $firstPage = optional($report->reportPages->first());
+
+                // Extract report title from pageData safely
+                $jsonData = optional($firstPage->pageData)->json_data;
+                $reportTitle = is_array($jsonData) ? ($jsonData['report_title'] ?? null) : null;
+
+                // If report title is missing, use template title
+                if (empty($reportTitle)) {
+                    $reportTitle = optional($report->template)->title ?? 'N/A';
+                }
+
+                // Modify file_path to remove 'merged-' if it exists
+                $cleanFilePath = str_replace('merged-', '', $report->file_path);
+
+                return [
+                    'id' => $report->id,
+                    'title' => $reportTitle,
+                    'job_id' => $report->job_id,
+                    'status' => $report->status,
+                    'file_path' => $report->file_path,
+                    'report_type' => $report->report_type,
+                    'created_at' => $report->created_at,
+                    'updated_at' => $report->updated_at,
+                    'pdf_path' => asset('storage/' . ltrim($cleanFilePath, '/')),
+                    'report_title' => $reportTitle,
+                ];
+            });
+
+        return response()->json($reports, 200, [], JSON_UNESCAPED_SLASHES);
+    }
+
+
     public function getJobReports1($jobId)
     {
-        try {
-            // $reports = Report::where('job_id', $jobId)->where('status','published')->get();
-            $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->where('status','published')->get();
-
-            return response()->json([
-                'status_code' => 200,
-                'status' => true,
-                'message' => 'Data fetched Successfully',
-                'data' => $reports,
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'status_code' => 500,
-                'status' => false,
-                'message' => 'An error occurred while fetching the data: ' . $e->getMessage(),
-            ], 500);        }
-    }
-    public function getJobReports2($jobId)
-{
-    $reports = Report::where('job_id', $jobId)
-        ->select('id','title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at')
+        $reports = Report::where('job_id', $jobId)
+        ->with(['reportPages.pageData','template']) // Load related report pages and page data
+        ->select('id', 'title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at')
         ->get()
         ->map(function ($report) {
-            $report->pdf_path = asset('storage/' . $report->file_path);
-            $report->report_title = "Report Title"; // Static or dynamic title if needed
-            return $report;
+            // Check if reportPages exists and has at least one item
+            $firstPage = optional($report->reportPages->first());
+
+            // Extract report title safely
+            $reportTitle = optional($firstPage->pageData)->json_data['report_title'] ?? null;
+
+            // If report title is missing, use template title
+            if (empty($reportTitle)) {
+                $reportTitle = optional($report->template)->title ?? 'N/A';
+            }
+            $cleanFilePath = str_replace('merged-', '', $report->file_path);
+
+            return [
+                'id'=> $report->id,
+                'title' => $reportTitle,
+                'job_id' => $report->job_id,
+                'status' => $report->status,
+                'file_path' => $report->file_path,
+                'report_type' => $report->report_type,
+                'created_at' => $report->created_at,
+                'updated_at' => $report->updated_at,
+                'pdf_path' => asset('storage/' . ltrim($cleanFilePath, '/')),
+                'report_title' => $reportTitle,
+            ];
         });
 
-    return response()->json($reports);
-}
+        return response()->json($reports, 200, [], JSON_UNESCAPED_SLASHES);
 
-public function getJobReports($jobId)
-{
-    $reports = Report::where('job_id', $jobId)
-    ->with(['reportPages.pageData']) // Load related report pages and page data
-    ->select('id', 'title', 'job_id', 'status', 'file_path', 'report_type', 'created_at', 'updated_at')
-    ->get()
-    ->map(function ($report) {
-        // Check if reportPages exists and has at least one item
-        $firstPage = optional($report->reportPages->first());
-
-        // Extract report title safely
-        $reportTitle = optional($firstPage->pageData)->json_data['report_title'] ?? 'N/A';
-
-        return [
-            'id'=> $report->id,
-            'title' => $reportTitle,
-            'job_id' => $report->job_id,
-            'status' => $report->status,
-            'file_path' => $report->file_path,
-            'report_type' => $report->report_type,
-            'created_at' => $report->created_at,
-            'updated_at' => $report->updated_at,
-            'pdf_path' => asset('storage/' . ltrim($report->file_path, '/')),
-            'report_title' => $reportTitle,
-        ];
-    });
-
-    return response()->json($reports, 200, [], JSON_UNESCAPED_SLASHES);
-
-}
+    }
 
 
 
