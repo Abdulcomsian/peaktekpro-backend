@@ -377,22 +377,49 @@
             const row = $(this).closest(".row");
             const rowId = row.data("id");
             const section = $(this).closest(".section");
+            const sectionId = section.data("id"); // Get section ID
 
             // Remove the row
-            row.remove();
+            
+            $.ajax({
+                url: '{{ route("report.authorization.section.delete") }}',  // Laravel route for deleting
+                type: 'POST',
+                data: {
+                    page_id: pageId,
+                    _token: '{{ csrf_token() }}',
+                    row_id: rowId
+                },
+                success: function(response) {
+                    if (response.status) {
+                        row.remove(); // Instantly remove the row from the UI
 
-            // Update the Section Total
-            let sectionTotal = 0;
-            section.find(".line-total").each(function() {
-                sectionTotal += parseFloat($(this).text().replace("$", "")) || 0;
+                        // Show success message
+                        $('#delete-message')
+                            .text('Row deleted successfully')
+                            .removeClass('hidden')
+                            .fadeIn()
+                            .delay(2000)
+                            .fadeOut();
+                    } else {
+                        $('#delete-message')
+                            .text('Error: ' + response.message)
+                            .removeClass('hidden bg-green-500')
+                            .addClass('bg-red-500')
+                            .fadeIn()
+                            .delay(3000)
+                            .fadeOut();
+                    }
+                },
+                error: function(xhr) {
+                    $('#delete-message')
+                        .text('Something went wrong!')
+                        .removeClass('hidden bg-green-500')
+                        .addClass('bg-red-500')
+                        .fadeIn()
+                        .delay(3000)
+                        .fadeOut();
+                }
             });
-            section.find(".section-total").text(`$${sectionTotal.toFixed(2)}`);
-
-            // Update the Grand Total
-            updateQuoteGrandTotal();
-
-            // save / update section data with items
-            saveQuoteSectionData($(this));
         });
 
         // Make sections sortable (drag to reorder sections)

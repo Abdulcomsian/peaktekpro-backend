@@ -15,6 +15,7 @@ class Report extends Model
         'status',
         'file_path',
         'report_type',
+        'template_id',
     ];
 
     public $appends = [

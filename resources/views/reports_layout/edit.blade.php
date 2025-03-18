@@ -1205,7 +1205,7 @@ document.getElementById('cancelDraftBtn').addEventListener('click', function() {
 
                             @includeIf(
                                 'reports_layout.forms.' . (!empty($page->slug) ? $page->slug : 'custom-page'),
-                                ['pageData' => $page->pageData, 'address'=> $address,'firstName' => $firstName, 'lastName' => $lastName,'created_At'=> $date]
+                                ['pageData' => $page->pageData, 'address'=> $address,'firstName' => $firstName, 'lastName' => $lastName,'created_At'=> $date,'report'=>$report]
                             )
                         </div>
                     @empty

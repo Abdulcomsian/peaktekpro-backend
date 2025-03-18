@@ -25,7 +25,7 @@
                         <div>
                             <input type="text"
                                 class="authorization-section-title w-full text-lg font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Section Title" value="{{ $section['title'] }}"/>
+                                placeholder="Section Title" value="{{ $section['title'] ?? '' }}"/>
                         </div>
                         <div>
                             <button
@@ -38,39 +38,28 @@
                     <!-- Rows Container -->
                     <div class="rows-container space-y-4 authorization-rows-container">
                         <!-- Default Row -->
-                        @forelse ($section['sectionItems'] as $item)
-                        <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
-                            <span class="row-drag-handle cursor-pointer">↑↓</span>
-                            <!-- Item Description -->
-                            <input type="text"
-                                class="auth-item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Item Description" value="{{ $item['description'] }}">
+                        @if(isset($section['sectionItems']) && is_array($section['sectionItems']))
+    @foreach ($section['sectionItems'] as $item)
+        <div class="row flex flex-wrap items-center space-x-4" data-id="{{ $item['rowId'] }}">
+            <span class="row-drag-handle cursor-pointer">↑↓</span>
+            <input type="text" class="auth-item-description flex-grow border border-gray-300 rounded-md px-2 py-1"
+                placeholder="Item Description" value="{{ $item['description'] ?? '' }}">
+            <input type="number" class="auth-item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
+                placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] ?? 0 }}">
+            <input type="number" class="auth-item-price w-20 border border-gray-300 rounded-md px-2 py-1"
+                placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] ?? 0 }}">
+            <div class="line-total-container w-24 text-right flex-1">
+                <span class="line-total block">
+                    ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
+                </span>
+            </div>
+            <button class="remove-authorization-row-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+        </div>
+    @endforeach
+@else
+    <p class="text-gray-500"></p>
+@endif
 
-                            <!-- Quantity -->
-                            <input type="number" class="auth-item-qty w-20 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Qty" min="0" step="0.01" value="{{ $item['qty'] }}">
-
-                            <!-- Unit Price -->
-                            <input type="number" class="auth-item-price w-20 border border-gray-300 rounded-md px-2 py-1"
-                                placeholder="Unit Price" min="0" step="0.01" value="{{ $item['price'] }}">
-
-                            <!-- Line Total -->
-                            <div class="line-total-container w-24 text-right flex-1">
-                                <span class="line-total block">
-                                    ${{ number_format($item['lineTotal'] ?? 0, 2, '.', '') }}
-                                </span>
-                            </div>
-
-                            <!-- Remove Button -->
-                            <button
-                                class="remove-authorization-row-btn text-red-500 hover:text-red-700 font-medium text-sm">
-                                X
-                            </button>
-                        </div>
-
-                        @empty
-
-                        @endforelse
                     </div>
                     <!-- Add Row Button -->
                     <button
@@ -420,28 +409,50 @@
             });
         });
 
-        // Remove Row
-        $(document).on("click", ".remove-authorization-row-btn", function() {
-            const row = $(this).closest(".row");
-            const rowId = row.data("id");
-            const section = $(this).closest(".authorization-section");
+       // Remove Row
+        $(document).on('click', '.remove-authorization-row-btn', function() {
+            let row = $(this).closest('.row'); 
+            let rowId = row.data('id');
 
-            // Remove the row
-            row.remove();
+            $.ajax({
+                url: '{{ route("authorization.section.delete") }}',  // Laravel route for deleting
+                type: 'POST',
+                data: {
+                    page_id: pageId,
+                    _token: '{{ csrf_token() }}',
+                    row_id: rowId
+                },
+                success: function(response) {
+                    if (response.status) {
+                        row.remove(); // Instantly remove the row from the UI
 
-            // Update the Section Total
-            let sectionTotal = 0;
-            section.find(".line-total").each(function() {
-                sectionTotal += parseFloat($(this).text().replace("$", "")) || 0;
+                        // Show success message
+                        $('#delete-message')
+                            .text('Row deleted successfully')
+                            .removeClass('hidden')
+                            .fadeIn()
+                            .delay(2000)
+                            .fadeOut();
+                    } else {
+                        $('#delete-message')
+                            .text('Error: ' + response.message)
+                            .removeClass('hidden bg-green-500')
+                            .addClass('bg-red-500')
+                            .fadeIn()
+                            .delay(3000)
+                            .fadeOut();
+                    }
+                },
+                error: function(xhr) {
+                    $('#delete-message')
+                        .text('Something went wrong!')
+                        .removeClass('hidden bg-green-500')
+                        .addClass('bg-red-500')
+                        .fadeIn()
+                        .delay(3000)
+                        .fadeOut();
+                }
             });
-            section.find(".authorization-section-total").text(`$${sectionTotal.toFixed(2)}`);
-
-            // Update the Grand Total
-            updateAuthorizationGrandTotal();
-
-            // save / update section data with items
-            saveAuthorizationSectionData($(this))
-
         });
 
         // Make sections sortable (drag to reorder sections)

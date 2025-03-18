@@ -33,7 +33,7 @@ class ReportLayoutController extends Controller
             $reportType = session('report_type');
 
             // dd($jobId);
-            $reports = Report::with('reportPages.pageData')->where('job_id', $jobId)->where('report_type',$reportType)->paginate(5);
+            $reports = Report::with('reportPages.pageData','template')->where('job_id', $jobId)->where('report_type',$reportType)->paginate(5);
             $company = CompanyJob::find($jobId);
             // dd($company);
 
@@ -66,13 +66,14 @@ class ReportLayoutController extends Controller
             $jobId = session('job_id');
             $reportType = session('report_type');
 
-            // dd($reportType);
+            // dd($request->template_id);
 
 
             $report = Report::create([
                 'title' => $request->title,
                 'job_id' => $jobId,
-                'report_type' => $reportType
+                'report_type' => $reportType,
+                'template_id' => $request->template_id
             ]);
 
             $templateId = $request->template_id ?? '';
@@ -144,7 +145,7 @@ class ReportLayoutController extends Controller
                 $date = null;
             }
 
-            $report = Report::with('reportPages.pageData')->findOrFail($reportId);
+            $report = Report::with('reportPages.pageData','template')->findOrFail($reportId);
             $templates = Template::where('company_id', $companyId)->latest()->get();
             return view('reports_layout.edit', compact('report', 'templates', 'address', 'firstName', 'lastName', 'date'));
         } catch (\Exception $e) {
@@ -1230,9 +1231,7 @@ class ReportLayoutController extends Controller
     }
     public function saveAuthorizationSectionDetails(Request $request)
     {
-
         try {
-
             $pageId = $request->input('page_id');
             $authorizationSectionData = $request->input('authorizationSection');
             $grandTotal = $request->input('grandTotal');
@@ -1320,6 +1319,49 @@ class ReportLayoutController extends Controller
             return response()->json(['status' => true, 'message' => 'Data removed successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred while removing section'], 400);
+        }
+    }
+
+    public function deleteAuthorizationSectionItemRow(Request $request) 
+    {
+        try {
+            $rowId = $request->input('row_id');
+            $pageId = $request->input('page_id');
+    
+            // Validate if row ID exists
+            if (!$rowId) {
+                return response()->json(['status' => false, 'message' => 'Row ID is required'], 400);
+            }
+    
+            // Find the page data
+            $authorization = ReportPageData::where('report_page_id', $pageId)->first();
+    
+            if (!$authorization) {
+                return response()->json(['status' => false, 'message' => 'Authorization data not found'], 404);
+            }
+    
+            // Decode JSON data properly
+            $currentData = is_array($authorization->json_data) ? $authorization->json_data : json_decode($authorization->json_data, true);
+    
+            if (!isset($currentData['sections'])) {
+                return response()->json(['status' => false, 'message' => 'No sections found'], 404);
+            }
+    
+            // Loop through sections and find the item to delete
+            foreach ($currentData['sections'] as &$section) {
+                if (isset($section['sectionItems'])) {
+                    $section['sectionItems'] = array_values(array_filter($section['sectionItems'], function ($item) use ($rowId) {
+                        return $item['rowId'] !== $rowId;
+                    }));
+                }
+            }
+    
+            // Save the updated data back to the database
+            $authorization->update(['json_data' => json_encode($currentData)]);
+    
+            return response()->json(['status' => true, 'message' => 'Item removed successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
