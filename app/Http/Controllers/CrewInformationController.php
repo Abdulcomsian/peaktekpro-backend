@@ -18,7 +18,7 @@ class CrewInformationController extends Controller
                 'build_date'=> 'nullable|string',
                 'status' => 'nullable|string',
                 'crew_name' => 'nullable|string',
-                // 'data' => 'nullable|string'
+                'content' => 'nullable|string'
             ]);
 
             $companyjob = CompanyJob::find($jobId);
@@ -39,12 +39,12 @@ class CrewInformationController extends Controller
             //     'crew_name' => $request->crew_name,
             //     // 'data' => $request->data,
             // ]);
-            $crewInformation = CrewInformation::updateOrCreate([
+            $crewInformation = CrewInformation::create([
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'status' => $request->status,
                 'crew_name' => $request->crew_name,
-                // 'data' => $request->data,
+                'content' => $request->content,
             ]);
     
             return new CrewInformationResource($crewInformation);
@@ -70,7 +70,7 @@ class CrewInformationController extends Controller
                 ]);
             }
 
-            $crewInformation = CrewInformation::where('company_job_id', $jobId)->first();
+            $crewInformation = CrewInformation::where('company_job_id', $jobId)->get();
             if($crewInformation){
                 return response()->json([
                     'status'=> true,

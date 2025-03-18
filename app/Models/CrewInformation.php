@@ -13,6 +13,7 @@ class CrewInformation extends Model
         'company_job_id',
         'build_date',
         'status',
-        'crew_name'
+        'crew_name',
+        'content',
     ];
 }
