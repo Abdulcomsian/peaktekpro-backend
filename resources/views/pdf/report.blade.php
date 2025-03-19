@@ -378,18 +378,16 @@
             <div class="repairability-assessment-images">
 
 
-                @if (isset($jsonData['repariability_assessment_images']) && isset($jsonData['repariability_assessment_images']['path']))
+                @if (isset($jsonData['repairability_assessment_images']) && isset($jsonData['repairability_assessment_images']['path']))
                 <div class="second-image" style="height:400px;">
-                    <img src="{{ public_path('storage/' . $jsonData['repariability_assessment_images']['path']) }}"
-                     alt="repariability_assessment_images"
+                <img src="{{ public_path('storage/' . $jsonData['repairability_assessment_images']['path']) }}" 
+                alt="repairability_assessment_images"
                       style="
                        object-fit: cover;
                 width: 100%;
                 height: 800px;
                 object-position: center center; 
                       " />
-                    <!-- <img src="{{ asset($jsonData['repariability_assessment_images']['path']) }}" alt="repariability_assessment_images" height="200px" width="300px" /> -->
-                    <!-- <img src="{{ asset('storage/' . $jsonData['repariability_assessment_images']['path']) }}" alt="Repairability Assessment Image" height="200px" width="300px" /> -->
 
 
                 </div>
