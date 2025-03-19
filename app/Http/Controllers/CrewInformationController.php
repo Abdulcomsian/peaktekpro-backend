@@ -2,23 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
+use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\CrewInformation;
+use App\Mail\CrewInformationEmail;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Resources\CrewInformationResource;
-use App\Models\CompanyJob;
-use Exception;
 
 class CrewInformationController extends Controller
 {
     public function addCrewInformation(Request $request,$jobId)
     {
-        // dd($jobId);
         try{
             $request->validate([
                 'build_date'=> 'nullable|string',
                 'status' => 'nullable|string',
                 'crew_name' => 'nullable|string',
-                'content' => 'nullable|string'
+                'content' => 'nullable|string',
+                'email'=> 'nullable|string',
             ]);
 
             $companyjob = CompanyJob::find($jobId);
@@ -29,24 +31,17 @@ class CrewInformationController extends Controller
                 ]);
             }
     
-            // $crewInformation = CrewInformation::updateOrCreate([
-            //     'company_job_id' => $jobId,
-            // ],
-            // [
-            //     'company_job_id' => $jobId,
-            //     'build_date' => $request->build_date,
-            //     'status' => $request->status,
-            //     'crew_name' => $request->crew_name,
-            //     // 'data' => $request->data,
-            // ]);
             $crewInformation = CrewInformation::create([
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'status' => $request->status,
                 'crew_name' => $request->crew_name,
                 'content' => $request->content,
+                'email'=> $request->email,
             ]);
-    
+
+            Mail::to($request->email)->send(new CrewInformationEmail($crewInformation));
+
             return new CrewInformationResource($crewInformation);
 
         }catch(Exception $e){
