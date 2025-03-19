@@ -22,6 +22,7 @@ class CrewInformationResource extends JsonResource
             // 'status' => $this->status,
             'crew_name'=> $this->crew_name,
             'content'=> $this->content,
+            'email'=> $this->email,
 
         ];
     }

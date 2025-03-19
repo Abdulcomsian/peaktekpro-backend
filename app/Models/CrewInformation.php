@@ -15,5 +15,6 @@ class CrewInformation extends Model
         'status',
         'crew_name',
         'content',
+        'email',
     ];
 }
