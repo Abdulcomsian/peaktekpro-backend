@@ -378,22 +378,37 @@
             <div class="repairability-assessment-images">
 
 
-                @if (isset($jsonData['repairability_assessment_images']) && isset($jsonData['repairability_assessment_images']['path']))
-                <div class="second-image" style="height:400px;">
-                <img src="{{ public_path('storage/' . $jsonData['repairability_assessment_images']['path']) }}" 
+            @if (isset($jsonData['repairability_assessment_images']) && isset($jsonData['repairability_assessment_images']['path']))
+    @php
+        $imagePath = public_path('storage/' . $jsonData['repairability_assessment_images']['path']);
+    @endphp
+
+    @if (file_exists($imagePath))
+        <div class="second-image">
+            <img src="{{ public_path('storage/' . $jsonData['repairability_assessment_images']['path']) }}" 
                 alt="repairability_assessment_images"
-                      style="
-                       object-fit: cover;
-                width: 100%;
-                height: 800px;
-                object-position: center center; 
-                      " />
+                style="
+                    object-fit: cover;
+                    width: 100%;
+                    height: auto;
+                    object-position: center center;
+                " />
+        </div>
+    @else
+        <p style="color: red; text-align: center; font-weight: bold;">
+            Image not found or missing from storage.
+        </p>
+    @endif
+@else
+    <p style="color: gray; text-align: center;">
+        No image available for repairability assessment.
+    </p>
+@endif
 
-
-                </div>
-                @endif
             </div>
+
         @break
+
 
         <!-- third Section -->
     

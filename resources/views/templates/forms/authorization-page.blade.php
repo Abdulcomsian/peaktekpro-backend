@@ -162,7 +162,8 @@
         <div class="mb-4">
             <label for="authorization-footer-text" class="block text-gray-700 text-sm font-medium">Footer</label>
             <div id="authorization-footer-text-quill" class="bg-white"></div>
-            <textarea class="hidden" id="authorization-footer-text" name="authorization_footer_text" required>{{ $pageData->json_data['authorization_footer_text'] ?? '' }}</textarea>
+            <textarea class="hidden" id="authorization-footer-text" name="authorization_footer_text" required>
+                {{ $pageData->json_data['authorization_footer_text'] ?? '' }}</textarea>
         </div>
 
     </form>
@@ -219,74 +220,48 @@
         }, 500); // Delay in milliseconds
 
         // quill
-        const authorizationFooterTextQuillOptions = [
-            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-            ['blockquote', 'code-block'],
-            ['link'],
-            [{
-                'header': 1
-            }, {
-                'header': 2
-            }], // custom button values
-            [{
-                'list': 'ordered'
-            }, {
-                'list': 'bullet'
-            }, {
-                'list': 'check'
-            }],
-            [{
-                'script': 'sub'
-            }, {
-                'script': 'super'
-            }], // superscript/subscript
-            [{
-                'header': [1, 2, 3, 4, 5, 6, false]
-            }],
+            // quill
+     document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Footer Quill Editor
+            const footerQuillOptions = [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                ['link'],
+                [{ header: 1 }, { header: 2 }],
+                [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
+                [{ script: 'sub' }, { script: 'super' }],
+                [{ header: [1, 2, 3, 4, 5, 6, false] }],
+                [{ color: [] }, { background: [] }],
+                [{ font: [] }],
+                [{ align: [] }],
+                ['clean']
+            ];
 
-            [{
-                'color': []
-            }, {
-                'background': []
-            }], // dropdown with defaults from theme
-            [{
-                'font': []
-            }],
-            [{
-                'align': []
-            }],
-            ['clean'] // remove formatting button
-        ];
-        var authorizationFooterTextQuill = new Quill('#authorization-footer-text-quill', {
-            theme: 'snow',
-            modules: {
-                toolbar: authorizationFooterTextQuillOptions
-            }
-        });
-        // Set the height dynamically via JavaScript
-        authorizationFooterTextQuill.root.style.height = '200px';
-
-        // old text value
-        let oldAuthorizationlFooterTextValue = "{!! $pageData->json_data['authorization_footer_text'] ?? '' !!}";
-
-        // Load the saved content into the editor
-        authorizationFooterTextQuill.clipboard.dangerouslyPasteHTML(oldAuthorizationlFooterTextValue);
-        authorizationFooterTextQuill.on('text-change', function() {
-            $('#authorization-footer-text').val(authorizationFooterTextQuill.root.innerHTML);
-
-            //save textarea data
-            saveTemplatePageTextareaData('#authorization-footer-text');
-        });
-
-        // Update Grand Total
-        function updateAuthorizationGrandTotal() {
-            let grandTotal = 0;
-            $(".authorization-section-total").each(function() {
-                grandTotal += parseFloat($(this).text().replace("$", "")) || 0;
+            const footerQuill = new Quill('#authorization-footer-text-quill', {
+                theme: 'snow',
+                modules: { toolbar: footerQuillOptions }
             });
-            $("#authorization-grand-total").text(`$${grandTotal.toFixed(2)}`);
-        }
 
+            // Initialize Footer Content
+            const initialFooterContent = @json($pageData->json_data['authorization_footer_text'] ?? '');
+            if(initialFooterContent.trim() === '') {
+                footerQuill.root.innerHTML = '<p><br></p>';
+            } else {
+                footerQuill.clipboard.dangerouslyPasteHTML(initialFooterContent);
+            }
+
+            // Footer Content Sync
+            footerQuill.on('text-change', () => {
+                const content = footerQuill.root.innerHTML;
+                document.getElementById('authorization-footer-text').value = 
+                    content === '<p><br></p>' ? '' : content;
+                saveTemplatePageTextareaData('#authorization-footer-text');
+            });
+
+            // Maintain Footer Editor Height
+            new ResizeObserver(() => footerQuill.update()).observe(footerQuill.root);
+            footerQuill.root.style.height = '200px';
+        });
         // Function to Create a New Row
         function createRow() {
             return `
@@ -514,6 +489,18 @@
                     saveAuthorizationSectionData($(this));
                 }
             });
+        }
+
+          // this function to calculate grand total
+          function updateAuthorizationGrandTotal() {
+            let grandTotal = 0;
+            $(".authorization-section-total").each(function() {
+                grandTotal += parseFloat($(this).text().replace('$', '')) || 0;
+            });
+            $("#authorization-grand-total").text(`$${grandTotal.toFixed(2)}`);
+            
+            // Update hidden field if needed
+            $('input[name="authorization_grand_total"]').val(grandTotal.toFixed(2));
         }
 
         // Initially apply sortable to the rowscontainer
