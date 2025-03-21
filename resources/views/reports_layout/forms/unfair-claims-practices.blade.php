@@ -26,7 +26,9 @@
         <p>shared pdfs</p>
     </div>
 </div>
-
+<div id="unfair-pdf-upload-loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+</div>
 @push('scripts')
     <script type="text/javascript">
         // drop zone
@@ -57,6 +59,8 @@
                 showFileOnLoadInDropzone(this, unfairClaimFileData);
 
                 this.on("sending", function(file, xhr, formData) {
+                    $("#unfair-pdf-upload-loader").removeClass("hidden"); // Show loader
+
                     formData.append('type', 'unfair_claim_file');
                     formData.append('page_id', pageId);
                     formData.append('folder', 'unfair_claim_file');
@@ -76,7 +80,15 @@
                 });
 
                 this.on("success", function(file, response) {
+                    $("#unfair-pdf-upload-loader").addClass("hidden"); // Hide loader on error
+
                     showSuccessNotification(response.message);
+                });
+
+                this.on("error", function(file, message) {
+                    $("#unfair-pdf-upload-loader").addClass("hidden"); // Hide loader on error
+                    showErrorNotification(message);
+                    this.removeFile(file);
                 });
 
                 this.on("removedfile", function(file) {

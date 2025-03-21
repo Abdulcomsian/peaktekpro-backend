@@ -37,7 +37,9 @@
         </div>
     </form>
 </div>
-
+<div id="pdf-upload-loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+</div>
 @push('scripts')
     <script type="text/javascript">
         // Show the appropriate form when the radio button is changed
@@ -85,12 +87,16 @@
                 });
 
                 this.on("sending", function(file, xhr, formData) {
+                    $("#pdf-upload-loader").removeClass("hidden"); // Show loader
+
                     formData.append('type', 'product_compatibility_files');
                     formData.append('page_id', pageId);
                     formData.append('folder', 'product_compatibility');
                 });
 
                 this.on("successmultiple", function(files, response) {
+                    $("#pdf-upload-loader").addClass("hidden"); // Hide loader
+
                     if (response.status && response.file_details.length === files.length) {
                         files.forEach((file, index) => {
                             const fileData = response.file_details[index];
@@ -100,6 +106,13 @@
                     } else {
                         showErrorNotification("Upload error.");
                     }
+                });
+
+                
+                this.on("error", function(file, message) {
+                    $("#pdf-upload-loader").addClass("hidden"); // Hide loader on error
+                    showErrorNotification(message);
+                    this.removeFile(file);
                 });
 
                 this.on("removedfile", function(file) {
