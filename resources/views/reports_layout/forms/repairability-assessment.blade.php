@@ -22,7 +22,9 @@
         </div>
     </form>
 </div>
-
+<div id="upload-loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+</div>
 <style>
     /* Custom Quill Editor Styles */
     .quill-editor-container {
@@ -107,12 +109,16 @@
             });
 
             this.on("sending", (file, xhr, formData) => {
+                $("#upload-loader").removeClass("hidden"); // Show loader
+
                 formData.append('type', 'repairability_assessment_images');
                 formData.append('page_id', pageId);
                 formData.append('folder', 'repairability_assessment');
             });
 
             this.on("success", (file, response) => {
+                $("#upload-loader").addClass("hidden"); // Hide loader
+
                 showSuccessNotification(response.message);
                 if(response.path) file.previewElement.dataset.path = response.path;
             });
@@ -126,6 +132,8 @@
             });
 
             this.on("error", (file, message) => {
+                $("#upload-loader").addClass("hidden"); // Hide loader
+
                 showErrorNotification(message);
                 this.removeFile(file);
             });

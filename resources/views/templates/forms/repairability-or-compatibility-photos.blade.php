@@ -140,6 +140,9 @@
         + Add Section
     </button>
 </div>
+<div id="repairability-upload-loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+</div>
 
 @push('scripts')
 <script>
@@ -240,6 +243,8 @@
     }
 }
 this.on("addedfile", function(file) {
+    $("#repairability-upload-loader").removeClass("hidden"); // Show loader
+
     var reader = new FileReader();
     reader.onload = function(e) {
         const imagePreviewHtml = `
@@ -260,11 +265,15 @@ this.on("addedfile", function(file) {
         });
 
         this.on("success", function(file, response) {
+            $("#repairability-upload-loader").addClass("hidden"); // Hide loader
+
             console.log('Upload successful:', response);
             sendDataToAjax(dropzoneElement.closest('.compatibility-section'));
         });
 
         this.on("error", function(file, errorMessage) {
+            $("#repairability-upload-loader").addClass("hidden"); // Hide loader
+
             console.error('Error uploading file:', errorMessage);
         });
     }

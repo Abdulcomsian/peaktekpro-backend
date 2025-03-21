@@ -146,17 +146,12 @@
     </button>
 </div>
 
-<!-- Global Loader (initially hidden) -->
-<div id="global-loader" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50" style="display: none;">
-    <div class="spinner"></div>
-    <span class="mt-2 text-white text-lg">Uploading...</span>
+<div id="repairability-upload-loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
 </div>
 
 <style>
-    /* Global Loader Styles */
-#global-loader {
-    /* Already defined in the element's class above */
-}
+
 
 .spinner {
     width: 40px;
@@ -290,10 +285,11 @@
                     });
 
                     this.on("sending", function(file, xhr, formData) {
+                        $("#repairability-upload-loader").removeClass("hidden"); // Show loader
+
                 formData.append('page_id', pageId);
                 formData.append('item_id', itemId);
                 // Show the global loader
-                document.getElementById('global-loader').style.display = 'flex';
             });
             
             this.on("complete", function(file) {
@@ -310,6 +306,8 @@
                     });
 
                     this.on("success", function(file, response) {
+                        $("#repairability-upload-loader").addClass("hidden"); // Hide loader
+
                         // Add event listener for the remove button
                         $(`#compatibility-dropzone-${itemId}`).on("click", ".remove-image-btn", function() {
                             deleteFileFromRepairablityDropzone(
@@ -328,6 +326,8 @@
                     });
 
                     this.on("error", function(file, errorMessage) {
+                        $("#repairability-upload-loader").addClass("hidden"); // Hide loader
+
                         console.error('Error uploading file:', errorMessage);
                     });
                 }
