@@ -22,14 +22,14 @@
                 <label for="first-name" class="block text-gray-700 text-sm font-medium mb-2">First Name</label>
                 <input type="text" id="first-name" name="first_name"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{ $firstName ?? '' }}" required />
+                    value="{{ $firstName ?? '' }}" required readonly />
             </div>
             <!-- Last Name -->
             <div class="mb-4 grow">
                 <label for="last-name" class="block text-gray-700 text-sm font-medium mb-2">Last Name</label>
                 <input type="text" id="last-name" name="last_name"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 inp-data"
-                    value="{{ $lastName ?? '' }}" required />
+                    value="{{ $lastName ?? '' }}" required readonly/>
             </div>
         </div>
 
