@@ -229,7 +229,8 @@
         }, 500); // Delay in milliseconds
 
         // update on section title and toggle
-        $(document).on('keyup change', '.quote-section-title , .section-toggle', function() {
+      
+        $('#sections-container').on('keyup change', '.quote-section-title , .section-toggle', function() {
             saveQuoteSectionData($(this))
         });
 
