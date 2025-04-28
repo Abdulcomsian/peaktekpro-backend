@@ -6,6 +6,7 @@ use Exception;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Status;
+use App\Models\Payment;
 use App\Models\Location;
 use App\Models\CompanyJob;
 use App\Models\ClaimDetail;
@@ -13,6 +14,7 @@ use Illuminate\Support\Str;
 use App\Models\CompanyNotes;
 use Illuminate\Http\Request;
 use App\Models\CompanyJobUser;
+use App\Models\ClaimDetailMedia;
 use App\Models\ClaimInformation;
 use App\Models\CompanyJobContent;
 use App\Models\CompanyJobSummary;
@@ -28,7 +30,6 @@ use App\Models\CompanyJobContentMedia;
 use App\Models\ProjectDesignPageStatus;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ClaimDetailRequest;
-use App\Models\Payment;
 use Illuminate\Support\Facades\DB as FacadesDB;
 
 class CompanyJobController extends Controller
@@ -2857,6 +2858,7 @@ class CompanyJobController extends Controller
     public function claimDetails($jobId, ClaimDetailRequest $request)
     {
         try{
+            // dd($jobId);
             $job = CompanyJob::where('id',$jobId)->first();
             if(!$job)
             {
@@ -2866,7 +2868,7 @@ class CompanyJobController extends Controller
                     'data'=>[]
                 ]);
             }
-             $request->validated();
+            //  $request->validated();
             // $ClaimDetail = ClaimDetail::where('company_job_id',$jobId)->first();
 
             // if($ClaimDetail){
@@ -2879,6 +2881,9 @@ class CompanyJobController extends Controller
             //     $message = "Claim Details Updated";
             // }else{
                 $ClaimDetail = new ClaimDetail();
+                $ClaimDetail->insurance_company = $request->insurance_company;
+                $ClaimDetail->desk_adjustor =$request->desk_adjustor;
+                $ClaimDetail->email = $request->email;
                 $ClaimDetail->company_job_id = $jobId;
                 $ClaimDetail->claim_number = $request->claim_number;
                 $ClaimDetail->status = $request->status;
@@ -2918,12 +2923,93 @@ class CompanyJobController extends Controller
             ]);
         }
         return response()->json([
-            'status_code' =>200,
+            'status_code' =>404,
             'message' => 'Claim Details Not Found',
             'data' => []
         ]);
 
         
+    }
+
+    public function claimDetailsDocuments($claimId,Request $request)
+    {
+        $ClaimDetail = ClaimDetail::find($claimId);
+        if(!$ClaimDetail)
+        {
+            return response()->json([
+                'status_code' =>404,
+                'message' => 'Claim Details Not Found',
+                'data' => []
+            ]);
+        }
+
+        $request->validate([
+            'document' => 'nullable|array', 
+            'document.*' => 'nullable|file', 
+            'file_name' => 'nullable|array',         
+            'file_name.*' => 'nullable|string',      
+        ]);
+
+        $existingPhotos = ClaimDetailMedia::where('claim_details_id', $claimId)->get();
+        foreach ($existingPhotos as $photo) {
+            // Delete file from storage
+            $filePath = str_replace('/storage/', 'public/', $photo->document); // Convert storage path to public disk path
+            Storage::delete($filePath);
+            $photo->delete(); // Delete the record from the database
+        }
+
+        $savedPhotos = []; // To store successfully saved photos
+        $squarePhotos = $request->document ?? [];
+        foreach ($squarePhotos as $index => $document) {
+            $document_fileName = time() . '_' . $document->getClientOriginalName();
+            $document_filePath = $document->storeAs('ClaimDetailsDocument', $document_fileName, 'public');
+
+            // Save new photo in database
+            $media = new ClaimDetailMedia();
+            $media->claim_details_id = $claimId;
+            $media->file_name = $request->file_name[$index] ?? null;
+            $media->pdf_path = Storage::url($document_filePath);
+            $media->save();
+
+               // Collect saved photo details
+               $savedPhotos[] = [
+                'id' => $media->id,
+                'claim_details_id' => $media->claim_details_id,
+                'file_name' => $media->file_name,
+                'pdf_path' => $media->pdf_path,
+                'created_at' => $media->created_at,
+                'updated_at' => $media->updated_at,
+            ];
+
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Document Updated Successfully',
+            'data' => $savedPhotos,
+        ]);
+
+
+    }
+
+    public function getClaimDetailsDocuments($claimId)
+    {
+        $ClaimDetail = ClaimDetail::find($claimId);
+        if(!$ClaimDetail)
+        {
+            return response()->json([
+                'status_code' =>404,
+                'message' => 'Claim Details Not Found',
+                'data' => []
+            ]);
+        }
+
+        $document = ClaimDetailMedia::where('claim_details_id',$claimId)->get();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Document Fetched Successfully',
+            'data' => $document,
+        ]);
     }
 
     public function summaryMetrics()

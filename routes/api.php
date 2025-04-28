@@ -160,6 +160,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('add/claim-details/{jobId}', [CompanyJobController::class, 'claimDetails']);
     Route::get('get/claim-details/{jobId}', [CompanyJobController::class, 'getclaimDetails']);
 
+    //Claim Details Media
+    Route::post('add/claim-details/documents/{claimId}', [CompanyJobController::class, 'claimDetailsDocuments']);
+    Route::get('get/claim-details/documents/{claimId}', [CompanyJobController::class, 'getClaimDetailsDocuments']);
+
     ///Summary Metrics Section
     Route::get('summary-metrics', [CompanyJobController::class, 'summaryMetrics']); //Summary Metrics and Alerts Section Api
     Route::get('summary-filter', [CompanyJobController::class, 'summaryFilter']);  //Summary and Key Metrics api
