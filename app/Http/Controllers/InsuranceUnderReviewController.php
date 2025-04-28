@@ -8,6 +8,8 @@ use App\Models\InsuranceUnderReview;
 use Illuminate\Support\Facades\Storage;
 use App\Models\InsuranceUnderReviewPhotos;
 use App\Http\Requests\InsuranceUnderReview\StoreRequest;
+use Carbon\Carbon;
+
 class InsuranceUnderReviewController extends Controller
 {
     public function addInsuranceUnderReview200($id, Request $request)
@@ -157,6 +159,10 @@ class InsuranceUnderReviewController extends Controller
 
             // $filePath = null;
 
+            $date = $request->input('date'); // or $request->date
+            $formattedDate = Carbon::createFromFormat('m-d-Y', $date)->format('Y-m-d');
+
+            // dd($formattedDate);
             $insurance = InsuranceUnderReview::where('company_job_id', $id)->first();
             $existingFilePath = $insurance ? $insurance->pdf_path : null;
             //store attachements here
@@ -193,7 +199,7 @@ class InsuranceUnderReviewController extends Controller
                     'adjustor_name' => $request->adjustor_name,
                     'email' => $request->email,
                     'phone' => $request->phone,
-                    'date' => $request->date,
+                    'date' => $formattedDate,
 
                     'notes' => $request->notes,
                     'pdf_path' => $filePath ? Storage::url($filePath) : null,
