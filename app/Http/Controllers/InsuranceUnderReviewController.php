@@ -10,7 +10,7 @@ use App\Models\InsuranceUnderReviewPhotos;
 use App\Http\Requests\InsuranceUnderReview\StoreRequest;
 class InsuranceUnderReviewController extends Controller
 {
-    public function addInsuranceUnderReview($id, Request $request)
+    public function addInsuranceUnderReview200($id, Request $request)
     {
         // dd($request->all());
         $request->validate([
@@ -131,6 +131,92 @@ class InsuranceUnderReviewController extends Controller
         }
     }
 
+    public function addInsuranceUnderReview($id, Request $request)
+    {
+        $request->validate([
+            'adjustor_name' => 'nullable|string',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|string',
+            'notes' => 'nullable|string',
+       
+            'pdf_path'=>  'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt', 
+            'file_name'=> 'nullable|string',
+            'status' => 'nullable|in:approved,overturn,denied'   
+        ]);
+        $filePath = null;
+
+
+        try {
+            $company = CompanyJob::find($id);
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Company Not Found',
+                ]);
+            }
+
+            // $filePath = null;
+
+            $insurance = InsuranceUnderReview::where('company_job_id', $id)->first();
+            $existingFilePath = $insurance ? $insurance->pdf_path : null;
+            //store attachements here
+            if ($request->hasFile('pdf_path')) {
+                 // Delete the old document if it exists
+                if ($existingFilePath) {
+                    $oldFilePath = str_replace('/storage/', 'public/', $existingFilePath);
+                    Storage::delete($oldFilePath);
+                }
+                $document = $request->file('pdf_path');
+                $fileName = uniqid() . '_' . $document->getClientOriginalName();
+                $filePath = $document->storeAs('public/insurance_under_review', $fileName);
+            }else {
+                $newFilePath = $existingFilePath ? str_replace('/storage/', 'public/', $existingFilePath) : null;
+            }
+
+            //job status update
+            if($request->status == "approved"){
+                $company->status_id = 8;
+                $company->save();
+            }elseif($request->status == "overturn"){
+                $company->status_id = 6;
+                $company->save();
+            }elseif($request->status == "denied"){
+                $company->status_id = 5;
+                $company->save();
+            }
+
+
+            //save the insurance data
+            $insurance = InsuranceUnderReview::updateOrCreate(
+                ['company_job_id' => $id],
+                [
+                    'adjustor_name' => $request->adjustor_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'notes' => $request->notes,
+                    'pdf_path' => $filePath ? Storage::url($filePath) : null,
+                    'file_name' => $request->file_name,
+                    'status' => $request->status,
+
+                ]
+            );
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Insurance Added Successfully',
+                'data' =>   $insurance               
+           
+            ]);
+        } 
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+        }
+    }
+
     public function getInsuranceUnderReview($id, Request $request)
     {
         try {
@@ -143,7 +229,7 @@ class InsuranceUnderReviewController extends Controller
                 ]);
             }
 
-            $insurance = InsuranceUnderReview::with('getPhotos')->where('company_job_id',$id)->first();
+            $insurance = InsuranceUnderReview::where('company_job_id',$id)->first();
             // dd($insurance);
             if(!$insurance){
                 return response()->json([

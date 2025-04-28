@@ -10,6 +10,9 @@ class InsuranceUnderReview extends Model
     use HasFactory;
     protected $fillable=[
         'company_job_id',
+        'adjustor_name',
+        'email',
+        'phone',
         'notes',
         'status',
         'pdf_path',
