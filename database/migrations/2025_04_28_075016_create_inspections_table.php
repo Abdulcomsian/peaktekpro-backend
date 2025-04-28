@@ -13,11 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('claim_detail_media', function (Blueprint $table) {
+        Schema::create('inspections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_job_id')->constrained('company_jobs');
-            $table->string('pdf_path')->nullable();
-            $table->string('file_name')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('claim_detail_media');
+        Schema::dropIfExists('inspections');
     }
 };
