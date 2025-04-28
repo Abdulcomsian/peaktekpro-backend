@@ -117,4 +117,20 @@ class InspectionController extends Controller
             'message' => 'Media Deleted Successfully',
         ]);
     }
+
+    public function getAllStatus()
+    {
+        // Fetch the status column from all 10 tables
+        $statusesFromTable1 = Table1::pluck('status');
+        $statusesFromTable2 = Table2::pluck('status');
+        // Repeat for other tables
+        
+        // You can merge them if needed
+        $allStatuses = $statusesFromTable1->merge($statusesFromTable2);
+        // Add other statuses to the $allStatuses collection as needed
+
+        return response()->json([
+            'status' => $allStatuses,
+        ]);
+    }
 }
