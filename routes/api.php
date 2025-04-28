@@ -423,7 +423,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/companyJob-reports/{jobId}', [ReportController::class, 'getJobReports']); //get job reports api
 
     //inspections Apis
-    Route::get('add/inspection/{jobId}', [InspectionController::class, 'addInspection']); 
+    Route::post('add/inspection/{jobId}', [InspectionController::class, 'addInspection']); 
+    Route::get('get/inspection/{jobId}', [InspectionController::class, 'getInspection']); 
+    Route::post('delete/inspection/{jobId}', [InspectionController::class, 'deleteInspection']); 
 
 
 
