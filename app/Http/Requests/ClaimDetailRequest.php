@@ -24,12 +24,19 @@ class ClaimDetailRequest extends FormRequest
     public function rules()
     {
         return [
-            
+            'insurance_company' => 'nullable',
+            'desk_adjustor' => 'nullable',
+            'email' => 'nullable',
+
             'claim_number' => 'nullable',
-            'status' => 'nullable|in:Pending,Supplement,Denied,Approved',
             'supplement_amount' => 'nullable|string',
+            'status' => 'nullable|in:Pending,Supplement,Denied,Approved',
+            'last_update_date' =>'nullable|date',
             'notes' => 'nullable|string',
-            'last_update_date' =>'nullable|date'
+
+            // 'pdf_path' => 'nullable',
+            // 'file_name'=> 'nullable',
+
 
         ];
     }
