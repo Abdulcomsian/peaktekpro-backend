@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdjustorMeeting;
+use App\Models\BuildComplete;
 use App\Models\CompanyJob;
 use App\Models\Inspection;
 use Illuminate\Http\Request;
@@ -121,8 +123,9 @@ class InspectionController extends Controller
     public function getAllStatus()
     {
         // Fetch the status column from all 10 tables
-        $statusesFromTable1 = Table1::pluck('status');
-        $statusesFromTable2 = Table2::pluck('status');
+        $statusesFromTable1 = AdjustorMeeting::pluck('status');
+        $statusesFromTable2 = BuildComplete::pluck('status');
+        $statusesFromTable2 = Coc::pluck('status');
         // Repeat for other tables
         
         // You can merge them if needed
