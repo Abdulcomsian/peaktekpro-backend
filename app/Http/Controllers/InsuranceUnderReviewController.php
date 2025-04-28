@@ -138,7 +138,7 @@ class InsuranceUnderReviewController extends Controller
             'phone' => 'nullable|string',
             'email' => 'nullable|string',
             'notes' => 'nullable|string',
-       
+            'date' => 'nullable|date',
             'pdf_path'=>  'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt', 
             'file_name'=> 'nullable|string',
             'status' => 'nullable|in:approved,overturn,denied'   
@@ -193,6 +193,8 @@ class InsuranceUnderReviewController extends Controller
                     'adjustor_name' => $request->adjustor_name,
                     'email' => $request->email,
                     'phone' => $request->phone,
+                    'date' => $request->date,
+
                     'notes' => $request->notes,
                     'pdf_path' => $filePath ? Storage::url($filePath) : null,
                     'file_name' => $request->file_name,
