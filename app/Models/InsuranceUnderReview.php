@@ -14,6 +14,7 @@ class InsuranceUnderReview extends Model
         'email',
         'phone',
         'notes',
+        'date',
         'status',
         'pdf_path',
         'file_name',
