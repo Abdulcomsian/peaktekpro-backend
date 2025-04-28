@@ -2931,14 +2931,15 @@ class CompanyJobController extends Controller
         
     }
 
-    public function claimDetailsDocuments($claimId,Request $request)
+    public function claimDetailsDocuments($jobId,Request $request)
     {
-        $ClaimDetail = ClaimDetail::find($claimId);
-        if(!$ClaimDetail)
+        // dd($jobId);
+        $companyJob = CompanyJob::find($jobId);
+        if(!$companyJob)
         {
             return response()->json([
                 'status_code' =>404,
-                'message' => 'Claim Details Not Found',
+                'message' => 'Company Job Not Found',
                 'data' => []
             ]);
         }
@@ -2950,7 +2951,8 @@ class CompanyJobController extends Controller
             'file_name.*' => 'nullable|string',      
         ]);
 
-        $existingPhotos = ClaimDetailMedia::where('claim_details_id', $claimId)->get();
+        $existingPhotos = ClaimDetailMedia::where('company_job_id', $jobId)->get();
+        // dd($existingPhotos);
         foreach ($existingPhotos as $photo) {
             // Delete file from storage
             $filePath = str_replace('/storage/', 'public/', $photo->document); // Convert storage path to public disk path
@@ -2966,7 +2968,7 @@ class CompanyJobController extends Controller
 
             // Save new photo in database
             $media = new ClaimDetailMedia();
-            $media->claim_details_id = $claimId;
+            $media->company_job_id = $jobId;
             $media->file_name = $request->file_name[$index] ?? null;
             $media->pdf_path = Storage::url($document_filePath);
             $media->save();
@@ -2974,7 +2976,7 @@ class CompanyJobController extends Controller
                // Collect saved photo details
                $savedPhotos[] = [
                 'id' => $media->id,
-                'claim_details_id' => $media->claim_details_id,
+                'company_job_id' => $media->company_job_id,
                 'file_name' => $media->file_name,
                 'pdf_path' => $media->pdf_path,
                 'created_at' => $media->created_at,
@@ -2992,19 +2994,19 @@ class CompanyJobController extends Controller
 
     }
 
-    public function getClaimDetailsDocuments($claimId)
+    public function getClaimDetailsDocuments($jobId)
     {
-        $ClaimDetail = ClaimDetail::find($claimId);
+        $ClaimDetail = CompanyJob::find($jobId);
         if(!$ClaimDetail)
         {
             return response()->json([
                 'status_code' =>404,
-                'message' => 'Claim Details Not Found',
+                'message' => 'Company Job Not Found',
                 'data' => []
             ]);
         }
 
-        $document = ClaimDetailMedia::where('claim_details_id',$claimId)->get();
+        $document = ClaimDetailMedia::where('company_job_id',$jobId)->get();
         return response()->json([
             'status' => 200,
             'message' => 'Document Fetched Successfully',

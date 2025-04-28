@@ -15,6 +15,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\WonClosedController;
 use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\InprogressController;
+use App\Http\Controllers\InspectionController;
 use App\Http\Controllers\CarrierScopeController;
 use App\Http\Controllers\FinalPaymentController;
 use App\Http\Controllers\QcInspectionController;
@@ -161,8 +162,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/claim-details/{jobId}', [CompanyJobController::class, 'getclaimDetails']);
 
     //Claim Details Media
-    Route::post('add/claim-details/documents/{claimId}', [CompanyJobController::class, 'claimDetailsDocuments']);
-    Route::get('get/claim-details/documents/{claimId}', [CompanyJobController::class, 'getClaimDetailsDocuments']);
+    Route::post('add/claim-details/documents/{jobId}', [CompanyJobController::class, 'claimDetailsDocuments']);
+    Route::get('get/claim-details/documents/{jobId}', [CompanyJobController::class, 'getClaimDetailsDocuments']);
 
     ///Summary Metrics Section
     Route::get('summary-metrics', [CompanyJobController::class, 'summaryMetrics']); //Summary Metrics and Alerts Section Api
@@ -420,6 +421,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //get job reports////
     Route::get('get/companyJob-reports/{jobId}', [ReportController::class, 'getJobReports']); //get job reports api
+
+    //inspections Apis
+    Route::get('add/inspection/{jobId}', [InspectionController::class, 'addInspection']); 
 
 
 
