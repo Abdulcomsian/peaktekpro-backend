@@ -428,7 +428,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('delete/inspection/{jobId}', [InspectionController::class, 'deleteInspection']); 
 
     Route::post('get-all-statuses/{jobId}', [InspectionController::class, 'getAllStatus']); 
-
+    
 
 
 });

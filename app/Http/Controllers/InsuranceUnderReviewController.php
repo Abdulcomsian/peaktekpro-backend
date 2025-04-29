@@ -145,10 +145,11 @@ class InsuranceUnderReviewController extends Controller
             'file_name'=> 'nullable|string',
             'status' => 'nullable|in:approved,overturn,denied'   
         ]);
-        $filePath = null;
 
 
         try {
+            $filePath = null;
+
             $company = CompanyJob::find($id);
             if (!$company) {
                 return response()->json([
@@ -160,7 +161,7 @@ class InsuranceUnderReviewController extends Controller
             // $filePath = null;
 
             $date = $request->input('date'); // or $request->date
-            $formattedDate = Carbon::createFromFormat('m-d-Y', $date)->format('Y-m-d');
+            $formattedDate = Carbon::createFromFormat('m/d/Y', $date)->format('Y-m-d');
 
             // dd($formattedDate);
             $insurance = InsuranceUnderReview::where('company_job_id', $id)->first();
