@@ -24,26 +24,22 @@ class StatusSeeder extends Seeder
         
         $statuses = [
             ['name' => 'New Leads'],
-            ['name' => 'Customer Agreement'],
+            ['name' => 'Inspection'],
+            ['name' => 'Signed Deal'],
             ['name' => 'Estimate Prepared'],
             ['name' => 'Adjuster Scheduled'],
-            ['name' => 'Ins Under Review'],
-            ['name' => 'Overturn'],
-            ['name' => 'Appraisal'],
             ['name' => 'Approved'],
-            ['name' => 'Crew Information'],
+            ['name' => 'Denied'],
+            ['name' => 'Partial'],
             ['name' => 'Ready To Build'],
             ['name' => 'Build Scheduled'],
             ['name' => 'In Progress'],
             ['name' => 'Build Complete'],
             ['name' => 'COC Required'],
             ['name' => 'Final Payment Due'],
-            ['name' => 'Ready to Close'],
-            ['name' => 'Supplement Submitted'],
             ['name' => 'Won and Closed'],
-            ['name' => 'Lost'],
-            ['name' => 'Unqualified'],
-            ['name' => 'Completed'],
+           
+        
             
 
 

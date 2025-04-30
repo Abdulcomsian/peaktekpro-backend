@@ -169,7 +169,7 @@ class InsuranceUnderReviewController extends Controller
             //store attachements here
             if ($request->hasFile('pdf_path')) {
                  // Delete the old document if it exists
-                if ($existingFilePath) {
+                if ($existingFilePath) { 
                     $oldFilePath = str_replace('/storage/', 'public/', $existingFilePath);
                     Storage::delete($oldFilePath);
                 }
