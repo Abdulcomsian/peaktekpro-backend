@@ -294,22 +294,22 @@ class CompanyJobController extends Controller
             // Define statuses
             $statuses = Status::whereIn('name', [
                 'New Leads',
-                'Customer Agreement',
+                'Inspection',
+                'Signed Deal',
+                'Estimate Prepared',
                 'Adjuster Scheduled',
-                'Ins Under Review',
-                'Overturn',
-                'Appraisal',
                 'Approved',
+                'Denied',
+                'Partial',
+           
                 'Ready To Build',
                 'Build Scheduled',
                 'In Progress',
                 'Build Complete',
                 'COC Required',
                 'Final Payment Due',
-                'Ready to Close',
                 'Won and Closed',
-                'Lost',
-                'Unqualified',
+                
             ])->get();
 
             // Map statuses with job totals and tasks
@@ -2484,24 +2484,22 @@ class CompanyJobController extends Controller
             }
 
             $specificStatuses =
-                ['New Leads',
-                'Customer Agreement',
-                'Adjuster Scheduled',
-                'Ins Under Review', 
-                'Overturn',
-                'Appraisal',  
-                'Approved',
-                'Ready To Build',
-                'Build Scheduled',
-                'In Progress',
-                'Build Complete',
-                'COC Required',
-                'Final Payment Due',
-                'Ready to Close',
-                // 'Supplement Submitted',
-                'Won and Closed',
-                'Lost',
-                'Unqualified', ];
+            ['New Leads',
+            'Inspection',
+            'Signed Deal',
+            'Estimate Prepared',
+            'Adjuster Scheduled',
+            'Approved',
+            'Denied',
+            'Partial',
+       
+            'Ready To Build',
+            'Build Scheduled',
+            'In Progress',
+            'Build Complete',
+            'COC Required',
+            'Final Payment Due',
+            'Won and Closed',];
 
                 // dd($specificStatuses);
             $tasks = Status::select('id', 'name')
