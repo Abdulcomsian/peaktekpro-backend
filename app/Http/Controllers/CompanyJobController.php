@@ -47,7 +47,16 @@ class CompanyJobController extends Controller
             // 'longitude' => 'required',
             'name' => 'required',
             'email' => 'required|email',
-            'phone' => 'required'
+            'phone' => 'required',
+
+            'market' => 'nullable',
+            'job_type' => 'nullable|in:Retail,Insurance',
+            'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+            'lead_status' => 'nullable|in:New,Contacted,Follow-up Needed',
+            'user_ids' => 'nullable|array',
+            'user_ids.*' => 'integer|exists:users,id',
+            'invoice_number' => 'nullable',
+            'profile_path'=> 'nullable|image'
         ]);
 
         try {
@@ -62,27 +71,19 @@ class CompanyJobController extends Controller
             $user = Auth::user();
             $company= $user->company_id;
             $created_by = $user->created_by == 0 ? 1 : $user->created_by ;
-             //here We will check that this mail exist in users table and if it is in users table then add the job with it if we have no email then create a new customer
-            // $user=User::where('email',$request->email)->first();
-            // if(!$user)
-            // {
-            //     //here I am making a new customer/client
-            //     $user=new User();
-            //     $user->name = $request->name;
-            //     $names = explode(' ', $request->name, 2); // Split into two parts
-            //     $user->first_name = $names[0] ?? null;
-            //     $user->last_name = $names[1] ?? null;
-            //     $user->email = $request->email;
-            //     $user->phone = $request->phone;
-            //     // $user->password = Hash::make(Str::random(8));
-            //     $user->password = Hash::make('12345678');
-            //     $user->status = 'active';
-            //     $user->role_id = 10;
-            //     $user->created_by = $created_by;
-            //     $user->company_id = $company;
-            //     $user->save();
-            // }
+        
+            $fileFinalName = null; // Set a default value
 
+            if (isset($request->profile_path)) {
+                $file = $request->profile_path;
+                $fileName = $file->getClientOriginalName();
+                $fileExtension = $file->getClientOriginalExtension();
+
+                $fileFinalName = rand(0000,9999).'_'. time().'.'.$fileExtension;
+                $fileDestination = "storage/profile_photos";
+                $file->move($fileDestination,$fileFinalName);
+
+            }
             //Create Job
             $job = new CompanyJob;
             $job->status_id = 1;
@@ -98,8 +99,32 @@ class CompanyJobController extends Controller
             $job->date = now()->format('Y-m-d');
 
             $job->customer_id = $user->id; //it will be job customer
+            $job->profile_path =  isset($fileFinalName) ? 'profile_photos/'.$fileFinalName : Null;
+
             $job->save();
+
+            //save job new fields data here
+            $job_summary = CompanyJobSummary::updateOrCreate([
+                'company_job_id' => $job->id,
+            ],[
+                'company_job_id' => $job->id,
+                'market' => $request->market,
+                'lead_source' => $request->lead_source,
+                'job_type' => $request->job_type,
+                'lead_status' => $request->lead_status,
+                'invoice_number' => $request->invoice_number,
+
+
+
+            ]);
+
+            
+            // Assign Job To Users
+            if(isset($request->user_ids) && count($request->user_ids) > 0) {
+                $job->users()->sync($request->user_ids);
+            }
            
+            $job_summary->user_ids = $job->users()->pluck('user_id')->toArray();
             //here I will save the address but this will save in CustomerAgreement table here we will save the adress that get from google map api
             $address = new CustomerAgreement();
             $address->company_job_id = $job->id;
@@ -141,6 +166,12 @@ class CompanyJobController extends Controller
                     'phone' => $job->phone,
                     'address' => json_decode($job->address, true)['formatedAddress'] ?? null, 
                     // 'address' => $job->address['formatedAddress'] ?? null, 
+                    'market' => $job_summary->market,
+                    'lead_source' => $job_summary->lead_source,
+                    'job_type' => $job_summary->job_type,
+                    'lead_status' => $job_summary->lead_status,
+                    'sales_representatives' =>$job_summary->user_ids,
+                    'profile_path' => asset('storage/' . $job->profile_path),
                     'created_at' => $job->created_at,
                     'updated_at' => $job->updated_at
                 ]
@@ -150,7 +181,7 @@ class CompanyJobController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
-
+ 
     public function customerProfile($jobId)
     {
         $customer_profile = CompanyJob::with('companyJobSummaries')->select('id','name','address','email','phone','user_id')->where('id',$jobId)->first();
@@ -957,7 +988,27 @@ class CompanyJobController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Job Summary Updated Successfully',
-                'job' => $job_summary
+                'job' => [
+                    'id'=> $job_summary->id,
+                    'customer_name' => $job->name,
+                    'email' => $job->email,
+                    'phone' => $job->phone,
+                    'profile_path' => asset('storage/' . $job->profile_path),
+
+                    'address' => json_decode($job->address, true)['formatedAddress'] ?? null, 
+                    'company_job_id'=> $job_summary->company_job_id,
+                    'invoice_number' => $job_summary->invoice_number,
+                    'market' => $job_summary->market,
+                    'lead_source'=> $job_summary->lead_source,
+                    'insurance' => $job_summary->insurance,
+                    'policy_number' => $job_summary->policy_number,
+                    // 'email' => $job_summary->email,
+                    'insurance_representative'=> $job_summary->insurance_representative,
+                    'claim_number' => $job_summary->claim_number,
+                    'job_type'=> $job_summary->job_type,
+                    'lead_status' => $job_summary->lead_status,
+                    
+                ]
             ], 200); 
             
         } catch (\Exception $e) {

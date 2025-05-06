@@ -40,7 +40,7 @@ use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\InsuranceUnderReviewController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
-
+use App\Http\Controllers\RecentNoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -429,6 +429,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     Route::post('get-all-statuses/{jobId}', [InspectionController::class, 'getAllStatus']); 
     
+    //get Recent Notes
+    Route::get('get-recent-notes/{jobId}', [RecentNoteController::class, 'getAllRecentNotes']); 
+
 
 
 });
