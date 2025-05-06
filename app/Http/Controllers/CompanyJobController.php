@@ -1019,7 +1019,6 @@ class CompanyJobController extends Controller
     public function getJobSummaryInitialInformation($id)
     {
         try {
-            
             //Check Job
             $job = CompanyJob::find($id);
             if(!$job) {
@@ -1048,6 +1047,7 @@ class CompanyJobController extends Controller
                     'status' => 200,
                     'message' => 'Job Summary Not Yet Created',
                     'job' => $object,
+
                     'locations' => $location,
                 ], 200);
             }
@@ -1061,7 +1061,11 @@ class CompanyJobController extends Controller
                 'status' => 200,
                 'message' => 'Job Summary Found Successfully',
                 'job' => $job_summary,
-                'locations' => $location
+                'customer_name' => $job->name,
+                'profile_path'=> asset('storage/' . $job->profile_path),
+
+                'locations' => $location,
+
             ], 200); 
             
         } catch (\Exception $e) {
