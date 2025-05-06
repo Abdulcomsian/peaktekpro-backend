@@ -196,7 +196,7 @@
 
 
         <section class="content">
-            {!! $content->content !!}
+            {!! $content->content ?? '' !!}
         </section>
 
 

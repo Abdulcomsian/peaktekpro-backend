@@ -397,6 +397,7 @@ class CustomerAgreementController extends Controller
             $user = Auth::user();
             $companyId = $user->company_id;
             $agreement_content = AgreementContent::where('company_id',$companyId)->first();
+            // dd($agreement_content);
 
             // Parse the content using DOMDocument
             $pdf = Pdf::loadView('pdf.customer',['data' => $agreement,'content'=>$agreement_content]);
