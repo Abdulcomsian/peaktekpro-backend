@@ -951,7 +951,10 @@ class CompanyJobController extends Controller
             'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
             'lead_status' => 'nullable|in:New,Contacted,Follow-up Needed',
             'user_ids' => 'nullable|array',
-            'user_ids.*' => 'integer|exists:users,id'
+            'user_ids.*' => 'integer|exists:users,id',
+
+            'customer_name' => 'nullable|string',
+            'profile_path' => 'nullable|file',
         ]);
         
         try {
@@ -964,6 +967,20 @@ class CompanyJobController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
+
+            
+            $fileFinalName = null; // Set a default value
+
+            if (isset($request->profile_path)) {
+                $file = $request->profile_path;
+                $fileName = $file->getClientOriginalName();
+                $fileExtension = $file->getClientOriginalExtension();
+
+                $fileFinalName = rand(0000,9999).'_'. time().'.'.$fileExtension;
+                $fileDestination = "storage/profile_photos";
+                $file->move($fileDestination,$fileFinalName);
+
+            }
             
             //Update Job Summary
             $job_summary = CompanyJobSummary::updateOrCreate([
@@ -975,9 +992,14 @@ class CompanyJobController extends Controller
                 'lead_source' => $request->lead_source,
                 'job_type' => $request->job_type,
                 'lead_status' => $request->lead_status,
+                'customer_name' => $request->customer_name,
 
 
             ]);
+
+            $job->profile_path = isset($fileFinalName) ? 'profile_photos/'.$fileFinalName : Null;
+            $job->save();
+
 
             
             // Assign Job To Users
@@ -990,10 +1012,8 @@ class CompanyJobController extends Controller
                 'message' => 'Job Summary Updated Successfully',
                 'job' => [
                     'id'=> $job_summary->id,
-                    'customer_name' => $job->name,
                     'email' => $job->email,
                     'phone' => $job->phone,
-                    'profile_path' => asset('storage/' . $job->profile_path),
 
                     'address' => json_decode($job->address, true)['formatedAddress'] ?? null, 
                     'company_job_id'=> $job_summary->company_job_id,
@@ -1008,7 +1028,10 @@ class CompanyJobController extends Controller
                     'job_type'=> $job_summary->job_type,
                     'lead_status' => $job_summary->lead_status,
                     
-                ]
+                ],
+                'profile_path' => asset('storage/' . $job->profile_path),
+                'customer_name' => $job_summary->customer_name,
+
             ], 200); 
             
         } catch (\Exception $e) {
@@ -1028,7 +1051,7 @@ class CompanyJobController extends Controller
                 ], 422);
             }
 
-            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type','market','job_type','lead_status')
+            $job_summary = CompanyJobSummary::select('id','invoice_number','market','lead_source','job_type','market','job_type','lead_status','customer_name')
             ->where('company_job_id', $job->id)->first();
 
             $location= Location::select('id','name')->get();
@@ -1061,7 +1084,7 @@ class CompanyJobController extends Controller
                 'status' => 200,
                 'message' => 'Job Summary Found Successfully',
                 'job' => $job_summary,
-                'customer_name' => $job->name,
+                'customer_name' => $job_summary->customer_name,
                 'profile_path'=> asset('storage/' . $job->profile_path),
 
                 'locations' => $location,
