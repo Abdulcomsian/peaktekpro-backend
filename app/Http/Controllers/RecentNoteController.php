@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompanyJobSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -10,7 +11,8 @@ class RecentNoteController extends Controller
     public function getAllRecentNotes($jobId)
     {
         try{
-            // dd($jobId);
+            $customer_name = CompanyJobSummary::select('customer_name')->where('company_job_id',$jobId)->first();
+            // dd($customer_name);
             $latestNotes = 
                 DB::table('adjustor_meetings')->select('notes', 'created_at', 'company_job_id')
                 
@@ -33,11 +35,18 @@ class RecentNoteController extends Controller
             ->orderBy('created_at', 'desc') 
             ->limit(10) 
             ->get();
+            // $latestNotes1=[
+            //     'notes' =>$latestNotes->notes,
+            //     'created_at' =>$latestNotes->created_at,
+            //     'company_job_id' =>$latestNotes->company_job_id,
+            // ];
 
             return response()->json([
                 'status_code' => 200,
                 'message' => 'Recent Notes Fetched Successfully',
-                'data' => $latestNotes
+                'customer_name' => $customer_name->customer_name,
+
+                'data' => $latestNotes,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
