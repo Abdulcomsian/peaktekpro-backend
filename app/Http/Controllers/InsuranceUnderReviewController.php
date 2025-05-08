@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
 use App\Models\InsuranceUnderReview;
 use Illuminate\Support\Facades\Storage;
+use App\Models\InsuranceUnderReviewImages;
 use App\Models\InsuranceUnderReviewPhotos;
 use App\Http\Requests\InsuranceUnderReview\StoreRequest;
-use Carbon\Carbon;
 
 class InsuranceUnderReviewController extends Controller
 {
@@ -259,6 +260,88 @@ class InsuranceUnderReviewController extends Controller
                 'data' => [],
             ]);
         }
+    }
+
+    public function addInsuranceUnderReviewDocument($jobId,Request $request)
+    {
+        $companyJob = CompanyJob::find($jobId);
+        if(!$companyJob)
+        {
+            return response()->json([
+                'status_code' =>404,
+                'message' => 'Company Job Not Found',
+                'data' => []
+            ]);
+        }
+
+        $request->validate([
+            'document' => 'nullable|array', 
+            'document.*' => 'nullable|image', 
+            'file_name' => 'nullable|array',         
+            'file_name.*' => 'nullable|string',      
+        ]);
+
+        // $existingPhotos = InsuranceUnderReviewImages::where('company_job_id', $jobId)->get();
+        // // dd($existingPhotos);
+        // foreach ($existingPhotos as $photo) {
+        //     // Delete file from storage
+        //     $filePath = str_replace('/storage/', 'public/', $photo->document); // Convert storage path to public disk path
+        //     Storage::delete($filePath);
+        //     $photo->delete(); // Delete the record from the database
+        // }
+
+        $savedPhotos = []; // To store successfully saved photos
+        $squarePhotos = $request->document ?? [];
+        foreach ($squarePhotos as $index => $document) {
+            $document_fileName = time() . '_' . $document->getClientOriginalName();
+            $document_filePath = $document->storeAs('InsuranceDetailImages', $document_fileName, 'public');
+
+            // Save new photo in database
+            $media = new InsuranceUnderReviewImages();
+            $media->company_job_id = $jobId;
+            $media->file_name = $request->file_name[$index] ?? null;
+            $media->image_path = Storage::url($document_filePath);
+            $media->save();
+
+               // Collect saved photo details
+               $savedPhotos[] = [
+                'id' => $media->id,
+                'company_job_id' => $media->company_job_id,
+                'file_name' => $media->file_name,
+                'pdf_path' => $media->image_path,
+                'created_at' => $media->created_at,
+                'updated_at' => $media->updated_at,
+            ];
+
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Images Updated Successfully',
+            'data' => $savedPhotos,
+        ]);
+
+
+    }
+
+    public function getInsuranceUnderReviewDocument($jobId)
+    {
+        $companyjob = CompanyJob::find($jobId);
+        if(!$companyjob)
+        {
+            return response()->json([
+                'status_code' =>404,
+                'message' => 'Company Job Not Found',
+                'data' => []
+            ]);
+        }
+
+        $document = InsuranceUnderReviewImages::where('company_job_id',$jobId)->get();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Document Fetched Successfully',
+            'data' => $document,
+        ]);
     }
 
     public function statusInsuranceUnderReview(StoreRequest $request,$id) //not used currently if used use some other field for status because it is alreay in use of other fun
