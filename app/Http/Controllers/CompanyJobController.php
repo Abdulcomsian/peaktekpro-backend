@@ -1086,7 +1086,7 @@ class CompanyJobController extends Controller
                 'status' => 200,
                 'message' => 'Job Summary Found Successfully',
                 'job' => $job_summary,
-                'customer_name' => $job_summary->customer_name,
+                'name' => $job_summary->customer_name,
                 'profile_path'=> asset('storage/' . $job->profile_path),
 
                 'locations' => $location,
