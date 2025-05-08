@@ -228,6 +228,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Insurance Under Review Apis//
     Route::post('add/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'addInsuranceUnderReview']);
+    Route::post('add/insurance-underReview/document/{Id}', [InsuranceUnderReviewController::class, 'addInsuranceUnderReviewDocument']);
+    Route::get('get/insurance-underReview/document/{Id}', [InsuranceUnderReviewController::class, 'getInsuranceUnderReviewDocument']);
     Route::get('get/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'getInsuranceUnderReview']);
     Route::post('updateStatus/insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'statusInsuranceUnderReview']);
     Route::post('update-insurance-underReview/{Id}', [InsuranceUnderReviewController::class, 'updateInsuranceUnderReview']);

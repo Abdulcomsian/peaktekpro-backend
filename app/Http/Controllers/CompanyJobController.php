@@ -113,6 +113,7 @@ class CompanyJobController extends Controller
                 'job_type' => $request->job_type,
                 'lead_status' => $request->lead_status,
                 'invoice_number' => $request->invoice_number,
+                'customer_name' => $request->name,
 
 
 
@@ -953,7 +954,7 @@ class CompanyJobController extends Controller
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id',
 
-            'customer_name' => 'nullable|string',
+            'name' => 'nullable|string',
             'profile_path' => 'nullable|file',
         ]);
         
@@ -969,7 +970,7 @@ class CompanyJobController extends Controller
             }
 
             
-            $fileFinalName = null; // Set a default value
+            $fileFinalName = $job->profile_path; // Set a default value
 
             if (isset($request->profile_path)) {
                 $file = $request->profile_path;
@@ -992,11 +993,12 @@ class CompanyJobController extends Controller
                 'lead_source' => $request->lead_source,
                 'job_type' => $request->job_type,
                 'lead_status' => $request->lead_status,
-                'customer_name' => $request->customer_name,
+                'customer_name' => $request->name,
 
 
             ]);
 
+            $job->name = $request->name;
             $job->profile_path = isset($fileFinalName) ? 'profile_photos/'.$fileFinalName : Null;
             $job->save();
 
@@ -1030,7 +1032,7 @@ class CompanyJobController extends Controller
                     
                 ],
                 'profile_path' => asset('storage/' . $job->profile_path),
-                'customer_name' => $job_summary->customer_name,
+                'name' => $job_summary->customer_name,
 
             ], 200); 
             
