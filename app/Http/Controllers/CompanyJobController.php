@@ -981,6 +981,8 @@ class CompanyJobController extends Controller
                 $fileDestination = "storage/profile_photos";
                 $file->move($fileDestination,$fileFinalName);
 
+                $job->profile_path = 'profile_photos/'.$fileFinalName;
+
             }
             
             //Update Job Summary
@@ -999,7 +1001,7 @@ class CompanyJobController extends Controller
             ]);
 
             $job->name = $request->name;
-            $job->profile_path = isset($fileFinalName) ? 'profile_photos/'.$fileFinalName : Null;
+            // $job->profile_path = isset($fileFinalName) ? 'profile_photos/'.$fileFinalName : Null;
             $job->save();
 
 
@@ -1032,6 +1034,7 @@ class CompanyJobController extends Controller
                     
                 ],
                 'profile_path' => asset('storage/' . $job->profile_path),
+                // 'profile_path' => $job->profile_path,
                 'name' => $job_summary->customer_name,
 
             ], 200); 

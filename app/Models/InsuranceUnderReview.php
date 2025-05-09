@@ -18,6 +18,7 @@ class InsuranceUnderReview extends Model
         'status',
         'pdf_path',
         'file_name',
+        'retry_sent'
     ];
 
     public function getPhotos()

@@ -434,5 +434,33 @@ class InsuranceUnderReviewController extends Controller
         }
     }
 
+    public function updateAdjustorResent($id,Request $request)
+    {
+        try{
+            $request->validate([
+                'retry_sent'=>'nullable'
+            ]);
+
+            $insurance = InsuranceUnderReview::updateOrCreate(
+                ['company_job_id' => $id],
+                [
+                    'retry_sent' => $request->retry_sent,
+                ]
+            );
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Retry sent status Updated Successfully',
+                'data' => $insurance,
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+        }
+    }
   
 }
