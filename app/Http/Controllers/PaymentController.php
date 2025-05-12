@@ -22,7 +22,7 @@ class PaymentController extends Controller
                 'payment_amount' => 'required|numeric|min:1',
                 'payment_type' => 'nullable|in:cheque,credit_card,ACH,cash',
                 'check_number' => 'nullable',
-                'pdf_path' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
+                'attachment' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,txt',
                 'file_name' => 'nullable|string',
             ]);
 
@@ -30,21 +30,32 @@ class PaymentController extends Controller
             $filePath = null;
 
             // Handle existing file if needed
-            $insurance = Payment::where('company_job_id', $jobId)->first();
-            $existingFilePath = $insurance ? $insurance->pdf_path : null;
+            // $insurance = Payment::where('company_job_id', $jobId)->first();
+            // $existingFilePath = $insurance ? $insurance->pdf_path : null;
 
-            if ($request->hasFile('pdf_path')) {
-                if ($existingFilePath) {
-                    $oldFilePath = str_replace('/storage/', 'public/', $existingFilePath);
-                    Storage::delete($oldFilePath);
-                }
+            // if ($request->hasFile('attachment')) {
+            //     if ($existingFilePath) {
+            //         $oldFilePath = str_replace('/storage/', 'public/', $existingFilePath);
+            //         Storage::delete($oldFilePath);
+            //     }
 
-                $document = $request->file('pdf_path');
+            //     $document = $request->file('attachment');
+            //     $fileName = uniqid() . '_' . $document->getClientOriginalName();
+            //     // $filePath = $document->storeAs('public/insurance_under_review', $fileName);
+            //     $filePath = $document->storeAs('ClaimDetailsDocument', $fileName, 'public');
+
+            // } else {
+            //     $filePath = $existingFilePath;
+            // }
+
+            $filePath = null;
+
+            if ($request->hasFile('attachment')) {
+                $document = $request->file('attachment');
                 $fileName = uniqid() . '_' . $document->getClientOriginalName();
-                $filePath = $document->storeAs('public/insurance_under_review', $fileName);
-            } else {
-                $filePath = $existingFilePath;
+                $filePath = $document->storeAs('ClaimDetailsDocument', $fileName, 'public');
             }
+
 
             // Get job summary
             $job_balance = CompanyJobSummary::where('company_job_id', $jobId)->first();
@@ -112,7 +123,7 @@ class PaymentController extends Controller
                     'remaining_balance' => $remaining_balance,
                     'is_fully_paid' => $job_balance->is_fully_paid,
                     'full_payment_date' => $job_balance->full_payment_date,
-                    'pdf_path' => $payment->pdf_path,
+                    'attachment' => $payment->pdf_path,
                     'file_name' => $payment->file_name,
                 ]
             ]);

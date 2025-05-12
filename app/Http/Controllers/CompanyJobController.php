@@ -3032,6 +3032,8 @@ class CompanyJobController extends Controller
             'file_name.*' => 'nullable|string',      
         ]);
 
+        
+
         $existingPhotos = ClaimDetailMedia::where('company_job_id', $jobId)->get();
         // dd($existingPhotos);
         foreach ($existingPhotos as $photo) {
