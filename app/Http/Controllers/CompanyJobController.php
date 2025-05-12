@@ -3012,7 +3012,8 @@ class CompanyJobController extends Controller
         
     }
 
-    public function claimDetailsDocuments($jobId,Request $request)
+
+    public function claimDetailsDocuments200($jobId,Request $request)
     {
         // dd($jobId);
         $companyJob = CompanyJob::find($jobId);
@@ -3032,7 +3033,7 @@ class CompanyJobController extends Controller
             'file_name.*' => 'nullable|string',      
         ]);
 
-        
+
 
         $existingPhotos = ClaimDetailMedia::where('company_job_id', $jobId)->get();
         // dd($existingPhotos);
@@ -3076,6 +3077,55 @@ class CompanyJobController extends Controller
 
 
     }
+
+    public function claimDetailsDocuments($jobId, Request $request)
+    {
+        $companyJob = CompanyJob::find($jobId);
+        if (!$companyJob) {
+            return response()->json([
+                'status_code' => 404,
+                'message' => 'Company Job Not Found',
+                'data' => []
+            ]);
+        }
+
+        $request->validate([
+            'document' => 'nullable|array',
+            'document.*' => 'nullable|file',
+            'file_name' => 'nullable|array',
+            'file_name.*' => 'nullable|string',
+        ]);
+
+        $savedPhotos = [];
+        $squarePhotos = $request->document ?? [];
+
+        foreach ($squarePhotos as $index => $document) {
+            $document_fileName = time() . '_' . $document->getClientOriginalName();
+            $document_filePath = $document->storeAs('ClaimDetailsDocument', $document_fileName, 'public');
+
+            $media = new ClaimDetailMedia();
+            $media->company_job_id = $jobId;
+            $media->file_name = $request->file_name[$index] ?? null;
+            $media->pdf_path = Storage::url($document_filePath);
+            $media->save();
+
+            $savedPhotos[] = [
+                'id' => $media->id,
+                'company_job_id' => $media->company_job_id,
+                'file_name' => $media->file_name,
+                'pdf_path' => $media->pdf_path,
+                'created_at' => $media->created_at,
+                'updated_at' => $media->updated_at,
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Document(s) Added Successfully',
+            'data' => $savedPhotos,
+        ]);
+    }
+
 
     public function getClaimDetailsDocuments($jobId)
     {
