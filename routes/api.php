@@ -183,6 +183,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     ////Pyment History Section
     Route::post('add/payment-history/{jobId}', [PaymentController::class, 'addPaymentHistory']);
     Route::get('get/payment-history/{jobId}', [PaymentController::class, 'getPaymentHistory']);
+    Route::post('delete/payment-history/{jobId}', [PaymentController::class, 'deletePaymentHistory']);
 
 
     //company Location
