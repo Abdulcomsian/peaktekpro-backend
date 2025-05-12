@@ -738,6 +738,7 @@ class CompanyJobController extends Controller
 
     public function updateJobSummary(Request $request, $id)
     {
+        // dd("sds");
         //Validate Request
         $this->validate($request, [
             'job_total' => 'nullable',
@@ -771,6 +772,26 @@ class CompanyJobController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
+
+            
+            if ($request->has('job_total')) { //when working with job total value adding api just pass the job_total value no pass other else check is not working
+                $jobtotal = $request->job_total;
+                $totalAmountpaid = Payment::where('company_job_id', $id)->sum('payment_amount');
+                
+               if($jobtotal < $totalAmountpaid)
+                {
+                    // dd("you have paid more amount then job total value");
+                    return response()->json([
+                        'status_code' => 200,
+                        'msg' => 'Paid Amount is greater then job total value' //increase the value or delete the amount
+                    ]);
+                }
+                // $amount = $jobtotal - $totalAmount;
+                // dd($amount);
+            }
+            
+            
+            
 
             //Update Job Summary
             $job_summary = CompanyJobSummary::updateOrCreate([

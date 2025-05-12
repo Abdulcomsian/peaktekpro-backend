@@ -138,6 +138,16 @@ class PaymentController extends Controller
     }
 
 
+    public function deletePaymentHistory($jobId)
+    {
+        $payment = Payment::find($jobId);
+        $payment->delete();
+
+        return response()->json([
+            'status_code'=> 200,
+            'msg' => 'Deleted Successfully'
+        ]);
+    }
 
     public function getPaymentHistory($jobId)
     {
