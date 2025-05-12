@@ -161,8 +161,14 @@ class InsuranceUnderReviewController extends Controller
 
             // $filePath = null;
 
-            $date = $request->input('date'); // or $request->date
-            $formattedDate = Carbon::createFromFormat('m/d/Y', $date)->format('Y-m-d');
+            $date = $request->input('date');
+            $formattedDate = null;
+            if ($date) {
+                $formattedDate = Carbon::createFromFormat('m/d/Y', $date)->format('Y-m-d');
+            }
+
+            // $date = $request->input('date'); // or $request->date
+            // $formattedDate = Carbon::createFromFormat('m/d/Y', $date)->format('Y-m-d');
 
             // dd($formattedDate);
             $insurance = InsuranceUnderReview::where('company_job_id', $id)->first();
@@ -195,21 +201,36 @@ class InsuranceUnderReviewController extends Controller
 
 
             //save the insurance data
-            $insurance = InsuranceUnderReview::updateOrCreate(
-                ['company_job_id' => $id],
-                [
-                    'adjustor_name' => $request->adjustor_name,
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                    'date' => $formattedDate,
+            
+            $insurance = InsuranceUnderReview::firstOrNew(['company_job_id' => $id]);
 
-                    'notes' => $request->notes,
-                    'pdf_path' => $filePath ? Storage::url($filePath) : null,
-                    'file_name' => $request->file_name,
-                    'status' => $request->status,
+            if ($request->has('adjustor_name')) {
+                $insurance->adjustor_name = $request->adjustor_name;
+            }
+            if ($request->has('email')) {
+                $insurance->email = $request->email;
+            }
+            if ($request->has('phone')) {
+                $insurance->phone = $request->phone;
+            }
+            if ($request->has('date') && $date) {
+                $insurance->date = $formattedDate;
+            }
+            if ($request->has('notes')) {
+                $insurance->notes = $request->notes;
+            }
+            if ($filePath) {
+                $insurance->pdf_path = Storage::url($filePath);
+            }
+            if ($request->has('file_name')) {
+                $insurance->file_name = $request->file_name;
+            }
+            if ($request->has('status')) {
+                $insurance->status = $request->status;
+            }
 
-                ]
-            );
+            $insurance->save();
+
 
             return response()->json([
                 'status' => 200,
@@ -280,15 +301,6 @@ class InsuranceUnderReviewController extends Controller
             'file_name' => 'nullable|array',         
             'file_name.*' => 'nullable|string',      
         ]);
-
-        // $existingPhotos = InsuranceUnderReviewImages::where('company_job_id', $jobId)->get();
-        // // dd($existingPhotos);
-        // foreach ($existingPhotos as $photo) {
-        //     // Delete file from storage
-        //     $filePath = str_replace('/storage/', 'public/', $photo->document); // Convert storage path to public disk path
-        //     Storage::delete($filePath);
-        //     $photo->delete(); // Delete the record from the database
-        // }
 
         $savedPhotos = []; // To store successfully saved photos
         $squarePhotos = $request->document ?? [];

@@ -112,6 +112,8 @@ class PaymentController extends Controller
                     'remaining_balance' => $remaining_balance,
                     'is_fully_paid' => $job_balance->is_fully_paid,
                     'full_payment_date' => $job_balance->full_payment_date,
+                    'pdf_path' => $payment->pdf_path,
+                    'file_name' => $payment->file_name,
                 ]
             ]);
         } catch (\Exception $e) {
