@@ -115,7 +115,7 @@ class InspectionController extends Controller
         $media->delete();
         return response()->json([
             'status' => 200,
-            'message' => 'Media Deleted Successfully',
+            'message' => 'Inspection Media Deleted Successfully',
         ]);
     }
 
