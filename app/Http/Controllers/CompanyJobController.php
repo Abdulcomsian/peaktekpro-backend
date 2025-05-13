@@ -172,7 +172,8 @@ class CompanyJobController extends Controller
                     'job_type' => $job_summary->job_type,
                     'lead_status' => $job_summary->lead_status,
                     'sales_representatives' =>$job_summary->user_ids,
-                    'profile_path' => asset('storage/' . $job->profile_path),
+                    // 'profile_path' => asset('storage/' . $job->profile_path) ?? null,
+                    'profile_path' => $job->profile_path ? asset('storage/' . $job->profile_path) : null,
                     'created_at' => $job->created_at,
                     'updated_at' => $job->updated_at
                 ]
@@ -1054,7 +1055,7 @@ class CompanyJobController extends Controller
                     'lead_status' => $job_summary->lead_status,
                     
                 ],
-                'profile_path' => asset('storage/' . $job->profile_path),
+                'profile_path' => $job->profile_path ? asset('storage/' . $job->profile_path) : null,
                 // 'profile_path' => $job->profile_path,
                 'name' => $job_summary->customer_name,
 
@@ -1111,7 +1112,7 @@ class CompanyJobController extends Controller
                 'message' => 'Job Summary Found Successfully',
                 'job' => $job_summary,
                 'name' => $job_summary->customer_name,
-                'profile_path'=> asset('storage/' . $job->profile_path),
+                'profile_path'=> $job->profile_path ? asset('storage/' . $job->profile_path) : null,
 
                 'locations' => $location,
 
