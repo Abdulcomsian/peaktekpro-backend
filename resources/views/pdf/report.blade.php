@@ -494,46 +494,47 @@
         <!-- 7th Section -->
 
         @case('quote-details')
-            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
-             margin: 0; width: 92%; display: block; line-height:50px; padding: 0 40px; padding-bottom: 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-            <div class="quote-details-section" style="padding-left:25px; padding-right:10px; margin: 0 20px;">
+    <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+     margin: 0; width: 92%; display: block; line-height:50px; padding: 0 40px; padding-bottom: 25px;">
+        {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+    </h2>
 
-                @foreach($jsonData['sections'] ?? [] as $section)
-                    <h4>Section Name: {{ $section['title'] ?? 'No title available.' }}</h4>
-                    <p>Status: {{ $section['isActive'] == 'true' ? 'Active' : 'Inactive' }}</p>
-                    <p>Section Total: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
+    <div class="quote-details-section" style="padding-left:25px; padding-right:10px; margin: 0 20px;">
+        @foreach($jsonData['sections'] ?? [] as $section)
+            @if($section['isActive'] === 'true')
+                <h4>Section Name: {{ $section['title'] ?? 'No title available.' }}</h4>
+                <p>Status: Active</p>
+                <p>Section Total: ${{ number_format($section['sectionTotal'], 2) ?? '0.00' }}</p>
 
-                    <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
-                        <thead style="background-color: #f2f2f2;">
+                <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">
+                    <thead style="background-color: #f2f2f2;">
+                        <tr>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Price ($)</th>
+                            <th>Line Total ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($section['sectionItems'] ?? [] as $item)
                             <tr>
-                                <th>Description</th>
-                                <th>Quantity</th>
-                                <th>Price ($)</th>
-                                <th>Line Total ($)</th>
+                                <td>{{ $item['description'] ?? 'No description available.' }}</td>
+                                <td style="text-align: center;">{{ $item['qty'] ?? '0' }}</td>
+                                <td style="text-align: right;">{{ number_format($item['price'] ?? 0, 2) }}</td>
+                                <td style="text-align: right;">{{ number_format($item['lineTotal'] ?? 0, 2) }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($section['sectionItems'] ?? [] as $item)
-                                <tr>
-                                    <td>{{ $item['description'] ?? 'No description available.' }}</td>
-                                    <td style="text-align: center;">{{ $item['qty'] ?? '0' }}</td>
-                                    <td style="text-align: right;">{{ number_format($item['price'] ?? 0, 2) }}</td>
-                                    <td style="text-align: right;">{{ number_format($item['lineTotal'] ?? 0, 2) }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @endforeach
-
-                <div class="grand-total" style="text-align: right; font-weight: bold; margin-top: 10px;">
-                    <p>Grand Total: ${{ number_format($jsonData['grand_total'] ?? 0, 2) }}</p>
-                </div>
-            </div>
-        @break
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        @endforeach
+    </div>
+@break
 
 
-<!-- 8th Section -->
-@case('authorization-page')
+
+            <!-- 8th Section -->
+            @case('authorization-page')
                 <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
                 width: 92%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
                 <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
@@ -573,6 +574,8 @@
                     </div>
                 </div>
             @break
+
+
         <!-- 9th Section -->
         @case('terms-and-conditions')
         <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;

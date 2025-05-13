@@ -597,6 +597,8 @@ class TemplateController extends Controller
     public function saveQuoteSectionDetails(Request $request)
     {
         try {
+            // dd("Sdsd");
+            // dd($request->all());
             $pageId = $request->input('page_id');
             $quoteSectionData = $request->input('quoteSection');
             $grandTotal = $request->input('grandTotal');
