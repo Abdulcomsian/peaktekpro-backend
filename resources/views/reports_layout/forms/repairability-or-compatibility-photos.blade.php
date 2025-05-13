@@ -26,7 +26,7 @@
                     <div class="compatibility-items-container flex flex-wrap items-center gap-1">
                         @if (is_array($section['items']) && count($section['items']) > 0)
                             @foreach ($section['items'] as $item)
-                                <div class="item flex flex-row w-1/2" data-id="{{ $item['id'] }}">
+                                 <div class="item flex flex-row w-full" data-id="{{ $item['id'] }}"><!--here i have changed w-1/2  -->
                                     <!-- Drag Handle -->
                                     <div class="mb-2">
                                         <span class="item-drag-handle cursor-pointer">⇄</span>

@@ -25,12 +25,12 @@
                 <div class="compatibility-items-container flex flex-wrap items-center gap-1">
                     @if (is_array($section['items']) && count($section['items']) > 0)
                         @foreach ($section['items'] as $item)
-                            <div class="item flex flex-row gap-2" data-id="{{ $item['id'] }}">
+                            <div class="item flex flex-row w-full" data-id="{{ $item['id'] }}">
                                 <!-- Drag Handle -->
                                 <div class="mb-2">
                                     <span class="item-drag-handle cursor-pointer">⇄</span>
                                 </div>
-                                <div class="flex flex-col flex-wrap">
+                                <div class="flex flex-col flex-wrap w-full">
                                     <!-- Image Upload -->
                                     <div class="mb-2">
                                         <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
@@ -41,7 +41,7 @@
                                     <!-- Image Preview -->
                                     <div class="image-preview-container lg:w-[28.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4"></div>
                                     <!-- Quill Editor -->
-                                    <div class="mb-14 lg:w-[28.9875rem] md:w-[28.9875rem] w-full">
+                                    <div class="mb-14 w-full">
                                         <div id="repairability-or-compatibility-text-quill-{{ $item['id'] }}" class="item-editor bg-white"></div>
                                         <textarea class="hidden" id="repairability-or-compatibility-text-{{ $item['id'] }}" name="repairability_or_compatibility_text[]"
                                             required>{{ $item['content'] }}</textarea>
