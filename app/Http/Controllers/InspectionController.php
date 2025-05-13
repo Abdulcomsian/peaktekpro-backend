@@ -37,36 +37,26 @@ class InspectionController extends Controller
                 ]);
             }
 
-            // Step 1: Delete existing images
-            $existingPhotos = Inspection::where('company_job_id', $jobId)->get();
-            // dd($existingPhotos);
-            foreach ($existingPhotos as $photo) {
-                // Delete file from storage
-                $filePath = str_replace('/storage/', 'public/', $photo->file_path); // Convert storage path to public disk path
-                Storage::delete($filePath);
-                $photo->delete(); // Delete the record from the database
-            }
 
-            // Step 2: Upload new images
-            $savedPhotos = []; // To store successfully saved photos
+            $savedPhotos = [];
             $squarePhotos = $request->file_path ?? [];
-            foreach ($squarePhotos as $index => $image) {
-                $image_fileName = time() . '_' . $image->getClientOriginalName();
-                $image_filePath = $image->storeAs('InspectionPhotos', $image_fileName, 'public');
-
-                // Save new photo in database
+    
+            foreach ($squarePhotos as $index => $document) {
+                $document_fileName = time() . '_' . $document->getClientOriginalName();
+                $document_filePath = $document->storeAs('InspectionPhotos', $document_fileName, 'public');
+    
                 $media = new Inspection();
                 $media->company_job_id = $jobId;
-                $media->labels = $request->labels[$index] ?? null;
-                $media->file_path = Storage::url($image_filePath);
-                $media->save();
+                $media->labels =  $request->labels[$index] ?? null;
+                $media->file_path = Storage::url($document_filePath);
 
-                // Collect saved photo details
+                $media->save();
+    
                 $savedPhotos[] = [
                     'id' => $media->id,
-                    'adjustor_meeting_id' => $media->company_job_id,
-                    'label' => $media->labels,
-                    'square_photos' => $media->file_path,
+                    'company_job_id' => $media->company_job_id,
+                    'labels' => $media->labels,
+                    'file_path' => $media->file_path,
                     'created_at' => $media->created_at,
                     'updated_at' => $media->updated_at,
                 ];
@@ -74,9 +64,10 @@ class InspectionController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Inspection Photos Updated Successfully',
+                'message' => 'Inspection Photos Added Successfully',
                 'data' => $savedPhotos,
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
