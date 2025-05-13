@@ -23,7 +23,7 @@ class MeetingController extends Controller
         //Validate Rules
         $rules = [
             'email' => 'nullable|email',
-            'time' => 'required|date_format:h:i A',
+            'time' => 'nullable|date_format:h:i A',
             'date' => 'required|date_format:m/d/Y',
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable',
@@ -62,7 +62,7 @@ class MeetingController extends Controller
                 'company_job_id' => $jobId,
                 'email' => $request->email ?: null,
                 'date' => $request->date,
-                'time' => $request->time,
+                // 'time' => $request->time,
                 'name' => $request->name ?? "",
                 'phone' => $request->phone ?? "",
                 'notes' => $request->notes ?? "",

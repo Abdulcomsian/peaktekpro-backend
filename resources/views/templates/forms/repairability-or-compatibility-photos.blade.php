@@ -92,7 +92,7 @@
             <!-- Items Container -->
             <div class="compatibility-items-container flex flex-wrap items-center gap-1">
                 <!-- Initial Item -->
-                <div class="item flex flex-row gap-2" data-id="{{ \Str::random(8) }}">
+                <div class="item flex flex-row w-full" data-id="{{ \Str::random(8) }}">
                     <!-- Drag Handle -->
                     <div class="mb-2">
                         <span class="item-drag-handle cursor-pointer">⇄</span>
