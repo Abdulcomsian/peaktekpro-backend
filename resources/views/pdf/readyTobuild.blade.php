@@ -175,7 +175,8 @@
 
         <div class="section">
             <h2>Notes</h2>
-            <p>{{ strip_tags($readybuild->notes) }}</p>
+            <p>{{ html_entity_decode(strip_tags($readybuild->notes)) }}</p>
+
         </div>
     </main>
 </body>

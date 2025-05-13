@@ -23,7 +23,7 @@
                     </div>
 
                     <!-- Compatibility Items Container -->
-                    <div class="compatibility-items-container flex flex-wrap items-center w-full">
+                    <div class="compatibility-items-container flex flex-wrap items-center gap-1">
                         @if (is_array($section['items']) && count($section['items']) > 0)
                             @foreach ($section['items'] as $item)
                                 <div class="item flex flex-row w-1/2" data-id="{{ $item['id'] }}">
@@ -64,8 +64,7 @@
                     <!-- Add Item Button -->
                     <button
                         class="add-compatibility-item-btn text-blue-600 hover:text-blue-700 font-medium text-sm mt-4">+
-                        Add
-                        Item</button>
+                        Add Item</button>
                 </div>
             @endforeach
         @else
@@ -147,6 +146,10 @@
 </div>
 
 <div id="repairability-upload-loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+</div>
+
+<div id="repairability-upload-loader1" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
     <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
 </div>
 
@@ -285,7 +288,7 @@
                     });
 
                     this.on("sending", function(file, xhr, formData) {
-                        $("#repairability-upload-loader").removeClass("hidden"); // Show loader
+                        $("#repairability-upload-loader1").removeClass("hidden"); // Show loader
 
                 formData.append('page_id', pageId);
                 formData.append('item_id', itemId);
@@ -306,7 +309,7 @@
                     });
 
                     this.on("success", function(file, response) {
-                        $("#repairability-upload-loader").addClass("hidden"); // Hide loader
+                        $("#repairability-upload-loader1").addClass("hidden"); // Hide loader
 
                         // Add event listener for the remove button
                         $(`#compatibility-dropzone-${itemId}`).on("click", ".remove-image-btn", function() {
@@ -326,7 +329,7 @@
                     });
 
                     this.on("error", function(file, errorMessage) {
-                        $("#repairability-upload-loader").addClass("hidden"); // Hide loader
+                        $("#repairability-upload-loader1").addClass("hidden"); // Hide loader
 
                         console.error('Error uploading file:', errorMessage);
                     });
