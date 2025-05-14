@@ -9,53 +9,53 @@
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold text-gray-700">Templates</h1>
                 <div class="flex gap-2 ml-auto"> 
-        <a href="{{ route('reports.index') }}" class="text-white hover:text-gray-300 btn-gradient p-2 rounded">
-            Back To Reports
-        </a>
-        <button onclick="openModal()" class="btn-gradient text-white px-4 py-2 rounded hover:bg-blue-600">
-            Create Templates
-        </button>
-    </div>
+                    <a href="{{ route('reports.index') }}" class="text-white hover:text-gray-300 btn-gradient p-2 rounded">
+                        Back To Reports
+                    </a>
+
+                    <!-- <button onclick="openModal()" class="btn-gradient text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Create Template
+                    </button> -->
+                </div>
             </div>
 
             <!-- Responsive Table -->
-            <div class="overflow-x-auto bg-white shadow-md rounded-lg">
-                <table class="min-w-full border border-gray-300">
-                    <!-- <thead>
-                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                <th class="py-3 px-6 text-left">S.No</th>
-                                <th class="py-3 px-6 text-left">Title</th>
-                                <th class="py-3 px-6 text-center">Actions</th>
+            <div class="overflow-x-auto bg-white ">
+                <table class="min-w-full border border-gray-500">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-1000 text-sm">
+                            <th class="py-1 px-4 text-left font-normal">Title</th>
+                            <th class="py-1 px-4 text-center font-normal">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-500 text-sm font-light divide-y divide-gray-100">
+                        @forelse ($templates as $template)
+                            <tr class="border-b border-gray-100 hover:bg-gray-100">
+                                <td class="py-1 px-4 text-left">{{  $template->templatePages->first()?->pageData?->json_data['report_title'] ?? $template->title }}</td>
+                                <td class="py-1 px-4 text-center">
+                                    <a href="{{ route('templates.edit', ['id' => $template->id]) }}"
+                                        class="text-blue-500 hover:text-blue-600">Edit</a>
+                                    <button onclick="openDeleteModal({{ $template->id }})"
+                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button>
+                                </td>
                             </tr>
-                        </thead> -->
-                    <!-- <tbody class="text-gray-700 text-sm font-light">
-                            @forelse ($templates as $template)
-    <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                    <td class="py-3 px-6 text-left w-1">{{ $loop->iteration }}</td>
-                                    <td class="py-3 px-6 text-left">{{ $template->title }}</td>
-                                    <td class="py-3 px-6 text-center">
-                                        <a href="{{ route('templates.edit', ['id' => $template->id]) }}"
-                                            class="text-blue-500 hover:text-blue-600">Edit</a>
-                                        <button onclick="openDeleteModal({{ $template->id }})"
-                                            class="text-red-500 hover:text-red-600 ml-4">Delete</button>
-                                    </td>
-                                </tr>
                         @empty
-                                <tr>
-                                    <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
-                                </tr>
-    @endforelse
-                        </tbody> -->
+                            <tr>
+                                <td colspan="3" class="py-3 px-6 text-center">No templates found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
                 </table>
             </div>
 
-
-            <!-- Card Grid -->
-            <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
-                <!-- Cards will be dynamically inserted here -->
-            </div>
             <div class="mt-3">
                 {!! $templates->links('vendor.pagination.tailwind') !!}
+            </div>
+
+            <div class="flex justify-end mt-2 mb-4">
+                <button onclick="openModal()" class="bg-gray-400 text-white px-6 py-1 rounded-full hover:bg-gray-600">
+                    Add Template
+                </button>
             </div>
         </div>
     </section>
@@ -63,26 +63,28 @@
     <!-- Create Template Modal -->
     <div id="modal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
         <div class="bg-white rounded-lg p-6 w-1/2 max-w-md">
-            <!-- Modal Header -->
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold">Create Template</h2>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
             </div>
             <form action="{{ route('templates.store') }}" method="post" id="storeTemplateForm">
                 @csrf
-                <!-- Modal Body -->
                 <div class="mb-4">
                     <label for="title" class="block text-gray-700 mb-2">Title</label>
-                    <input type="text" id="title" name="title" class="w-full border border-gray-300 rounded p-2" />
-                    <!-- Error messages will be appended here dynamically -->
+                    <input type="text" id="title" name="title" 
+                           class="w-full border border-gray-300 rounded p-2"
+                           required>
                     <div class="text-red-500 text-sm mt-1 error-message" data-error="title"></div>
                 </div>
-
-                <!-- Modal Footer -->
                 <div class="flex justify-end">
-                    <button type="button" onclick="closeModal()"
-                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">Cancel</button>
-                    <button class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+                    <button type="button" onclick="closeModal()" 
+                            class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded">
+                        Create Template
+                    </button>
                 </div>
             </form>
         </div>
@@ -109,47 +111,7 @@
 
 @push('scripts')
     <script>
-        // Pass the $templates data to the frontend and adjust its structure
-        const templatesData = @json($templates->items()).map(template => {
-    const templatePage = template.template_pages?.[0]; // Optional chaining to safely access the first element
-    const templatePageData = templatePage ? templatePage.page_data : null; // Safely access page_data
-
-    // Extract required data
-    const template_title = templatePageData ? templatePageData.json_data.report_title : 'No title available';
-    const title = template.title || template_title;
-
-    const siteAddress = templatePageData ? templatePageData.json_data.company_address : 'No address available';
-    let fullDescription = templatePageData ? templatePageData.json_data.intro_text : 'No description available';
-
-    // Ensure fullDescription is a string (handle cases where it's null or undefined)
-    fullDescription = fullDescription ? String(fullDescription).trim() : '';
-
-    // Function to truncate description to 120 words safely
-    const truncateWords = (text, limit) => {
-        if (!text) return 'No description available'; // Handle empty descriptions
-        const words = text.split(/\s+/); // Split by spaces
-        return words.length > limit ? words.slice(0, limit).join(' ') + '...' : text;
-    };
-
-    const truncatedDescription = truncateWords(fullDescription, 50);
-
-    const price = template.price ? `$${template.price.toFixed(2)}` : '$0.00';
-    const image = templatePageData && templatePageData.json_data.primary_image 
-        ? templatePageData.file_url + '/' + templatePageData.json_data.primary_image.path 
-        : 'https://picsum.photos/536/354';
-
-    const companyAddress = @json($address);
-
-    return {
-        templateId: template.id,
-        reportName: title,
-        siteAddress: companyAddress,
-        description: truncatedDescription, 
-        price: price,
-        image: image,
-    };
-});
-
+        // Modal handling
         function openModal() {
 
             $('#storeTemplateForm')[0].reset();
@@ -157,8 +119,9 @@
 
             $('#modal').removeClass('hidden');
         }
-        // hide create modal
-        function closeModal() {
+
+         // hide create modal
+         function closeModal() {
 
             $('#storeTemplateForm')[0].reset();
             $('button[type="submit"]', '#storeTemplateForm').prop('disabled', false);
@@ -166,96 +129,44 @@
             $('#modal').addClass('hidden');
 
         }
-        $(document).ready(function() {
-            const cardGrid = $('#cardGrid');
+        // Delete handling
+        let deleteTemplateId = null;
 
-            // Use the adjusted dynamic data
-            $.each(templatesData, function(index, item) {
-                const card = $('<div>').addClass('bg-white shadow-md rounded-lg p-4 relative');
+        function openDeleteModal(templateId) {
+            deleteTemplateId = templateId;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
 
-                // Image with status tag
-                const imageContainer = $('<div>').addClass('relative');
-                const image = $('<img>').attr('src', item.image).attr('alt', item.reportName).addClass(
-                    'w-full h-32 object-cover mb-4 rounded-lg'
-                );
-                const statusTag = $('<div>').addClass(
-                    'absolute top-2 left-2 text-white px-2 py-1 rounded text-sm'
-                );
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            deleteTemplateId = null;
+        }
 
-                // Set tag color based on status
-                // switch (item.tag) {
-                //     case 'DRAFT':
-                //         statusTag.addClass('bg-blue-500').text('DRAFT');
-                //         break;
-                //     case 'PUBLISHED':
-                //         statusTag.addClass('bg-green-500').text('PUBLISHED');
-                //         break;
-                //     default:
-                //         statusTag.addClass('bg-gray-500').text(item.tag);
-                // }
+        function confirmDelete() {
+            if (!deleteTemplateId) return;
 
-                imageContainer.append(image).append(statusTag);
-
-                // Three Dots Menu
-                const menuContainer = $('<div>').addClass('absolute top-2 right-6 cursor-pointer');
-                const threeDots = $('<div>').html('...').addClass(
-                    'text-3xl text-white');
-
-                let editTemplateRoute = "{{ route('templates.edit', ['id' => ':id']) }}"
-                editTemplateRoute = editTemplateRoute.replace(':id', item.templateId)
-
-
-                // Dropdown Menu
-                const dropdownMenu = $('<div>')
-                    .addClass('absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg hidden z-10')
-                    .append(
-                        $('<ul>').addClass('text-sm text-gray-700').html(`
-                            <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer edit-template">
-                                <a href="${editTemplateRoute}">Edit Template</a>
-                            </li>
-
-                        `)
-                    );
-
-                // Toggle menu on click
-                menuContainer.append(threeDots).append(dropdownMenu);
-                menuContainer.on('click', function(event) {
-                    event.stopPropagation(); // Prevent event from bubbling
-                    $('.absolute.right-0.mt-2').not(dropdownMenu).hide(); // Hide other dropdowns
-                    dropdownMenu.toggle();
-                });
-
-                // Click outside to close dropdown
-                $(document).on('click', function() {
-                    dropdownMenu.hide();
-                });
-
-                // Handle menu actions
-                // dropdownMenu.find('.edit-template').on('click', function() {
-                //     alert(`Edit Template: ${item.reportName}`);
-                // });
-
-                dropdownMenu.find('.view-template').on('click', function() {
-                    alert(`View Template: ${item.reportName}`);
-                });
-
-                // Card content
-                const content = $('<div>').html(`
-                    <h3 class="text-xl font-bold text-gray-700">${item.reportName}</h3>
-                    <p class="text-gray-600">${item.siteAddress}</p>
-                     <div class="text-gray-600 break-words">${item.description}</div>
-                    <p class="text-gray-800 font-bold mt-2">${item.price}</p>
-                `);
-
-                // Append image container, menu, and content to card
-                card.append(imageContainer).append(menuContainer).append(content);
-
-                // Append card to card grid
-                cardGrid.append(card);
+            fetch(`/templates/${deleteTemplateId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to delete template');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the template');
             });
+        }
 
-            // Form submission handling
-            $('#storeTemplateForm').submit(function(e) {
+          // Form submission handling
+          $('#storeTemplateForm').submit(function(e) {
                 e.preventDefault();
                 $(this).find('button[type="submit"]').prop('disabled', true);
                 $('.error-message').text('');
@@ -291,44 +202,5 @@
                     }
                 });
             });
-        });
-
-        // Delete template functionality
-        let deleteTemplateId = null;
-
-        function openDeleteModal(templateId) {
-            deleteTemplateId = templateId;
-            $('#deleteModal').removeClass('hidden');
-        }
-
-        function closeDeleteModal() {
-            $('#deleteModal').addClass('hidden');
-            deleteTemplateId = null;
-        }
-
-        function confirmDelete() {
-            if (!deleteTemplateId) {
-                showErrorNotification('Template not found');
-                return;
-            }
-
-            $.ajax({
-                url: `{{ route('templates.destroy', ['id' => ':id']) }}`.replace(':id', deleteTemplateId),
-                type: 'DELETE',
-                data: {
-                    _token: $('meta[name=csrf-token]').attr('content')
-                },
-                success: function(response) {
-                    if (response.status) {
-                        closeDeleteModal();
-                        showSuccessNotification(response.message);
-                        window.location.reload();
-                    }
-                },
-                error: function(error) {
-                    showErrorNotification('An error occurred. Please try again.');
-                }
-            });
-        }
     </script>
 @endpush
