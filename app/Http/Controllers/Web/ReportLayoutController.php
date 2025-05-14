@@ -473,6 +473,7 @@ class ReportLayoutController extends Controller
 
     public function downloadPdf($id)
     {
+        // dd($id);
         try {
             $report = Report::findOrFail($id);
 
