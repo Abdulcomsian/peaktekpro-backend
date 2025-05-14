@@ -36,6 +36,13 @@
                                         View PDF
                                     </a>
                                     </td>
+                                    @elseif($report->status == 'draft')
+                                    <td class="py-1 px-4 text-left">
+                                    <a class="text-blue-500 hover:text-blue-600 cursor-pointer"
+                                        data-url="#">
+                                        Not Yet
+                                    </a>
+                                    </td>
                                 @endif
 
                                 <td class="py-1 px-4 text-left">
