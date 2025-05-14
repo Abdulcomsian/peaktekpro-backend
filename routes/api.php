@@ -202,6 +202,18 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/in-progress-status/{jobId}', [InprogressController::class, 'getInprogressStatus']);
     Route::get('get/in-progress/{jobId}', [InprogressController::class, 'getInprogress']);
 
+    //inprogress compilance,completion and morning photos
+    Route::post('add/in-progress/morningPhotos/{jobId}', [InprogressController::class, 'addInprogressMorningPhotos']);
+    Route::get('get/in-progress/morningPhotos/{jobId}', [InprogressController::class, 'getInprogressMorningPhotos']);
+
+    Route::post('add/in-progress/compilancePhotos/{jobId}', [InprogressController::class, 'addInprogresscompilancePhotos']);
+    Route::get('get/in-progress/compilancePhotos/{jobId}', [InprogressController::class, 'getInprogresscompilancePhotos']);
+
+    Route::post('add/in-progress/completionPhotos/{jobId}', [InprogressController::class, 'addInprogresscompletionPhotos']);
+    Route::get('get/in-progress/completionPhotos/{jobId}', [InprogressController::class, 'getInprogresscompletionPhotos']);
+
+    
+
     //Build Packet template Sumo quote
     Route::post('build-packet/sidebar/{jobId}', [InprogressController::class, 'buildPacketSidebar']);
     Route::get('get/build-packet/sidebar/{jobId}', [InprogressController::class, 'getBuildPacketSidebar']);

@@ -9,12 +9,15 @@ use App\Models\Inprogress;
 use Illuminate\Http\Request;
 use App\Models\InprogressMedia;
 use App\Models\BuildPacketChecklist;
+use App\Models\CompilancePhoto;
+use App\Models\CompletionPhoto;
+use App\Models\MorningPhoto;
 use Illuminate\Support\Facades\Storage;
 // use Barryvdh\DomPDF\Facade as PDF;
 
 class InprogressController extends Controller
 {
-    public function updateInprogress(Request $request, $jobId)
+    public function updateInprogress200(Request $request, $jobId)
     {
         // Validate Request
         $this->validate($request, [
@@ -139,6 +142,73 @@ class InprogressController extends Controller
         }
     }
 
+    public function updateInprogress(Request $request, $jobId)
+    {
+        // Validate Request
+        $this->validate($request, [
+            'build_start_date' => 'nullable|date_format:m/d/Y',
+            'build_end_date' => 'nullable|date_format:m/d/Y',
+            'notes' => 'nullable',
+            'production_sign_url' => 'nullable|string',
+            'homeowner_signature' => 'nullable|string',
+        ]);
+
+        try {
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json(['status' => 422, 'message' => 'Job not found'], 422);
+            }
+
+            // // Update or create Inprogress record
+            // $in_progress = Inprogress::updateOrCreate(
+            //     ['company_job_id' => $jobId],
+            //     [
+            //         'build_start_date' => $request->build_start_date,
+            //         'build_end_date' => $request->build_end_date,
+            //         'notes' => $request->notes,
+            //     ]
+            // );
+            $inProgress = Inprogress::firstOrNew(['company_job_id' => $jobId]);
+
+            // Handle Base64 signatures and generate PDF as before...
+            if ($request->production_sign_url) {
+                $inProgress->production_sign_url = $this->saveBase64Image($request->production_sign_url, 'inprogress_signature');
+            }
+            if ($request->homeowner_signature) {
+                $inProgress->homeowner_signature = $this->saveBase64Image($request->homeowner_signature, 'inprogress_signature');
+            }
+
+
+               //save the insurance data
+            
+
+               if ($request->has('build_start_date')) {
+                   $inProgress->build_start_date = $request->build_start_date;
+               }
+               if ($request->has('build_end_date')) {
+                   $inProgress->build_end_date = $request->build_end_date;
+               }
+               if ($request->has('phone')) {
+                   $inProgress->phone = $request->phone;
+               }
+            
+               if ($request->has('notes')) {
+                   $inProgress->notes = $request->notes;
+               }
+            
+   
+               $inProgress->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inprogress Build Updated Successfully',
+                'data' => $inProgress,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine()], 500);
+        }
+    }
+
 /**
  * Save Base64 Encoded Image
  *
@@ -160,6 +230,237 @@ class InprogressController extends Controller
         return '/storage/' . $directory . '/' . $filename;
     }
 
+    //sprately handle each category phots according to new design
+    public function addInprogressMorningPhotos(Request $request, $jobId)
+    {
+        try{
+            $companyJob = CompanyJob::find($jobId);
+            if (!$companyJob) {
+                return response()->json([
+                    'status_code' => 404,
+                    'message' => 'Company Job Not Found',
+                    'data' => []
+                ]);
+            }
+
+            $request->validate([
+                'document' => 'nullable|array',
+                'document.*' => 'nullable|file',
+                'file_name' => 'nullable|array',
+                'file_name.*' => 'nullable|string',
+            ]);
+
+            $savedPhotos = [];
+            $morningPhotos = $request->document ?? [];
+
+            foreach ($morningPhotos as $index => $document) {
+                $document_fileName = time() . '_' . $document->getClientOriginalName();
+                $document_filePath = $document->storeAs('MorningPhotos', $document_fileName, 'public');
+
+                $media = new MorningPhoto();
+                $media->company_job_id = $jobId;
+                $media->file_name = $request->file_name[$index] ?? null;
+                $media->pdf_path = Storage::url($document_filePath);
+
+                $media->save();
+
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'company_job_id' => $media->company_job_id,
+                    'file_name' => $media->file_name,
+                    'pdf_path' => asset($media->pdf_path),
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Photos Added Successfully',
+                'data' => $savedPhotos,
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status_code'=> 500,
+                'msg' => 'Issue Occured'.$e->getMessage()
+            ]);
+        }
+    }
+
+    public function getInprogressMorningPhotos($jobId)
+    {
+        $companyjob = CompanyJob::find($jobId);
+        if(!$companyjob)
+        {
+            return response()->json([
+                'status_code' =>404,
+                'message' => 'Company Job Not Found',
+                'data' => []
+            ]);
+        }
+
+        $morningPhotos = MorningPhoto::where('company_job_id',$jobId)->get();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Morning Photos Fetched Successfully',
+            'data' => $morningPhotos,
+        ]);
+    }
+
+    public function addInprogresscompilancePhotos(Request $request, $jobId)
+    {
+        try{
+            $companyJob = CompanyJob::find($jobId);
+            if (!$companyJob) {
+                return response()->json([
+                    'status_code' => 404,
+                    'message' => 'Company Job Not Found',
+                    'data' => []
+                ]);
+            }
+
+            $request->validate([
+                'document' => 'nullable|array',
+                'document.*' => 'nullable|file',
+                'file_name' => 'nullable|array',
+                'file_name.*' => 'nullable|string',
+            ]);
+
+            $savedPhotos = [];
+            $morningPhotos = $request->document ?? [];
+
+            foreach ($morningPhotos as $index => $document) {
+                $document_fileName = time() . '_' . $document->getClientOriginalName();
+                $document_filePath = $document->storeAs('MorningPhotos', $document_fileName, 'public');
+
+                $media = new CompilancePhoto();
+                $media->company_job_id = $jobId;
+                $media->file_name = $request->file_name[$index] ?? null;
+                $media->pdf_path = Storage::url($document_filePath);
+
+                $media->save();
+
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'company_job_id' => $media->company_job_id,
+                    'file_name' => $media->file_name,
+                    'pdf_path' => asset($media->pdf_path),
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Compilance Photos Added Successfully',
+                'data' => $savedPhotos,
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status_code'=> 500,
+                'msg' => 'Issue Occured'.$e->getMessage()
+            ]);
+        }
+    }
+
+    public function getInprogresscompilancePhotos($jobId)
+    {
+        $companyjob = CompanyJob::find($jobId);
+        if(!$companyjob)
+        {
+            return response()->json([
+                'status_code' =>404,
+                'message' => 'Company Job Not Found',
+                'data' => []
+            ]);
+        }
+
+        $morningPhotos = CompilancePhoto::where('company_job_id',$jobId)->get();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Compilance Photos Fetched Successfully',
+            'data' => $morningPhotos,
+        ]);
+    }
+
+    public function addInprogresscompletionPhotos(Request $request, $jobId)
+    {
+        try{
+            $companyJob = CompanyJob::find($jobId);
+            if (!$companyJob) {
+                return response()->json([
+                    'status_code' => 404,
+                    'message' => 'Company Job Not Found',
+                    'data' => []
+                ]);
+            }
+
+            $request->validate([
+                'document' => 'nullable|array',
+                'document.*' => 'nullable|file',
+                'file_name' => 'nullable|array',
+                'file_name.*' => 'nullable|string',
+            ]);
+
+            $savedPhotos = [];
+            $morningPhotos = $request->document ?? [];
+
+            foreach ($morningPhotos as $index => $document) {
+                $document_fileName = time() . '_' . $document->getClientOriginalName();
+                $document_filePath = $document->storeAs('MorningPhotos', $document_fileName, 'public');
+
+                $media = new CompletionPhoto();
+                $media->company_job_id = $jobId;
+                $media->file_name = $request->file_name[$index] ?? null;
+                $media->pdf_path = Storage::url($document_filePath);
+
+                $media->save();
+
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'company_job_id' => $media->company_job_id,
+                    'file_name' => $media->file_name,
+                    'pdf_path' => asset($media->pdf_path),
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Completion Photos Added Successfully',
+                'data' => $savedPhotos,
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'status_code'=> 500,
+                'msg' => 'Issue Occured'.$e->getMessage()
+            ]);
+        }
+    }
+
+    public function getInprogresscompletionPhotos($jobId)
+    {
+        $companyjob = CompanyJob::find($jobId);
+        if(!$companyjob)
+        {
+            return response()->json([
+                'status_code' =>404,
+                'message' => 'Company Job Not Found',
+                'data' => []
+            ]);
+        }
+
+        $morningPhotos = CompletionPhoto::where('company_job_id',$jobId)->get();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Completion Photos Fetched Successfully',
+            'data' => $morningPhotos,
+        ]);
+    }
 
     public function addInprogressPhotos($jobId, Request $request)
     {
