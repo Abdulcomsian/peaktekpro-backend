@@ -37,12 +37,17 @@ class RecentNoteController extends Controller
                 ->select('notes', 'created_at', 'company_job_id')
                 ->where('company_job_id', $jobId);
 
+            $companyJobContent = DB::table('company_job_content')
+                ->select('notes','created_at','company_job_id')
+                ->where('company_job_id',$jobId);
+
             $latestNotes = $adjustorMeetings
                 ->unionAll($insuranceUnderReviews)
                 ->unionAll($readyToBuilds)
                 ->unionAll($finalPaymentDues)
                 ->unionAll($claimDetails)
                 ->unionAll($wonCloseds)
+                ->unionAll($companyJobContent)
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
