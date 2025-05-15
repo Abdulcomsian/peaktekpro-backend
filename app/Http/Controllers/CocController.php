@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-// use PDF;
-use Barryvdh\DomPDF\Facade\Pdf;
+use PDF;
+// use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\Coc;
 // use App\Notifications\CustomNotifiable;
@@ -119,6 +119,7 @@ class CocController extends Controller
                 //     'job' => $job
                 // ]);
                 $pdf = PDF::loadView('pdf.coc', ['coc' => $coc, 'job' => $job]);
+                // return $pdf->stream('newcoc.pdf');
                 $pdf_fileName = time() . '.pdf';
                 $pdf_filePath = 'coc_pdf/' . $pdf_fileName;
                 // Check if the old PDF exists and delete it
