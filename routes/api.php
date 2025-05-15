@@ -280,7 +280,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('check/material-order/{jobId}', [MaterialOrderController::class, 'checkMaterialOrder']);
     Route::post('material-order/email/{jobId}', [MaterialOrderController::class, 'MaterialOrderEmail']);
     Route::get('send/email/{jobId}', [MaterialOrderController::class, 'EmailToSupplier']);
-    Route::post('update/build-detail/{jobId}', [MaterialOrderController::class, 'updateBuildDetail']);
+    Route::post('update/build-detail/{jobId}', [MaterialOrderController::class, 'updateBuildDetail']); //for build schedule apis
     Route::post('update/build-detail-status/{jobId}', [MaterialOrderController::class, 'updateBuildDetailStatus']);
     Route::get('get/build-detail/{jobId}', [MaterialOrderController::class, 'getBuildDetail']);
     Route::post('confirmation-email/{jobId}', [MaterialOrderController::class, 'confirmationEmail']);
