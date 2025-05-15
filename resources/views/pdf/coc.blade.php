@@ -76,10 +76,10 @@
     <!-- section 1 -->
     <table style="width: 1200px; margin: auto">
       <tbody>
-      <h2 style="text-align: left">Customer Information</h2>
 
         <tr>
           <td>
+          <h2 style="text-align: left">Customer Information</h2>
 
             <span class="label">Name:</span>
             <span class="value">{{$coc->name ?? ''}}</span>
