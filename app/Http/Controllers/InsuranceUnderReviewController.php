@@ -297,7 +297,7 @@ class InsuranceUnderReviewController extends Controller
 
         $request->validate([
             'document' => 'nullable|array', 
-            'document.*' => 'nullable|image', 
+            'document.*' => 'nullable|file', 
             'file_name' => 'nullable|array',         
             'file_name.*' => 'nullable|string',      
         ]);
