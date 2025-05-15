@@ -35,9 +35,9 @@
 
         'pdf' => [
             'enabled' => true,
-            'binary' => base_path('vendor/h4cc/wkhtmltopdf-amd64/bin/wkhtmltopdf-amd64.exe'), //for production
+            // 'binary' => base_path('vendor/h4cc/wkhtmltopdf-amd64/bin/wkhtmltopdf-amd64.exe'), //for production
             // 'binary' => '"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"', //for local
-            // 'binary' => '/usr/bin/wkhtmltopdf', //global path 
+            'binary' => '/usr/bin/wkhtmltopdf', //global path 
             'timeout' => false,
             'options' => [
                 'enable-local-file-access' => true,

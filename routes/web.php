@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CocController;
 use App\Http\Controllers\ReadyToBuildController;
 use App\Http\Controllers\Web\CustomerController;
 use App\Http\Controllers\Web\{ReactAuthController, TemplateController, ReportLayoutController};
@@ -33,6 +34,7 @@ Route::get('user-logout', function () {
 // Route::get('testPdf/{report_id}', [ReportLayoutController::class, 'testPdf'])->name('testPdf');
 Route::get('update/customer-agreement/{id}', [CustomerController::class, 'updateCustomerAgreement']);
 Route::get('ready-to-build/{id}', [ReadyToBuildController::class, 'storeReadyToBuild']);
+Route::get('store/coc/{jobId}', [CocController::class, 'storeCoc']);
 
 Route::get('auth', ReactAuthController::class)->middleware('check.react.auth');
 // templates
