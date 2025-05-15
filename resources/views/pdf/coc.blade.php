@@ -76,9 +76,11 @@
     <!-- section 1 -->
     <table style="width: 1200px; margin: auto">
       <tbody>
+
         <tr>
-        <h2 style="text-align: left">Customer Information</h2>
           <td>
+          <h2 style="text-align: left">Customer Information</h2>
+
             <span class="label">Name:</span>
             <span class="value">{{$coc->name ?? ''}}</span>
           </td>
@@ -116,7 +118,7 @@
             <span class="label">Zip:</span>
             <span class="value">{{$coc->zip_code ?? ''}}</span>
           </td>
-          <!-- <td>
+          <td>
             <span class="label">Insurance:</span>
             <span class="value">{{$coc->insurance ?? ''}}</span>
           </td>
@@ -134,7 +136,7 @@
             <span class="label">Policy Number:</span>
             <span class="value">{{$coc->policy_number ?? ''}}</span>
           </td>
-          <td>
+          <!-- <td>
             <span class="label">Supplier ID:</span>
             <span class="value">XYZ</span>
           </td>
