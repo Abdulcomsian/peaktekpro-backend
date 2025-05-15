@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use PDF;
+// use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\Coc;
 // use App\Notifications\CustomNotifiable;
