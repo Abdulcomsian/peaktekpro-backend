@@ -443,7 +443,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/inspection/{jobId}', [InspectionController::class, 'getInspection']); 
     Route::post('delete/inspection/{jobId}', [InspectionController::class, 'deleteInspection']); 
 
-    Route::post('get-all-statuses/{jobId}', [InspectionController::class, 'getAllStatus']); 
+    Route::get('get-all-statuses/{jobId}', [InspectionController::class, 'getAllStatus']); 
     
     //get Recent Notes
     Route::get('get-recent-notes/{jobId}', [RecentNoteController::class, 'getAllRecentNotes']); 
