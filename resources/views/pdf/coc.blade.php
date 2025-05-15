@@ -68,7 +68,7 @@
       <tbody>
         <tr>
           <td>
-            <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/pdf_header.png')))}}" width="1500"/>
+            <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/coc.png')))}}" width="1500"/>
           </td>
         </tr>
       </tbody>
@@ -76,10 +76,10 @@
     <!-- section 1 -->
     <table style="width: 1200px; margin: auto">
       <tbody>
+      <h2 style="text-align: left">Customer Information</h2>
 
         <tr>
           <td>
-          <h2 style="text-align: left">Customer Information</h2>
 
             <span class="label">Name:</span>
             <span class="value">{{$coc->name ?? ''}}</span>
@@ -118,24 +118,21 @@
             <span class="label">Zip:</span>
             <span class="value">{{$coc->zip_code ?? ''}}</span>
           </td>
-          <td>
-            <span class="label">Insurance:</span>
-            <span class="value">{{$coc->insurance ?? ''}}</span>
-          </td>
+         
         </tr>
         <tr>
-          <td>
-            <span class="label">Insurance Email:</span>
-            <span class="value">{{ $job?->summary?->insurance_representative ?? '' }}</span>
-          </td>
-          <td>
-            <span class="label">Claim Number:</span>
-            <span class="value">{{$coc->claim_number ?? ''}}</span>
-          </td>
-          <td>
-            <span class="label">Policy Number:</span>
-            <span class="value">{{$coc->policy_number ?? ''}}</span>
-          </td>
+            <td>
+              <span class="label">Insurance:</span>
+              <span class="value">{{$coc->insurance ?? ''}}</span>
+            </td>
+            <td>
+              <span class="label">Claim Number:</span>
+              <span class="value">{{$coc->claim_number ?? ''}}</span>
+            </td>
+            <td>
+              <span class="label">Policy Number:</span>
+              <span class="value">{{$coc->policy_number ?? ''}}</span>
+            </td>
           <!-- <td>
             <span class="label">Supplier ID:</span>
             <span class="value">XYZ</span>
