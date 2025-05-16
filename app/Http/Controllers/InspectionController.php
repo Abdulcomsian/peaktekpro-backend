@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Coc;
+use App\Models\WonClosed;
 use App\Models\CompanyJob;
 use App\Models\Inprogress;
 use App\Models\Inspection;
@@ -14,7 +16,6 @@ use App\Models\AdjustorMeeting;
 use App\Models\FinalPaymentDue;
 use App\Models\CustomerAgreement;
 use App\Models\InsuranceUnderReview;
-use App\Models\WonClosed;
 use Illuminate\Support\Facades\Storage;
 
 class InspectionController extends Controller
@@ -119,21 +120,66 @@ class InspectionController extends Controller
         ]);
     }
 
+    public function updateInspectionStatus(Request $request,$jobId)
+    {
+        $this->validate($request, [
+            'status' => 'nullable|string'
+        ]);
+
+        $job = CompanyJob::find($jobId);
+        if (!$job) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Company Job Not Found',
+            ]);
+        }
+
+        $inspection = Inspection::updateOrCreate([
+            'company_job_id' => $jobId,
+        ],[
+            'status' => $request->status
+        ]);
+
+        if(isset($request->status) && $request->status == "true"){
+            $job->status_id = 3;
+            $job->date = Carbon::now()->format('Y-m-d');
+            $job->save();
+        }elseif(isset($request->status) && $request->status == "false"){
+            $job->status_id = 1;
+            $job->date = Carbon::now()->format('Y-m-d');
+            $job->save();
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Inspection Status Updated Successfully',
+        ]);
+
+    }
+
     public function getAllStatus($jobId)
     {
         //NewLead
         $NewLead = "true";
 
         //inspection
-        $inspection = Inspection::where('company_job_id', $jobId)
-            ->whereNotNull('file_path')
-            ->where('file_path', '!=', '')
-            ->exists();
-            // dd($inspection);
-        if ($inspection) {
+        // $inspection = Inspection::where('company_job_id', $jobId)
+        //     ->whereNotNull('file_path')
+        //     ->where('file_path', '!=', '')
+        //     ->exists();
+        //     // dd($inspection);
+        // if ($inspection) {
+        //     $inspection = "true";
+        // } else{
+        //     $inspection = "false";
+        // }
+        $Inspection = Inspection::select('status')->where('company_job_id',$jobId)->first();
+        if ($Inspection && $Inspection->status == "true") {
             $inspection = "true";
-        } else{
+
+        }else{
             $inspection = "false";
+
         }
 
             //Signed Deal
@@ -244,54 +290,6 @@ class InspectionController extends Controller
 
     }
 
-    public function getAllStatus1()
-    {
-        // Fetch the status column from all 10 tables and include the table name
-        $statusesFromTable1 = AdjustorMeeting::pluck('status')->map(function ($status) {
-            return ['status' => $status, 'table' => 'AdjustorMeeting'];
-        });
-
-        $statusesFromTable2 = BuildComplete::pluck('status')->map(function ($status) {
-            return ['status' => $status, 'table' => 'BuildComplete'];
-        });
-
-        $statusesFromTable3 = Coc::pluck('status')->map(function ($status) {
-            return ['status' => $status, 'table' => 'Coc'];
-        });
-
-        $statusesFromTable4 = CustomerAgreement::pluck('status')->map(function ($status) {
-            return ['status' => $status, 'table' => 'CustomerAgreement'];
-        });
-
-        $statusesFromTable5 = ReadyToBuild::pluck('status')->map(function ($status) {
-            return ['status' => $status, 'table' => 'ReadyToBuild'];
-        });
-
-        $statusesFromTable6 = BuildDetail::pluck('confirmed')->map(function ($status) {
-            return ['status' => $status, 'table' => 'BuildDetail'];
-        });
-
-        $statusesFromTable7 = Inprogress::pluck('status')->map(function ($status) {
-            return ['status' => $status, 'table' => 'Inprogress'];
-        });
-
-        $statusesFromTable8 = FinalPaymentDue::pluck('status')->map(function ($status) {
-            return ['status' => $status, 'table' => 'FinalPaymentDue'];
-        });
-
-        // Merge all statuses
-        $allStatuses = $statusesFromTable1
-                        ->merge($statusesFromTable2)
-                        ->merge($statusesFromTable3)
-                        ->merge($statusesFromTable4)
-                        ->merge($statusesFromTable5)
-                        ->merge($statusesFromTable6)
-                        ->merge($statusesFromTable7)
-                        ->merge($statusesFromTable8);
-
-        return response()->json([
-            'status' => $allStatuses,
-        ]);
-    }
+    
 
 }
