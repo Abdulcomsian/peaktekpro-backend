@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\CompanyJob;
+use Carbon\Carbon;
 use App\Models\WonClosed;
+use App\Models\CompanyJob;
+use Illuminate\Http\Request;
 
 class WonClosedController extends Controller
 {
@@ -44,6 +45,43 @@ class WonClosedController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
+    }
+
+    public function updateWonClosedStatus(Request $request,$jobId)
+    {
+        $this->validate($request, [
+            'status' => 'nullable|string'
+        ]);
+
+        $job = CompanyJob::find($jobId);
+        if (!$job) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Company Job Not Found',
+            ]);
+        }
+
+        $inspection = WonClosed::updateOrCreate([
+            'company_job_id' => $jobId,
+        ],[
+            'status' => $request->status
+        ]);
+
+        if(isset($request->status) && $request->status == "true"){
+            $job->status_id = 3;
+            $job->date = Carbon::now()->format('Y-m-d');
+            $job->save();
+        }elseif(isset($request->status) && $request->status == "false"){
+            $job->status_id = 2;
+            $job->date = Carbon::now()->format('Y-m-d');
+            $job->save();
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Inspection Status Updated Successfully',
+        ]);
+
     }
     
     public function getWonClosed($jobId)

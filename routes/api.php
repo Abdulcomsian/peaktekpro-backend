@@ -424,6 +424,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/final-payment-due/{jobId}', [FinalPaymentController::class, 'getFinalPaymentDue']);
     //Won Closed Api's
     Route::post('update/won-closed/{jobId}', [WonClosedController::class, 'updateWonClosed']);
+    Route::post('update/won-closed/status/{jobId}', [WonClosedController::class, 'updateWonClosedStatus']);
     Route::get('get/won-closed/{jobId}', [WonClosedController::class, 'getWonClosed']);
     //Ready To Close Api's
     Route::post('update/ready-to-close/{jobId}', [ReadyToCloseController::class, 'updateReadyToClose']);

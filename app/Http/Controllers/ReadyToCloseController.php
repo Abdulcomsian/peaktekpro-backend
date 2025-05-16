@@ -139,8 +139,7 @@ class ReadyToCloseController extends Controller
                 ], 422);
             }
             
-            //add aditional Documents
-            $documents = 
+        
             $ready_to_close = ReadyToClose::updateOrCreate([
                 'company_job_id' => $jobId
             ],[
