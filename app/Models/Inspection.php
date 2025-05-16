@@ -9,6 +9,7 @@ class Inspection extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'company_job_id',
         'status'
     ];
 }

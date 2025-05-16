@@ -9,6 +9,10 @@ class CompanyJobSummary extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'company_job_id',
+        'status'
+    ];
     protected $guarded = [];
 
     public function customerAggrement()

@@ -3558,4 +3558,43 @@ class CompanyJobController extends Controller
         ]);
     }
 
+   
+    public function updateNewLeadStatus(Request $request,$jobId)
+    {
+        // dd("sds");
+        $this->validate($request, [
+            'status' => 'nullable|string'
+        ]);
+
+        $job = CompanyJob::find($jobId);
+        if (!$job) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Company Job Not Found',
+            ]);
+        }
+
+        $newLead = CompanyJobSummary::updateOrCreate([
+            'company_job_id' => $jobId,
+        ],[
+            'status' => $request->status
+        ]);
+
+        if(isset($request->status) && $request->status == "true"){
+            $job->status_id = 2;
+            $job->date = Carbon::now()->format('Y-m-d');
+            $job->save();
+        }elseif(isset($request->status) && $request->status == "false"){
+            $job->status_id = 1;
+            $job->date = Carbon::now()->format('Y-m-d');
+            $job->save();
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'New Lead Status Updated Successfully',
+        ]);
+
+    }
+
 }
