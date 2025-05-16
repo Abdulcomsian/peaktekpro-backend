@@ -48,8 +48,9 @@
                                 <td class="py-1 px-4 text-left">
                                     <a href="{{ route('reports.edit', ['id' => $report->id]) }}"
                                         class="text-blue-500 hover:text-blue-600">Edit</a>
-                                    <button onclick="openDeleteModal({{ $report->id }})"
-                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button>
+                                     
+                                    <!-- <button onclick="openDeleteModal({{ $report->id }})"
+                                        class="text-red-500 hover:text-red-600 ml-4">Delete</button> -->
                                 </td>
                             
                              

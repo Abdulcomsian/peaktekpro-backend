@@ -81,7 +81,7 @@ Route::middleware(['check.react.auth'])->group(function () {
     Route::get('/reports', [ReportLayoutController::class, 'index'])->name('reports.index');
     Route::get('/reports/create', [ReportLayoutController::class, 'create'])->name('reports.create');
     Route::post('/reports/store', [ReportLayoutController::class, 'store'])->name('reports.store');
-    Route::delete('/reports/{id}', [ReportLayoutController::class, 'destroy'])->name('reports.destroy');
+    Route::get('/reports/{id}', [ReportLayoutController::class, 'destroy'])->name('reports.destroy');
     Route::get('/reports/edit/{id}', [ReportLayoutController::class, 'edit'])->name('reports.edit');
     Route::put('/reports/update-title/{id}', [ReportLayoutController::class, 'updateTitle'])->name('reports.update.title');
     Route::post('/reports/update-status/{id}', [ReportLayoutController::class, 'updateStatus'])->name('reports.update-status');
