@@ -143,6 +143,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/current/job/stage/{jobId}', [CompanyJobController::class, 'getCurrentJobStage']);
     Route::get('get/customer/summary/{jobId}', [CompanyJobController::class, 'getCustomerSummary']);
 
+    //New lead status update Api
+    Route::post('update-newLead/status/{jobId}', [CompanyJobController::class, 'updateNewLeadStatus']);
+
 
     Route::get('filter/job/location', [CompanyJobController::class, 'filterJobByLocation']);//not used
     Route::get('filter/job/jobType/{statusId}', [CompanyJobController::class, 'filterJobsByJobType']); //not used

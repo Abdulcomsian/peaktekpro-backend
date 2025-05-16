@@ -13,6 +13,7 @@ use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
 use App\Models\BuildComplete;
 use App\Models\AdjustorMeeting;
+use App\Models\CompanyJobSummary;
 use App\Models\FinalPaymentDue;
 use App\Models\CustomerAgreement;
 use App\Models\InsuranceUnderReview;
@@ -145,7 +146,7 @@ class InspectionController extends Controller
             $job->date = Carbon::now()->format('Y-m-d');
             $job->save();
         }elseif(isset($request->status) && $request->status == "false"){
-            $job->status_id = 1;
+            $job->status_id = 2;
             $job->date = Carbon::now()->format('Y-m-d');
             $job->save();
         }
@@ -160,19 +161,16 @@ class InspectionController extends Controller
     public function getAllStatus($jobId)
     {
         //NewLead
-        $NewLead = "true";
+        // $NewLead = "true";
+        $NewLead = CompanyJobSummary::select('status')->where('company_job_id',$jobId)->first();
+        if ($NewLead && $NewLead->status == "true") {
+            $NewLead = "true";
 
+        }else{
+            $NewLead = "false";
+
+        }
         //inspection
-        // $inspection = Inspection::where('company_job_id', $jobId)
-        //     ->whereNotNull('file_path')
-        //     ->where('file_path', '!=', '')
-        //     ->exists();
-        //     // dd($inspection);
-        // if ($inspection) {
-        //     $inspection = "true";
-        // } else{
-        //     $inspection = "false";
-        // }
         $Inspection = Inspection::select('status')->where('company_job_id',$jobId)->first();
         if ($Inspection && $Inspection->status == "true") {
             $inspection = "true";
