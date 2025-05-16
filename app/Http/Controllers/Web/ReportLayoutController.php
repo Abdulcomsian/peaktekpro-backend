@@ -494,9 +494,9 @@ class ReportLayoutController extends Controller
 
             // Check if either file exists
             if (file_exists($filePath1)) {
-                return response()->download($filePath1, basename($filePath1))->deleteFileAfterSend(true);
+                return response()->download($filePath1, basename($filePath1));
             } elseif (file_exists($filePath2)) {
-                return response()->download($filePath2, basename($filePath2))->deleteFileAfterSend(true);
+                return response()->download($filePath2, basename($filePath2));
             } else {
                 return response()->json([
                     'status_code' => 404,
