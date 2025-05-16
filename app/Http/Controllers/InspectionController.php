@@ -249,7 +249,7 @@ class InspectionController extends Controller
 
         //Final Payment Due
         $finalPayment = FinalPaymentDue::where('company_job_id',$jobId)->first();
-        if ($finalPayment && $finalPayment->status == "true") {
+        if ($finalPayment && $finalPayment->status == true) {
             $finalPayment = "true";
 
         }else{
