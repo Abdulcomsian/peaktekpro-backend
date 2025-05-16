@@ -258,11 +258,11 @@ class InspectionController extends Controller
 
         //Won and Closed
         $wonClosed = WonClosed::where('company_job_id',$jobId)->first();
-        if (!$wonClosed || $wonClosed->closed_date == NULL) {
-            $wonClosed = "false";
-        }else{
+        if ($wonClosed && $wonClosed->status == "true") {
             $wonClosed = "true";
 
+        }else{
+            $wonClosed = "false";
         }
 
         return response()->json([
