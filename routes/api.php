@@ -372,6 +372,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/ready-to-build/{jobId}', [ReadyToBuildController::class, 'getReadyToBuild']);
     Route::get('send/email/supplier/{jobId}', [ReadyToBuildController::class, 'EmailToSupplier']); //send mail to supplier
 
+    //update status indie verdict  ready to build button api
+    Route::post('store/verdict-status/{jobId}', [ReadyToBuildController::class, 'storeVerdictStatus']);
+
     //Supplier Api's
     Route::get('get/suppliers-list', [SupplierController::class, 'getAllSuppliers']);
     Route::get('get/suppliers/{Id}', [SupplierController::class, 'getSuppliers']);
