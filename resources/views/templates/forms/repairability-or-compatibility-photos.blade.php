@@ -330,6 +330,48 @@ function sendDataToAjax(element) {
 
 let typingTimer; // Variable to store the timeout
 
+// Handle remove image button clicks using event delegation
+$('#compatibility-sections-container').on('click', '.remove-image-btn', function(e) {
+    e.preventDefault();
+    const dropzoneContainer = $(this).closest('.compatibility-dropzone');
+    const itemId = dropzoneContainer.attr('id').replace('compatibility-dropzone-', '');
+    
+    // Get the Dropzone instance
+    const dropzone = Dropzone.forElement(dropzoneContainer[0]);
+
+    // Remove any files from Dropzone
+    if (dropzone) {
+        dropzone.removeAllFiles(true); // This removes all files and cancels uploads
+    }
+    
+    // Send AJAX request to delete the file from the server (if it's a preloaded image)
+    deleteFileFromRepairablityDropzone(deleteFileFromRepairablityDropZoneRoute, {
+        page_id: pageId,
+        item_id: itemId
+    });
+    
+    // Reset the Dropzone HTML
+    dropzoneContainer.html('<div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>');
+    
+    // Update the backend data to reflect the removal
+    sendDataToAjax(dropzoneContainer.closest('.compatibility-section'));
+});
+
+// Define the deleteFileFromRepairablityDropzone function (if missing)
+function deleteFileFromRepairablityDropzone(url, data) {
+    $.ajax({
+        url: url,
+        method: 'DELETE',
+        data: data,
+        success: function(response) {
+            showSuccessNotification(response.message);
+        },
+        error: function(xhr) {
+            showErrorNotification(xhr.responseJSON.message);
+        }
+    });
+}
+
 $('#compatibility-sections-container').on('input', '.section-title, .item-editor', function () {
     clearTimeout(typingTimer); // Clear the previous timeout
     const $this = $(this);
@@ -474,7 +516,7 @@ $(document).on('click', '#add-compatibility-section-btn', function() {
 
     @if (empty($pageData->json_data['comparision_sections'] ?? null))
         document.addEventListener('DOMContentLoaded', function() {
-            initializeCompatibilityDropzone(1);
+            initializeCompatibilityDropzone(item.id);
         });
 @endif
 
