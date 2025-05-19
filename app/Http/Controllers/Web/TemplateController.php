@@ -416,6 +416,7 @@ class TemplateController extends Controller
 
     public function deletePageFile(Request $request)
     {
+        // dd("asf");
         try {
 
             $pageId = $request->input('page_id');

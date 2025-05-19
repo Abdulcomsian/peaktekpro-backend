@@ -365,7 +365,7 @@ function deleteFileFromRepairablityDropzone(url, data) {
         method: 'DELETE',
         data: data,
         success: function(response) {
-            showSuccessNotification(response.message);
+            showSuccessNotification(response.success);
         },
         error: function(xhr) {
             showErrorNotification(xhr.responseJSON.message);
