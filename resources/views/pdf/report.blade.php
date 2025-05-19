@@ -338,6 +338,9 @@
         </div>
         <!-- first section -->
         @case('introduction')
+
+        @if($page['is_active'] == 1)
+
            <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228); 
            position: relative; padding-left:40px; padding-right:10px;">
            <h2 style=" 
@@ -358,11 +361,14 @@
             margin-top:10px; padding-left:35px; padding-right:25px;">
                 {!! $jsonData['intro_text'] ?? 'No introduction text available.' !!}
         </div>
+        @endif
         @break
 
         <!-- second section -->
 
         @case('repairability-assessment')
+        @if($page['is_active'] == 1)
+
            <div style=" margin-top:-20px; height: 70px; width:100%;
             background-color: rgb(33, 166, 228);">
            <h2 style=" padding-left: 40px;
@@ -393,12 +399,15 @@
                 </div>
                 @endif
             </div>
+        @endif
         @break
 
         <!-- third Section -->
     
 
-   @case('repairability-or-compatibility-photos')
+            @case('repairability-or-compatibility-photos')
+            @if($page['is_active'] == 1)
+
                 <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
                     margin: 0; width: 100%; display: block; line-height:50px; padding: 0 40px; padding-bottom:15px;">
                     {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
@@ -446,54 +455,66 @@
                     </table>
                     @endforeach
                 </div>
+            @endif
             @break
 
         <!-- 4th section -->
 
         @case('product-compatibility')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
-        width: 92%; display: block; line-height:50px; padding: 10px 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="product-compatibility-section">
-            <div class="product-compatibility-text" style="padding-left:25px; padding-right:10px;">
-                {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
-            </div>
+        @if($page['is_active'] == 1)
 
-            <!-- Placeholder for product compatibility PDF -->
-            <div class="pdf-placeholder product-compatibility-placeholder" data-section="product-compatibility">
-                [product-compatibility-placeholder]
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
+            width: 92%; display: block; line-height:50px; padding: 10px 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+            <div class="product-compatibility-section">
+                <div class="product-compatibility-text" style="padding-left:25px; padding-right:10px;">
+                    {!! $jsonData['product_compatibility_text'] ?? 'No compatibility text available.' !!}
+                </div>
+
+                <!-- Placeholder for product compatibility PDF -->
+                <div class="pdf-placeholder product-compatibility-placeholder" data-section="product-compatibility">
+                    [product-compatibility-placeholder]
+                </div>
             </div>
-        </div>
+        @endif
         @break
         <!-- </div> -->
 
         <!-- <div style="page-break-after: always; break-after: page;"></div> -->
 
         @case('unfair-claims-practices')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
-         margin: 0; width: 92%; display: block; line-height:50px; padding: 0 40px; padding-bottom: 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="unfair-claims-section">
-            <div class="pdf-placeholder" data-section="unfair-claims-practices">
-                [unfair-claims-practices-placeholder]
+        @if($page['is_active'] == 1)
+
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+            margin: 0; width: 92%; display: block; line-height:50px; padding: 0 40px; padding-bottom: 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+            <div class="unfair-claims-section">
+                <div class="pdf-placeholder" data-section="unfair-claims-practices">
+                    [unfair-claims-practices-placeholder]
+                </div>
             </div>
-        </div>
+        @endif
         @break
 
 
         <!-- 6th Section -->
 
         @case('applicable-codes-guidelines')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
-         margin: 0; width: 92%; display: block; line-height:50px; padding: 10px 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="applicable-codes-guidelines-section" >
-            <div class="text-content" style="padding-left:25px; padding-right:10px;">
-                {!! $jsonData['applicable_code_guidelines_text'] ?? 'No guidelines text available.' !!}
+        @if($page['is_active'] == 1)
+
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
+            margin: 0; width: 92%; display: block; line-height:50px; padding: 10px 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+            <div class="applicable-codes-guidelines-section" >
+                <div class="text-content" style="padding-left:25px; padding-right:10px;">
+                    {!! $jsonData['applicable_code_guidelines_text'] ?? 'No guidelines text available.' !!}
+                </div>
             </div>
-        </div>
+        @endif
         @break
 
         <!-- 7th Section -->
 
         @case('quote-details')
+        @if($page['is_active'] == 1)
+
     <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228);
      margin: 0; width: 92%; display: block; line-height:50px; padding: 0 40px; padding-bottom: 25px;">
         {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
@@ -529,12 +550,15 @@
             @endif
         @endforeach
     </div>
+    @endif
 @break
 
 
 
             <!-- 8th Section -->
             @case('authorization-page')
+            @if($page['is_active'] == 1)
+
                 <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
                 width: 92%; display: block; line-height:50px; padding: 0 50px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
                 <div class="authorization-page-section" style="padding-left:35px; padding-right:10px; margin: 0 20px;">
@@ -573,33 +597,42 @@
                         <p>{!! $jsonData['authorization_footer_text'] ?? 'No footer available.' !!}</p>
                     </div>
                 </div>
+            @endif
             @break
 
 
         <!-- 9th Section -->
         @case('terms-and-conditions')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
-         width: 92%; display: block; line-height:50px; padding: 0 50px; padding-bottom: 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
-        <div class="terms-and-conditions" style="padding-left:35px; padding-right:10px;">
-            {!! $jsonData['terms_and_conditions_text'] !!}
-        </div>
+        @if($page['is_active'] == 1)
+
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
+            width: 92%; display: block; line-height:50px; padding: 0 50px; padding-bottom: 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
+            <div class="terms-and-conditions" style="padding-left:35px; padding-right:10px;">
+                {!! $jsonData['terms_and_conditions_text'] !!}
+            </div>
+        @endif
         @break
 
         <!-- 10th Section -->
         @case('warranty')
-        <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
-         width: 92%; display: block; line-height:50px; padding: 0 50px; padding-bottom: 25px;">
-            {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
-        </h2>
+        @if($page['is_active'] == 1)
 
-        <div class="terms-and-conditions" style="padding-left:35px; padding-right:10px;">
-            {!! $jsonData['warranty_text'] !!}
-        </div>
+            <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
+            width: 92%; display: block; line-height:50px; padding: 0 50px; padding-bottom: 25px;">
+                {{ is_string($page->name) ? $page->name : 'Unnamed Page' }}
+            </h2>
+
+            <div class="terms-and-conditions" style="padding-left:35px; padding-right:10px;">
+                {!! $jsonData['warranty_text'] !!}
+            </div>
+        @endif
         @break
 
 
         <!-- custom page -->
         @case('')
+        @if($page['is_active'] == 1)
+
             <h2 style="background-color: rgb(208, 224, 231); color: rgb(33, 166, 228); margin: 0;
              width: 92%; display: block; line-height:50px; padding: 0 50px; padding-bottom: 25px;">{{ is_string($page->name) ? $page->name : 'Unnamed Page' }}</h2>
             <div class="custom-page-section">
@@ -616,6 +649,7 @@
                     </div>
                 @endif
         </div>
+        @endif
         @break
 
 
