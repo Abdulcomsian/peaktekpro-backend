@@ -105,6 +105,7 @@
                                 <div class="dz-message text-center text-gray-600">Drop an image here or click to upload
                                 </div>
                             </div>
+                          
                         </div>
                         <!-- Image Preview (Outside Dropzone) -->
                         <div
@@ -516,7 +517,7 @@ $(document).on('click', '#add-compatibility-section-btn', function() {
 
     @if (empty($pageData->json_data['comparision_sections'] ?? null))
         document.addEventListener('DOMContentLoaded', function() {
-            initializeCompatibilityDropzone(item.id);
+            initializeCompatibilityDropzone(1);
         });
 @endif
 
