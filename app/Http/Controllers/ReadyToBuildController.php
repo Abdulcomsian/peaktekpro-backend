@@ -4,16 +4,17 @@ namespace App\Http\Controllers;
 
 use Log;
 // use PDF;
-use Barryvdh\DomPDF\Facade\Pdf;
-
 use Carbon\Carbon;
+
 use App\Models\User;
+use App\Models\Verdict;
 use App\Models\CompanyJob;
 use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
 use App\Mail\ReadyToBuildEmail;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
 use App\Models\ReadyToBuildMedia;
@@ -320,7 +321,6 @@ class ReadyToBuildController extends Controller
                 $job->status_id = 10;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save(); 
-                
                  //current stage save
                  $ready_to_build->current_stage="yes";
                  $ready_to_build->save();
@@ -513,6 +513,55 @@ class ReadyToBuildController extends Controller
     }
 
 
+    public function storeVerdictStatus(Request $request,$jobId)
+    {
+        // Validation Request
+        $this->validate($request, [
+            'status' => 'nullable|in:true,false',
+        ]);
+        
+        try {
+            // Check Job
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job not found',
+                ], 422);
+            }
+
+            // Update Ready To Build
+            $ready_to_build = Verdict::updateOrCreate([
+                'company_job_id' => $jobId,
+            ], [
+                'status' => $request->status,
+            ]);
+
+            //Update Status
+            if(isset($request->status) && $request->status == "true") {
+                $job->status_id = 9;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save(); 
+              
+
+            }elseif(isset($request->status) && $request->status == "false"){
+                $job->status_id = 6;
+                $job->date = Carbon::now()->format('Y-m-d');
+                $job->save();
+
+        
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Approved Status Updated Successfully',
+                'data' => $ready_to_build,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
 
 
     // public function getReadyToBuild($jobId)

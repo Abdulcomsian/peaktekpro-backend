@@ -17,6 +17,7 @@ use App\Models\CompanyJobSummary;
 use App\Models\FinalPaymentDue;
 use App\Models\CustomerAgreement;
 use App\Models\InsuranceUnderReview;
+use App\Models\Verdict;
 use Illuminate\Support\Facades\Storage;
 
 class InspectionController extends Controller
@@ -265,6 +266,15 @@ class InspectionController extends Controller
             $wonClosed = "false";
         }
 
+        //verdict approved
+        $verdictApproved = Verdict::where('company_job_id',$jobId)->first();
+        if ($verdictApproved && $verdictApproved->status == "true") {
+            $verdictApproved = "true";
+
+        }else{
+            $verdictApproved = "false";
+        }
+
         return response()->json([
             'status_code'=> 200,
             'msg' => 'Status of tabs',
@@ -274,6 +284,7 @@ class InspectionController extends Controller
                 'SignedDeal' => $SignedDeal,
                 'Adjustor' => $adjustor,
                 'InsuranceUnderReview' => $insurance,
+                'VerdictApproved' => $verdictApproved,
                 'readyBuild' => $readyBuild,
                 'buildSchedule' => $buildSchedule,
                 'Inprogress' => $Inprogress,
