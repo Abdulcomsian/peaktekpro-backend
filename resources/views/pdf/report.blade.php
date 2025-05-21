@@ -248,7 +248,9 @@
         $jsonData = $page->pageData->json_data;
         @endphp
         @switch($page->slug)
+
         @case('introduction')
+        @if($page['is_active'] == 1)
 
         <!-- Define header and footer blocks before your content -->
         <header style="height:20%;"> 
@@ -288,63 +290,60 @@
         </footer>
 
         <!-- Wrap the content of your PDF inside a main tag -->
-    <main class="content-main">
-    <div class="first-wrapper">
-        <div class="image" style=" height:810px;">
-            @if (isset($jsonData['primary_image']))
-            <div class="primary-image" style="height: 660px;">
-                <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" 
-                alt="Primary Image" 
-                style="
-                 object-fit: cover;
-                width: 100%;
-                height: 800px;
-                object-position: center center;
-    " />
+        <main class="content-main">
+        <div class="first-wrapper">
+            <div class="image" style=" height:810px;">
+                @if (isset($jsonData['primary_image']))
+                <div class="primary-image" style="height: 660px;">
+                    <img src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" 
+                    alt="Primary Image" 
+                    style="
+                    object-fit: cover;
+                    width: 100%;
+                    height: 800px;
+                    object-position: center center;" />
+                </div>
+                <!-- <div class="wrapper-custom primary-image"  style="height: 400px;">
+                    <img  src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" 
+                    alt="Primary Image" 
+
+                    />
+                </div> -->
+                @endif
             </div>
-            <!-- <div class="wrapper-custom primary-image"  style="height: 400px;">
-                <img  src="{{ public_path('storage/' . $jsonData['primary_image']['path']) }}" 
-                alt="Primary Image" 
-
-                />
-            </div> -->
-            @endif
-        </div>
 
 
-        <table style="width: 100%; border: none; padding: 10px;">
-            <tr>
-                <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
-                    <!-- <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3> -->
-                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
-                    <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p>  
-                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 22px;">{{ $address->formatedAddress ?? '' }}</p>
-                    <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $address->state ?? '' }}</p>
-                    <p style="margin-left:15px; line-height: 2px;">{{ $address->postalCode ?? '' }}</p>
+            <table style="width: 100%; border: none; padding: 10px;">
+                <tr>
+                    <td style="width: 50%; padding-right: 10px; vertical-align: top; font-size:20px;">
+                        <!-- <h3 style="margin-left:15px;">{{ $jsonData['company_name'] ?? 'No Name of Company available.' }}</h3> -->
+                        <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $email }}</p>
+                        <p style="margin-left:15px; margin-bottom: 40px; line-height: 2px;">{{ $phone }}</p>  
+                        <p style="margin-left:15px; margin-bottom: 2px; line-height: 22px;">{{ $address->formatedAddress ?? '' }}</p>
+                        <p style="margin-left:15px; margin-bottom: 2px; line-height: 2px;">{{ $address->state ?? '' }}</p>
+                        <p style="margin-left:15px; line-height: 2px;">{{ $address->postalCode ?? '' }}</p>
 
-                </td>
-                 <td style="width:50%;height:20px; margin-left:auto;margin-right:auto;
-                  vertical-align: middle; text-align: center; ">
-                     @if (isset($jsonData['secondary_image']))
-                        <img src="{{ public_path('storage/' . $jsonData['secondary_image']['path']) }}"
-                            alt="Secondary Image" 
-                            style="width: 200px; height: 80px; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
-                    @else
-                        <p style="text-align: center; font-style: italic; color: gray;">No secondary image available</p>
-                    @endif
-                 </td>
-            </tr>
-        </table>
+                    </td>
+                    <td style="width:50%;height:20px; margin-left:auto;margin-right:auto;
+                    vertical-align: middle; text-align: center; ">
+                        @if (isset($jsonData['secondary_image']))
+                            <img src="{{ public_path('storage/' . $jsonData['secondary_image']['path']) }}"
+                                alt="Secondary Image" 
+                                style="width: 200px; height: 80px; object-fit: cover; margin-bottom: 2px; display: block; margin: 0 auto;" />
+                        @else
+                            <p style="text-align: center; font-style: italic; color: gray;">No secondary image available</p>
+                        @endif
+                    </td>
+                </tr>
+            </table>
         </div>
         <!-- first section -->
-        @case('introduction')
-
-        @if($page['is_active'] == 1)
+   
 
            <div style="  height: 70px; width: 100%; background-color: rgb(33, 166, 228); 
            position: relative; padding-left:40px; padding-right:10px;">
            <h2 style=" 
-            color: white;
+            color: white; 
             margin: 0;
             position: absolute;
             top: 50%;
