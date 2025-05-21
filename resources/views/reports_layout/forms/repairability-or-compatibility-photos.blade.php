@@ -41,6 +41,7 @@
                                             </div>
                                         </div>
                                         <!-- Image Preview -->
+                                        <div class="image-preview-container lg:w-[28.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-4"></div>
 
                                         <!-- Quill Editor -->
                                         <div class="mb-14 w-full">
@@ -59,7 +60,6 @@
                             @endforeach
                         @endif
                     </div>
-
 
                     <!-- Add Item Button -->
                     <button
@@ -96,7 +96,7 @@
                 <!-- Items Container -->
                 <div class="compatibility-items-container flex flex-wrap items-center gap-1">
                     <!-- Initial Item -->
-                    <div class="item flex flex-row w-1/2" data-id="{{ \Str::random(8) }}">
+                    <div class="item flex flex-row w-full" data-id="{{ \Str::random(8) }}">
                         <!-- Drag Handle -->
                         <div class="mb-2">
                             <span class="item-drag-handle cursor-pointer">⇄</span>
@@ -444,7 +444,7 @@
         $(document).on('click', '.add-compatibility-item-btn', function() {
             const uniqueKey = generateBase64Key(8); // Generate the key once and reuse it
             const newCompatibilityItem = `
-            <div class="item flex flex-row w-1/2" data-id="${uniqueKey}">
+            <div class="item w-full flex flex-col gap-4 mb-4" data-id="${uniqueKey}">
                 <div class="mb-2">
                     <span class="item-drag-handle cursor-pointer">⇄</span>
                 </div>

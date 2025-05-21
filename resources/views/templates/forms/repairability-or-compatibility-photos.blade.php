@@ -97,10 +97,10 @@
                     <div class="mb-2">
                         <span class="item-drag-handle cursor-pointer">⇄</span>
                     </div>
-                    <div class="flex flex-col flex-wrap">
+                    <div class="flex flex-col flex-wrap w-full">
                         <!-- Image Upload -->
                         <div class="mb-2">
-                            <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
+                            <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center"
                                 id="compatibility-dropzone-1">
                                 <div class="dz-message text-center text-gray-600">Drop an image here or click to upload
                                 </div>
@@ -113,7 +113,7 @@
                         </div>
 
                         <!-- Quill Editor -->
-                        <div class="mb-14 lg:w-[28.9875rem] md:w-[28.9875rem] w-full">
+                        <div class="mb-14 w-full">
                             <div id="repairability-or-compatibility-text-quill-1" class="item-editor bg-white"></div>
                             <textarea class="hidden" id="repairability-or-compatibility-text-1" name="repairability_or_compatibility_text[]"
                                 required>{{ '' }}</textarea>
@@ -421,29 +421,26 @@ $(document).on('click', '#add-compatibility-section-btn', function() {
         $(document).on('click', '.add-compatibility-item-btn', function() {
         const uniqueKey = generateBase64Key(8); // Generate the key once and reuse it
         const newCompatibilityItem = `
-            <div class="item flex flex-row gap-2" data-id="${uniqueKey}">
-                <div class="mb-2">
-                    <span class="item-drag-handle cursor-pointer">⇄</span>
-                </div>
-                <div class="flex flex-col flex-wrap">
-                    <div class="mb-2">
-                        <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
-                            id="compatibility-dropzone-${uniqueKey}">
-                            <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
-                        </div>
-                    </div>
-                    <div class="image-preview-container lg:w-[28.9875rem] lg:h-[12.5rem] md:w-[18.9875rem] md:h-[12.5rem] w-[6.9875rem] h-[6.5rem] hidden mb-2"></div>
-                    <div class="mb-14 lg:w-[28.9875rem] md:w-[28.9875rem] w-full">
-                        <div id="repairability-or-compatibility-text-quill-${uniqueKey}" class="item-editor bg-white"></div>
-                        <textarea class="hidden" id="repairability-or-compatibility-text-${uniqueKey}" name="repairability_or_compatibility_text[]"
-                            required></textarea>
-                    </div>
-                </div>
-                <div class="mb-2">
-                    <button class="remove-compatibility-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
-                </div>
-            </div>
-        `;
+    <div class="item w-full flex flex-col gap-4 mb-4" data-id="${uniqueKey}">
+        <div class="flex justify-between items-start">
+            <span class="item-drag-handle cursor-pointer">⇄</span>
+            <button class="remove-compatibility-item-btn text-red-500 hover:text-red-700 font-medium text-sm">X</button>
+        </div>
+        
+        <div class="compatibility-dropzone w-full min-h-[200px] border-2 border-dashed border-gray-300 p-4 flex items-center justify-center relative"
+            id="compatibility-dropzone-${uniqueKey}">
+            <div class="dz-message text-center text-gray-600">Drop an image here or click to upload</div>
+        </div>
+
+        <div class="image-preview-container w-full h-auto hidden"></div>
+
+        <div class="w-full">
+            <div id="repairability-or-compatibility-text-quill-${uniqueKey}" class="item-editor bg-white w-full"></div>
+            <textarea class="hidden" id="repairability-or-compatibility-text-${uniqueKey}" name="repairability_or_compatibility_text[]" required></textarea>
+        </div>
+    </div>
+`;
+
         $(this).siblings('.compatibility-items-container').append(newCompatibilityItem);
     initializeCompatibilityDropzone(uniqueKey);
 
@@ -468,7 +465,7 @@ $(document).on('click', '#add-compatibility-section-btn', function() {
             },
             success: function(response) {
                 section.remove();
-                if (response.status) {
+                if (response) {
                         showSuccessNotification(response.message);
                     } else {
                         showErrorNotification(response.message);
@@ -495,7 +492,7 @@ $(document).on('click', '#add-compatibility-section-btn', function() {
             },
             success: function(response) {
                 Item.remove();
-                if (response.status) {
+                if (response) {
                         showSuccessNotification(response.message);
                     } else {
                         showErrorNotification(response.message);
