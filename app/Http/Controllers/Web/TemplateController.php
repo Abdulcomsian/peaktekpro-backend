@@ -1400,6 +1400,7 @@ class TemplateController extends Controller
 
     public function deleteRepairabilityPageFile(Request $request)
     {
+        // dd("sd");
         // Validate the request data
         $validated = $request->validate([
             'page_id' => 'required|integer|exists:template_page_data,template_page_id', // Ensure `template_page_id` exists in the database
@@ -1456,13 +1457,14 @@ class TemplateController extends Controller
         }
 
         // Return error if no item was found
-        if (!$itemDeleted) {
-            return response()->json(['error' => 'Item not found'], 404);
-        }
+        // if (!$itemDeleted) {
+        //     return response()->json(['error' => 'Item not found'], 404);
+        // }
 
         // Save the updated JSON data back to the database
         $repairibility->update(['json_data' => json_encode($repairibilityDetails)]);
+        return response()->json(['status' => true, 'success' => 'File removed successfully']);
 
-        return response()->json(['success' => 'File deleted successfully']);
+        // return response()->json(['success' => 'File deleted successfully']);
     }
 }
