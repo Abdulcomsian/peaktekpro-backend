@@ -180,10 +180,14 @@
         function initializeRepariabilityOrCompatibilityPhotosQuill(container, textareaId) {
             var quill = new Quill(container, {
                 theme: 'snow',
+                modules: {
+            toolbar: quillOptions // Add the same toolbar options as your working example
+        }
             });
 
             // Set the editor's height dynamically
             quill.root.style.height = '200px';
+            quill.clipboard.dangerouslyPasteHTML($(textareaId).val());
 
             // Load existing content into the editor
             let content = $(textareaId).val(); // Get the value from the hidden textarea
@@ -192,9 +196,15 @@
             }
 
             // Sync Quill content to the hidden textarea on changes
-            quill.on('text-change', function() {
-                $(textareaId).val(quill.root.innerHTML);
-            });
+            quill.on('text-change', function(delta, oldDelta, source) {
+            $(textareaId).val(quill.root.innerHTML);
+            
+            // Trigger immediate save
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                sendDataToAjax($(container).closest('.compatibility-section'));
+            }, 300);
+        });
         }
 
         // Initialize all Quill editors after page load
