@@ -1004,6 +1004,68 @@ class ReportLayoutController extends Controller
     public function saveQuoteSectionDetails(Request $request)
     {
         try {
+            // dd("Sdsd");
+            // dd($request->all());
+            $pageId = $request->input('page_id');
+            $quoteSectionData = $request->input('quoteSection');
+            $grandTotal = $request->input('grandTotal');
+
+            // Validate quoteSectionData contains 'id'
+            if (!isset($quoteSectionData['id'])) {
+                return response()->json(['status' => false, 'message' => 'Section ID is missing'], 400);
+            }
+
+            // Find if the page data exists by page_id
+            $quote = ReportPageData::where('report_page_id', $pageId)->first();
+
+            if (!$quote) {
+                // Create a new quote with default structure
+                $quote = ReportPageData::create([
+                    'report_page_id' => $pageId,
+                    'json_data' => json_encode([
+                        'grand_total' => $grandTotal,
+                        'sections' => []
+                    ]),
+                ]);
+            }
+
+            // Retrieve the current JSON data
+            $currentData = is_string($quote->json_data)
+                ? json_decode($quote->json_data, true)
+                : $quote->json_data;
+
+            // Ensure it's an array
+            $currentData = is_array($currentData) ? $currentData : ['grand_total' => 0, 'sections' => []];
+            $sections = collect($currentData['sections']);
+
+            // Check if the section already exists
+            $existingSectionIndex = $sections->search(fn($s) => isset($s['id']) && $s['id'] === $quoteSectionData['id']);
+
+            if ($existingSectionIndex !== false) {
+                // Update the existing section
+                $sections[$existingSectionIndex] = $quoteSectionData;
+            } else {
+                // Add the new section
+                $sections->push($quoteSectionData);
+            }
+
+            // Update grand total
+            $currentData['grand_total'] = $grandTotal;
+            $currentData['sections'] = $sections->values()->all();
+
+            // Save the updated JSON back to the database
+            $quote->update(['json_data' => json_encode($currentData)]);
+
+            return response()->json(['status' => true, 'message' => 'Data saved successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function saveQuoteSectionDetails200(Request $request)
+    {
+        try {
+            // dd($request->all());
 
             $pageId = $request->input('page_id');
             $quoteSectionData = $request->input('quoteSection');
@@ -1021,11 +1083,19 @@ class ReportLayoutController extends Controller
                         'sections' => []
                     ], true),
                 ]);
+                $quote->refresh(); // ⬅️ Re-fetch the saved row with proper casting
+
             }
 
             // Retrieve the current JSON data
-            $currentData = $quote->json_data ?? ['grand_total' => 0, 'sections' => []];
-            $sections = collect($currentData['sections']);
+            // $currentData = $quote->json_data ?? ['grand_total' => 0, 'sections' => []];
+            // // $sections = collect($currentData['sections']);
+            // $sections = collect($currentData['sections'] ?? []);
+
+
+            $currentData = json_decode($quote->json_data, true) ?? ['grand_total' => 0, 'sections' => []];
+            $sections = collect($currentData['sections'] ?? []);
+            
 
             // Check if the section already exists
             $existingSectionIndex = $sections->search(fn($s) => $s['id'] === $quoteSectionData['id']);
@@ -1047,7 +1117,6 @@ class ReportLayoutController extends Controller
 
             return response()->json(['status' => true, 'message' => 'Data saved successfully']);
         } catch (\Exception $e) {
-            dd($e);
             return response()->json(['status' => false, 'message' => 'An error occurred while updating the page data'], 500);
         }
     }
