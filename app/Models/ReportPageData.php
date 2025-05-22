@@ -14,6 +14,11 @@ class ReportPageData extends Model
         'json_data'
     ];
 
+    // protected $casts = [
+    //     'json_data' => 'array',
+    // ];
+    
+
     public $appends = ['file_url'];
 
     public function getJsonDataAttribute($value)
