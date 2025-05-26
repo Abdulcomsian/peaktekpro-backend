@@ -50,9 +50,13 @@ class CompanyJobController extends Controller
             'phone' => 'required',
 
             'market' => 'nullable',
-            'job_type' => 'nullable|in:Retail,Insurance',
-            'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
-            'lead_status' => 'nullable|in:New,Contacted,Follow-up Needed',
+            // 'job_type' => 'nullable|in:Retail,Insurance',
+            'job_type' => 'nullable',
+            // 'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+
+            'lead_source' => 'nullable',
+            // 'lead_status' => 'nullable|in:New,Contacted,Follow-up Needed',
+            'lead_status' => 'nullable',
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id',
             'invoice_number' => 'nullable',
