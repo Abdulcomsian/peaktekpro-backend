@@ -2826,6 +2826,142 @@ class CompanyJobController extends Controller
         }
     }
 
+    public function filterJobsStage(Request $request)
+    {
+        $request->validate([
+            'status' => 'nullable|string',         
+        ]);
+
+        try {
+            $user = Auth::user();
+            $assigned_jobs = \App\Models\CompanyJobUser::where('user_id', $user->id)->pluck('company_job_id')->toArray();
+            $created_by = $user->created_by == 0 ? 1 : $user->created_by;
+
+          
+
+            $specificStatuses =
+            ['New Leads',
+            'Inspection',
+            'Signed Deal',
+            // 'Estimate Prepared',
+            'Adjuster Scheduled',
+            'Approved',
+            'Denied',
+            'Partial',
+       
+            'Ready To Build',
+            'Build Scheduled',
+            'In Progress',
+            'Build Complete',
+            'COC Required',
+            'Final Payment Due',
+            'Won and Closed',];
+
+                // dd($specificStatuses);
+            $tasks = Status::select('id', 'name')
+                ->whereIn('name', $specificStatuses)
+                ->when(!empty($request->stages), function ($query) use ($request) {
+                    $query->whereIn('name', $request->stages);
+                })
+                ->withCount([
+                    'tasks' => function ($query) use ($created_by, $request) {
+                        $query->where('created_by', $created_by);
+
+                      
+
+
+                    }
+                ])
+                ->with([
+                    'tasks' => function ($query) use ($request) {
+                        $query->with(['summary' => function ($q) {
+                            $q->select('company_job_id', 'job_total', 'claim_number','job_type','lead_source');
+                        }, 'status'])
+                        ->select('company_jobs.id', 'company_jobs.name', 'company_jobs.address', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.status_id','company_jobs.user_id')
+                        ->leftJoin('company_job_summaries', 'company_jobs.id', '=', 'company_job_summaries.company_job_id');
+
+
+              
+              
+
+                    
+
+
+                    
+                        
+
+                    }
+                ])
+                ->get();
+
+            // Transform tasks data to include 'job_total' and 'claim_number' in 'summary' and sum up 'job_total' for each status
+            $tasks->each(function ($status) {
+                $status->job_total = $status->tasks->sum(function ($job) {
+                    return optional($job->summary)->job_total ?? 0;
+                });
+
+                $status->tasks->transform(function ($job) {
+                    $completed_percentage = 0; // Default value
+
+                        if ($job->status_id == 1) {  
+                            $completed_percentage = 10;
+                        } elseif ($job->status_id == 2) {  
+                            $completed_percentage = 20;
+                        } elseif ($job->status_id == 4) {  
+                            $completed_percentage = 30;
+                        } elseif ($job->status_id == 5) {  
+                            $completed_percentage = 40;
+                        } elseif ($job->status_id == 6 || $job->status_id == 8) {  
+                            $completed_percentage = 50;
+                        } elseif ($job->status_id == 11) {  
+                            $completed_percentage = 60;
+                        } elseif ($job->status_id == 13) {  
+                            $completed_percentage = 70;
+                        } elseif ($job->status_id == 14) {  
+                            $completed_percentage = 80;
+                        } elseif ($job->status_id == 15) {  
+                            $completed_percentage = 90;
+                        } elseif ($job->status_id == 20) {  
+                            $completed_percentage = 100;
+                        } 
+                    return [
+                        'id' => $job->id,
+                        'name' => $job->name,
+                        'address' => json_decode($job->address, true)['formatedAddress'] ?? null,
+                        'status_id' => $job->status_id,
+                        'user_id' => $job->user_id,
+                        'completed_percentage' => $completed_percentage,
+                        'created_at' => $job->created_at,
+                        'updated_at' => $job->updated_at,
+                        'summary' => [
+                            'company_job_id' => $job->summary->company_job_id ?? null,
+                            'job_total' => $job->summary->job_total ?? 0,
+                            'claim_number' => $job->summary->claim_number ?? null,
+                            'job_type' => $job->summary->job_type ?? null,
+                            'lead_source' => $job->summary->lead_source ?? null,
+
+                        ],
+                        'status' => [
+                            'id' => $job->status->id ?? null,
+                            'name' => $job->status->name ?? null,
+                            'created_at' => $job->status->created_at ?? null,
+                            'updated_at' => $job->status->updated_at ?? null,
+                        ]
+                    ];
+                });
+            });
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data Fetched Successfully',
+                'data' => $tasks
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
+        }
+    }
+
     public function getJobsFilterSection(Request $request)
     {
         try {

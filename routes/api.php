@@ -139,6 +139,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get/jobs/filter/sections', [CompanyJobController::class, 'getJobsFilterSection']); //get sales resprenstative as assigneees for the filters
     Route::get('filter/jobs-by-status/{statusId}', [CompanyJobController::class, 'FilterJobWithStatus']);
 
+    //new api for job
+    Route::post('filter/jobs/stage', [CompanyJobController::class, 'filterJobsStage']);
+
     ///find customer job status
     Route::get('get/current/job/stage/{jobId}', [CompanyJobController::class, 'getCurrentJobStage']);
     Route::get('get/customer/summary/{jobId}', [CompanyJobController::class, 'getCustomerSummary']);
