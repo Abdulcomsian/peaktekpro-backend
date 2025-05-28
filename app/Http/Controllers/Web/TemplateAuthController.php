@@ -10,9 +10,6 @@ class TemplateAuthController extends Controller
 {
     public function __invoke(Request $request)
     {
-        // return Redirect::to("templates?t=$request->t");
         return redirect()->route('templates.index');
-
-
     }
 }

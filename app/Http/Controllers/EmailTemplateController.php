@@ -11,7 +11,7 @@ class EmailTemplateController extends Controller
     public function storeEmailTemplate($companyId, Request $request) //it is company id
     {
         $request->validate([
-            'title' => 'string',
+            'title' => 'nullable|string',
             'content'=> 'string',
             'supplier_id' =>'integer',
 
