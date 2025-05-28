@@ -63,7 +63,7 @@ class SupplierController extends Controller
         $this->validate($request, [
             'name' => 'required|string',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            // 'password' => 'required|string|min:8',
             'location'=> 'nullable|string'
         ]);
 
@@ -81,7 +81,7 @@ class SupplierController extends Controller
                 'first_name' => $firstName,
                 'last_name' => $lastName,
                 'email' => $request->email,
-                'password' => Hash::make($request->password),
+                // 'password' => Hash::make($request->password),
                 'company_id'=> $user->company_id,
                 'created_by'=> $created_by,
                 'location' => $request->location,
@@ -171,7 +171,7 @@ class SupplierController extends Controller
                 'email',
                 Rule::unique('users', 'email')->ignore($id),
             ],
-            'password' => 'nullable|string|min:8',
+            // 'password' => 'nullable|string|min:8',
             'location'=> 'nullable|string'
         ]);
 
@@ -188,7 +188,7 @@ class SupplierController extends Controller
             $user->first_name = $firstName ?? $user->first_name;
             $user->last_name = $lastName ?? $user->last_name;
             $user->email = $request->email ?? $user->email;
-            $user->password = $request->password ?? $user->password;
+            // $user->password = $request->password ?? $user->password;
             $user->company_id = $user->company_id;
             $user->created_by = $created_by;
             $user->location = $request->location ?? $user->location;
