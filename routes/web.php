@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CocController;
 use App\Http\Controllers\ReadyToBuildController;
 use App\Http\Controllers\Web\CustomerController;
+use App\Http\Controllers\Web\TemplateAuthController;
 use App\Http\Controllers\Web\{ReactAuthController, TemplateController, ReportLayoutController};
 /*
 |--------------------------------------------------------------------------
@@ -37,7 +38,7 @@ Route::get('ready-to-build/{id}', [ReadyToBuildController::class, 'storeReadyToB
 Route::get('store/coc/{jobId}', [CocController::class, 'storeCoc']);
 
 Route::get('auth', ReactAuthController::class)->middleware('check.react.auth');
-Route::get('template.auth', ReactAuthController::class)->middleware('template.react.auth');
+Route::get('template.auth', TemplateAuthController::class)->middleware('template.react.auth');
 // templates
 // Route::middleware(['check.react.auth', 'check.user.role'])->group(function () {
 Route::middleware(['check.react.auth'])->group(function () {
