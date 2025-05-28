@@ -1273,7 +1273,7 @@ class MaterialOrderController extends Controller
                     'order_key' => $request->order_key,
                     'material_name'  => $request->material_name,
                     'color'     => $request->color, 
-                    'pdf_url' => $image_url
+                    'pdf_url' => $image_url ?? null
                     // 'color'     => json_encode($request->color), 
 
                 ]
