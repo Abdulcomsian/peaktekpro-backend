@@ -53,6 +53,8 @@ class ProfileController extends Controller
 
             //logo image add
             $logo_path = null;
+            // $logo_path = public_path('assets/logo/logoTest.png');
+            // $defaultLogoPath = 'logo/logo-white.png';
 
             if($request->hasFile('logo'))
             {
@@ -69,9 +71,6 @@ class ProfileController extends Controller
                 $image = $request->file('logo');
                 $imageName = time(). rand(000,999).'.'.$image->getClientOriginalExtension();
                 $logo_path = $image->storeAs('public/logo', $imageName);
-            }else {
-                $user = User::find($id);
-                $path = $user->logo; 
             }
 
             $user= User::find($id);
@@ -90,7 +89,10 @@ class ProfileController extends Controller
             $user->job_title=$request->job_title ?? $user->job_title;
             $user->market_segment=$request->market_segment ?? $user->market_segment;
             $user->profile_image = Storage::url($path);
-            $user->logo = Storage::url($logo_path);
+            // $user->logo = $request->logo ?? Storage::url($logo_path) : null;
+            $user->logo = $request->hasFile('logo') ? Storage::url($logo_path) : null;
+
+            // $user->logo = $logo_path;
 
             $user->save();
 
