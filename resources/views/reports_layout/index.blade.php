@@ -85,10 +85,10 @@
                     <label class="block text-gray-700 mb-2">Select Template</label>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm text-gray-600">Choose from existing templates</span>
-                        <a href="{{ route('templates.index') }}"
+                        <!-- <a href="{{ route('templates.index') }}"
                             class="bg-blue-500 btn-gradient text-white px-4 py-2 rounded text-sm">
                             Manage Templates
-                        </a>
+                        </a> -->
                     </div>
                     <select name="template_id" class="w-full border border-gray-300 rounded p-2 mt-2" required>
                         <option value="">Select a Template</option>

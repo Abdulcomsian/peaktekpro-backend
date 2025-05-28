@@ -9,9 +9,9 @@
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold text-gray-700">Templates</h1>
                 <div class="flex gap-2 ml-auto"> 
-                    <a href="{{ route('reports.index') }}" class="text-white hover:text-gray-300 btn-gradient p-2 rounded">
+                    <!-- <a href="{{ route('reports.index') }}" class="text-white hover:text-gray-300 btn-gradient p-2 rounded">
                         Back To Reports
-                    </a>
+                    </a> -->
 
                     <!-- <button onclick="openModal()" class="btn-gradient text-white px-4 py-2 rounded hover:bg-blue-600">
                         Create Template

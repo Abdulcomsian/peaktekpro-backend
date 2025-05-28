@@ -23,8 +23,8 @@
             <div class="flex space-x-4">
                 <!-- <a href="{{ route('reports.index') }}"
                     class="text-white hover:text-gray-300 btn-gradient p-2 rounded">Reports</a> -->
-                <a href="{{ route('templates.index') }}"
-                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded">Templates</a>
+                <!-- <a href="{{ route('templates.index') }}"
+                    class="hover:text-gray-300 text-white btn-gradient p-2 rounded">Templates</a> -->
 
                 <!-- Add more links as needed -->
             </div>
