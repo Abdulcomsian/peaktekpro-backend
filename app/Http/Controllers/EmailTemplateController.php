@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EmailTemplateResource;
 use App\Models\Company;
 use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
@@ -40,10 +41,11 @@ class EmailTemplateController extends Controller
                 ]);
             }
 
+            $supplier = User::where('id',$request->supplier_id)->first();
             $emailContent = EmailTemplate::create([
              
                 'company_id' => $companyId,
-                'title' => $request->title,
+                'title' => $supplier->name,
                 'content' => $request->content,
                 'supplier_id'=> $request->supplier_id,
             ]);
@@ -82,7 +84,7 @@ class EmailTemplateController extends Controller
                 return response()->json([
                     'status' => 200,
                     'message'=> 'Email Content Found Successfully',
-                    'data' => $emailTemplate
+                    'data' => EmailTemplateResource::collection($emailTemplate)
                 ]);
             }
 
