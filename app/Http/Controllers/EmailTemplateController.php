@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 class EmailTemplateController extends Controller
 {
-    public function storeEmailTemplate($companyId, Request $request) //it is company id
+    public function storeEmailTemplateup($companyId, Request $request) //it is company id
     {
         $request->validate([
             'title' => 'nullable|string',
@@ -65,6 +65,56 @@ class EmailTemplateController extends Controller
         }
         
     }
+
+    public function storeEmailTemplate($companyId, Request $request)
+    {
+        $request->validate([
+            'title' => 'nullable|string',
+            'content' => 'string',
+            'supplier_id' => 'integer',
+        ]);
+
+        try {
+            $company = Company::find($companyId);
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Company Not Found'
+                ]);
+            }
+
+            $supplier = User::find($request->supplier_id);
+            if (!$supplier) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Supplier Not Found'
+                ]);
+            }
+
+            $emailTemplate = EmailTemplate::updateOrCreate(
+                [
+                    'supplier_id' => $request->supplier_id,
+                    'company_id' => $companyId,
+                ],
+                [
+                    'title' => $request->title ?? $supplier->name,
+                    'content' => $request->content,
+                ]
+            );
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Email Template Saved Successfully',
+                'data' => $emailTemplate
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Issue Occurred: ' . $e->getMessage()
+            ]);
+        }
+    }
+
 
     public function getEmailTemplate($companyId)
     {
