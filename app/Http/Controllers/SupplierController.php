@@ -172,7 +172,8 @@ class SupplierController extends Controller
                 Rule::unique('users', 'email')->ignore($id),
             ],
             // 'password' => 'nullable|string|min:8',
-            'location'=> 'nullable|string'
+            'location'=> 'nullable|string',
+            'status' => 'nullable|string',
         ]);
 
         try {   
@@ -181,10 +182,12 @@ class SupplierController extends Controller
             $created_by = $user->company_id; //here we save the company id
             $name = explode(' ', $request->name, 2);
             $firstName = $name[0];
-            $lastName = isset($name[1]) ? $name[1] : '';
+            // dd($firstName);
+            $lastName = isset($name[1]) ? $name[1] : '';    
             // Create a new user
             $user = User::where('id',$id)->first();
             $user->role_id = 4;
+            $user->name = $firstName.' '. $lastName;
             $user->first_name = $firstName ?? $user->first_name;
             $user->last_name = $lastName ?? $user->last_name;
             $user->email = $request->email ?? $user->email;
