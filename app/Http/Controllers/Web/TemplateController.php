@@ -17,7 +17,7 @@ class TemplateController extends Controller
     public function index(Request $request)
     {
         try {
-            // dd("hi bye hi");
+            dd("hi bye hi");
             $jobId = session('job_id');
 
             // dd($jobId);
