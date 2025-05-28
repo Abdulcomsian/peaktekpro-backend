@@ -65,6 +65,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'token.expiration' => \App\Http\Middleware\TokenExpiration::class,
         'check.react.auth' => \App\Http\Middleware\CheckReactAuth::class,
+        'template.react.auth' => \App\Http\Middleware\TemplateReactAuth::class,
         'check.user.role' => \App\Http\Middleware\CheckUserRoleMiddleware::class
     ];
 }

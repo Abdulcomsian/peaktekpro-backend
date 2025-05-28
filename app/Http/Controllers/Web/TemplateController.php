@@ -19,6 +19,7 @@ class TemplateController extends Controller
         try {
             // dd("hi bye hi");
             $jobId = session('job_id');
+
             // dd($jobId);
             $companyId = Auth::user()->company_id;
 

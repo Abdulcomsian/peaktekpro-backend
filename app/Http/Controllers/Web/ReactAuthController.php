@@ -11,6 +11,8 @@ class ReactAuthController extends Controller
     {
         // return Redirect::to("templates?t=$request->t");
         return redirect()->route('reports.index');
+        return redirect()->route('template.index');
+
 
     }
 }
