@@ -37,6 +37,7 @@ Route::get('ready-to-build/{id}', [ReadyToBuildController::class, 'storeReadyToB
 Route::get('store/coc/{jobId}', [CocController::class, 'storeCoc']);
 
 Route::get('auth', ReactAuthController::class)->middleware('check.react.auth');
+Route::get('template.auth', ReactAuthController::class)->middleware('template.react.auth');
 // templates
 // Route::middleware(['check.react.auth', 'check.user.role'])->group(function () {
 Route::middleware(['check.react.auth'])->group(function () {

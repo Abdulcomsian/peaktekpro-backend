@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Mail;
 use App\Models\User;
+use App\Models\Template;
 use App\Models\UserRole;
+use App\Models\CompanyJob;
 use App\Jobs\CreateUserJob;
 use Illuminate\Support\Str;
 use App\Mail\CreateUserMail;
@@ -271,6 +273,26 @@ class AuthController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function index(Request $request)
+    {
+        try {
+            // dd("hi bye hi");
+            $jobId = session('job_id');
+            // dd($jobId);
+            $companyId = Auth::user()->company_id;
+
+            $templates = Template::with('templatePages.pageData')->where('company_id', $companyId)->paginate(5);
+            $company = CompanyJob::find($jobId);
+            $companyAddress = json_decode($company->address);
+            $address = $companyAddress->formatedAddress;
+            // dd($templates);
+
+            return view('templates.index', compact('templates', 'company', 'address',));
+        } catch (\Exception $e) {
+            abort(500, 'An error occurred while fetching templates.');
         }
     }
 }
