@@ -20,14 +20,14 @@ class TemplateReactAuth
     {
         try {
             $token = $request->query('t') ?? '';
-            $jobId = $request->query('j') ?? '';
+            // $jobId = $request->query('j') ?? '';
 
 
             if (Auth::check()) {    
-                if ($jobId) {
-                    session(['job_id' => $jobId]);
+                // if ($jobId) {
+                //     session(['job_id' => $jobId]);
 
-                }
+                // }
                 return $next($request);
             } else {
 
@@ -58,10 +58,10 @@ class TemplateReactAuth
                 // Optionally: log the user in (optional for custom login process)
                 Auth::login($user); // Logs in the user, so they are authenticated for the session
 
-                if ($jobId) {
-                    session(['job_id' => $jobId]);
+                // if ($jobId) {
+                //     session(['job_id' => $jobId]);
 
-                }
+                // }
 
                 return $next($request);
             }
