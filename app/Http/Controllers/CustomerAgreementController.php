@@ -778,12 +778,13 @@ class CustomerAgreementController extends Controller
         
             } 
 
+             $fileFinalName = null;
             $agreement = AgreementContent::updateOrCreate([
                 'company_id' => $companyId,
             ],[
                 'company_id' => $companyId,
                 'content' => $request->content,
-                'file_path' => 'CompanyCustomerAgreements/'. $fileFinalName
+                'file_path' => $request->hasFile('file_path') ?  'CompanyCustomerAgreements/'. $fileFinalName : null
             ]);
 
             return response()->json([
@@ -792,7 +793,7 @@ class CustomerAgreementController extends Controller
                 'data' => [
                     'id' => $agreement->id,
                     'company_id' => $agreement->company_id,
-                    'file_path' => asset('storage/' .$agreement->file_path ),
+                    'file_path' =>  $request->hasFile('file_path') ? asset('storage/' .$agreement->file_path ) : null,
                     'created_at' => $agreement->created_at,
                     'updated_at' => $agreement->updated_at
 
@@ -830,7 +831,8 @@ class CustomerAgreementController extends Controller
                     'data' => [
                     'id' => $agreement->id,
                     'company_id' => $agreement->company_id,
-                    'file_path' => asset('storage/' .$agreement->file_path ),
+                    'file_path' => $agreement->file_path ? asset('storage/' .$agreement->file_path ) : null,
+                  
                     'created_at' => $agreement->created_at,
                     'updated_at' => $agreement->updated_at
 
