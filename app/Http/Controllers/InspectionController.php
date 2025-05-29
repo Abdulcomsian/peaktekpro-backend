@@ -22,7 +22,65 @@ use Illuminate\Support\Facades\Storage;
 
 class InspectionController extends Controller
 {
-    public function addInspection($jobId, Request $request)
+     public function addInspection($jobId, Request $request)
+    {
+        $request->validate([
+            'file_path' => 'nullable|array', 
+            'file_path.*' => 'nullable|file', 
+            'labels' => 'nullable|string',         
+            // 'labels.*' => 'nullable|string',      
+        ]);
+
+        try {
+            $adjustor = CompanyJob::find($jobId);
+            if (!$adjustor) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Company Job Not Found',
+                ]);
+            }
+
+
+            $savedPhotos = [];
+            $squarePhotos = $request->file_path ?? [];
+    
+            foreach ($squarePhotos as $index => $document) {
+                $document_fileName = time() . '_' . $document->getClientOriginalName();
+                $document_filePath = $document->storeAs('InspectionPhotos', $document_fileName, 'public');
+    
+                $media = new Inspection();
+                $media->company_job_id = $jobId;
+                $media->labels =  $request->labels;
+                $media->file_path = Storage::url($document_filePath);
+
+                $media->save();
+    
+                $savedPhotos[] = [
+                    'id' => $media->id,
+                    'company_job_id' => $media->company_job_id,
+                    'labels' => $media->labels,
+                    'file_path' => $media->file_path,
+                    'created_at' => $media->created_at,
+                    'updated_at' => $media->updated_at,
+                ];
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Inspection Photos Added Successfully',
+                'data' => $savedPhotos,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An issue occurred: ' . $e->getMessage(),
+                'data' => [],
+            ]);
+        }
+    }
+
+    public function addInspection200($jobId, Request $request)
     {
         $request->validate([
             'file_path' => 'nullable|array', 
@@ -79,6 +137,7 @@ class InspectionController extends Controller
             ]);
         }
     }
+
 
     public function getInspection($jobId)
     {
