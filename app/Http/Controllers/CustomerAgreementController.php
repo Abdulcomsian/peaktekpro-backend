@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 // use PDF;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
+use DOMDocument;
 use Carbon\Carbon;
 use App\Models\Company;
 use App\Jobs\SignEmailJob;
 use App\Models\CompanyJob;
 use App\Mail\SignEmailMail;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AgreementContent;
 use App\Models\CompanyJobSummary;
 use App\Models\CustomerAgreement;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
-use DOMDocument;
+use App\Http\Resources\CustomerAgreementResource;
 
 class CustomerAgreementController extends Controller
 {
@@ -380,6 +381,106 @@ class CustomerAgreementController extends Controller
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
+
+    //upload filled pdf document
+    public function saveFilledPdf1($jobId, Request $request)
+    {
+        try{
+            $request->validate([
+                'file_path'=> 'nullable|file'
+            ]);
+
+            $job = CompanyJob::find($jobId);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Company Job Not Found'
+                ], 422);
+            }
+
+            //save customer aggrement file
+            
+            if (isset($data['file_path'])) {
+
+                $file = $data['file_path'];
+                $fileName = $file->getClientOriginalName();
+                $fileExtension = $file->getClientOriginalExtension();
+
+                $fileFinalName = rand(0000,9999).'_'. time().'.'.$fileExtension;
+
+                $fileDestination = "storage/CustomerAgreements";
+                $file->storeAs('CustomerAgreements', $fileFinalName, 'public'); // Store in 'storage/app/public/CustomerAgreements'
+
+                // $file->move($fileDestination,$fileFinalName);
+                // dd($fileDestination);
+
+            }
+
+            $saveFilledDocument = CustomerAgreement::updateOrCreate(
+                [
+                    'company_id' => $jobId,
+                ],
+                [
+                    'file_path' => 'CustomerAgreements/' . $fileFinalName,
+                ]
+            );
+
+
+        }catch(\Exception $e){
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+
+        }
+    }
+
+    public function saveFilledPdf($jobId, Request $request)
+    {
+        try {
+            $request->validate([
+                'file_path' => 'nullable|file',
+            ]);
+
+            $job = CompanyJob::find($jobId);
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Company Job Not Found',
+                ], 422);
+            }
+
+            if ($request->hasFile('file_path')) {
+                $file = $request->file('file_path');
+                $fileExtension = $file->getClientOriginalExtension();
+                $fileFinalName = rand(1000, 9999) . '_' . time() . '.' . $fileExtension;
+
+                $file->storeAs('CustomerAgreements', $fileFinalName, 'public'); // Store in 'storage/app/public/CustomerAgreements'
+
+                $saveFilledDocument = CustomerAgreement::updateOrCreate(
+                    ['company_job_id' => $jobId],
+                    ['sign_pdf_url' => 'CustomerAgreements/'. $fileFinalName]
+                );
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'PDF saved successfully.',
+                    'data' =>  new CustomerAgreementResource($saveFilledDocument)
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'No file uploaded.',
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
+    }
+
 
     //here generate pdf without signing
    
