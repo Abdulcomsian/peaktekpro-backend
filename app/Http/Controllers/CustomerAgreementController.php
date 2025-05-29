@@ -768,6 +768,8 @@ class CustomerAgreementController extends Controller
                 ]);
             }
 
+            $fileFinalName = null;
+
             if ($request->hasFile('file_path')) {
                 $file = $request->file('file_path');
                 $fileExtension = $file->getClientOriginalExtension();
@@ -778,7 +780,6 @@ class CustomerAgreementController extends Controller
         
             } 
 
-             $fileFinalName = null;
             $agreement = AgreementContent::updateOrCreate([
                 'company_id' => $companyId,
             ],[
