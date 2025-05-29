@@ -72,6 +72,7 @@ class EmailTemplateController extends Controller
             'title' => 'nullable|string',
             'content' => 'string',
             'supplier_id' => 'integer',
+            'subject' => 'nullable|string',
         ]);
 
         try {
@@ -99,6 +100,8 @@ class EmailTemplateController extends Controller
                 [
                     'title' => $request->title ?? $supplier->name,
                     'content' => $request->content,
+                    'subject' => $request->subject,
+
                 ]
             );
 
@@ -153,6 +156,7 @@ class EmailTemplateController extends Controller
             'title' => 'string',
             'content' => 'string',
             'supplier_id' => 'integer',
+            'subject' => 'nullable|string'
         ]);
 
         try {
@@ -191,6 +195,8 @@ class EmailTemplateController extends Controller
                 'title' => $request->title,
                 'content' => $request->content,
                 'supplier_id'=> $request->supplier_id,
+                'subject' => $request->subject,
+
             ]);
 
             return response()->json([

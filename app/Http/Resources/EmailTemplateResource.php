@@ -20,6 +20,8 @@ class EmailTemplateResource extends JsonResource
             'id' => $this->id,
             'company_id' => $this->company_id,
              'title'=> $this->title,
+            'subject'=> $this->subject,
+
             'content' =>$this->content,
             'supplier_id' =>$this->supplier_id,
             'created_at' => $this->created_at,

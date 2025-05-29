@@ -13,6 +13,7 @@ class EmailTemplate extends Model
         'company_id',
         'content',
         'title',
+        'subject',
         'supplier_id',
     ];
 }
