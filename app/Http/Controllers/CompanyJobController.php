@@ -968,7 +968,7 @@ class CompanyJobController extends Controller
         }
     }
     
-    public function updateJobSummaryInitialInformation(Request $request, $id)
+    public function updateJobSummaryInitialInformation200(Request $request, $id)
     {
         //Validate Request
         $this->validate($request, [
@@ -1042,6 +1042,129 @@ class CompanyJobController extends Controller
                 'message' => 'Job Summary Updated Successfully',
                 'job' => [
                     'id'=> $job_summary->id,
+                    'email' => $job->email,
+                    'phone' => $job->phone,
+
+                    'address' => json_decode($job->address, true)['formatedAddress'] ?? null, 
+                    'company_job_id'=> $job_summary->company_job_id,
+                    'invoice_number' => $job_summary->invoice_number,
+                    'market' => $job_summary->market,
+                    'lead_source'=> $job_summary->lead_source,
+                    'insurance' => $job_summary->insurance,
+                    'policy_number' => $job_summary->policy_number,
+                    // 'email' => $job_summary->email,
+                    'insurance_representative'=> $job_summary->insurance_representative,
+                    'claim_number' => $job_summary->claim_number,
+                    'job_type'=> $job_summary->job_type,
+                    'lead_status' => $job_summary->lead_status,
+                    
+                ],
+                'profile_path' => $job->profile_path ? asset('storage/' . $job->profile_path) : null,
+                // 'profile_path' => $job->profile_path,
+                'name' => $job_summary->customer_name,
+
+            ], 200); 
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        }
+    }
+
+    public function updateJobSummaryInitialInformation(Request $request, $id)
+    {
+        //Validate Request
+        $this->validate($request, [
+            'invoice_number' => 'nullable',
+            'market' => 'nullable',
+            'job_type' => 'nullable|in:Retail,Insurance',
+            'lead_source' => 'nullable|in:Door Knocking,Customer Referral,Call In,Facebook,Family Member,Home Advisor,Website,Social Encounter',
+            'lead_status' => 'nullable|in:New,Contacted,Follow-up Needed',
+            'user_ids' => 'nullable|array',
+            'user_ids.*' => 'integer|exists:users,id',
+
+            'name' => 'nullable|string',
+            'profile_path' => 'nullable|file',
+
+            //new fields that will be editable
+            'phone' => 'nullable|string',
+            'email' => 'nullable|string',
+            'address' => 'nullable',
+            'address.city'=>'nullable',
+            'address.postalCode' => 'nullable',
+            'address.state' => 'nullable',
+            'address.street' => 'nullable',
+        ]);
+        
+        try {
+            
+            //Check Job
+            $job = CompanyJob::find($id);
+            if(!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Job Not Found'
+                ], 422);
+            }
+
+            
+            $fileFinalName = $job->profile_path; // Set a default value
+
+            if (isset($request->profile_path)) {
+                $file = $request->profile_path;
+                $fileName = $file->getClientOriginalName();
+                $fileExtension = $file->getClientOriginalExtension();
+
+                $fileFinalName = rand(0000,9999).'_'. time().'.'.$fileExtension;
+                $fileDestination = "storage/profile_photos";
+                $file->move($fileDestination,$fileFinalName);
+
+                $job->profile_path = 'profile_photos/'.$fileFinalName;
+
+            }
+
+            $job->name = $request->name;
+            $job->address = json_encode($request->address); // Save raw address JSON in the job table
+            $job->email = $request->email;
+            $job->phone = $request->phone;
+            
+            $job->save();
+            
+            //Update Job Summary
+            $job_summary = CompanyJobSummary::updateOrCreate([
+                'company_job_id' => $id,
+            ],[
+                'company_job_id' => $id,
+                'invoice_number' => $request->invoice_number,
+                'market' => $request->market,
+                'lead_source' => $request->lead_source,
+                'job_type' => $request->job_type,
+                'lead_status' => $request->lead_status,
+                'customer_name' => $request->name,
+
+            ]);
+            
+            // Assign Job To Users
+            if(isset($request->user_ids) && count($request->user_ids) > 0) {
+                $job->users()->sync($request->user_ids);
+            }
+            
+            $address = new CustomerAgreement();
+            $address->company_job_id = $job->id;
+            $address->street = $request->address['street'] ?? null;
+            $address->city = $request->address['city'] ?? null;
+            $address->state = $request->address['state'] ?? null;
+            $address->zip_code = $request->address['postalCode'] ?? null;
+            $address->address = $request->address['formatedAddress'] ?? null;
+
+            $address->save();
+
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Job Summary Updated Successfully',
+                'job' => [
+                    'id'=> $job_summary->id,
+
                     'email' => $job->email,
                     'phone' => $job->phone,
 
