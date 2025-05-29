@@ -265,6 +265,9 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('customer-agreement/{jobId}', [CustomerAgreementController::class, 'customerAgreement']);
     Route::post('customer-agreement-status/{jobId}', [CustomerAgreementController::class, 'customerAgreementStatus']);
 
+    //Upload Signed Deal/Customer Agreement Document
+    Route::post('saveFilled-pdf/{jobId}', [CustomerAgreementController::class, 'saveFilledPdf']);
+
     //Manage Content of Customer Agreement
     Route::post('store-customer-agreement-content/{jobId}', [CustomerAgreementController::class, 'storeCustomerAgreementContent']);
     Route::get('get-customer-agreement-content/{jobId}', [CustomerAgreementController::class, 'getCustomerAgreementContent']);
