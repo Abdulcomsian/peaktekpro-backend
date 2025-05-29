@@ -747,17 +747,18 @@ class CustomerAgreementController extends Controller
         }
     }
 
-    // Manage content of customer agreements
-    public function storeCustomerAgreementContent($jobId, Request $request) //it is company id
+    // Manage content of customer agreements //here upload pdf also
+    public function storeCustomerAgreementContent($companyId, Request $request) //it is company id
     {
         $request->validate([
-            'content'=> 'string'
+            'content'=> 'nullable|string',
+            'file_path' => 'nullable|file'
         ]);
 
         try{
             $user = Auth()->user();
-            $companyId = $user->company_id;
-            $company = Company::find($jobId); //check this company exist or not
+            // $companyId = $user->company_id;
+            $company = Company::find($companyId); //check this company exist or not
             // dd($company);
             if(!$company)
             {
@@ -767,17 +768,35 @@ class CustomerAgreementController extends Controller
                 ]);
             }
 
+            if ($request->hasFile('file_path')) {
+                $file = $request->file('file_path');
+                $fileExtension = $file->getClientOriginalExtension();
+                $fileFinalName = rand(1000, 9999) . '_' . time() . '.' . $fileExtension;
+
+                $file->storeAs('CompanyCustomerAgreements', $fileFinalName, 'public'); // Store in 'storage/app/public/CustomerAgreements'
+
+        
+            } 
+
             $agreement = AgreementContent::updateOrCreate([
-                'company_id' => $jobId,
+                'company_id' => $companyId,
             ],[
-                'company_id' => $jobId,
+                'company_id' => $companyId,
                 'content' => $request->content,
+                'file_path' => 'CompanyCustomerAgreements/'. $fileFinalName
             ]);
 
             return response()->json([
                 'status' => 200,
                 'message'=> 'Agreement Content Added Successfully',
-                'data' => $agreement
+                'data' => [
+                    'id' => $agreement->id,
+                    'company_id' => $agreement->company_id,
+                    'file_path' => asset('storage/' .$agreement->file_path ),
+                    'created_at' => $agreement->created_at,
+                    'updated_at' => $agreement->updated_at
+
+                ]
             ]);
 
         }catch(\Exception $e){
@@ -789,49 +808,11 @@ class CustomerAgreementController extends Controller
         }
         
     }
-    public function storeCustomerAgreementContentold($jobId, Request $request)
+   
+
+    public function getCustomerAgreementContent($companyId)
     {
-        $request->validate([
-            'content'=> 'string'
-        ]);
-
-        try{
-            $job = CompanyJob::find($jobId);
-
-            if(!$job)
-            {
-                return response()->json([
-                    'status' => 404,
-                    'message'=> 'Com Not Found'
-                ]);
-            }
-
-            $agreement = CustomerAgreement::updateOrCreate([
-                'company_job_id' => $jobId,
-            ],[
-                'company_job_id' => $jobId,
-                'content' => $request->content,
-            ]);
-
-            return response()->json([
-                'status' => 200,
-                'message'=> 'Agreement Content Added Successfully',
-                'data' => $agreement
-            ]);
-
-        }catch(\Exception $e){
-            return response()->json([
-                'status' => 500,
-                'message'=> 'Internal Server Error',
-            ]);
-
-        }
-        
-    }
-
-    public function getCustomerAgreementContent($jobId)
-    {
-        $company = Company::find($jobId);
+        $company = Company::find($companyId);
         if(!$company)
         {
             return response()->json([
@@ -840,13 +821,20 @@ class CustomerAgreementController extends Controller
             ]);
         }
 
-        $agreement= AgreementContent::where('company_id',$jobId)->first();
+        $agreement= AgreementContent::where('company_id',$companyId)->first();
         if($agreement)
         {
             return response()->json([
                 'status' => 200,
                 'message'=> 'Agreement Content Found Successfully',
-                'data' => $agreement
+                    'data' => [
+                    'id' => $agreement->id,
+                    'company_id' => $agreement->company_id,
+                    'file_path' => asset('storage/' .$agreement->file_path ),
+                    'created_at' => $agreement->created_at,
+                    'updated_at' => $agreement->updated_at
+
+                ]
             ]);
         }
 
