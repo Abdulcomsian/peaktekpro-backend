@@ -18,13 +18,15 @@ class TemplateController extends Controller
     {
         try {
             // dd("hi bye hi");
-            $jobId = session('job_id');
+            // $jobId = session('job_id');
 
             // dd($jobId);
             $companyId = Auth::user()->company_id;
 
             $templates = Template::with('templatePages.pageData')->where('company_id', $companyId)->paginate(5);
-            $company = CompanyJob::find($jobId);
+            // $company = CompanyJob::find($jobId);
+            $company = CompanyJob::where('created_by',$companyId)->first();
+
             $companyAddress = json_decode($company->address);
             $address = $companyAddress->formatedAddress;
             // dd($templates);
