@@ -269,8 +269,8 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('saveFilled-pdf/{jobId}', [CustomerAgreementController::class, 'saveFilledPdf']);
 
     //Manage Content of Customer Agreement
-    Route::post('store-customer-agreement-content/{jobId}', [CustomerAgreementController::class, 'storeCustomerAgreementContent']);
-    Route::get('get-customer-agreement-content/{jobId}', [CustomerAgreementController::class, 'getCustomerAgreementContent']);
+    Route::post('store-customer-agreement-content/{companyId}', [CustomerAgreementController::class, 'storeCustomerAgreementContent']);
+    Route::get('get-customer-agreement-content/{companyId}', [CustomerAgreementController::class, 'getCustomerAgreementContent']);
 
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
@@ -368,7 +368,6 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('coc/insurance-email/status/{id}', [CocController::class, 'CocInsuranceEmailStatus']);
     Route::get('coc/insurance-email/status/{id}', [CocController::class, 'getCocInsuranceEmailStatus']);
     Route::get('get/coc/insurance-email/{id}', [CocController::class, 'getCocInsuranceEmail']);
-
 
     //Ready To Build Api's
     Route::post('store/ready-to-build/{jobId}', [ReadyToBuildController::class, 'storeReadyToBuild']);

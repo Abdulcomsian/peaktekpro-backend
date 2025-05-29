@@ -11,6 +11,7 @@ class AgreementContent extends Model
 
     protected $fillable=[
         'company_id',
-        'content'
+        'content',
+        'file_path'
     ];
 }
