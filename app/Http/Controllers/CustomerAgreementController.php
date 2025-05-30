@@ -389,7 +389,7 @@ class CustomerAgreementController extends Controller
         try {
             $request->validate([
                 'file_path' => 'nullable|file',
-                'pdf_status' => 'nullable'
+                'pdf_status' => 'nullable|in:true,false'
             ]);
 
             $job = CompanyJob::find($jobId);
@@ -399,6 +399,7 @@ class CustomerAgreementController extends Controller
                     'message' => 'Company Job Not Found',
                 ], 422);
             }
+
 
             if ($request->hasFile('file_path')) {
                 $file = $request->file('file_path');

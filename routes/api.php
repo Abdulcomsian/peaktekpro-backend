@@ -66,7 +66,8 @@ Route::post('verify/otp', [ForgotPasswordController::class, 'verifyOTP']);
 Route::post('change/password', [ForgotPasswordController::class, 'changePassword']);
 //Customer Signature Api
 Route::get('get/sign/customer-agreement/{jobId}', [CustomerAgreementController::class, 'getSignCustomerAgreement']);
-Route::post('sign/customer-agreement/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
+
+// Route::post('sign/customer-agreement/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
 
 Route::post('saveFilled-pdf/{jobId}', [CustomerAgreementController::class, 'saveFilledPdf']);
 
