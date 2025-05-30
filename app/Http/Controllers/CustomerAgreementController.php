@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CustomerAgreementResource;
+use App\Http\Resources\SignCustomerAgreementResource;
 
 class CustomerAgreementController extends Controller
 {
@@ -383,55 +384,6 @@ class CustomerAgreementController extends Controller
     }
 
     //upload filled pdf document
-    public function saveFilledPdf1($jobId, Request $request)
-    {
-        try{
-            $request->validate([
-                'file_path'=> 'nullable|file'
-            ]);
-
-            $job = CompanyJob::find($jobId);
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Company Job Not Found'
-                ], 422);
-            }
-
-            //save customer aggrement file
-            
-            if (isset($data['file_path'])) {
-
-                $file = $data['file_path'];
-                $fileName = $file->getClientOriginalName();
-                $fileExtension = $file->getClientOriginalExtension();
-
-                $fileFinalName = rand(0000,9999).'_'. time().'.'.$fileExtension;
-
-                $fileDestination = "storage/CustomerAgreements";
-                $file->storeAs('CustomerAgreements', $fileFinalName, 'public'); // Store in 'storage/app/public/CustomerAgreements'
-
-                // $file->move($fileDestination,$fileFinalName);
-                // dd($fileDestination);
-
-            }
-
-            $saveFilledDocument = CustomerAgreement::updateOrCreate(
-                [
-                    'company_id' => $jobId,
-                ],
-                [
-                    'file_path' => 'CustomerAgreements/' . $fileFinalName,
-                ]
-            );
-
-
-        }catch(\Exception $e){
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
-
-        }
-    }
-
     public function saveFilledPdf($jobId, Request $request)
     {
         try {
@@ -561,6 +513,7 @@ class CustomerAgreementController extends Controller
             //Send Email
             $encrypted_url = Crypt::encryptString($request->url);
             $customer = CompanyJob::find($agreement->company_job_id);
+            // dd($customer->email);
             // dispatch(new SignEmailJob($customer,$encrypted_url));
             Mail::to($customer->email)->send(new SignEmailMail($customer,$encrypted_url));
 
@@ -647,7 +600,6 @@ class CustomerAgreementController extends Controller
     public function getSignCustomerAgreement($jobId)
     {
         try {
-
             //Check Job
             $job = CompanyJob::find($jobId);
             if(!$job) {
@@ -663,14 +615,64 @@ class CustomerAgreementController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Found Successfully',
-                'agreement' => $agreement
+                'agreement' => new SignCustomerAgreementResource($agreement)
+                // 'agreement' => $agreement
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
     }
 
-    public function signCustomerByEmail(Request $request, $id)
+     public function signCustomerByEmail(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'file_path' => 'nullable|file',
+            ]);
+
+            $job = CompanyJob::find($id);
+            if (!$job) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Company Job Not Found',
+                ], 422);
+            }
+
+            if ($request->hasFile('file_path')) {
+                $file = $request->file('file_path');
+                $fileExtension = $file->getClientOriginalExtension();
+                $fileFinalName = rand(1000, 9999) . '_' . time() . '.' . $fileExtension;
+
+                $file->storeAs('CustomerAgreements', $fileFinalName, 'public'); // Store in 'storage/app/public/CustomerAgreements'
+
+                $saveFilledDocument = CustomerAgreement::updateOrCreate(
+                    ['company_job_id' => $jobId],
+                    ['sign_pdf_url' => 'CustomerAgreements/'. $fileFinalName]
+                );
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'PDF saved successfully.',
+                    'data' =>  new CustomerAgreementResource($saveFilledDocument)
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'No file uploaded.',
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
+    }
+    
+    public function signCustomerByEmailold(Request $request, $id)
     {
         //Validate Request
         $this->validate($request, [
