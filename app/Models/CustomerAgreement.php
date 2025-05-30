@@ -11,6 +11,10 @@ class CustomerAgreement extends Model
 
     protected $guarded = [];
 
+    // protected $fillable = [
+
+    // ];
+
     public function job()
     {
         return $this->belongsTo(CompanyJob::class, 'company_job_id', 'id');
