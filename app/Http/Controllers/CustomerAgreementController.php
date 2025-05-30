@@ -631,7 +631,7 @@ class CustomerAgreementController extends Controller
     }
 
 
-   public function signCustomerByEmail(Request $request, $id)
+   public function signCustomerByEmail(Request $request, $id) //not used currently
     {
         try {
             $request->validate([
