@@ -384,7 +384,7 @@ class CustomerAgreementController extends Controller
     }
 
     //upload filled pdf document
-    public function saveFilledPdf($jobId, Request $request)
+    public function saveFilledPdf200($jobId, Request $request)
     {
         try {
             $request->validate([
@@ -438,6 +438,70 @@ class CustomerAgreementController extends Controller
             ], 500);
         }
     }
+
+    public function saveFilledPdf($jobId, Request $request)
+{
+    try {
+        $request->validate([
+            'file_path' => 'nullable|file',
+            'pdf_status' => 'nullable|in:true,false'
+        ]);
+
+        $job = CompanyJob::find($jobId);
+        if (!$job) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Company Job Not Found',
+            ], 422);
+        }
+
+        $data = [];
+
+        // Handle file upload
+        if ($request->hasFile('file_path')) {
+            $file = $request->file('file_path');
+            $fileExtension = $file->getClientOriginalExtension();
+            $fileFinalName = rand(1000, 9999) . '_' . time() . '.' . $fileExtension;
+
+            $file->storeAs('CustomerAgreements', $fileFinalName, 'public');
+
+            $data['sign_pdf_url'] = 'CustomerAgreements/' . $fileFinalName;
+        }
+
+        // Always include pdf_status if provided
+        if ($request->has('pdf_status')) {
+            $data['pdf_status'] = $request->pdf_status;
+        }
+
+        // Only save if there’s something to update
+        if (!empty($data)) {
+            $saveFilledDocument = CustomerAgreement::updateOrCreate(
+                ['company_job_id' => $jobId],
+                $data
+            );
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'PDF data saved successfully.',
+                'data' => new CustomerAgreementResource($saveFilledDocument)
+            ]);
+        }
+
+        return response()->json([
+            'status' => 400,
+            'message' => 'No data provided to update.',
+        ], 400);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 500,
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ], 500);
+    }
+}
+
 
 
     //here generate pdf without signing
