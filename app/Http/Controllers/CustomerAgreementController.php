@@ -389,6 +389,7 @@ class CustomerAgreementController extends Controller
         try {
             $request->validate([
                 'file_path' => 'nullable|file',
+                'pdf_status' => 'nullable'
             ]);
 
             $job = CompanyJob::find($jobId);
@@ -408,7 +409,11 @@ class CustomerAgreementController extends Controller
 
                 $saveFilledDocument = CustomerAgreement::updateOrCreate(
                     ['company_job_id' => $jobId],
-                    ['sign_pdf_url' => 'CustomerAgreements/'. $fileFinalName]
+                    [
+                        'sign_pdf_url' => 'CustomerAgreements/'. $fileFinalName,
+                        'pdf_status' => $request->pdf_status
+
+                    ]
                 );
 
                 return response()->json([
@@ -623,18 +628,76 @@ class CustomerAgreementController extends Controller
         }
     }
 
-     public function signCustomerByEmail(Request $request, $id)
+
+   public function signCustomerByEmail(Request $request, $id)
     {
         try {
             $request->validate([
                 'file_path' => 'nullable|file',
             ]);
 
-            $job = CompanyJob::find($id);
-            if (!$job) {
+            $agreement = CustomerAgreement::find($id);
+            if (!$agreement) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Company Job Not Found',
+                    'message' => 'Agreement Not Found'
+                ], 422);
+            }
+
+            if ($request->hasFile('file_path')) {
+                // Delete old file if it exists
+                if ($agreement->sign_pdf_url && Storage::disk('public')->exists($agreement->sign_pdf_url)) {
+                    Storage::disk('public')->delete($agreement->sign_pdf_url);
+                }
+
+                // Store new file
+                $file = $request->file('file_path');
+                $fileExtension = $file->getClientOriginalExtension();
+                $fileFinalName = rand(1000, 9999) . '_' . time() . '.' . $fileExtension;
+
+                $filePath = $file->storeAs('CustomerAgreements', $fileFinalName, 'public');
+
+                // Update agreement
+                $agreement->sign_pdf_url = $filePath;
+                $agreement->save();
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Signature Added by Client and PDF updated successfully.',
+                    'data' => new CustomerAgreementResource($agreement)
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'No file uploaded.',
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
+    }
+
+
+
+     public function signCustomerByEmail11(Request $request, $id) //when clicnet submit  replace old and add new
+    {
+        try {
+            $request->validate([
+                'file_path' => 'nullable|file',
+            ]);
+
+                //Check Agreement
+            $agreement = CustomerAgreement::find($id);
+            if(!$agreement) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Agreement Not Found'
                 ], 422);
             }
 
@@ -646,7 +709,7 @@ class CustomerAgreementController extends Controller
                 $file->storeAs('CustomerAgreements', $fileFinalName, 'public'); // Store in 'storage/app/public/CustomerAgreements'
 
                 $saveFilledDocument = CustomerAgreement::updateOrCreate(
-                    ['company_job_id' => $jobId],
+                    ['company_job_id' => $agreement->company_job_id],
                     ['sign_pdf_url' => 'CustomerAgreements/'. $fileFinalName]
                 );
 

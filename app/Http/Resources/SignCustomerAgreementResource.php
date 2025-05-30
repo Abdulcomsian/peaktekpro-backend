@@ -17,7 +17,7 @@ class SignCustomerAgreementResource extends JsonResource
         return[
             'id' => $this->id,
             'company_job_id' => $this->company_job_id,
-            'sign_pdf_url' => asset($this->sign_pdf_url),
+            'sign_pdf_url' => asset('storage/'.$this->sign_pdf_url),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at
         ];
