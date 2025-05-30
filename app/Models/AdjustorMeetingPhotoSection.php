@@ -10,7 +10,7 @@ class AdjustorMeetingPhotoSection extends Model
     use HasFactory;
 
     protected $fillable=[
-        'adjustor_meeting_id',
+        'company_job_id',
         'front',
         'exteriorPhotos_front',
         'front_left',

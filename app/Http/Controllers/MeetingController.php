@@ -162,10 +162,10 @@ class MeetingController extends Controller
         ]);
 
         // Check if Adjustor Meeting exists
-        $adjustor_meeting = AdjustorMeeting::find($Id);
-        if (!$adjustor_meeting) {
+        $company_job = CompanyJob::find($Id);
+        if (!$company_job) {
             return response()->json([
-                'message' => 'Adjustor Meeting Does not Exist',
+                'message' => 'Company Job Does not Exist',
                 'status' => 404,
                 'data' => [],
             ]);
@@ -173,7 +173,7 @@ class MeetingController extends Controller
 
         // Prepare data array with default null values
         $data = [
-            'adjustor_meeting_id' => $Id,
+            'company_job_id' => $Id,
             'exteriorPhotos_front' => null,
             'exteriorPhotos_front_left' => null,
             'exteriorPhotos_left' => null,
@@ -204,7 +204,7 @@ class MeetingController extends Controller
 
         // Update or create the record in the database
         $adjustor_meeting_photos = AdjustorMeetingPhotoSection::updateOrCreate(
-            ['adjustor_meeting_id' => $Id],
+            ['company_job_id' => $Id],
             $data
         );
 
@@ -214,7 +214,7 @@ class MeetingController extends Controller
             'status' => 200,
             'data' => [
                 'id' => $adjustor_meeting_photos->id,
-                'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                'company_job_id' => $adjustor_meeting_photos->company_job_id,
                 'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
                 'exterior_front_left' => $adjustor_meeting_photos->exteriorPhotos_front_left,
                 'exterior_left' => $adjustor_meeting_photos->exteriorPhotos_left,
@@ -231,7 +231,7 @@ class MeetingController extends Controller
 
     public function getExteriorPhotoSection($Id)
     {
-        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::where('adjustor_meeting_id', $Id)->first();
+        $adjustor_meeting_photos = AdjustorMeetingPhotoSection::where('company_job_id', $Id)->first();
         if($adjustor_meeting_photos)
         {
             return response()->json([
@@ -239,7 +239,7 @@ class MeetingController extends Controller
                 'status' => 200,
                 'data' =>[
                     'id'=> $adjustor_meeting_photos->id,
-                    'adjustor_meeting_id' => $adjustor_meeting_photos->adjustor_meeting_id,
+                    'company_job_id' => $adjustor_meeting_photos->company_job_id,
                     'exterior_front' => $adjustor_meeting_photos->exteriorPhotos_front,
                     'exterior_front_left' =>$adjustor_meeting_photos->exteriorPhotos_front_left,
                     'exterior_left'=>$adjustor_meeting_photos->exteriorPhotos_left,
