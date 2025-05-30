@@ -66,7 +66,7 @@ Route::post('verify/otp', [ForgotPasswordController::class, 'verifyOTP']);
 Route::post('change/password', [ForgotPasswordController::class, 'changePassword']);
 //Customer Signature Api
 Route::get('get/sign/customer-agreement/{jobId}', [CustomerAgreementController::class, 'getSignCustomerAgreement']);
-Route::post('sign/customer/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
+Route::post('sign/customer-agreement/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
 
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
@@ -274,7 +274,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
-    Route::post('sign-by-email/{id}', [CustomerAgreementController::class, 'signCustomerAgreementByEmail']);
+    Route::post('sign-by-email/{id}', [CustomerAgreementController::class, 'signCustomerAgreementByEmail']); //signature
     Route::get('check/customer-agreement/{jobId}', [CustomerAgreementController::class, 'checkCustomerAgreement']);
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
