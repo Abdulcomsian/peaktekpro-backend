@@ -68,6 +68,8 @@ Route::post('change/password', [ForgotPasswordController::class, 'changePassword
 Route::get('get/sign/customer-agreement/{jobId}', [CustomerAgreementController::class, 'getSignCustomerAgreement']);
 Route::post('sign/customer-agreement/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
 
+Route::post('saveFilled-pdf/{jobId}', [CustomerAgreementController::class, 'saveFilledPdf']);
+
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Dashbaord Api's
@@ -266,7 +268,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('customer-agreement-status/{jobId}', [CustomerAgreementController::class, 'customerAgreementStatus']);
 
     //Upload Signed Deal/Customer Agreement Document
-    Route::post('saveFilled-pdf/{jobId}', [CustomerAgreementController::class, 'saveFilledPdf']);
+    // Route::post('saveFilled-pdf/{jobId}', [CustomerAgreementController::class, 'saveFilledPdf']);
 
     //Manage Content of Customer Agreement
     Route::post('store-customer-agreement-content/{companyId}', [CustomerAgreementController::class, 'storeCustomerAgreementContent']);
@@ -274,7 +276,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     Route::get('get/customer-agreement/{id}', [CustomerAgreementController::class, 'getCustomerAgreement']);
     Route::post('update/customer-agreement/{id}', [CustomerAgreementController::class, 'updateCustomerAgreement']);
-    Route::post('sign-by-email/{id}', [CustomerAgreementController::class, 'signCustomerAgreementByEmail']); //signature
+    Route::post('sign-by-email/{id}', [CustomerAgreementController::class, 'signCustomerAgreementByEmail']); //send mail signature
     Route::get('check/customer-agreement/{jobId}', [CustomerAgreementController::class, 'checkCustomerAgreement']);
     //Material Order Api's
     Route::post('material-order/{jobId}', [MaterialOrderController::class, 'materialOrder']);
