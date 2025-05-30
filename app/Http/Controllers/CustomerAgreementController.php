@@ -615,8 +615,9 @@ class CustomerAgreementController extends Controller
             }
 
             //Get Agreement
-            $agreement = CustomerAgreement::find($job->id);
+            $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
 
+            // dd($agreement);
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Found Successfully',
