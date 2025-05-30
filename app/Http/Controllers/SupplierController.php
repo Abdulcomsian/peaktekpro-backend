@@ -7,9 +7,11 @@ use App\Models\Company;
 use App\Models\UserRole;
 use App\Models\CompanyJob;
 use Illuminate\Http\Request;
+use App\Models\EmailTemplate;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Resources\SupplierResource;
 
 class SupplierController extends Controller
 {
@@ -64,7 +66,10 @@ class SupplierController extends Controller
             'name' => 'required|string',
             'email' => 'required|email|unique:users,email',
             // 'password' => 'required|string|min:8',
-            'location'=> 'nullable|string'
+            'location'=> 'nullable|string', 
+            //////new fiels
+            'subject' => 'nullable|string',
+            'content' => 'nullable|string'
         ]);
 
         try {   
@@ -88,6 +93,19 @@ class SupplierController extends Controller
                 'status' => 'active'
             ]);
 
+            //save supplier subj and content here
+            $emailTemplate = EmailTemplate::updateOrCreate(
+                [
+                    'supplier_id' => $user->id,
+                    'company_id' => $user->company_id,
+                ],
+                [
+                    'title' => $request->title ?? $user->name,
+                    'content' => $request->content,
+                    'subject' => $request->subject,
+
+                ]
+            );
             //Assign Role
             $user_role = new UserRole;
             $user_role->user_id = $user->id;
@@ -97,7 +115,10 @@ class SupplierController extends Controller
             return response()->json([
                 'status' => 201,
                 'message' => 'Supplier Added Successfully',
-                'user' => $user,
+                // 'user' => $user,
+                // 'emailTemplate' => $emailTemplate,
+                'user' => new SupplierResource($user, $emailTemplate)
+
             ], 201);
 
         } catch (\Exception $e) {
@@ -174,6 +195,9 @@ class SupplierController extends Controller
             // 'password' => 'nullable|string|min:8',
             'location'=> 'nullable|string',
             'status' => 'nullable|string',
+                //////new fiels
+            'subject' => 'nullable|string',
+            'content' => 'nullable|string'
         ]);
 
         try {   
@@ -198,6 +222,20 @@ class SupplierController extends Controller
             $user->status = $request->status ?? $user->status;
             $user->save();
 
+                //save supplier subj and content here
+            $emailTemplate = EmailTemplate::updateOrCreate(
+                [
+                    'supplier_id' => $user->id,
+                    'company_id' => $user->company_id,
+                ],
+                [
+                    'title' => $request->title ?? $user->name,
+                    'content' => $request->content,
+                    'subject' => $request->subject,
+
+                ]
+            );
+
             //Assign Role
             $user_role = new UserRole;
             $user_role->user_id = $user->id;
@@ -207,7 +245,9 @@ class SupplierController extends Controller
             return response()->json([
                 'status' => 201,
                 'message' => 'Supplier Updated Successfully',
-                'user' => $user,
+                // 'user' => $user,
+                 'user' => new SupplierResource($user, $emailTemplate)
+
             ], 201);
 
         } catch (\Exception $e) {
