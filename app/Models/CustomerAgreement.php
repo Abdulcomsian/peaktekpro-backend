@@ -11,9 +11,19 @@ class CustomerAgreement extends Model
 
     protected $guarded = [];
 
-    // protected $fillable = [
+    protected $fillable = [
+        'id',
+        'company_job_id',
+        'sign_pdf_url',
+        'pdf_status',
+        'status',
+        'created_at',
+        'updated_at',
+        'current_stage',
+        'content',
+        
 
-    // ];
+    ];
 
     public function job()
     {
