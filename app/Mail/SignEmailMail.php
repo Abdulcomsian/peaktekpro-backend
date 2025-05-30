@@ -13,7 +13,7 @@ class SignEmailMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $customer;
+    public $companyjob;
     public $encrypted_url;
 
     /**
@@ -21,9 +21,9 @@ class SignEmailMail extends Mailable
      *
      * @return void
      */
-    public function __construct($customer,$encrypted_url)
+    public function __construct($companyjob,$encrypted_url)
     {
-        $this->customer = $customer;
+        $this->companyjob = $companyjob;
         $this->encrypted_url = $encrypted_url;
     }
 
