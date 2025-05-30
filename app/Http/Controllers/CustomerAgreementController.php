@@ -507,20 +507,20 @@ class CustomerAgreementController extends Controller
         try {
 
             //Check Agreement
-            $agreement = CustomerAgreement::find($id);
-            if(!$agreement) {
+            $companyjob = CompanyJob::find($id);
+            if(!$companyjob) {
                 return response()->json([
                     'status' => 422,
-                    'message' => 'Agreement Not Found'
+                    'message' => 'Company Job Not Found'
                 ], 422);
             }
 
             //Send Email
             $encrypted_url = Crypt::encryptString($request->url);
-            $customer = CompanyJob::find($agreement->company_job_id);
+            // $customer = CompanyJob::find($agreement->company_job_id);
             // dd($customer->email);
             // dispatch(new SignEmailJob($customer,$encrypted_url));
-            Mail::to($customer->email)->send(new SignEmailMail($customer,$encrypted_url));
+            Mail::to($companyjob->email)->send(new SignEmailMail($companyjob,$encrypted_url));
 
             return response()->json([
                 'status' => 200,
