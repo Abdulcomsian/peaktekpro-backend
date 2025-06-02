@@ -842,7 +842,7 @@ class MaterialOrderController extends Controller
             //send email to contractor and cc to homeowner
             // Mail::to($contractor->email)->send(new BuildScheduleMail($request->supplier));
 
-            Mail::to($request->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor));
+            Mail::to($request->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor,$supplier));
 
             return response()->json([
                 'status' => 200,
@@ -927,14 +927,6 @@ class MaterialOrderController extends Controller
              $supplier = User::where('id',$readyBuild->supplier_id)->first();
              $supplier_name = $supplier->first_name . ' ' . $supplier->last_name;
  
- 
-            //  if (!$build_detail) {
-            //     return response()->json([
-            //         'status' => 200,
-            //         'message' => 'Build Details Not Yet Created',
-            //         'data' => []
-            //     ], 200);
-            // }
             // Return response with Ready To Build details
             return response()->json([
                 'status' => 200,

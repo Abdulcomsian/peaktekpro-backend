@@ -19,9 +19,12 @@ class BuildScheduleMail extends Mailable
      * @return void
      */
     public $contractor;
-    public function __construct($contractor)
+    public $supplier;
+    public function __construct($contractor,$supplier)
     {
         $this->contractor = $contractor;
+        $this->supplier = $supplier;
+
     }
 
     /**

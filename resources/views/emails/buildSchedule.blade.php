@@ -33,7 +33,7 @@
         <strong>{{ $contractor->subject }}</strong>
 
         <h2 style="text-align: center; font-size: 2em;"></h2>
-
+        <p>Supplier Name: {{$supplier->name}}</p>
         <p> {{$contractor->content}}</p>
         <p>If you have any questions or require further assistance, please do not hesitate to contact us.</p>
 
