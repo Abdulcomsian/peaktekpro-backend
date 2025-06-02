@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Support\Facades\Log;
 
 class SendOTPJob implements ShouldQueue
 {
@@ -34,6 +35,13 @@ class SendOTPJob implements ShouldQueue
      */
     public function handle()
     {
+        Log::info(['test']);
+    //       Log::info('Sending OTP email', [
+    //     'email' => $this->user->email,
+    //     'otp' => $this->otp,
+    //     'job' => self::class,
+    //     'timestamp' => now()->toDateTimeString(),
+    // ]);
         Mail::to($this->user->email)->send(new SendOTPMail($this->user, $this->otp));
     }
 }

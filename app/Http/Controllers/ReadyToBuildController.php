@@ -156,7 +156,7 @@ class ReadyToBuildController extends Controller
             $ready_to_build->load('documents');
             $material_order->load('materials');
             $agreement = CompanyJob::with('aggrement')->where('id', $jobId)->first();
-
+            
             //create the pdf and share the link also for signature
             $pdf = Pdf::loadView('pdf.readyTobuild',['data'=>$agreement,'readybuild' => $ready_to_build,'material_order'=>$material_order]);
             $pdf->setPaper('A4', 'portrait');
@@ -178,7 +178,6 @@ class ReadyToBuildController extends Controller
             // return $pdf->stream('readytobuild.pdf');
 
             $supplier = User::where('id',$request->supplier_id)->first();
-            // dd($user);
             //after saving data and making pdf file now send the pdf to supplier for signature               
              Mail::to($supplier->email)->send(new ReadyToBuildEmail($agreement, $ready_to_build, $material_order));
 

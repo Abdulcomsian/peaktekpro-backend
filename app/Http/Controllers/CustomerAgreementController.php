@@ -515,6 +515,7 @@ class CustomerAgreementController extends Controller
                     'message' => 'Company Job Not Found'
                 ], 422);
             }
+            // dd("Sd");
 
             //Send Email
             $encrypted_url = Crypt::encryptString($request->url);
