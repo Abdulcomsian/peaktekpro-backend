@@ -30,6 +30,7 @@ use App\Http\Controllers\SubContractorController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\CompanyLocationController;
+use App\Http\Controllers\ContractorController;
 use App\Http\Controllers\CrewInformationController;
 use App\Http\Controllers\PaymentScheduleController;
 use App\Http\Controllers\XactimateReportController;
@@ -465,5 +466,10 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get-recent-notes/{jobId}', [RecentNoteController::class, 'getAllRecentNotes']); 
 
 
+    //contractor Apis
+    Route::post('add-contractor',[ContractorController::class,'addContractor']);
+    Route::post('update-contractor/{id}',[ContractorController::class,'updateContractor']);
+    Route::get('get-contractor',[ContractorController::class,'getContractor']);
+    Route::delete('delete-contractor/{id}',[ContractorController::class,'deleteContractor']);
 
 });
