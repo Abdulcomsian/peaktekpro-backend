@@ -65,7 +65,11 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('send/otp', [ForgotPasswordController::class, 'sendOTP']);
 Route::post('verify/otp', [ForgotPasswordController::class, 'verifyOTP']);
 Route::post('change/password', [ForgotPasswordController::class, 'changePassword']);
+
+Route::post('reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+
 //Customer Signature Api
+
 Route::get('get/sign/customer-agreement/{jobId}', [CustomerAgreementController::class, 'getSignCustomerAgreement']);
 
 // Route::post('sign/customer-agreement/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);

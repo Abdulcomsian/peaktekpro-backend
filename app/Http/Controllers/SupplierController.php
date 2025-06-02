@@ -260,7 +260,8 @@ class SupplierController extends Controller
     {
         $user = Auth::user();
         $companyId = $user->company_id;
-        $users = User::where('role_id',4)->where('company_id',$companyId)->get();
+        $users = User::with('emailTemplate')
+        ->where('role_id',4)->where('company_id',$companyId)->get();
         if($users)
         {
             return response()->json([

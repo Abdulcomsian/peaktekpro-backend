@@ -13,16 +13,16 @@ class SendOTPMail extends Mailable
 {
     use Queueable, SerializesModels;
     public $user;
-    public $otp;
+    public $token;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($user,$otp)
+    public function __construct($user, $token)
     {
         $this->user = $user;
-        $this->otp = $otp;
+        $this->token = $token;
     }
 
     /**
@@ -45,7 +45,7 @@ class SendOTPMail extends Mailable
     public function content()
     {
         return new Content(
-            markdown: 'emails.otp',
+            markdown: 'emails.forgetPasswordLink',
         );
     }
 
