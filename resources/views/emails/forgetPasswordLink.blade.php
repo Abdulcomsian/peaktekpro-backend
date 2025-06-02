@@ -34,14 +34,14 @@
 
         <p>Please click on the Link to update Your Password is:</p>
         <center>
-    <a href="{{ 'https://peaktekcrm.com/reset-password?token=' . $token . '&email=' . $user->email }}" target="_blank" class="btn">
-    Change Password
-</a>
+        <a href="{{ 'https://peaktekcrm.com/reset-password?token=' . $token . '&email=' . $user->email }}" target="_blank" class="btn">
+            Change Password
+        </a>
 
          <!-- <a href="{{ url('reset-password/'.$token.'?email='.$user->email) }}" target="_blank" class="btn">
             Change Password
         </a> -->
-     </center>
+        </center>
 
         <p>Please use this Link to complete your action.</p>
         

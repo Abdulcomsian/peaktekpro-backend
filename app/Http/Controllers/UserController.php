@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use Auth;
-use Mail;
 use Exception;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Enums\PermissionLevel;
+use App\Mail\UserPasswordMail;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Mail\UserPasswordMail;
 
 class UserController extends Controller
 {
@@ -87,7 +88,8 @@ class UserController extends Controller
             $user = Auth::user();
             if($user->role_id == 2 || $user->role_id == 1)
             {
-                // $password = $request->password;
+                
+                $password = Str::random(8);
                 $add_user = new User;
                 $add_user->first_name = $request->first_name;
                 $add_user->last_name = $request->last_name;
@@ -98,12 +100,12 @@ class UserController extends Controller
                 $add_user->role_id = $request->permission_level_id;
                 $add_user->status = $request->status;
                 $add_user->created_by = $user->company_id;
-                // $add_user->password =  Hash::make($password);
+                $add_user->password =  Hash::make($password);
 
                 $add_user->save();
 
                 // Send the password email
-                // Mail::to($request->email)->send(new UserPasswordMail($request->email, $add_user->password));
+                Mail::to($request->email)->send(new UserPasswordMail($request->email, $password));
             
                 return response()->json([
                     'status_code'=> 200,
