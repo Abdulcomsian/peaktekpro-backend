@@ -14,16 +14,19 @@ use Illuminate\Http\Request;
 use App\Jobs\ConfirmationJob;
 use App\Models\MaterialOrder;
 use App\Jobs\MaterialOrderJob;
+use App\Mail\BuildScheduleMail;
 use App\Models\MaterailDropDown;
 use App\Models\CustomerAgreement;
 use App\Models\MaterialSelection;
 use App\Models\MaterialOrderMedia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
 use App\Models\MaterialOrderConfirmation;
 use App\Jobs\MaterialOrderConfirmationJob;
+use App\Models\Contractor;
 use App\Models\MaterialOrderDeliveryInformation;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use App\Notifications\MaterialOrderConfirmationNotification;
@@ -780,11 +783,11 @@ class MaterialOrderController extends Controller
         $this->validate($request, [
             'homeowner' => 'nullable|string',
             'homeowner_email' => 'nullable|email',
-            'contractor' => 'nullable|string',
-            'contractor_email' => 'nullable|email',
-            'supplier' => 'nullable|string',
-            'supplier_email' => 'nullable|email',
-            'build_time' => 'nullable|date_format:h:i A',
+            'contractor_id' => 'nullable',
+            // 'contractor_email' => 'nullable|email',
+            'supplier_id' => 'nullable',
+            // 'supplier_email' => 'nullable|email',
+            // 'build_time' => 'nullable|date_format:h:i A',
             'build_date' => 'nullable|date_format:m/d/Y',
             // 'confirmed' => 'nullable|in:true,false',
         ]);
@@ -799,10 +802,25 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
-            $supplier = User::where('id',$readyBuild->supplier_id)->first();
-            $supplier_name = $supplier->first_name . ' ' . $supplier->last_name;
-
+            // $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+            $supplier = User::where('id',$request->supplier_id)->first();
+            if(!$supplier)
+            {
+                  return response()->json([
+                    'status' => 422,
+                    'message' => 'Supplier Not Found'
+                ], 422);
+            }
+            // dd($supplier);
+            $contractor = Contractor::where('id',$request->contractor_id)->first();
+            if(!$contractor)
+            {
+                  return response()->json([
+                    'status' => 422,
+                    'message' => 'contractor Not Found'
+                ], 422);
+            }
+            // $supplier_name = $supplier->first_name . ' ' . $supplier->last_name;
 
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
@@ -811,33 +829,20 @@ class MaterialOrderController extends Controller
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'build_time' => $request->build_time,
-                // 'homeowner' => $readyBuild->home_owner ?? '',
-                // 'homeowner_email' => $readyBuild->home_owner_email ?? '',
                 'homeowner' => $request->homeowner,
                 'homeowner_email' => $request->homeowner_email,
-                'contractor' => $request->contractor,
-                'contractor_email' => $request->contractor_email,
-                'supplier' => $supplier_name,
-                'supplier_email' => $request->supplier_email,
+                'contractor' => $contractor->name,
+                'contractor_email' => $contractor->email,
+                'supplier' => $supplier->name,
+                'supplier_email' => $supplier->email,
                 // 'confirmed' => $request->confirmed,
             ]);
 
-            //i am adding the supplier in material order from here
-            // $supplier = User::where('email',$request->supplier_email)->where('role_id',4)->first();
-            // $supplier_id = $supplier->id;
-            // $build_detail = MaterialOrder::updateOrCreate([
-            //     'company_job_id' => $jobId
-            // ],[
-            //     'company_job_id' => $jobId,
-            //     'supplier_id' => $supplier_id,
-            // ]);
+            // dd($request->contractor);
+            //send email to contractor and cc to homeowner
+            // Mail::to($contractor->email)->send(new BuildScheduleMail($request->supplier));
 
-            //Update Status
-            // if(isset($request->confirmed) && $request->confirmed == 'true') {
-            //     $job->status_id = 10;
-            //     $job->date = Carbon::now()->format('Y-m-d');
-            //     $job->save();
-            // }
+            Mail::to($request->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor));
 
             return response()->json([
                 'status' => 200,

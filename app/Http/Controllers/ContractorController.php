@@ -7,13 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Contractor\StoreRequest;
 use App\Http\Requests\Contractor\UpdateRequest;
+use Illuminate\Support\Facades\Auth;
 
 class ContractorController extends Controller
 {
     public function getContractor()
     {
           try{
-            $contractor = Contractor::get();
+            $user = Auth::user();
+            $companyId = $user->company_id;
+            $contractor = Contractor::where('company_id', $companyId)->get();
 
             return  response()->json([
                 'msg' => 'Contractor Fetched Sucessfully',
@@ -33,6 +36,10 @@ class ContractorController extends Controller
     public function addContractor(StoreRequest $request)
     {
         try{
+            $user = Auth::user();
+
+            $companyId=$user->company_id;
+
             if($request->hasFile('file_path'))
             {
                 $file = $request->file('file_path');
@@ -42,6 +49,7 @@ class ContractorController extends Controller
             }
 
             $contractor = Contractor::create([
+                'company_id' => $companyId,
                 'name' => $request->name,
                 'email' => $request->email,
                 'company_name' => $request->company_name,
@@ -93,8 +101,11 @@ class ContractorController extends Controller
                 $filePath = Storage::url($storedPath);
 
             }
+            $user = Auth::user();
 
+            $companyId=$user->company_id;
             $contractor->update([
+                'company_id' => $companyId,
                 'name' => $request->name,
                 'email' => $request->email,
                 'company_name' => $request->company_name,

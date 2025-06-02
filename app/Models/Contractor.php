@@ -10,6 +10,7 @@ class Contractor extends Model
     use HasFactory;
 
     protected $fillable = [
+        'company_id',
         'name',
         'email',
         'company_name',
