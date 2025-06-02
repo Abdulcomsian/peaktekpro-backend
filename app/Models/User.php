@@ -80,4 +80,9 @@ class User extends Authenticatable
         return $this->hasOne(CompanyJobSummary::class, 'company_id'); // Assuming company_id is the foreign key in company_summaries table
     }
 
+    public function emailTemplate()
+    {
+        return $this->hasOne(EmailTemplate::class,'supplier_id');
+    }
+
 }
