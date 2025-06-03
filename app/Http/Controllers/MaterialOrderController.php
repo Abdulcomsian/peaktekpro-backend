@@ -772,12 +772,8 @@ class MaterialOrderController extends Controller
             'homeowner' => 'nullable|string',
             'homeowner_email' => 'nullable|email',
             'contractor_id' => 'nullable',
-            // 'contractor_email' => 'nullable|email',
             'supplier_id' => 'nullable',
-            // 'supplier_email' => 'nullable|email',
-            // 'build_time' => 'nullable|date_format:h:i A',
             'build_date' => 'nullable|date_format:m/d/Y',
-            // 'confirmed' => 'nullable|in:true,false',
         ]);
 
         try {
@@ -790,7 +786,7 @@ class MaterialOrderController extends Controller
                     'message' => 'Job Not Found'
                 ], 422);
             }
-            // $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
+
             $supplier = User::where('id', $request->supplier_id)->first();
             if (!$supplier) {
                 return response()->json([
@@ -798,7 +794,7 @@ class MaterialOrderController extends Controller
                     'message' => 'Supplier Not Found'
                 ], 422);
             }
-            // dd($supplier);
+
             $contractor = Contractor::where('id', $request->contractor_id)->first();
             // dd($contractor);
             if (!$contractor) {
@@ -807,7 +803,6 @@ class MaterialOrderController extends Controller
                     'message' => 'contractor Not Found'
                 ], 422);
             }
-            // $supplier_name = $supplier->first_name . ' ' . $supplier->last_name;
 
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
@@ -825,11 +820,7 @@ class MaterialOrderController extends Controller
                 // 'confirmed' => $request->confirmed,
             ]);
 
-            // dd($request->contractor);
-            //send email to contractor and cc to homeowner
-            // Mail::to($contractor->email)->send(new BuildScheduleMail($request->supplier));
-
-            Mail::to($request->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor, $supplier));
+            Mail::to($build_detail->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor, $supplier));
 
             return response()->json([
                 'status' => 200,
