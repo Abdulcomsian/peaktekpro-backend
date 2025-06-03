@@ -30,7 +30,7 @@
 </head>
 <body>
     <div class="container">
-        <strong>{{ $build_detail->subject }}</strong>
+        <strong>{{ strip_tage($build_detail->subject) }}</strong>
 
         <h2 style="text-align: center; font-size: 2em;"></h2>
         <p>Supplier Name: {{$supplier->name}}</p>
