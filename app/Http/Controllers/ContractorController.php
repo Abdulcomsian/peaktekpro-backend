@@ -40,6 +40,7 @@ class ContractorController extends Controller
 
             $companyId=$user->company_id;
 
+            $filePath = null;
             if($request->hasFile('file_path'))
             {
                 $file = $request->file('file_path');
@@ -80,8 +81,8 @@ class ContractorController extends Controller
         // dd([$request->all()]);
         try{
             $contractor = Contractor::find($id);
-            $oldFile = $contractor->file_path;
-            if (!$contractor) {
+            if(!$contractor)
+            {
                 return response()->json([
                     'msg' => 'Contractor not found',
                     'status_code' => 404,
