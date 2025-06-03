@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Jobs\SignEmailJob;
 use App\Models\CompanyJob;
 use App\Mail\SignEmailMail;
+use App\Mail\SaveFilledMail;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AgreementContent;
@@ -384,7 +385,7 @@ class CustomerAgreementController extends Controller
     }
 
     //upload filled pdf document
-    public function saveFilledPdf($jobId, Request $request)
+    public function saveFilledPdf($jobId, Request $request) //here send the email also
     {
         try {
             $request->validate([
@@ -416,6 +417,10 @@ class CustomerAgreementController extends Controller
 
                     ]
                 );
+
+                $PDFpath =  asset('storage/' .$saveFilledDocument->sign_pdf_url );
+
+                Mail::to($job->email)->send(new SaveFilledMail($job,$PDFpath));
 
                 return response()->json([
                     'status' => 200,
