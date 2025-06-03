@@ -297,9 +297,7 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('check/material-order/{jobId}', [MaterialOrderController::class, 'checkMaterialOrder']);
     Route::post('material-order/email/{jobId}', [MaterialOrderController::class, 'MaterialOrderEmail']);
     Route::get('send/email/{jobId}', [MaterialOrderController::class, 'EmailToSupplier']);
-    Route::post('update/build-detail/{jobId}', [MaterialOrderController::class, 'updateBuildDetail']); //for build schedule apis
-    Route::post('update/build-detail-status/{jobId}', [MaterialOrderController::class, 'updateBuildDetailStatus']);
-    Route::get('get/build-detail/{jobId}', [MaterialOrderController::class, 'getBuildDetail']);
+
     Route::post('confirmation-email/{jobId}', [MaterialOrderController::class, 'confirmationEmail']);
     Route::post('confirmation-email-status/{jobId}', [MaterialOrderController::class, 'confirmationEmailStatus']);
     Route::get('get-confirmation-email-status/{jobId}', [MaterialOrderController::class, 'getConfirmationEmailStatus']);
@@ -307,6 +305,11 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::post('material-order/confirmation-email-status/{jobId}', [MaterialOrderController::class, 'materialOrderconfirmationEmailStatus']);
     Route::get('get-material-order/confirmation-email-status/{jobId}', [MaterialOrderController::class, 'getMaterialOrderconfirmationEmailStatus']);
 
+    //////////////Build Detail/schedule Apis
+    Route::post('update/build-detail/{jobId}', [MaterialOrderController::class, 'updateBuildDetail']); //for build schedule apis
+    Route::post('update/build-detail-status/{jobId}', [MaterialOrderController::class, 'updateBuildDetailStatus']);
+    Route::get('get/build-detail/{jobId}', [MaterialOrderController::class, 'getBuildDetail']);
+    
     // materail order drop down apis
     Route::post('add-materailOrder-dropDown', [MaterialOrderController::class, 'materailOrderDropdown']);
     Route::get('get-materailOrder-dropDown', [MaterialOrderController::class, 'getMaterailOrderDropdown']);
