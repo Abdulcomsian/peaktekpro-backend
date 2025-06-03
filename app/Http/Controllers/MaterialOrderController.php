@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Material;
 use App\Models\CompanyJob;
+use App\Models\Contractor;
 use App\Models\BuildDetail;
 use App\Models\ReadyToBuild;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ use App\Models\MaterialOrderMaterial;
 use Illuminate\Support\Facades\Storage;
 use App\Models\MaterialOrderConfirmation;
 use App\Jobs\MaterialOrderConfirmationJob;
-use App\Models\Contractor;
+use App\Http\Resources\BuildDetailResource;
 use App\Models\MaterialOrderDeliveryInformation;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use App\Notifications\MaterialOrderConfirmationNotification;
@@ -66,7 +67,7 @@ class MaterialOrderController extends Controller
             'materials.*.quantity' => 'nullable',
             'materials.*.color' => 'nullable',
             'materials.*.order_key' => 'nullable',
-            'notes'=>'nullable|string',
+            'notes' => 'nullable|string',
             'file_name' => 'nullable|array',
             'file_name.*' => 'nullable',
             'media_type' => 'nullable|array',
@@ -80,7 +81,7 @@ class MaterialOrderController extends Controller
 
             //Check Job
             $job = CompanyJob::find($id);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job not found'
@@ -89,11 +90,11 @@ class MaterialOrderController extends Controller
 
 
             /////////////get previous details////////////
-            $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id',$id)->select('id','name','email','phone','address')->first();
+            $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id', $id)->select('id', 'name', 'email', 'phone', 'address')->first();
             // return response()->json([
             //     'data'=> $customer_agreement
             // ]);
-          
+
             if ($customer_agreement) {
                 $decodedAddress = json_decode($customer_agreement->address, true);
 
@@ -103,10 +104,10 @@ class MaterialOrderController extends Controller
                 $customer_agreement->street = $decodedAddress['street'] ?? null;
                 $customer_agreement->state = $decodedAddress['state'] ?? null;
                 $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
-            
+
                 unset($customer_agreement->address);
 
-                  // Separate summary values
+                // Separate summary values
                 if ($customer_agreement->summary) {
                     $customer_agreement->insurance = $customer_agreement->summary->insurance;
                     $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
@@ -114,7 +115,6 @@ class MaterialOrderController extends Controller
 
                     unset($customer_agreement->summary);
                 }
-
             }
             //Generate PO number
             $poNumber = $this->generatePONumber();
@@ -134,16 +134,16 @@ class MaterialOrderController extends Controller
             $street = $decodedAddress['street'] ?? null;
             $state = $decodedAddress['state'] ?? null;
             $formatedAddress = $decodedAddress['formatedAddress'] ?? null;
-        
+
             $insurance = $customer_agreement->summary->insurance ?? null;
             $claimnumber = $customer_agreement->summary->claim_number ?? null;
             $policynumber = $customer_agreement->summary->policy_number ?? null;
 
             $material_order = MaterialOrder::updateOrCreate([
                 'company_job_id' => $id,
-            ],[
+            ], [
                 'company_job_id' => $id,
-                'po_number' => $poNumber, 
+                'po_number' => $poNumber,
                 'supplier_id' => $request->supplier_id,
                 'street' => $street,
                 'city' =>  $city,
@@ -166,10 +166,9 @@ class MaterialOrderController extends Controller
             $savedPhotos = [];
             $medias = $request->media ?? [];
 
-            foreach($medias as $index=>$media)
-            {
-                $image_filename = time(). '.'. $media->getClientOriginalName();
-                $image_filePath = $media->storeAs('material_order_documents',$image_filename,'public');
+            foreach ($medias as $index => $media) {
+                $image_filename = time() . '.' . $media->getClientOriginalName();
+                $image_filePath = $media->storeAs('material_order_documents', $image_filename, 'public');
 
                 //store Path
                 $media = new MaterialOrderMedia();
@@ -179,8 +178,8 @@ class MaterialOrderController extends Controller
                 $media->media_type = $request->media_type[$index] ?? null;
                 $media->media_url = Storage::url($image_filePath);
                 $media->save();
-                  // Collect saved photo details
-                  $savedPhotos[] = [
+                // Collect saved photo details
+                $savedPhotos[] = [
                     'id' => $media->id,
                     'material_order_id' => $media->material_order_id,
                     'file_name' => $media->file_name,
@@ -204,8 +203,8 @@ class MaterialOrderController extends Controller
                 }
             }
 
-            foreach($request->materials as $material) {
-                if(isset($material['id'])) {
+            foreach ($request->materials as $material) {
+                if (isset($material['id'])) {
                     // Update existing material
                     $get_material = MaterialOrderMaterial::find($material['id']);
                     if ($get_material) {
@@ -226,7 +225,7 @@ class MaterialOrderController extends Controller
                     $add_material->save();
                 }
             }
-            
+
             //Update Status
             // if(isset($request->status)) {
             //     $job->status_id = 10;
@@ -242,7 +241,7 @@ class MaterialOrderController extends Controller
             ], 200);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
@@ -256,9 +255,9 @@ class MaterialOrderController extends Controller
     //material Selections
     public function materialSelection(Request $request, $id)
     {
-        $this->validate($request,[
+        $this->validate($request, [
             'name' => 'nullable|array',
-            'name.*'=> 'nullable|string',
+            'name.*' => 'nullable|string',
             'option' => 'nullable|array',
             'option.*' => 'nullable|string',
             'unit' => 'nullable|array',
@@ -275,7 +274,7 @@ class MaterialOrderController extends Controller
         try {
             foreach ($request->name as $index => $name) {
                 $material = MaterialSelection::create(
-                    [   
+                    [
                         'material_order_id' => $id,
                         'name' => $name,
                         'option' => $request->option[$index] ?? null,
@@ -283,32 +282,30 @@ class MaterialOrderController extends Controller
                         'unit_cost' => $request->unit_cost[$index] ?? null,
                         'quantity' => $request->quantity[$index] ?? null,
                         'total' => $request->total[$index] ?? null,
-                    ]       
+                    ]
                 );
             }
-    
+
             DB::commit();
-    
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Material selection saved successfully.',
             ]);
         } catch (\Exception $e) {
-            DB::rollBack(); 
-    
+            DB::rollBack();
+
             return response()->json([
                 'status' => 500,
                 'error' => $e->getMessage() . ' on line ' . $e->getLine(),
             ]);
         }
-
     }
 
     public function getMaterialSelection($id)
     {
-        $material_order = MaterialOrder::where('id',$id)->first();
-        if(!$material_order)
-        {
+        $material_order = MaterialOrder::where('id', $id)->first();
+        if (!$material_order) {
             return response()->json([
                 'status' => 404,
                 'message' => 'Material Order Not Exist.',
@@ -316,23 +313,20 @@ class MaterialOrderController extends Controller
             ]);
         }
 
-        $material_order_selection = MaterialSelection::where('material_order_id',$id)->get();
-        if($material_order_selection->isEmpty())
-        {
+        $material_order_selection = MaterialSelection::where('material_order_id', $id)->get();
+        if ($material_order_selection->isEmpty()) {
             return response()->json([
-                'status' =>404,
+                'status' => 404,
                 'message' => 'Materail Order Selection not Found',
                 'data' => []
             ]);
-           
-        }else{
+        } else {
             return response()->json([
                 'status' => 200,
                 'message' => 'Data Fetched Successfully',
                 'data' => $material_order_selection
             ]);
         }
-        
     }
 
     public function generatePdf($jobId)
@@ -340,21 +334,21 @@ class MaterialOrderController extends Controller
         try {
             //Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
                 ], 422);
             }
             //here we will create a pdf 
-            $material_order =MaterialOrder::with('materials','materialSelection')->where('company_job_id',$jobId)->first();
+            $material_order = MaterialOrder::with('materials', 'materialSelection')->where('company_job_id', $jobId)->first();
             if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Material Order Not Found'
                 ], 404);
             }
-            $materialSelection=$material_order->materialSelection;
+            $materialSelection = $material_order->materialSelection;
             // Log::info($material_order->materialSelection);
             //Generate PDF
             $pdf = PDF::loadView('pdf.material-order', [
@@ -365,22 +359,22 @@ class MaterialOrderController extends Controller
             ]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
-            
-           // Check if the old PDF exists and delete it
+
+            // Check if the old PDF exists and delete it
             if (!is_null($material_order->sign_pdf_url)) {
                 $oldPdfPath = public_path($material_order->sign_pdf_url);
                 if (file_exists($oldPdfPath) && is_file($oldPdfPath)) {
                     unlink($oldPdfPath);
                 }
             }
- 
+
             // Save the new PDF
             Storage::put('public/' . $pdf_filePath, $pdf->output());
 
             //Save PDF Path
             $pdf = MaterialOrder::updateOrCreate([
-                'company_job_id' => $jobId 
-            ],[
+                'company_job_id' => $jobId
+            ], [
                 'company_job_id' => $jobId,
                 'sign_pdf_url' => '/storage/' . $pdf_filePath  //here saved the pdf file path
             ]);
@@ -391,7 +385,7 @@ class MaterialOrderController extends Controller
                 'data' => $pdf
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
@@ -413,7 +407,7 @@ class MaterialOrderController extends Controller
             return filemtime($b) - filemtime($a);
         });
 
-        $latestPdfPath = $files[0]; 
+        $latestPdfPath = $files[0];
 
         if (!file_exists($latestPdfPath)) {
             return response()->json([
@@ -427,8 +421,8 @@ class MaterialOrderController extends Controller
 
     public function deleteMaterialOrderMaterial($id)
     {
-        try{
-            $material=MaterialOrderMaterial::find($id);
+        try {
+            $material = MaterialOrderMaterial::find($id);
             if (empty($material)) {
                 return response()->json([
                     'status' => 422,
@@ -444,15 +438,14 @@ class MaterialOrderController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
-
     }
 
     public function getMaterialOrder($id)
     {
-        
+
         try {
             // $customer_agreement = CustomerAgreement::select('street','city','state','zip_code','insurance','claim_number','policy_number')->where('company_job_id', $id)->first();
-            $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id',$id)->select('id','name','email','phone','address')->first();
+            $customer_agreement = CompanyJob::with('summary:id,company_job_id,insurance,policy_number,claim_number')->where('id', $id)->select('id', 'name', 'email', 'phone', 'address')->first();
             if ($customer_agreement) {
                 $decodedAddress = json_decode($customer_agreement->address, true);
 
@@ -469,10 +462,10 @@ class MaterialOrderController extends Controller
                 // $customer_agreement->street = $decodedAddress['street'] ?? null;
                 // $customer_agreement->state = $decodedAddress['state'] ?? null;
                 // $customer_agreement->formatedAddress = $decodedAddress['formatedAddress'] ?? null;
-            
+
                 // unset($customer_agreement->address);
 
-                  // Separate summary values
+                // Separate summary values
                 // if ($customer_agreement->summary) {
                 //     $customer_agreement->insurance = $customer_agreement->summary->insurance;
                 //     $customer_agreement->policy_number = $customer_agreement->summary->policy_number;
@@ -504,20 +497,18 @@ class MaterialOrderController extends Controller
                 $response_data['company_insurance'] = $customer_agreement->summary->insurance ?? null;
                 $response_data['company_policy_number'] = $customer_agreement->summary->policy_number ?? null;
                 $response_data['company_claim_number'] = $customer_agreement->summary->claim_number ?? null;
-                
-
             }
 
             if ($material_order) {
                 $response_data = array_merge($response_data, $material_order->toArray());
                 $response_message = 'Material Order Found successfully';
-            } 
-            
+            }
+
             if (!$material_order && $customer_agreement) {
                 $response_data = array_merge($response_data, $customer_agreement->toArray());
                 $response_message = 'No Material Order found, Customer Agreement returned';
-            } 
-            
+            }
+
             if (!$material_order && !$customer_agreement) {
                 $response_message = 'No Material Order or Customer Agreement found for this Job';
             }
@@ -544,8 +535,8 @@ class MaterialOrderController extends Controller
         try {
 
             //Check Material Order
-            $material_order = MaterialOrder::where('company_job_id',$id)->first();
-            if(!$material_order) {
+            $material_order = MaterialOrder::where('company_job_id', $id)->first();
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Material Order Not Found'
@@ -584,9 +575,8 @@ class MaterialOrderController extends Controller
                 'material_order' => $material_order,
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
-
     }
 
     public function checkMaterialOrder($jobId)
@@ -595,7 +585,7 @@ class MaterialOrderController extends Controller
 
             //Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
@@ -603,15 +593,15 @@ class MaterialOrderController extends Controller
             }
 
             //Check Agreement
-            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('materials','supplier')->first();
-            if(!$material_order) {
+            $material_order = MaterialOrder::where('company_job_id', $jobId)->with('materials', 'supplier')->first();
+            if (!$material_order) {
 
                 //Job Information
                 $job_info = new \stdClass();
                 $job_info->name = $job->name;
                 $job_info->email = $job->email;
                 $job_info->phone = $job->phone;
-                
+
                 return response()->json([
                     'status' => 200,
                     'message' => 'Material Order Not Found',
@@ -629,9 +619,8 @@ class MaterialOrderController extends Controller
                 'message' => 'Material Order Found Successfully',
                 'data' => $material_order
             ], 200);
-
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
@@ -649,7 +638,7 @@ class MaterialOrderController extends Controller
 
             //Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
@@ -658,7 +647,7 @@ class MaterialOrderController extends Controller
 
             //Check Material Order
             $material_order = MaterialOrder::where('id', $request->material_order_id)->first();
-            if(!$material_order) {
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Material Order Not Found'
@@ -667,7 +656,7 @@ class MaterialOrderController extends Controller
 
             //Check Supplier
             $supplier = User::where('id', $request->supplier_id)->where('role_id', 4)->first();
-            if(!$supplier) {
+            if (!$supplier) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Supplier Not Found'
@@ -676,7 +665,7 @@ class MaterialOrderController extends Controller
 
             //Check Sub Contractor
             $sub_contractor = User::where('id', $request->sub_contractor_id)->where('role_id', 2)->first();
-            if(!$sub_contractor) {
+            if (!$sub_contractor) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Sub Contractor Not Found'
@@ -684,8 +673,8 @@ class MaterialOrderController extends Controller
             }
 
             //Dispatch Email Through Queue
-            dispatch(new MaterialOrderJob($supplier,$material_order));
-            dispatch(new MaterialOrderJob($sub_contractor,$material_order));
+            dispatch(new MaterialOrderJob($supplier, $material_order));
+            dispatch(new MaterialOrderJob($sub_contractor, $material_order));
 
             DB::commit();
             return response()->json([
@@ -693,10 +682,9 @@ class MaterialOrderController extends Controller
                 'message' => 'Email Sent successfully',
                 'data' => []
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
@@ -706,7 +694,7 @@ class MaterialOrderController extends Controller
 
             //Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
@@ -714,10 +702,10 @@ class MaterialOrderController extends Controller
             }
 
             //Check Material Order
-            $material_order = MaterialOrder::with('materialSelection')->where('company_job_id', $jobId)->with('job','materials')->first();
+            $material_order = MaterialOrder::with('materialSelection')->where('company_job_id', $jobId)->with('job', 'materials')->first();
             $materialSelection = $material_order->materialSelection;
             // return response($material_order);
-            if(!$material_order) {
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Material Order Not Found'
@@ -732,11 +720,11 @@ class MaterialOrderController extends Controller
             //         'message' => 'Supplier Not Yet Assigned'
             //     ], 422);
             // }
-            
+
 
             //Check Supplier
             $supplier = User::where('id', $material_order->supplier_id)->where('role_id', 4)->first();
-            if(!$supplier) {
+            if (!$supplier) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Supplier Not Found'
@@ -745,8 +733,9 @@ class MaterialOrderController extends Controller
 
             //Generate PDF
             $pdf = PDF::loadView('pdf.material-order', [
-                'materialSelection'=>$materialSelection,
-                'data' => $material_order]);
+                'materialSelection' => $materialSelection,
+                'data' => $material_order
+            ]);
             $pdf_fileName = time() . '.pdf';
             $pdf_filePath = 'material_order_pdf/' . $pdf_fileName;
             // Check if the old PDF exists and delete it
@@ -764,19 +753,18 @@ class MaterialOrderController extends Controller
             $material_order->save();
 
             //Dispatch Email Through Queue
-            dispatch(new MaterialOrderJob($supplier,$material_order));
+            dispatch(new MaterialOrderJob($supplier, $material_order));
 
             return response()->json([
                 'status' => 200,
                 'message' => 'Email Sent successfully',
                 'data' => []
             ], 200);
-
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
-    
+
     public function updateBuildDetail(Request $request, $jobId)
     {
         //Validate Request
@@ -791,31 +779,30 @@ class MaterialOrderController extends Controller
             'build_date' => 'nullable|date_format:m/d/Y',
             // 'confirmed' => 'nullable|in:true,false',
         ]);
-        
+
         try {
-            
+
             //Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
                 ], 422);
             }
             // $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
-            $supplier = User::where('id',$request->supplier_id)->first();
-            if(!$supplier)
-            {
-                  return response()->json([
+            $supplier = User::where('id', $request->supplier_id)->first();
+            if (!$supplier) {
+                return response()->json([
                     'status' => 422,
                     'message' => 'Supplier Not Found'
                 ], 422);
             }
             // dd($supplier);
-            $contractor = Contractor::where('id',$request->contractor_id)->first();
-            if(!$contractor)
-            {
-                  return response()->json([
+            $contractor = Contractor::where('id', $request->contractor_id)->first();
+            // dd($contractor);
+            if (!$contractor) {
+                return response()->json([
                     'status' => 422,
                     'message' => 'contractor Not Found'
                 ], 422);
@@ -825,7 +812,7 @@ class MaterialOrderController extends Controller
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
                 'company_job_id' => $jobId
-            ],[
+            ], [
                 'company_job_id' => $jobId,
                 'build_date' => $request->build_date,
                 'build_time' => $request->build_time,
@@ -842,16 +829,15 @@ class MaterialOrderController extends Controller
             //send email to contractor and cc to homeowner
             // Mail::to($contractor->email)->send(new BuildScheduleMail($request->supplier));
 
-            Mail::to($request->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor,$supplier));
+            Mail::to($request->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor, $supplier));
 
             return response()->json([
                 'status' => 200,
                 'message' => 'Build Detail Updated Successfully',
-                'data' => $build_detail
+                'data' => new BuildDetailResource($build_detail, $contractor)
             ], 200);
-            
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
@@ -860,11 +846,11 @@ class MaterialOrderController extends Controller
         $this->validate($request, [
             'confirmed' => 'nullable|in:true,false',
         ]);
-        
+
         try {
             //Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
@@ -874,26 +860,25 @@ class MaterialOrderController extends Controller
             //Update Build Detail
             $build_detail = BuildDetail::updateOrCreate([
                 'company_job_id' => $jobId
-            ],[
+            ], [
                 'confirmed' => $request->confirmed,
             ]);
             //Update Status
-            if(isset($request->confirmed) && $request->confirmed == "true") {
+            if (isset($request->confirmed) && $request->confirmed == "true") {
                 $job->status_id = 6;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
-                  //current stage save
-                $build_detail->current_stage="yes";
+                //current stage save
+                $build_detail->current_stage = "yes";
                 $build_detail->save();
-
-            }elseif(isset($request->confirmed) && $request->confirmed == "false") {
+            } elseif (isset($request->confirmed) && $request->confirmed == "false") {
                 $job->status_id = 10;
                 $job->date = Carbon::now()->format('Y-m-d');
                 $job->save();
 
-                  //current stage save 
-                $build_detail->current_stage="no";
+                //current stage save 
+                $build_detail->current_stage = "no";
                 $build_detail->save();
             }
 
@@ -902,59 +887,60 @@ class MaterialOrderController extends Controller
                 'message' => 'Build Details Status Updated Successfully',
                 'data' => [$build_detail]
             ], 200);
-            
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
     public function getBuildDetail($jobId)
     {
-        try{
+        try {
             //Check Job
             $job = CompanyJob::find($jobId);
-            if(!$job) {
+            if (!$job) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Job Not Found'
                 ], 422);
             }
 
-             //get Build Detail
-             $build_detail = BuildDetail::where('company_job_id',$jobId)->first();
-             //get Ready to Build
-             $readyBuild = ReadyToBuild::where('company_job_id', $jobId)->first();
-             $supplier = User::where('id',$readyBuild->supplier_id)->first();
-             $supplier_name = $supplier->first_name . ' ' . $supplier->last_name;
- 
+            //get Build Detail
+            $build_detail = BuildDetail::where('company_job_id', $jobId)->first();
+
+            //contractor 
+            $constractor = Contractor::where('email', $build_detail->contractor_email)->first();
+            if (!$constractor) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => ' constractor not Found ',
+                ]);
+            }
             // Return response with Ready To Build details
             return response()->json([
                 'status' => 200,
                 'message' => 'Build Details Found Successfully',
                 'data' =>
                 [
-                        'homeowner' => $build_detail->homeowner ?? '',
-                        'homeowner_email' => $build_detail->homeowner_email ?? '',
-                        'id' => $build_detail->id ?? '',
-                        'company_job_id' => $build_detail->company_job_id ?? '',
-                        'build_date' => $build_detail->build_date ?? '',
-                        'build_time' => $build_detail->build_time ?? '',
-                        // 'home_owner' => $build_detail->homeowner,
-                        // 'home_owner_email' => $build_detail->homeowner_email,
-                        'contractor' => $build_detail->contractor ?? '',
-                        'contractor_email' => $build_detail->contractor_email ?? '',
-                        'supplier' => $supplier_name ?? '', 
-                        'supplier_email' => $build_detail->supplier_email ?? '',
-                        'confirmed' => $build_detail->confirmed ?? '',
-                        'created_at' => $build_detail->created_at ?? '',
-                        'updated_at' => $build_detail->updated_at ?? '',                    
+                    'homeowner' => $build_detail->homeowner ?? '',
+                    'homeowner_email' => $build_detail->homeowner_email ?? '',
+                    'id' => $build_detail->id ?? '',
+                    'company_job_id' => $build_detail->company_job_id ?? '',
+                    'build_date' => $build_detail->build_date ?? '',
+                    'contractor' => $build_detail->contractor ?? '',
+                    'contractor_email' => $build_detail->contractor_email ?? '',
+                    'subject' => $constractor->subject ?? '',
+                    'content' => $constractor->content ?? '',
+                    'supplier' => $build_detail->supplier ?? '',
+                    'supplier_email' => $build_detail->supplier_email ?? '',
+                    'created_at' => $build_detail->created_at ?? '',
+                    'updated_at' => $build_detail->updated_at ?? '',
                 ]
             ], 200);
-        }catch(\Exception $e){
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
-    
+
     public function confirmationEmail(Request $request, $jobId)
     {
         //Validate Request
@@ -964,11 +950,11 @@ class MaterialOrderController extends Controller
             'email_body' => 'nullable|string',
             'status' => 'nullable|in:true,false',
         ]);
-        
+
         try {
             //Check job exist or not
             $material_order = CompanyJob::where('id', $jobId)->first();
-            if(!$material_order) {
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Company Job Not Created.'
@@ -978,44 +964,42 @@ class MaterialOrderController extends Controller
             //here Seprate the emails
             $sendToEmails = array_map('trim', explode(',', $request->send_to));
             //Send Emails
-            foreach($sendToEmails as $email)
-            {
-                dispatch(new ConfirmationJob($email,$request->subject,$request->email_body));
+            foreach ($sendToEmails as $email) {
+                dispatch(new ConfirmationJob($email, $request->subject, $request->email_body));
             }
             $confirmationEmailSent = $request->input('status', 'false');
 
             //Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
                 'company_job_id' => $jobId
-            ],[
+            ], [
                 'company_job_id' => $jobId,
-                'type'=>1,
+                'type' => 1,
                 'confirmation_email_sent' => $confirmationEmailSent,
 
             ]);
-            
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Email Sent successfully',
                 'data' => []
             ], 200);
-            
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
     public function confirmationEmailStatus(Request $request, $jobId)
     {
-         //Validate Request
-         $this->validate($request, [
+        //Validate Request
+        $this->validate($request, [
             'status' => 'nullable|in:true,false',
         ]);
 
-        try{
+        try {
             //Check job exist or not
             $material_order = CompanyJob::where('id', $jobId)->first();
-            if(!$material_order) {
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Company Job Not Created.'
@@ -1026,9 +1010,9 @@ class MaterialOrderController extends Controller
             //Update Material Order
             MaterialOrderConfirmation::updateOrCreate([
                 'company_job_id' => $jobId
-            ],[
+            ], [
                 'company_job_id' => $jobId,
-                'type'=>1,
+                'type' => 1,
                 'confirmation_email_sent' => $confirmationEmailSent,
             ]);
 
@@ -1037,33 +1021,31 @@ class MaterialOrderController extends Controller
                 'message' => 'Staus Updated successfully',
                 'data' => []
             ], 200);
-
-        }catch(\Exception $e)
-        {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
     public function getConfirmationEmailStatus(Request $request, $jobId)
     {
-        try{
+        try {
             //Check job exist or not
             $material_order = CompanyJob::where('id', $jobId)->first();
-            if(!$material_order) {
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Company Job Not Created.'
                 ], 422);
             }
-            $material_status = MaterialOrderConfirmation::select('id','company_job_id','confirmation_email_sent','created_at','updated_at')->where('company_job_id', $jobId)->first();
+            $material_status = MaterialOrderConfirmation::select('id', 'company_job_id', 'confirmation_email_sent', 'created_at', 'updated_at')->where('company_job_id', $jobId)->first();
 
             if ($material_status) {
                 $status = $material_status->toArray();
-                
+
                 // Change the key name from confirmation_email_sent to status
                 $status['status'] = $status['confirmation_email_sent'];
                 unset($status['confirmation_email_sent']); // Remove the old key
-            
+
                 return response()->json([
                     'status' => 200,
                     'message' => 'Status Found successfully',
@@ -1075,10 +1057,8 @@ class MaterialOrderController extends Controller
                     'message' => 'Material status not found',
                 ], 404);
             }
-
-        }catch(\Exception $e)
-        {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
@@ -1092,7 +1072,7 @@ class MaterialOrderController extends Controller
             'attachments' => 'nullable|array',
             'status' => 'nullable|in:true,false',
         ]);
-        
+
         try {
             // Convert comma-separated string to array
             $sendToEmails = array_map('trim', explode(',', $request->send_to));
@@ -1112,7 +1092,7 @@ class MaterialOrderController extends Controller
                     'message' => 'Material Order Not Found'
                 ], 422);
             }
-             // Prepare Attachments
+            // Prepare Attachments
             // $attachmentPaths = [];
             // if ($request->hasFile('attachments')) {
             //     foreach ($request->file('attachments') as $attachment) {
@@ -1124,23 +1104,23 @@ class MaterialOrderController extends Controller
             //     }
             // }
 
-            $attachments = [];  
+            $attachments = [];
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('temp'); 
-                    $attachments[] = $path; 
+                    $path = $file->store('temp');
+                    $attachments[] = $path;
                 }
             }
-    
+
             // Create an instance of the custom notifiable
             $notifiable = new \App\CustomNotifiable($request->send_to);
-    
+
             // Create the notification
             $notification = new MaterialOrderConfirmationNotification($request->subject, $request->email_body, $attachments);
-            
+
             // Dispatch the job with attachment paths
             // dispatch(new MaterialOrderConfirmationJob($sendToEmails, $request->subject, $request->email_body, $attachmentPaths));
-            
+
             $confirmationEmailSent = $request->input('status', 'false');
 
             // Update Material Order
@@ -1151,13 +1131,12 @@ class MaterialOrderController extends Controller
                 'type' => 2,
                 'material_confirmation_email_sent' => $confirmationEmailSent
             ]);
-            
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Email Sent successfully',
                 'data' => []
             ], 200);
-            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
@@ -1169,7 +1148,7 @@ class MaterialOrderController extends Controller
         $this->validate($request, [
             'status' => 'nullable|in:true,false',
         ]);
-        
+
         try {
             // Check Material Order
             $material_order = MaterialOrderConfirmation::where('company_job_id', $jobId)->first();
@@ -1178,7 +1157,7 @@ class MaterialOrderController extends Controller
                     'status' => 422,
                     'message' => 'Material Order Not Found'
                 ], 422);
-            }            
+            }
             $confirmationEmailSent = $request->input('status', 'false');
 
             // Update Material Order
@@ -1189,13 +1168,12 @@ class MaterialOrderController extends Controller
                 'type' => 2,
                 'material_confirmation_email_sent' => $confirmationEmailSent
             ]);
-            
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Email Sent Successfully',
                 'data' => $material_order
             ], 200);
-            
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
@@ -1203,24 +1181,24 @@ class MaterialOrderController extends Controller
 
     public function getMaterialOrderconfirmationEmailStatus(Request $request, $jobId)
     {
-        try{
+        try {
             //Check job exist or not
             $material_order = CompanyJob::where('id', $jobId)->first();
-            if(!$material_order) {
+            if (!$material_order) {
                 return response()->json([
                     'status' => 422,
                     'message' => 'Company Job Not Created.'
                 ], 422);
             }
-            $material_status = MaterialOrderConfirmation::select('id','company_job_id','material_confirmation_email_sent','created_at','updated_at')->where('company_job_id', $jobId)->first();
+            $material_status = MaterialOrderConfirmation::select('id', 'company_job_id', 'material_confirmation_email_sent', 'created_at', 'updated_at')->where('company_job_id', $jobId)->first();
 
             if ($material_status) {
                 $status = $material_status->toArray();
-                
+
                 // Change the key name from confirmation_email_sent to status
                 $status['status'] = $status['material_confirmation_email_sent'];
                 unset($status['material_confirmation_email_sent']); // Remove the old key
-            
+
                 return response()->json([
                     'status' => 200,
                     'message' => 'Status Found successfully',
@@ -1232,10 +1210,8 @@ class MaterialOrderController extends Controller
                     'message' => 'Material status not found',
                 ], 404);
             }
-
-        }catch(\Exception $e)
-        {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage() . ' on line ' . $e->getLine() . ' in file ' . $e->getFile()], 500);
         }
     }
 
@@ -1244,11 +1220,11 @@ class MaterialOrderController extends Controller
         // dd($request->all());
         try {
             $request->validate([
-                'id'        => 'nullable|exists:materail_drop_downs,id', 
+                'id'        => 'nullable|exists:materail_drop_downs,id',
                 'order_key' => 'nullable|string',
                 'material_name'  => 'nullable|string',
                 'color'     => 'nullable|array',
-                'color.*'   => 'string', 
+                'color.*'   => 'string',
                 'pdf_url' => 'file|nullable',
             ]);
 
@@ -1256,20 +1232,19 @@ class MaterialOrderController extends Controller
                 $document = $request->file('pdf_url'); // Get the single file
                 $fileName = time() . '_' . $document->getClientOriginalName();
                 $filePath = $document->storeAs('public/material_drop_down', $fileName);
-            
+
                 // Store Path in Database
-                
+
                 $image_url = Storage::url($filePath);
-               
             }
-            
+
             // Check if we are updating or creating a new record
             $materialOrder = MaterailDropDown::updateOrCreate(
-                ['id' => $request->id], 
+                ['id' => $request->id],
                 [
                     'order_key' => $request->order_key,
                     'material_name'  => $request->material_name,
-                    'color'     => $request->color, 
+                    'color'     => $request->color,
                     'pdf_url' => $image_url ?? null
                     // 'color'     => json_encode($request->color), 
 
@@ -1279,8 +1254,8 @@ class MaterialOrderController extends Controller
             return response()->json([
                 'status'  => true,
                 'message' => $request->id ? 'Data Updated Successfully' : 'Data Added Successfully',
-                'data'=> [
-                    'id'=> $materialOrder->id,
+                'data' => [
+                    'id' => $materialOrder->id,
                     'material_name' => $materialOrder->material_name,
                     'order_key' => $materialOrder->order_key,
                     'order_key' => $materialOrder->color,
@@ -1288,9 +1263,8 @@ class MaterialOrderController extends Controller
 
 
                     // 'color' => json_decode($materialOrder->color),
-                ]           
+                ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => false, // Change status to false on error
@@ -1302,47 +1276,42 @@ class MaterialOrderController extends Controller
 
     public function getMaterailOrderDropdown()
     {
-        try{
+        try {
             $materialOrder = MaterailDropDown::get();
             return response()->json([
-                'status'=> true,
+                'status' => true,
                 'message' => 'Data Fetched Successfully',
-                'data'=> $materialOrder
+                'data' => $materialOrder
             ]);
-
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
-                'status'=> false,
-                'message' => 'Data Fetched Successfully'. $e->getMessage(),
+                'status' => false,
+                'message' => 'Data Fetched Successfully' . $e->getMessage(),
             ]);
         }
-
     }
 
     public function deleteMaterailOrderDropdown($id)
     {
-        try{
+        try {
             $materialOrder = MaterailDropDown::find($id);
-            if(!$materialOrder)
-            {
+            if (!$materialOrder) {
                 return response()->json([
-                    'status'=> true,
+                    'status' => true,
                     'message' => 'Not found',
                 ]);
             }
             $materialOrder->delete();
             return response()->json([
-                'status'=> true,
+                'status' => true,
                 'message' => 'Delete Successfully',
             ]);
-
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
-                'status'=> false,
-                'message' => 'issue occured'. $e->getMessage(),
+                'status' => false,
+                'message' => 'issue occured' . $e->getMessage(),
             ]);
         }
-
     }
 
     // public function confirmationEmail(Request $request, $id)
@@ -1354,9 +1323,9 @@ class MaterialOrderController extends Controller
     //         'subject' => 'required|string',
     //         'email_body' => 'required|string',
     //     ]);
-        
+
     //     try {
-            
+
     //         //Check Material Order
     //         $material_order = MaterialOrder::where('id', $id)->first();
     //         if(!$material_order) {
@@ -1365,13 +1334,13 @@ class MaterialOrderController extends Controller
     //                 'message' => 'Please create Material Order.'
     //             ], 422);
     //         }
-            
+
     //         //Send Emails
     //         foreach($request->send_to as $email)
     //         {
     //             dispatch(new ConfirmationJob($email,$request->subject,$request->email_body));
     //         }
-            
+
     //         //Update Material Order
     //         MaterialOrderConfirmation::updateOrCreate([
     //             'material_order_id' => $id
@@ -1379,13 +1348,13 @@ class MaterialOrderController extends Controller
     //             'material_order_id' => $id,
     //             'confirmation_email' => $request->confirmation_email
     //         ]);
-            
+
     //         return response()->json([
     //             'status' => 200,
     //             'message' => 'Email Sent successfully',
     //             'data' => []
     //         ], 200);
-            
+
     //     } catch (\Exception $e) {
     //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
     //     }
@@ -1399,9 +1368,9 @@ class MaterialOrderController extends Controller
     //         'email_body' => 'required',
     //         'attachments' => 'nullable|array',
     //     ]);
-        
+
     //     try {
-            
+
     //         //Check Material Order
     //         $material_order = MaterialOrder::where('id', $id)->first();
     //         if(!$material_order) {
@@ -1410,7 +1379,7 @@ class MaterialOrderController extends Controller
     //                 'message' => 'Material Order Not Found'
     //             ], 422);
     //         }
-            
+
     //         //Send Email
     //         if(isset($request->attachments)) {
     //             $attachments = $request->file('attachments');
@@ -1418,7 +1387,7 @@ class MaterialOrderController extends Controller
     //             $attachments = [];
     //         }
     //         dispatch(new MaterialOrderConfirmationJob($request->send_to,$request->subject,$request->email_body,$attachments));
-            
+
     //         //Update Material Order
     //         MaterialOrderConfirmation::updateOrCreate([
     //             'material_order_id' => $id
@@ -1426,13 +1395,13 @@ class MaterialOrderController extends Controller
     //             'material_order_id' => $id,
     //             'material_order_confirmation_email' => $request->material_order_confirmation_email
     //         ]);
-            
+
     //         return response()->json([
     //             'status' => 200,
     //             'message' => 'Email Sent successfully',
     //             'data' => []
     //         ], 200);
-            
+
     //     } catch (\Exception $e) {
     //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
     //     }
