@@ -774,6 +774,9 @@ class MaterialOrderController extends Controller
             'contractor_id' => 'nullable',
             'supplier_id' => 'nullable',
             'build_date' => 'nullable|date_format:m/d/Y',
+            'subject' => 'nullable|string',
+            'content' => 'nullable|string'
+
         ]);
 
         try {
@@ -817,10 +820,12 @@ class MaterialOrderController extends Controller
                 'contractor_email' => $contractor->email,
                 'supplier' => $supplier->name,
                 'supplier_email' => $supplier->email,
+                'subject' => $request->subject,
+                'content' => $request->content,
                 // 'confirmed' => $request->confirmed,
             ]);
 
-            Mail::to($build_detail->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($contractor, $supplier));
+            Mail::to($build_detail->contractor_email)->cc($request->homeowner_email)->send(new BuildScheduleMail($build_detail, $supplier));
 
             return response()->json([
                 'status' => 200,

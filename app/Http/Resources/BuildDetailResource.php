@@ -34,9 +34,9 @@ class BuildDetailResource extends JsonResource
             'contractor_email' => $this->contractor_email,
             'supplier' => $this->supplier,
             'supplier_email' => $this->supplier_email,
-            'contractor' => $this->contractor->name,
-            'subject' => $this->contractor->subject,
-            'content' => $this->contractor->content,
+            'contractor' => $this->name,
+            'subject' => $this->subject,
+            'content' => $this->content,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
