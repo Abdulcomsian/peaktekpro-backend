@@ -387,6 +387,7 @@ class CustomerAgreementController extends Controller
     //upload filled pdf document
     public function saveFilledPdf($jobId, Request $request) //here send the email also
     {
+        dd($request->pdf_status, gettype($request->pdf_status));
         try {
             $request->validate([
                 'file_path' => 'nullable|file',
