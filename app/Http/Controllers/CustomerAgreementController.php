@@ -390,7 +390,7 @@ class CustomerAgreementController extends Controller
         try {
             $request->validate([
                 'file_path' => 'nullable|file',
-                'pdf_status' => 'nullable|in:true,false'
+                // 'pdf_status' => 'nullable|in:true,false'
             ]);
 
             $job = CompanyJob::find($jobId);
