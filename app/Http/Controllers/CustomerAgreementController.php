@@ -420,7 +420,7 @@ class CustomerAgreementController extends Controller
 
                 $PDFpath =  asset('storage/' .$saveFilledDocument->sign_pdf_url );
 
-                Mail::to($job->email)->send(new SaveFilledMail($job,$PDFpath));
+                Mail::to($job->email)->send(new SaveFilledMail2($job,$PDFpath));
 
                 return response()->json([
                     'status' => 200,

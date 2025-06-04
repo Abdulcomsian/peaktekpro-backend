@@ -38,14 +38,14 @@
 </style>
     <h1>Dear <strong>{{$job->name}}</strong></h1>
 
-    <p>I hope this email finds you well.<p>
-    <p>We are reaching out to inform you that we require your signature on the document of Customer Agreement. Please review and sign the document at your earliest convenience by clicking on the link below:</p>
+    {{-- <p>I hope this email finds you well.<p> --}}
+    <p>Please check the link below to view Signed Agreement.</p>
 
     <center>
         <a href="{{ $PDFpath }}" target="_blank" rel="noopener noreferrer" class="btn">Open PDF</a>
     </center>
     <p>If you have any questions or require further assistance, please do not hesitate to contact us.<p>
-    <p>Thank you for your prompt attention to this matter.</p>
+    {{-- <p>Thank you for your prompt attention to this matter.</p> --}}
 
     <p><strong>Best regards</strong>,</p>
 

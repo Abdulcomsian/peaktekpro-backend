@@ -62,7 +62,7 @@
 
     <p><strong>Best regards</strong>,</p>
 
-    <p>DBQP</p>
+    <p>Peaktek</p>
     
 </body>
 </html>
