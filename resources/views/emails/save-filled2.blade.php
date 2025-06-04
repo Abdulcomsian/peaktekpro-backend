@@ -36,9 +36,8 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 </style>
-    <h1>Dear <strong>{{$job->name}}</strong></h1>
+    <p>Dear <strong>{{$job->name}}</strong></p>
 
-    {{-- <p>I hope this email finds you well.<p> --}}
     <p>Please check the link below to view Signed Agreement.</p>
 
     <center>
