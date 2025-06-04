@@ -9,8 +9,9 @@ use Carbon\Carbon;
 use App\Models\Company;
 use App\Jobs\SignEmailJob;
 use App\Models\CompanyJob;
-use App\Mail\SignEmailMail;
+use App\Mail\SignEmailMail; 
 use App\Mail\SaveFilledMail;
+use App\Mail\SaveFilledMail2;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AgreementContent;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CustomerAgreementResource;
-use App\Http\Resources\SignCustomerAgreementResource;
+use App\Http\Resources\SignCustomerAgreementResource; 
 
 class CustomerAgreementController extends Controller
 {
