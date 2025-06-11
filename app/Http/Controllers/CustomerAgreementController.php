@@ -632,19 +632,40 @@ class CustomerAgreementController extends Controller
             }
 
             //Get Agreement
-            $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
-        $file = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
- 
- $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
-                'include_base64' => true,
-                'save_images' => true,
-            ]);
-            dd($result);
+            $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
+    
+            // Download the file content
+            $fileContent = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
+            
+            if ($fileContent === false) {
+                throw new Exception('Failed to download PDF file');
+            }
+            
+            // Create a temporary file
+            $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
+            file_put_contents($tempFilePath, $fileContent);
+            
+            try {
+                // Use extractSignatures() instead of extractSignaturesFromUpload()
+                $result = $this->pdfSignatureService->extractSignatures($tempFilePath, [
+                    'include_base64' => true,
+                    'save_images' => true,
+                ]);
+                
+                dd($result);
+                
+            } finally {
+                // Clean up the temporary file
+                if (file_exists($tempFilePath)) {
+                    unlink($tempFilePath);
+                }
+            }
+            
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Found Successfully',
-                'agreement' => new SignCustomerAgreementResource($agreement)
-                // 'agreement' => $agreement
+                'agreement' => new SignCustomerAgreementResource($agreement),
+                'signatures' => $result
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
