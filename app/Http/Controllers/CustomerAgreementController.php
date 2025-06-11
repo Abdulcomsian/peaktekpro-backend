@@ -645,7 +645,7 @@ class CustomerAgreementController extends Controller
             $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
             file_put_contents($tempFilePath, $fileContent);
             // dd($tempFilePath);
-            if (!is_file($tempFilePath)) {
+            if (!$tempFilePath->isValid()) {
                 throw new Exception('File not found');
             }
             try {
