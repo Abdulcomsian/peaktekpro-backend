@@ -633,22 +633,11 @@ class CustomerAgreementController extends Controller
 
             //Get Agreement
             $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
-        //  dd(public_path($agreement->sign_pdf_url));   
         $file = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
-        $tempPath = tempnam(sys_get_temp_dir(), 'signed_pdf_');
-file_put_contents($tempPath, file_get_contents($file));
-
-$uploadedFile = new UploadedFile(
-    $tempPath,
-    basename($file),
-    null,
-    null,
-    true // mark as test mode to skip file upload checks
-);
-
- $result = $this->pdfSignatureService->extractSignaturesFromUpload($uploadedFile, [
-                // 'include_base64' => $request->get('include_base64', true),
-                // 'save_images' => $request->get('save_images', true),
+ 
+ $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
+                'include_base64' => true,
+                'save_images' => true,
             ]);
             dd($result);
             return response()->json([

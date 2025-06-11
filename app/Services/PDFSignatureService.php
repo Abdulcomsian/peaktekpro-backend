@@ -15,8 +15,8 @@ class PDFSignatureService
     public function __construct()
     {
         // Configure these paths according to your setup
-        $this->pythonScriptPath = base_path('scripts/app.py');
-        $this->pythonExecutable = 'python'; // or 'python' depending on your system
+        $this->pythonScriptPath = base_path('scripts/pdf_signature_extractor.py');
+        $this->pythonExecutable = 'python3'; // or 'python' depending on your system
         $this->outputDirectory = storage_path('app/signatures');
         
         // Create output directory if it doesn't exist
@@ -195,5 +195,46 @@ class PDFSignatureService
     public function setPythonExecutable($executable)
     {
         $this->pythonExecutable = $executable;
+    }
+
+    /**
+     * Extract signatures from a PDF file downloaded from URL
+     *
+     * @param string $url URL to the PDF file
+     * @param array $options Options for extraction
+     * @return array
+     * @throws Exception
+     */
+    public function extractSignaturesFromUrl($url, $options = [])
+    {
+        // Download the file
+        $fileContent = file_get_contents($url);
+        
+        if ($fileContent === false) {
+            throw new Exception("Failed to download PDF from URL: {$url}");
+        }
+
+        // Create a temporary file
+        $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
+        
+        if (file_put_contents($tempFilePath, $fileContent) === false) {
+            throw new Exception("Failed to create temporary file");
+        }
+
+        try {
+            // Extract signatures
+            $result = $this->extractSignatures($tempFilePath, $options);
+            
+            // Add URL info to result
+            $result['source_url'] = $url;
+            
+            return $result;
+            
+        } finally {
+            // Clean up temporary file
+            if (file_exists($tempFilePath)) {
+                unlink($tempFilePath);
+            }
+        }
     }
 }
