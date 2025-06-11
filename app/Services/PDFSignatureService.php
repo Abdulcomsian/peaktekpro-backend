@@ -16,7 +16,7 @@ class PDFSignatureService
     {
         // Configure these paths according to your setup
         $this->pythonScriptPath = base_path('scripts/app.py');
-        $this->pythonExecutable = 'python'; // or 'python' depending on your system
+        $this->pythonExecutable = 'python3'; // or 'python' depending on your system
         $this->outputDirectory = storage_path('app/signatures');
         
         // Create output directory if it doesn't exist
