@@ -28,6 +28,7 @@ use App\Http\Resources\CustomerAgreementResource;
 use App\Services\PDFSignatureService;
 use App\Http\Resources\SignCustomerAgreementResource; 
 use Illuminate\Http\UploadedFile;
+use Symfony\Component\HttpFoundation\File\UploadedFile as SymfonyUploadedFile;
 
 class CustomerAgreementController extends Controller
 {
@@ -635,22 +636,32 @@ class CustomerAgreementController extends Controller
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
     
             // Download the file content
-            $fileContent = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
+            // $fileContent = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
+            // Create Symfony UploadedFile instance
+            $symfonyFile = new SymfonyUploadedFile(
+                'https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url,
+                basename('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url),
+                mime_content_type('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url),
+                null,
+                true // set to true for 'test' mode to avoid file upload validation
+            );
+
+            // Convert to Laravel UploadedFile
+            $laravelFile = UploadedFile::createFromBase($symfonyFile);
+            // if ($fileContent === false) {
+            //     throw new Exception('Failed to download PDF file');
+            // }
             
-            if ($fileContent === false) {
-                throw new Exception('Failed to download PDF file');
-            }
-            
-            // Create a temporary file
-            $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
-            file_put_contents($tempFilePath, $fileContent);
-            // dd($tempFilePath);
-            if (!$tempFilePath->isValid()) {
-                throw new Exception('File not found');
-            }
+            // // Create a temporary file
+            // $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
+            // file_put_contents($tempFilePath, $fileContent);
+            // // dd($tempFilePath);
+            // if (!$tempFilePath->isValid()) {
+            //     throw new Exception('File not found');
+            // }
             try {
                 // Use extractSignatures() instead of extractSignaturesFromUpload()
-                $result = $this->pdfSignatureService->extractSignaturesFromUpload($tempFilePath, [
+                $result = $this->pdfSignatureService->extractSignaturesFromUpload($laravelFile, [
                // 'include_base64' => $request->get('include_base64', true),
                // 'save_images' => $request->get('save_images', true),
                    'include_base64' => true, // or false depending on your logic
