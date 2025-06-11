@@ -97,11 +97,11 @@ class PDFSignatureService
      */
     public function extractSignaturesFromUpload($file, $options = [])
     {
-        dd($file);
-        // Validate file
-        if (!$file->isValid()) {
-            throw new Exception("Invalid file upload");
-        }
+        // dd($file);
+        // // Validate file
+        // if (!$file->isValid()) {
+        //     throw new Exception("Invalid file upload");
+        // }
 
         if ($file->getClientOriginalExtension() !== 'pdf') {
             throw new Exception("Only PDF files are supported");
