@@ -635,8 +635,11 @@ class CustomerAgreementController extends Controller
             $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
         //  dd(public_path($agreement->sign_pdf_url));   
         $file = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
-        $uploadedFile = new UploadedFile(
-    $file,
+        $tempPath = tempnam(sys_get_temp_dir(), 'signed_pdf_');
+file_put_contents($tempPath, file_get_contents($file));
+
+$uploadedFile = new UploadedFile(
+    $tempPath,
     basename($file),
     null,
     null,
