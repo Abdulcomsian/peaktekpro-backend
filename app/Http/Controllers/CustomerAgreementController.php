@@ -656,9 +656,9 @@ class CustomerAgreementController extends Controller
                 
             } finally {
                 // Clean up the temporary file
-                if (file_exists($tempFilePath)) {
-                    unlink($tempFilePath);
-                }
+                // if (file_exists($tempFilePath)) {
+                //     unlink($tempFilePath);
+                // }
             }
             
             return response()->json([
