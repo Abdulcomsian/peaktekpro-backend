@@ -38,103 +38,36 @@ class PDFSignatureExtractor:
         ]
     
     def is_signature(self, image):
-        """Balanced signature detection - not too strict, not too lenient"""
+        """
+        Signature detection using the same logic as the working Flask app
+        More robust signature detection using multiple features
+        """
         try:
-            if image is None or image.size == 0:
-                return False
-            
-            height, width = image.shape[:2]
-            
-            # Basic size filtering - allow smaller signatures
-            if width < 30 or height < 15 or width > 3000 or height > 2000:
-                logger.debug(f"Size filter: {width}x{height}")
-                return False
-            
             # Convert to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             
-            # Check if image is completely white/empty
-            if np.mean(gray) > 248:
-                logger.debug("Image too bright/empty")
-                return False
+            # Apply adaptive thresholding
+            thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                        cv2.THRESH_BINARY_INV, 11, 2)
             
-            # Apply multiple thresholding techniques
-            # Method 1: Adaptive threshold
-            thresh1 = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                          cv2.THRESH_BINARY_INV, 11, 2)
-            
-            # Method 2: OTSU threshold
-            _, thresh2 = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            
-            # Method 3: Simple threshold
-            _, thresh3 = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
-            
-            # Use the threshold that gives reasonable coverage
-            best_thresh = None
-            best_coverage = 0
-            
-            for thresh in [thresh1, thresh2, thresh3]:
-                ink_pixels = cv2.countNonZero(thresh)
-                coverage = ink_pixels / thresh.size
-                if 0.002 < coverage < 0.4:  # Reasonable range
-                    if coverage > best_coverage:
-                        best_coverage = coverage
-                        best_thresh = thresh
-            
-            if best_thresh is None:
-                logger.debug("No suitable threshold found")
-                return False
+            # Count non-zero pixels (ink)
+            ink_pixels = cv2.countNonZero(thresh)
+            total_pixels = thresh.size
+            coverage = ink_pixels / total_pixels
             
             # Find contours
-            contours, _ = cv2.findContours(best_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             if not contours:
                 return False
-            
-            # Filter meaningful contours
-            meaningful_contours = []
-            for contour in contours:
-                area = cv2.contourArea(contour)
-                if area > 20:  # Minimum area for meaningful content
-                    meaningful_contours.append(contour)
-            
-            if not meaningful_contours:
-                logger.debug("No meaningful contours")
-                return False
-            
-            # Get the largest contour for aspect ratio check
-            largest_contour = max(meaningful_contours, key=cv2.contourArea)
+                
+            # Get largest contour
+            largest_contour = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(largest_contour)
             aspect_ratio = w / h
             
-            # More flexible aspect ratio (signatures can be various shapes)
-            if aspect_ratio < 0.2 or aspect_ratio > 10:
-                logger.debug(f"Aspect ratio out of range: {aspect_ratio:.2f}")
-                return False
-            
-            # Check for signature characteristics
-            total_contour_area = sum(cv2.contourArea(c) for c in meaningful_contours)
-            image_area = width * height
-            content_ratio = total_contour_area / image_area
-            
-            # Flexible content ratio
-            if content_ratio < 0.001 or content_ratio > 0.8:
-                logger.debug(f"Content ratio out of range: {content_ratio:.4f}")
-                return False
-            
-            # Additional checks for signature-like properties
-            # 1. Check for curved/irregular shapes (signatures are usually not geometric)
-            hull_area = cv2.contourArea(cv2.convexHull(largest_contour))
-            if hull_area > 0:
-                solidity = cv2.contourArea(largest_contour) / hull_area
-                # Signatures are usually less solid than geometric shapes
-                if solidity > 0.95 and len(meaningful_contours) < 3:
-                    logger.debug(f"Too geometric (solidity: {solidity:.3f})")
-                    return False
-            
-            logger.debug(f"Signature detected - Coverage: {best_coverage:.4f}, "
-                        f"Aspect: {aspect_ratio:.2f}, Contours: {len(meaningful_contours)}, "
-                        f"Content ratio: {content_ratio:.4f}")
-            return True
+            # More lenient signature heuristics (same as Flask app)
+            logger.debug(f"Signature detection - Coverage: {coverage:.4f}, Aspect Ratio: {aspect_ratio:.2f}")
+            return (0.001 < coverage < 0.5) and (0.3 < aspect_ratio < 8)
             
         except Exception as e:
             logger.error(f"Error in signature detection: {str(e)}")
@@ -225,7 +158,7 @@ class PDFSignatureExtractor:
 
     def extract_signatures(self, pdf_path, include_base64=True, save_images=True):
         """
-        Extract signatures from PDF with field label detection
+        Extract signatures from PDF using the same logic as the working Flask app
         
         Args:
             pdf_path (str): Path to the PDF file
@@ -255,66 +188,100 @@ class PDFSignatureExtractor:
                 image_list = page.get_images(full=True)
                 logger.debug(f"Page {page_num+1} has {len(image_list)} images")
                 
-                # Process embedded images
-                for img_index, img in enumerate(image_list):
+                # First try extracting embedded images (same as Flask app)
+                if image_list:
+                    for img_index, img in enumerate(image_list):
+                        try:
+                            xref = img[0]
+                            base_image = doc.extract_image(xref)
+                            image_bytes = base_image["image"]
+                            nparr = np.frombuffer(image_bytes, np.uint8)
+                            img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                            
+                            if self.is_signature(img_cv):
+                                # Get image position on page
+                                img_rects = page.get_image_rects(xref)
+                                img_bbox = img_rects[0] if img_rects else None
+                                
+                                # Find nearby signature field
+                                nearby_field = None
+                                if img_bbox and signature_fields:
+                                    nearby_field = self.find_nearby_signature_field(img_bbox, signature_fields)
+                                
+                                signature_data = {
+                                    'page': page_num + 1,
+                                    'type': 'embedded',
+                                    'index': img_index,
+                                    'width': img_cv.shape[1],
+                                    'height': img_cv.shape[0],
+                                    'identifier': f"page_{page_num+1}_img_{img_index}",
+                                    'file_size_bytes': len(image_bytes)
+                                }
+                                
+                                # Add signature field information if found
+                                if nearby_field:
+                                    # Calculate distance for display
+                                    sig_center_x = img_bbox[0] + (img_bbox[2] - img_bbox[0]) / 2
+                                    sig_center_y = img_bbox[1] + (img_bbox[3] - img_bbox[1]) / 2
+                                    field_center_x = nearby_field["x"] + nearby_field["width"] / 2
+                                    field_center_y = nearby_field["y"] + nearby_field["height"] / 2
+                                    distance = np.sqrt((sig_center_x - field_center_x)**2 + (sig_center_y - field_center_y)**2)
+                                    
+                                    signature_data['signature_field'] = {
+                                        'label': nearby_field['text'],
+                                        'distance': round(distance, 2)
+                                    }
+                                
+                                # Add position information if available
+                                if img_bbox:
+                                    signature_data['position'] = {
+                                        'x': img_bbox[0],
+                                        'y': img_bbox[1],
+                                        'width': img_bbox[2] - img_bbox[0],
+                                        'height': img_bbox[3] - img_bbox[1]
+                                    }
+                                
+                                # Save image to disk if requested
+                                if save_images and self.output_dir:
+                                    signature_filename = f"signature_page_{page_num+1}_img{img_index}.png"
+                                    full_path = os.path.join(self.output_dir, signature_filename)
+                                    cv2.imwrite(full_path, img_cv)
+                                    signature_data['file_path'] = full_path
+                                    signature_data['filename'] = signature_filename
+                                
+                                # Include base64 if requested
+                                if include_base64:
+                                    signature_data['base64'] = self.image_to_base64(img_cv)
+                                
+                                signatures.append(signature_data)
+                                logger.info(f"Found signature on page {page_num+1}, image {img_index}")
+                                
+                        except Exception as e:
+                            logger.error(f"Error processing embedded image {img_index} on page {page_num+1}: {str(e)}")
+                
+                # If no embedded images found, try rendering the page (same as Flask app)
+                page_has_embedded_sigs = any(sig['page'] == page_num + 1 and sig['type'] == 'embedded' for sig in signatures)
+                
+                if not image_list or not page_has_embedded_sigs:
                     try:
-                        xref = img[0]
-                        base_image = doc.extract_image(xref)
-                        image_bytes = base_image["image"]
-                        
-                        # Skip very small images (likely icons)
-                        if len(image_bytes) < 500:
-                            continue
-                        
-                        nparr = np.frombuffer(image_bytes, np.uint8)
+                        pix = page.get_pixmap(dpi=150)
+                        img_bytes = pix.tobytes("png")
+                        nparr = np.frombuffer(img_bytes, np.uint8)
                         img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                         
-                        if img_cv is not None and self.is_signature(img_cv):
-                            # Get image position on page
-                            img_rects = page.get_image_rects(xref)
-                            img_bbox = img_rects[0] if img_rects else None
-                            
-                            # Find nearby signature field
-                            nearby_field = None
-                            if img_bbox and signature_fields:
-                                nearby_field = self.find_nearby_signature_field(img_bbox, signature_fields)
-                            
+                        if self.is_signature(img_cv):
                             signature_data = {
                                 'page': page_num + 1,
-                                'type': 'embedded',
-                                'index': img_index,
+                                'type': 'rendered_page',
                                 'width': img_cv.shape[1],
                                 'height': img_cv.shape[0],
-                                'identifier': f"page_{page_num+1}_img_{img_index}",
-                                'file_size_bytes': len(image_bytes)
+                                'identifier': f"page_{page_num+1}_rendered",
+                                'signature_fields_on_page': len(signature_fields)
                             }
-                            
-                            # Add signature field information if found
-                            if nearby_field:
-                                # Calculate distance for display
-                                sig_center_x = img_bbox[0] + (img_bbox[2] - img_bbox[0]) / 2
-                                sig_center_y = img_bbox[1] + (img_bbox[3] - img_bbox[1]) / 2
-                                field_center_x = nearby_field["x"] + nearby_field["width"] / 2
-                                field_center_y = nearby_field["y"] + nearby_field["height"] / 2
-                                distance = np.sqrt((sig_center_x - field_center_x)**2 + (sig_center_y - field_center_y)**2)
-                                
-                                signature_data['signature_field'] = {
-                                    'label': nearby_field['text'],
-                                    'distance': round(distance, 2)
-                                }
-                            
-                            # Add position information if available
-                            if img_bbox:
-                                signature_data['position'] = {
-                                    'x': img_bbox[0],
-                                    'y': img_bbox[1],
-                                    'width': img_bbox[2] - img_bbox[0],
-                                    'height': img_bbox[3] - img_bbox[1]
-                                }
                             
                             # Save image to disk if requested
                             if save_images and self.output_dir:
-                                signature_filename = f"signature_page_{page_num+1}_img{img_index}.png"
+                                signature_filename = f"signature_page_{page_num+1}_rendered.png"
                                 full_path = os.path.join(self.output_dir, signature_filename)
                                 cv2.imwrite(full_path, img_cv)
                                 signature_data['file_path'] = full_path
@@ -325,16 +292,13 @@ class PDFSignatureExtractor:
                                 signature_data['base64'] = self.image_to_base64(img_cv)
                             
                             signatures.append(signature_data)
-                            logger.info(f"Found signature on page {page_num+1}, image {img_index}")
+                            logger.info(f"Found rendered signature on page {page_num+1}")
                             
                     except Exception as e:
-                        logger.error(f"Error processing embedded image {img_index} on page {page_num+1}: {str(e)}")
+                        logger.error(f"Error processing rendered page {page_num+1}: {str(e)}")
                 
-                # If no embedded signatures found, try looking for signature regions based on fields
-                page_has_sigs = any(sig['page'] == page_num + 1 and sig['type'] == 'embedded' for sig in signatures)
-                
-                if not page_has_sigs and signature_fields:
-                    # Try to extract signatures near signature fields
+                # Additional feature: Try to extract signatures near signature fields
+                if signature_fields and not any(sig['page'] == page_num + 1 for sig in signatures):
                     for field_idx, field in enumerate(signature_fields):
                         try:
                             # Define search area around the signature field
@@ -385,42 +349,6 @@ class PDFSignatureExtractor:
                                 
                         except Exception as e:
                             logger.error(f"Error processing signature field region: {str(e)}")
-                
-                # Final fallback: render entire page if we have signature fields but no signatures
-                if not any(sig['page'] == page_num + 1 for sig in signatures) and signature_fields:
-                    try:
-                        pix = page.get_pixmap(dpi=150)
-                        img_bytes = pix.tobytes("png")
-                        nparr = np.frombuffer(img_bytes, np.uint8)
-                        img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                        
-                        if img_cv is not None and self.is_signature(img_cv):
-                            signature_data = {
-                                'page': page_num + 1,
-                                'type': 'rendered_page',
-                                'width': img_cv.shape[1],
-                                'height': img_cv.shape[0],
-                                'identifier': f"page_{page_num+1}_rendered",
-                                'signature_fields_on_page': len(signature_fields)
-                            }
-                            
-                            # Save image to disk if requested
-                            if save_images and self.output_dir:
-                                signature_filename = f"signature_page_{page_num+1}_rendered.png"
-                                full_path = os.path.join(self.output_dir, signature_filename)
-                                cv2.imwrite(full_path, img_cv)
-                                signature_data['file_path'] = full_path
-                                signature_data['filename'] = signature_filename
-                            
-                            # Include base64 if requested
-                            if include_base64:
-                                signature_data['base64'] = self.image_to_base64(img_cv)
-                            
-                            signatures.append(signature_data)
-                            logger.info(f"Found rendered signature on page {page_num+1}")
-                            
-                    except Exception as e:
-                        logger.error(f"Error processing rendered page {page_num+1}: {str(e)}")
             
             doc.close()
             logger.info(f"Extraction complete. Found {len(signatures)} signatures")
