@@ -640,13 +640,14 @@ class CustomerAgreementController extends Controller
             if ($fileContent === false) {
                 throw new Exception('Failed to download PDF file');
             }
-            if (!is_file($fileContent)) {
-                throw new Exception('File not found');
-            }
+            
             // Create a temporary file
             $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
             file_put_contents($tempFilePath, $fileContent);
             // dd($tempFilePath);
+            if (!is_file($tempFilePath)) {
+                throw new Exception('File not found');
+            }
             try {
                 // Use extractSignatures() instead of extractSignaturesFromUpload()
                 $result = $this->pdfSignatureService->extractSignaturesFromUpload($tempFilePath, [
