@@ -97,6 +97,7 @@ class PDFSignatureService
      */
     public function extractSignaturesFromUpload($file, $options = [])
     {
+        dd($file);
         // Validate file
         if (!$file->isValid()) {
             throw new Exception("Invalid file upload");
