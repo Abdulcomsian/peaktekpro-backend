@@ -624,7 +624,7 @@ class CustomerAgreementController extends Controller
 
             //Get Agreement
             $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
-        //  dd($agreement->sign_pdf_url);   
+         dd(public_path($agreement->sign_pdf_url));   
         $file = file_get_contents($agreement->sign_pdf_url);
 dd($file);
  $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
