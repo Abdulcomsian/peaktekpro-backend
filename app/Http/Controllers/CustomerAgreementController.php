@@ -824,6 +824,7 @@ class CustomerAgreementController extends Controller
     public function storeCustomerAgreementContent($companyId, Request $request) //it is company id
     {
         $request->validate([
+            'title' => 'nullable|string',
             'content'=> 'nullable|string',
             'file_path' => 'nullable|file'
         ]);
@@ -857,6 +858,7 @@ class CustomerAgreementController extends Controller
                 'company_id' => $companyId,
             ],[
                 'company_id' => $companyId,
+                'title' => $request->title,
                 'content' => $request->content,
                 'file_path' => $request->hasFile('file_path') ?  'CompanyCustomerAgreements/'. $fileFinalName : null
             ]);
@@ -867,6 +869,7 @@ class CustomerAgreementController extends Controller
                 'data' => [
                     'id' => $agreement->id,
                     'company_id' => $agreement->company_id,
+                    'title' => $agreement->title,
                     'file_path' =>  $request->hasFile('file_path') ? asset('storage/' .$agreement->file_path ) : null,
                     'created_at' => $agreement->created_at,
                     'updated_at' => $agreement->updated_at
@@ -905,6 +908,7 @@ class CustomerAgreementController extends Controller
                     'data' => [
                     'id' => $agreement->id,
                     'company_id' => $agreement->company_id,
+                    'title' => $agreement->title,
                     'file_path' => $agreement->file_path ? asset('storage/' .$agreement->file_path ) : null,
                   
                     'created_at' => $agreement->created_at,
