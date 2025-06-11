@@ -634,14 +634,14 @@ class CustomerAgreementController extends Controller
 
             //Get Agreement
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
-    
+            $filepath = public_path('storage/' . $agreement->sign_pdf_url);
             // Download the file content
             // $fileContent = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
             // Create Symfony UploadedFile instance
             $symfonyFile = new SymfonyUploadedFile(
-                'https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url,
-                basename('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url),
-                mime_content_type('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url),
+                $filepath,
+                basename($filepath),
+                mime_content_type($filepath),
                 null,
                 true // set to true for 'test' mode to avoid file upload validation
             );
