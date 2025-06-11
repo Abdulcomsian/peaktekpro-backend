@@ -15,7 +15,7 @@ class PDFSignatureService
     public function __construct()
     {
         // Configure these paths according to your setup
-        $this->pythonScriptPath = base_path('scripts/pdf_signature_extractor.py');
+        $this->pythonScriptPath = base_path('scripts/app.py');
         $this->pythonExecutable = 'python3'; // or 'python' depending on your system
         $this->outputDirectory = storage_path('app/signatures');
         
