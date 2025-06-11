@@ -644,7 +644,7 @@ class CustomerAgreementController extends Controller
             // Create a temporary file
             $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
             file_put_contents($tempFilePath, $fileContent);
-            dd($tempFilePath);
+            // dd($tempFilePath);
             try {
                 // Use extractSignatures() instead of extractSignaturesFromUpload()
                 $result = $this->pdfSignatureService->extractSignatures($fileContent, [
