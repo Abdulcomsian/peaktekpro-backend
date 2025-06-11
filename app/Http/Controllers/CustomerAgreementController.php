@@ -25,10 +25,18 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CustomerAgreementResource;
+use App\Services\PDFSignatureService;
 use App\Http\Resources\SignCustomerAgreementResource; 
 
 class CustomerAgreementController extends Controller
 {
+    private $pdfSignatureService;
+
+    public function __construct(PDFSignatureService $pdfSignatureService)
+    {
+        $this->pdfSignatureService = $pdfSignatureService;
+    }
+    
     public function customerAgreement(Request $request, $id)
     {
         try {
