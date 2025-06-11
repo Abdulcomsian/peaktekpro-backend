@@ -27,12 +27,11 @@ class PDFSignatureController extends Controller
     {
         try {
             // Validate request
-            // $request->validate([
-            //     'pdf_file' => 'required|file|mimes:pdf|max:10240', // max 10MB
-            // ]);
+            $request->validate([
+                'pdf_file' => 'required|file|mimes:pdf|max:10240', // max 10MB
+            ]);
 
             $file = $request->file('pdf_file');
-            // $file = public_path('assets/test.pdf');
 
             // Extract signatures
             $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [

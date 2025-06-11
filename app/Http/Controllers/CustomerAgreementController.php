@@ -647,10 +647,10 @@ class CustomerAgreementController extends Controller
             // dd($tempFilePath);
             try {
                 // Use extractSignatures() instead of extractSignaturesFromUpload()
-                $result = $this->pdfSignatureService->extractSignatures($tempFilePath, [
-                    'include_base64' => true,
-                    'save_images' => true,
-                ]);
+                $result = $this->pdfSignatureService->extractSignaturesFromUpload($tempFilePath, [
+                'include_base64' => $request->get('include_base64', true),
+                'save_images' => $request->get('save_images', true),
+            ]);
                 
                 dd($result);
                 
