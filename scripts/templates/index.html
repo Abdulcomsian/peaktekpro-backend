@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Signature Extractor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Signature Extractor</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="pdf_file" accept=".pdf" required>
+            <button type="submit">Upload and Extract Signatures</button>
+        </form>
+        
+        {% if signatures %}
+        <div class="results">
+            <h2>Results</h2>
+            <p>Found signatures on the following pages:</p>
+            <ul>
+                {% for page_num, signature_path in signatures.items() %}
+                <li>
+                    Page {{ page_num }}: 
+                    <img src="{{ signature_path }}" alt="Signature from page {{ page_num }}">
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

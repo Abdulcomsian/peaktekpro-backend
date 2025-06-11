@@ -42,6 +42,7 @@ use App\Http\Controllers\ProjectDesignQuoteController;
 use App\Http\Controllers\InsuranceUnderReviewController;
 use App\Http\Controllers\ProjectDesignAuthorizationController;
 use App\Http\Controllers\RecentNoteController;
+use App\Http\Controllers\PDFSignatureController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,7 +76,17 @@ Route::get('get/sign/customer-agreement/{jobId}', [CustomerAgreementController::
 // Route::post('sign/customer-agreement/{id}', [CustomerAgreementController::class, 'signCustomerByEmail']);
 
 Route::post('saveFilled-pdf/{jobId}', [CustomerAgreementController::class, 'saveFilledPdf']);
-
+Route::prefix('pdf-signatures')->group(function () {
+        // Extract signatures from uploaded PDF file
+        Route::post('/extract', [PDFSignatureController::class, 'extractSignatures']);
+        
+        // Extract signatures from existing PDF file (by path)
+        Route::post('/extract-from-file', [PDFSignatureController::class, 'extractSignaturesFromFile']);
+        
+        // Get signature image
+        Route::get('/image/{filename}', [PDFSignatureController::class, 'getSignatureImage'])
+            ->where('filename', '.*');
+    });
 Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
 
     //Dashbaord Api's
@@ -479,4 +490,6 @@ Route::middleware(['auth:sanctum', 'token.expiration'])->group(function(){
     Route::get('get-contractor',[ContractorController::class,'getContractor']);
     Route::delete('delete-contractor/{id}',[ContractorController::class,'deleteContractor']);
 
+
+    
 });

@@ -624,8 +624,12 @@ class CustomerAgreementController extends Controller
 
             //Get Agreement
             $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
-
-            // dd($agreement);
+         dd($agreement);   
+ $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
+                'include_base64' => $request->get('include_base64', true),
+                'save_images' => $request->get('save_images', true),
+            ]);
+            dd($agreement);
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Found Successfully',
