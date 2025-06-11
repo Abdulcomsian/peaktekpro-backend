@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CustomerAgreementResource;
 use App\Services\PDFSignatureService;
 use App\Http\Resources\SignCustomerAgreementResource; 
+use Illuminate\Http\UploadedFile;
 
 class CustomerAgreementController extends Controller
 {
@@ -634,7 +635,15 @@ class CustomerAgreementController extends Controller
             $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
         //  dd(public_path($agreement->sign_pdf_url));   
         $file = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
- $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
+        $uploadedFile = new UploadedFile(
+    $file,
+    basename($file),
+    null,
+    null,
+    true // mark as test mode to skip file upload checks
+);
+
+ $result = $this->pdfSignatureService->extractSignaturesFromUpload($uploadedFile, [
                 // 'include_base64' => $request->get('include_base64', true),
                 // 'save_images' => $request->get('save_images', true),
             ]);
