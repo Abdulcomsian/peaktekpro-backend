@@ -624,12 +624,14 @@ class CustomerAgreementController extends Controller
 
             //Get Agreement
             $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
-         dd(public_path($agreement->sign_pdf_url));   
- $result = $this->pdfSignatureService->extractSignaturesFromUpload($agreement->sign_pdf_url, [
+        //  dd($agreement->sign_pdf_url);   
+        $file = file_get_contents($agreement->sign_pdf_url);
+
+ $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
                 'include_base64' => $request->get('include_base64', true),
                 'save_images' => $request->get('save_images', true),
             ]);
-            dd($agreement);
+            dd($result);
             return response()->json([
                 'status' => 200,
                 'message' => 'Agreement Found Successfully',
