@@ -52,7 +52,7 @@ class PDFSignatureService
 
         // Build command
         $command = $this->buildCommand($pdfPath, $options);
-
+return $command;
         Log::info("Executing PDF signature extraction", [
             'command' => $command,
             'pdf_path' => $pdfPath
