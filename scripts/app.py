@@ -237,7 +237,9 @@ def analyze_signature_areas(page):
     except Exception as e:
         logger.warning(f"Error analyzing signature areas: {str(e)}")
         return []
-    """Process PDF file and return signature detection results"""
+
+def process_pdf_file(pdf_path):
+    """Process PDF file and return accurate signature detection results"""
     signatures = {}
     
     try:
@@ -245,14 +247,27 @@ def analyze_signature_areas(page):
             raise FileNotFoundError(f"PDF file not found: {pdf_path}")
             
         doc = fitz.open(pdf_path)
+        total_signatures = 0
         
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
+            page_signatures = 0
             
-            # Get embedded images
+            # 1. Check for filled form fields (actual signature fields with content)
+            filled_fields = detect_filled_signature_fields(page)
+            for field_idx, field in enumerate(filled_fields):
+                signature_key = f"Page {page_num+1}-Field{field_idx}"
+                signatures[signature_key] = {
+                    'type': field['type'],
+                    'page': page_num + 1,
+                    'confidence': field['confidence'],
+                    'field_name': field.get('field_name', 'Unknown'),
+                    'content': field.get('value', 'Filled')
+                }
+                page_signatures += 1
+            
+            # 2. Check for embedded signature images (actual signature files)
             image_list = page.get_images(full=True)
-            
-            # Check embedded images
             for img_index, img in enumerate(image_list):
                 try:
                     xref = img[0]
@@ -262,40 +277,49 @@ def analyze_signature_areas(page):
                     img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                     
                     if img_cv is not None and is_signature(img_cv):
-                        signature_key = f"Page {page_num+1}-Img{img_index}"
+                        signature_key = f"Page {page_num+1}-Image{img_index}"
                         signatures[signature_key] = {
-                            'type': 'embedded_image',
+                            'type': 'embedded_signature_image',
                             'page': page_num + 1,
-                            'confidence': 'high'
+                            'confidence': 'very_high',
+                            'image_index': img_index
                         }
+                        page_signatures += 1
                 except Exception:
                     continue
             
-            # If no embedded images, check rendered page
-            if not image_list:
-                try:
-                    pix = page.get_pixmap(dpi=150)
-                    img_bytes = pix.tobytes("png")
-                    nparr = np.frombuffer(img_bytes, np.uint8)
-                    img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                    
-                    if img_cv is not None and is_signature(img_cv):
-                        signature_key = f"Page {page_num+1}"
-                        signatures[signature_key] = {
-                            'type': 'page_content',
-                            'page': page_num + 1,
-                            'confidence': 'medium'
-                        }
-                except Exception:
-                    continue
+            # 3. Only check for drawn signatures if no form fields or images found
+            if page_signatures == 0:
+                drawn_signatures = analyze_signature_areas(page)
+                for area_idx, area in enumerate(drawn_signatures):
+                    signature_key = f"Page {page_num+1}-Drawn{area_idx}"
+                    signatures[signature_key] = {
+                        'type': area['type'],
+                        'page': page_num + 1,
+                        'confidence': area['confidence'],
+                        'bbox': area['bbox'],
+                        'area': area['area']
+                    }
+                    page_signatures += 1
+            
+            total_signatures += page_signatures
         
         doc.close()
         
+        # Determine message based on findings
+        if total_signatures == 0:
+            message = "No signatures found - document appears to be unsigned"
+        elif total_signatures == 1:
+            message = "Found 1 signature - document is signed"
+        else:
+            message = f"Found {total_signatures} signatures - document is signed"
+        
         return {
             'success': True,
+            'count': total_signatures,
             'signatures': signatures,
-            'count': len(signatures),
-            'message': f'Found {len(signatures)} signature(s)' if signatures else 'No signatures found'
+            'message': message,
+            'analysis_method': 'comprehensive_detection'
         }
         
     except Exception as e:
@@ -303,7 +327,8 @@ def analyze_signature_areas(page):
             'success': False,
             'error': str(e),
             'signatures': {},
-            'count': 0
+            'count': 0,
+            'message': 'Error processing PDF'
         }
 
 # Command line processing function
@@ -312,6 +337,10 @@ def process_command_line():
     parser = argparse.ArgumentParser(description='PDF Signature Detection')
     parser.add_argument('--file', required=True, help='Path to PDF file')
     parser.add_argument('--output', help='Output JSON file path')
+    parser.add_argument('--output-dir', help='Output directory for signature images')
+    parser.add_argument('--no-base64', action='store_true', help='Do not include base64 images')
+    parser.add_argument('--no-save', action='store_true', help='Do not save signature images')
+    parser.add_argument('--quiet', action='store_true', help='Quiet mode')
     
     args = parser.parse_args()
     
@@ -408,8 +437,8 @@ def main():
             sys.exit(1)
     else:
         print("Usage:")
-        print("  Server mode: python pdf_signature_api.py --server")
-        print("  CLI mode: python pdf_signature_api.py --file <pdf_path> [--output <json_path>]")
+        print("  Server mode: python app.py --server")
+        print("  CLI mode: python app.py --file <pdf_path> [--output <json_path>]")
         sys.exit(1)
 
 if __name__ == '__main__':

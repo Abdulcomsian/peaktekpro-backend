@@ -15,7 +15,7 @@ class PDFSignatureService
     public function __construct()
     {
         // Configure these paths according to your setup
-        $this->pythonScriptPath = base_path('scripts/app.py');
+        $this->pythonScriptPath = base_path('scripts/pdf_signature_api.py');
         $this->pythonExecutable = '/var/www/html/backend/scripts/venv/bin/python'; // or 'python3' depending on your system
         $this->outputDirectory = storage_path('app/signatures');
         
@@ -225,11 +225,28 @@ class PDFSignatureService
      */
     private function buildCommand($pdfPath, $options)
     {
-        // Use the new Python script with --file argument
+        // Use the updated script with --file argument (compatible with both app.py and pdf_signature_api.py)
         $command = escapeshellcmd($this->pythonExecutable) . ' ' . escapeshellarg($this->pythonScriptPath);
         $command .= ' --file ' . escapeshellarg($pdfPath);
 
-        // The new script outputs JSON to stdout by default, no need for extra flags
+        // Add quiet flag if specified
+        if (isset($options['quiet']) && $options['quiet']) {
+            $command .= ' --quiet';
+        }
+
+        // Add output directory if specified
+        if (!empty($options['output_dir'])) {
+            $command .= ' --output-dir ' . escapeshellarg($options['output_dir']);
+        }
+
+        // Add other flags based on options
+        if (isset($options['save_images']) && !$options['save_images']) {
+            $command .= ' --no-save';
+        }
+
+        if (isset($options['include_base64']) && !$options['include_base64']) {
+            $command .= ' --no-base64';
+        }
         
         return $command;
     }
