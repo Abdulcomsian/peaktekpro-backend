@@ -26,9 +26,9 @@ class PDFSignatureExtractor:
         if self.output_dir:
             os.makedirs(self.output_dir, exist_ok=True)
     
-    def is_signature(self, image):
+    def has_actual_content(self, image):
         """
-        More strict signature detection to avoid false positives
+        Check if image has actual handwritten content (not just form elements)
         """
         try:
             # Convert to grayscale
@@ -47,24 +47,24 @@ class PDFSignatureExtractor:
             contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             if not contours:
                 return False
-                
-            # Get largest contour
-            largest_contour = max(contours, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(largest_contour)
-            aspect_ratio = w / h
             
-            # Much more strict heuristics to avoid false positives
-            logger.debug(f"Signature detection - Coverage: {coverage:.4f}, Aspect Ratio: {aspect_ratio:.2f}")
+            # Check for complex shapes (signatures have varied contours)
+            complex_contours = 0
+            for contour in contours:
+                if cv2.contourArea(contour) > 50:  # Minimum area
+                    # Check contour complexity
+                    epsilon = 0.02 * cv2.arcLength(contour, True)
+                    approx = cv2.approxPolyDP(contour, epsilon, True)
+                    if len(approx) > 4:  # More complex than a simple rectangle
+                        complex_contours += 1
             
-            # More restrictive coverage range and aspect ratio
-            is_valid_coverage = 0.005 < coverage < 0.3  # Tighter range
-            is_valid_aspect = 0.5 < aspect_ratio < 6     # Tighter range
-            is_reasonable_size = w > 20 and h > 10       # Minimum size requirements
+            logger.debug(f"Content analysis - Coverage: {coverage:.4f}, Complex contours: {complex_contours}")
             
-            return is_valid_coverage and is_valid_aspect and is_reasonable_size
+            # Must have reasonable coverage AND complex shapes (indicating handwriting)
+            return (0.01 < coverage < 0.4) and complex_contours >= 2
             
         except Exception as e:
-            logger.error(f"Error in signature detection: {str(e)}")
+            logger.error(f"Error in content analysis: {str(e)}")
             return False
 
     def find_signature_fields(self, page):
@@ -90,26 +90,26 @@ class PDFSignatureExtractor:
                                     "width": bbox[2] - bbox[0],
                                     "height": bbox[3] - bbox[1]
                                 })
-                                logger.debug(f"Found signature field: {span['text'].strip()}")
+                                logger.info(f"Found signature field: {span['text'].strip()}")
         except Exception as e:
             logger.error(f"Error finding signature fields: {str(e)}")
         
         return signature_fields
 
-    def crop_signature_region(self, page, field_bbox, padding=50):
+    def crop_signature_region(self, page, field_bbox, padding=30):
         """Crop a region below/next to the signature field label"""
         try:
-            # Define search area below the signature field label
-            x0 = max(0, field_bbox[0] - padding)
-            y0 = field_bbox[3]  # Start below the label
-            x1 = field_bbox[2] + padding * 2
-            y1 = field_bbox[3] + padding * 2  # Look below the label
+            # Define search area below and to the right of the signature field label
+            x0 = field_bbox[0]  # Start at the field position
+            y0 = field_bbox[3] + 5  # Start just below the label
+            x1 = field_bbox[2] + 150  # Extend to the right
+            y1 = field_bbox[3] + 60   # Look in a reasonable area below
             
             # Create a rectangle for cropping
             rect = fitz.Rect(x0, y0, x1, y1)
             
             # Render just this region at higher resolution
-            pix = page.get_pixmap(matrix=fitz.Matrix(3, 3), clip=rect)
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=rect)
             img_bytes = pix.tobytes("png")
             nparr = np.frombuffer(img_bytes, np.uint8)
             img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -131,7 +131,7 @@ class PDFSignatureExtractor:
 
     def extract_signatures(self, pdf_path, include_base64=True, save_images=True):
         """
-        Extract signatures from PDF by looking specifically near signature field labels
+        Extract signatures from PDF by looking ONLY near signature field labels
         """
         signatures = []
         
@@ -153,13 +153,13 @@ class PDFSignatureExtractor:
                     logger.info(f"No signature fields found on page {page_num+1}, skipping")
                     continue
                 
-                # Look for signatures only near the signature field labels
+                # Look for signatures ONLY near the signature field labels
                 for field_idx, field in enumerate(signature_fields):
                     try:
                         # Crop the region near this signature field
                         cropped_img = self.crop_signature_region(page, field["bbox"])
                         
-                        if cropped_img is not None and self.is_signature(cropped_img):
+                        if cropped_img is not None and self.has_actual_content(cropped_img):
                             signature_data = {
                                 'page': page_num + 1,
                                 'type': 'field_signature',
@@ -167,7 +167,7 @@ class PDFSignatureExtractor:
                                 'identifier': f"page_{page_num+1}_field_{field_idx}",
                                 'width': cropped_img.shape[1],
                                 'height': cropped_img.shape[0],
-                                'confidence': 0.9  # High confidence since we found it near a field
+                                'confidence': 0.9
                             }
                             
                             # Save image to disk if requested
@@ -185,13 +185,13 @@ class PDFSignatureExtractor:
                             signatures.append(signature_data)
                             logger.info(f"Found signature for field '{field['text']}' on page {page_num+1}")
                         else:
-                            logger.debug(f"No signature found for field '{field['text']}' on page {page_num+1}")
+                            logger.info(f"No actual signature content found for field '{field['text']}' on page {page_num+1}")
                             
                     except Exception as e:
                         logger.error(f"Error processing signature field '{field['text']}': {str(e)}")
             
             doc.close()
-            logger.info(f"Extraction complete. Found {len(signatures)} signatures")
+            logger.info(f"Extraction complete. Found {len(signatures)} actual signatures")
             
         except Exception as e:
             logger.error(f"Error processing PDF: {str(e)}", exc_info=True)
@@ -205,7 +205,7 @@ class PDFSignatureExtractor:
         }
 
 def main():
-    parser = argparse.ArgumentParser(description='Extract signatures from PDF files near signature field labels')
+    parser = argparse.ArgumentParser(description='Extract actual signatures from PDF files near signature field labels')
     parser.add_argument('pdf_path', help='Path to the PDF file')
     parser.add_argument('--output-dir', '-o', help='Directory to save signature images')
     parser.add_argument('--no-base64', action='store_true', help='Don\'t include base64 encoded images')
