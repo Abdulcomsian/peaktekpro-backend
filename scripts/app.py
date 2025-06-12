@@ -68,26 +68,42 @@ def detect_form_signatures(page):
             if widget.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE:
                 # This is a dedicated signature field
                 is_signed = False
-                signature_data = None
                 
-                # Check if the signature field contains data
-                if widget.field_value:
+                # Multiple methods to check if signature field is filled
+                # Method 1: Check field value
+                if widget.field_value and str(widget.field_value).strip():
                     is_signed = True
-                    signature_data = widget.field_value
                 
-                # Also check for appearance stream (visual representation)
-                if hasattr(widget, '_annot') and widget._annot:
-                    ap = widget._annot.get_ap()
-                    if ap:
-                        is_signed = True
+                # Method 2: Check for appearance stream (visual representation)
+                try:
+                    if hasattr(widget, '_annot') and widget._annot:
+                        ap = widget._annot.get_ap()
+                        if ap:
+                            is_signed = True
+                except:
+                    pass
+                
+                # Method 3: Check if field has any content streams
+                try:
+                    # Get the PDF object for this widget
+                    xref = widget.xref
+                    if xref > 0:
+                        # Check if there's content associated with this field
+                        obj = page.parent.xref_object(xref)
+                        if obj and '/V' in obj:  # /V indicates a value
+                            v_value = obj.get('/V')
+                            if v_value and str(v_value).strip():
+                                is_signed = True
+                except:
+                    pass
                 
                 signatures.append({
                     'type': 'signature_field',
                     'field_name': widget_info['field_name'],
                     'is_signed': is_signed,
-                    'has_appearance': ap is not None if hasattr(widget, '_annot') and widget._annot else False,
                     'bbox': widget_info['rect'],
-                    'confidence': 'high' if is_signed else 'field_empty'
+                    'confidence': 'high' if is_signed else 'field_empty',
+                    'field_value': widget_info['field_value']
                 })
             
             # Check text fields that might contain signatures
@@ -95,28 +111,63 @@ def detect_form_signatures(page):
                 field_name_lower = widget_info['field_name'].lower()
                 field_value = widget_info['field_value'].strip()
                 
-                # Look for signature-related field names
-                signature_keywords = ['signature', 'sign', 'signed', 'authorized', 'approval', 
-                                    'endorsed', 'witness', 'notary', 'initial']
+                # Look for signature-related field names - be more specific
+                signature_keywords = ['signature', 'customer signature', 'company representative signature',
+                                    'signed', 'authorized', 'approval', 'endorsed', 'witness', 'notary']
                 
-                if any(keyword in field_name_lower for keyword in signature_keywords):
+                # Also check for "printed name" fields which often accompany signatures
+                printed_name_keywords = ['printed name', 'print name', 'name print']
+                
+                is_signature_related = any(keyword in field_name_lower for keyword in signature_keywords)
+                is_printed_name = any(keyword in field_name_lower for keyword in printed_name_keywords)
+                
+                if is_signature_related or is_printed_name:
                     # Check if field has actual content
                     if field_value and len(field_value) > 1:
-                        # Analyze the content
-                        is_likely_signature = False
+                        # Analyze the content more carefully
+                        is_likely_filled = False
                         
-                        # Check if it's not just placeholder text
+                        # Check if it's not just placeholder text or underscores
                         placeholder_indicators = ['type here', 'sign here', 'your signature', 
-                                                'your name', 'n/a', 'na', '--', '___']
+                                                'your name', 'n/a', 'na', '___', '...', 
+                                                'customer signature:', 'printed name:', 'date signed:']
                         
-                        if not any(indicator in field_value.lower() for indicator in placeholder_indicators):
-                            # Check for name-like patterns (signatures often contain names)
-                            if len(field_value.split()) <= 4:  # Most signatures are 1-4 words
-                                is_likely_signature = True
+                        # Clean the value for comparison
+                        clean_value = field_value.replace('_', '').replace('.', '').strip()
                         
-                        if is_likely_signature:
+                        if clean_value and not any(indicator in field_value.lower() for indicator in placeholder_indicators):
+                            # Additional check: field should not be just the field label
+                            if field_value.lower() != field_name_lower.replace('_', ' '):
+                                is_likely_filled = True
+                        
+                        if is_likely_filled:
+                            field_type = 'printed_name_field' if is_printed_name else 'text_signature_field'
+                            signatures.append({
+                                'type': field_type,
+                                'field_name': widget_info['field_name'],
+                                'value': field_value,
+                                'bbox': widget_info['rect'],
+                                'confidence': 'high' if is_signature_related else 'medium'
+                            })
+                    else:
+                        # Empty signature-related field
+                        if is_signature_related:
                             signatures.append({
                                 'type': 'text_signature_field',
+                                'field_name': widget_info['field_name'],
+                                'value': '',
+                                'bbox': widget_info['rect'],
+                                'confidence': 'field_empty',
+                                'is_signed': False
+                            })
+                
+                # Check for date fields associated with signatures
+                elif 'date' in field_name_lower and 'sign' in field_name_lower:
+                    if field_value and len(field_value) > 1:
+                        # Check if it's a real date, not placeholder
+                        if not all(c in '_/- ' for c in field_value):
+                            signatures.append({
+                                'type': 'signature_date_field',
                                 'field_name': widget_info['field_name'],
                                 'value': field_value,
                                 'bbox': widget_info['rect'],
@@ -127,7 +178,8 @@ def detect_form_signatures(page):
             elif widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
                 field_name_lower = widget_info['field_name'].lower()
                 if any(keyword in field_name_lower for keyword in ['signed', 'agree', 'acknowledge']):
-                    if widget.field_value and widget.field_value.lower() in ['on', 'yes', 'true', '1']:
+                    is_checked = widget.field_value and str(widget.field_value).lower() in ['on', 'yes', 'true', '1', 'checked']
+                    if is_checked:
                         signatures.append({
                             'type': 'signature_checkbox',
                             'field_name': widget_info['field_name'],
