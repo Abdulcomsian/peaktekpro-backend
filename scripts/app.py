@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 import os
 import sys
@@ -25,7 +24,7 @@ class PreciseSignatureExtractor:
             os.makedirs(self.output_dir, exist_ok=True)
     
     def is_signature(self, image):
-        """More robust signature detection using multiple features (from Flask app)"""
+        """More robust signature detection using multiple features (exact Flask app algorithm)"""
         try:
             # Convert to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -42,23 +41,20 @@ class PreciseSignatureExtractor:
             # Find contours
             contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             if not contours:
-                return False, 0
+                return False
                 
             # Get largest contour
             largest_contour = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(largest_contour)
             aspect_ratio = w / h if h > 0 else 0
             
-            # More lenient signature heuristics
+            # More lenient signature heuristics (exact Flask logic)
             logger.debug(f"Signature detection - Coverage: {coverage:.4f}, Aspect Ratio: {aspect_ratio:.2f}")
-            is_sig = (0.001 < coverage < 0.5) and (0.3 < aspect_ratio < 8)
-            confidence = coverage * 2 if is_sig else 0  # Simple confidence calculation
-            
-            return is_sig, confidence
+            return (0.001 < coverage < 0.5) and (0.3 < aspect_ratio < 8)
             
         except Exception as e:
             logger.error(f"Error in signature detection: {str(e)}")
-            return False, 0
+            return False
 
     def image_to_base64(self, image):
         """Convert OpenCV image to base64 string"""
@@ -72,7 +68,7 @@ class PreciseSignatureExtractor:
 
     def extract_signatures(self, pdf_path, include_base64=True, save_images=True):
         """
-        Extract signatures using the Flask app algorithm
+        Extract signatures using the exact Flask app algorithm
         """
         signatures = []
         
@@ -90,6 +86,8 @@ class PreciseSignatureExtractor:
                 image_list = page.get_images(full=True)
                 logger.debug(f"Page {page_num+1} has {len(image_list)} images")
                 
+                page_signatures_found = False
+                
                 # First try extracting embedded images
                 if image_list:
                     for img_index, img in enumerate(image_list):
@@ -100,60 +98,19 @@ class PreciseSignatureExtractor:
                             nparr = np.frombuffer(image_bytes, np.uint8)
                             img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                             
-                            if img_cv is not None:
-                                is_sig, confidence = self.is_signature(img_cv)
-                                
-                                if is_sig:
-                                    signature_data = {
-                                        'page': page_num + 1,
-                                        'type': 'embedded',
-                                        'identifier': f"page_{page_num+1}_img_{img_index}",
-                                        'width': img_cv.shape[1],
-                                        'height': img_cv.shape[0],
-                                        'confidence': confidence
-                                    }
-                                    
-                                    # Save image to disk if requested
-                                    if save_images and self.output_dir:
-                                        signature_filename = f"signature_page_{page_num+1}_img{img_index}.png"
-                                        full_path = os.path.join(self.output_dir, signature_filename)
-                                        cv2.imwrite(full_path, img_cv)
-                                        signature_data['file_path'] = full_path
-                                        signature_data['filename'] = signature_filename
-                                    
-                                    # Include base64 if requested
-                                    if include_base64:
-                                        signature_data['imageData'] = f"data:image/png;base64,{self.image_to_base64(img_cv)}"
-                                    
-                                    signatures.append(signature_data)
-                                    logger.info(f"Found embedded signature on page {page_num+1}, image {img_index}")
-                        except Exception as e:
-                            logger.error(f"Error processing embedded image {img_index} on page {page_num+1}: {str(e)}")
-                
-                # If no embedded images found or no signatures in embedded images, try rendering the page
-                if not image_list or len([s for s in signatures if s['page'] == page_num + 1]) == 0:
-                    try:
-                        pix = page.get_pixmap(dpi=150)
-                        img_bytes = pix.tobytes("png")
-                        nparr = np.frombuffer(img_bytes, np.uint8)
-                        img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                        
-                        if img_cv is not None:
-                            is_sig, confidence = self.is_signature(img_cv)
-                            
-                            if is_sig:
+                            if img_cv is not None and self.is_signature(img_cv):
                                 signature_data = {
                                     'page': page_num + 1,
-                                    'type': 'rendered',
-                                    'identifier': f"page_{page_num+1}_rendered",
+                                    'type': 'embedded',
+                                    'identifier': f"page_{page_num+1}_img_{img_index}",
                                     'width': img_cv.shape[1],
                                     'height': img_cv.shape[0],
-                                    'confidence': confidence
+                                    'confidence': 0.8  # Fixed confidence for working signatures
                                 }
                                 
                                 # Save image to disk if requested
                                 if save_images and self.output_dir:
-                                    signature_filename = f"signature_page_{page_num+1}_rendered.png"
+                                    signature_filename = f"signature_page_{page_num+1}_img{img_index}.png"
                                     full_path = os.path.join(self.output_dir, signature_filename)
                                     cv2.imwrite(full_path, img_cv)
                                     signature_data['file_path'] = full_path
@@ -161,10 +118,50 @@ class PreciseSignatureExtractor:
                                 
                                 # Include base64 if requested
                                 if include_base64:
-                                    signature_data['imageData'] = f"data:image/png;base64,{self.image_to_base64(img_cv)}"
+                                    img_b64 = self.image_to_base64(img_cv)
+                                    if img_b64:
+                                        signature_data['imageData'] = f"data:image/png;base64,{img_b64}"
                                 
                                 signatures.append(signature_data)
-                                logger.info(f"Found rendered signature on page {page_num+1}")
+                                page_signatures_found = True
+                                logger.info(f"Found embedded signature on page {page_num+1}, image {img_index}")
+                        except Exception as e:
+                            logger.error(f"Error processing embedded image {img_index} on page {page_num+1}: {str(e)}")
+                
+                # If no embedded images found or no signatures in embedded images, try rendering the page
+                if not image_list or not page_signatures_found:
+                    try:
+                        pix = page.get_pixmap(dpi=150)
+                        img_bytes = pix.tobytes("png")
+                        nparr = np.frombuffer(img_bytes, np.uint8)
+                        img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                        
+                        if img_cv is not None and self.is_signature(img_cv):
+                            signature_data = {
+                                'page': page_num + 1,
+                                'type': 'rendered',
+                                'identifier': f"page_{page_num+1}_rendered",
+                                'width': img_cv.shape[1],
+                                'height': img_cv.shape[0],
+                                'confidence': 0.7  # Fixed confidence for working signatures
+                            }
+                            
+                            # Save image to disk if requested
+                            if save_images and self.output_dir:
+                                signature_filename = f"signature_page_{page_num+1}_rendered.png"
+                                full_path = os.path.join(self.output_dir, signature_filename)
+                                cv2.imwrite(full_path, img_cv)
+                                signature_data['file_path'] = full_path
+                                signature_data['filename'] = signature_filename
+                            
+                            # Include base64 if requested
+                            if include_base64:
+                                img_b64 = self.image_to_base64(img_cv)
+                                if img_b64:
+                                    signature_data['imageData'] = f"data:image/png;base64,{img_b64}"
+                            
+                            signatures.append(signature_data)
+                            logger.info(f"Found rendered signature on page {page_num+1}")
                     except Exception as e:
                         logger.error(f"Error processing rendered page {page_num+1}: {str(e)}")
             
@@ -220,4 +217,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-</lov-write>
