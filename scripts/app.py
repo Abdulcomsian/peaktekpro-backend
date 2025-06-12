@@ -1,11 +1,4 @@
-def analyze_image_details(image, image_index=0):
-    """Analyze image details for debugging"""
-    try:
-        if image is None:
-            return {"error": "Image is None"}
-            
-        h, w = image.shape[:2]
-        gray = cv2.cvtColor(image, cv#!/usr/bin/env python3
+#!/usr/bin/env python3
 import os
 import sys
 import logging
@@ -368,22 +361,77 @@ def analyze_image_details(image, image_index=0):
         coverage = ink_pixels / total_pixels if total_pixels > 0 else 0
         
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        significant_contours = [c for c in contours if cv2.contourArea(c) > 20]
+        significant_contours = [c for c in contours if cv2.contourArea(c) > 10]
         
         unique_colors = len(np.unique(gray))
-        edges = cv2.Canny(gray, 50, 150)
+        edges = cv2.Canny(gray, 30, 100)
         edge_density = np.count_nonzero(edges) / edges.size
+        
+        # Additional analysis
+        aspect_ratio = w / h if h > 0 else 0
+        
+        # Geometric shape analysis
+        geometric_shapes = 0
+        for contour in significant_contours:
+            epsilon = 0.02 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            if len(approx) <= 6:
+                geometric_shapes += 1
+        
+        geometric_ratio = geometric_shapes / len(significant_contours) if significant_contours else 0
+        
+        # Density variation
+        density_variation = 0
+        if w > 20 and h > 20:
+            mid_w, mid_h = w // 2, h // 2
+            quadrants = [
+                thresh[0:mid_h, 0:mid_w],
+                thresh[0:mid_h, mid_w:w],
+                thresh[mid_h:h, 0:mid_w],
+                thresh[mid_h:h, mid_w:w]
+            ]
+            
+            densities = []
+            for quad in quadrants:
+                if quad.size > 0:
+                    quad_density = np.count_nonzero(quad) / quad.size
+                    densities.append(quad_density)
+            
+            if len(densities) > 1:
+                density_variation = np.std(densities)
+        
+        # Determine why it might be rejected
+        rejection_reasons = []
+        if w < 30 or h < 15 or w > 600 or h > 300:
+            rejection_reasons.append("size_out_of_range")
+        if background_color < 200:
+            rejection_reasons.append("background_too_dark")
+        if coverage < 0.005 or coverage > 0.5:
+            rejection_reasons.append("ink_coverage_out_of_range")
+        if aspect_ratio < 0.3 or aspect_ratio > 12:
+            rejection_reasons.append("aspect_ratio_out_of_range")
+        if geometric_ratio > 0.7 and len(significant_contours) > 2:
+            rejection_reasons.append("too_geometric")
+        if unique_colors < 5:
+            rejection_reasons.append("too_few_colors")
+        if edge_density < 0.02 or edge_density > 0.6:
+            rejection_reasons.append("edge_density_out_of_range")
+        if density_variation < 0.01:
+            rejection_reasons.append("too_uniform_density")
         
         return {
             "image_index": image_index,
             "dimensions": f"{w}x{h}",
-            "aspect_ratio": round(w/h, 2) if h > 0 else 0,
+            "aspect_ratio": round(aspect_ratio, 2),
             "background_color": int(background_color),
             "ink_coverage": round(coverage, 4),
             "num_contours": len(significant_contours),
             "unique_colors": unique_colors,
             "edge_density": round(edge_density, 4),
-            "likely_signature": is_signature(image)
+            "geometric_ratio": round(geometric_ratio, 2),
+            "density_variation": round(density_variation, 4),
+            "likely_signature": is_signature(image),
+            "rejection_reasons": rejection_reasons
         }
     except Exception as e:
         return {"error": str(e)}
@@ -481,7 +529,7 @@ def process_pdf_file(pdf_path, debug_mode=False):
             'count': total_signatures,
             'signatures': signatures,
             'message': message,
-            'analysis_method': 'strict_detection'
+            'analysis_method': 'balanced_detection'
         }
         
         if debug_mode:
@@ -498,7 +546,6 @@ def process_pdf_file(pdf_path, debug_mode=False):
             'message': 'Error processing PDF'
         }
 
-# Command line processing function
 def process_command_line():
     """Process PDF from command line arguments"""
     parser = argparse.ArgumentParser(description='PDF Signature Detection')
