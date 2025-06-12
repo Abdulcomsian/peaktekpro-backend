@@ -15,7 +15,7 @@ class PDFSignatureService
     public function __construct()
     {
         // Configure these paths according to your setup
-        $this->pythonScriptPath = base_path('scripts/pdf_signature_api.py');
+        $this->pythonScriptPath = base_path('scripts/app.py');
         $this->pythonExecutable = '/var/www/html/backend/scripts/venv/bin/python'; // or 'python3' depending on your system
         $this->outputDirectory = storage_path('app/signatures');
         
