@@ -30,134 +30,177 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'pdf'
 
 def is_signature(image):
-    """Detect if image contains an actual signature (balanced detection)"""
+    """Detect if image contains an actual handwritten signature (very strict)"""
     try:
         if image is None or image.size == 0:
             return False
             
         h, w = image.shape[:2]
         
-        # Basic size filtering - signatures can vary in size but shouldn't be tiny or huge
-        if w < 30 or h < 15 or w > 600 or h > 300:
+        # Signatures must be reasonable size
+        if w < 50 or h < 25 or w > 400 or h > 150:
             return False
             
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        # Calculate background color (most common color)
+        # Calculate background color distribution
         hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
-        background_color = np.argmax(hist)
         
-        # More lenient background check - many signature backgrounds are off-white
-        if background_color < 200:
+        # Check if background is predominantly white/light
+        light_pixels = np.sum(hist[230:256])  # Very light pixels
+        total_pixels = gray.size
+        light_ratio = light_pixels / total_pixels
+        
+        # Signatures should have mostly white background
+        if light_ratio < 0.7:  # At least 70% light background
             return False
             
-        # Apply adaptive thresholding
-        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                    cv2.THRESH_BINARY_INV, 11, 2)
+        # Apply multiple thresholding methods to detect ink
+        thresh1 = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                       cv2.THRESH_BINARY_INV, 11, 2)
         
-        # Count non-zero pixels (ink)
-        ink_pixels = cv2.countNonZero(thresh)
-        total_pixels = thresh.size
-        coverage = ink_pixels / total_pixels if total_pixels > 0 else 0
+        # Also try simple threshold for very dark ink
+        _, thresh2 = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
         
-        # Broader coverage range for signatures
-        if coverage < 0.005 or coverage > 0.5:
+        # Combine both methods
+        combined_thresh = cv2.bitwise_or(thresh1, thresh2)
+        
+        # Count ink pixels
+        ink_pixels = cv2.countNonZero(combined_thresh)
+        coverage = ink_pixels / total_pixels
+        
+        # Handwritten signatures have specific ink coverage
+        if coverage < 0.008 or coverage > 0.3:  # Very specific range
             return False
             
-        # Find contours
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Find contours (strokes)
+        contours, _ = cv2.findContours(combined_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not contours:
             return False
             
-        # Filter significant contours
-        significant_contours = [c for c in contours if cv2.contourArea(c) > 10]
-        if not significant_contours:
+        # Filter meaningful contours
+        significant_contours = [c for c in contours if cv2.contourArea(c) > 20]
+        if len(significant_contours) < 2:  # Signatures need multiple strokes
             return False
             
-        # Get aspect ratio
-        largest_contour = max(significant_contours, key=cv2.contourArea)
-        x, y, w_cont, h_cont = cv2.boundingRect(largest_contour)
-        aspect_ratio = w_cont / h_cont if h_cont > 0 else 0
-        
-        # More lenient aspect ratio for signatures
-        if aspect_ratio < 0.3 or aspect_ratio > 12:
-            return False
-            
-        # Check for obvious geometric shapes (logos)
-        geometric_shapes = 0
+        # Check for geometric/logo patterns
+        geometric_count = 0
         for contour in significant_contours:
+            # Approximate contour to polygon
             epsilon = 0.02 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)
             
-            # Count obvious geometric shapes
-            if len(approx) <= 6:  # Simple polygons
-                geometric_shapes += 1
+            # Count geometric shapes (rectangles, triangles, etc.)
+            if len(approx) <= 8:  # Too geometric
+                geometric_count += 1
+        
+        geometric_ratio = geometric_count / len(significant_contours)
+        if geometric_ratio > 0.5:  # Too many geometric shapes
+            return False
+            
+        # Analyze stroke characteristics for handwriting
+        stroke_complexity = []
+        for contour in significant_contours:
+            if cv2.contourArea(contour) > 30:
+                # Calculate complexity metrics
+                perimeter = cv2.arcLength(contour, True)
+                area = cv2.contourArea(contour)
                 
-        # If too many geometric shapes, likely a logo
-        if len(significant_contours) > 0:
-            geometric_ratio = geometric_shapes / len(significant_contours)
-            if geometric_ratio > 0.7 and len(significant_contours) > 2:
+                if area > 0:
+                    # Compactness - handwriting is less compact than printed shapes
+                    compactness = (perimeter * perimeter) / (4 * np.pi * area)
+                    stroke_complexity.append(compactness)
+        
+        if stroke_complexity:
+            avg_complexity = np.mean(stroke_complexity)
+            # Handwritten strokes are more complex (irregular)
+            if avg_complexity < 2.0:  # Too simple/geometric
                 return False
         
-        # Check for text-like patterns (uniform spacing/height)
-        if len(significant_contours) > 4:
+        # Check for text-like patterns
+        if len(significant_contours) > 3:
             bounding_rects = [cv2.boundingRect(c) for c in significant_contours]
+            
+            # Check height uniformity (text has uniform height)
             heights = [rect[3] for rect in bounding_rects]
+            if len(heights) > 2:
+                height_variation = np.std(heights) / np.mean(heights) if np.mean(heights) > 0 else 0
+                if height_variation < 0.25:  # Too uniform = text
+                    return False
             
-            if len(heights) > 1:
-                height_std = np.std(heights)
-                height_mean = np.mean(heights)
-                if height_mean > 0:
-                    height_variation = height_std / height_mean
-                    # Very uniform heights suggest text
-                    if height_variation < 0.15 and len(heights) > 6:
-                        return False
+            # Check horizontal alignment (text is horizontally aligned)
+            y_positions = [rect[1] for rect in bounding_rects]
+            if len(y_positions) > 2:
+                y_variation = np.std(y_positions)
+                if y_variation < 5:  # Too aligned = text
+                    return False
         
-        # Additional quality checks
+        # Advanced signature characteristics
         
-        # 1. Edge complexity check
-        edges = cv2.Canny(gray, 30, 100)
-        edge_density = np.count_nonzero(edges) / edges.size
-        
-        # Signatures should have reasonable edge complexity
-        if edge_density < 0.02 or edge_density > 0.6:
-            return False
-            
-        # 2. Color variety check (more lenient)
-        unique_colors = len(np.unique(gray))
-        if unique_colors < 5:  # Too few colors suggests simple graphic
-            return False
-            
-        # 3. Check stroke characteristics
-        total_area = sum(cv2.contourArea(c) for c in significant_contours)
-        if total_area < 50:  # Too small overall area
-            return False
-            
-        # 4. Density distribution check
-        # Signatures usually have varied density across the image
-        if w > 20 and h > 20:
-            # Divide image into quadrants and check density variation
-            mid_w, mid_h = w // 2, h // 2
-            quadrants = [
-                thresh[0:mid_h, 0:mid_w],
-                thresh[0:mid_h, mid_w:w],
-                thresh[mid_h:h, 0:mid_w],
-                thresh[mid_h:h, mid_w:w]
+        # 1. Density variation across image (signatures have varied density)
+        if w > 30 and h > 20:
+            # Check density in different regions
+            regions = [
+                combined_thresh[0:h//2, 0:w//2],           # Top-left
+                combined_thresh[0:h//2, w//2:w],           # Top-right
+                combined_thresh[h//2:h, 0:w//2],           # Bottom-left
+                combined_thresh[h//2:h, w//2:w]            # Bottom-right
             ]
             
             densities = []
-            for quad in quadrants:
-                if quad.size > 0:
-                    quad_density = np.count_nonzero(quad) / quad.size
-                    densities.append(quad_density)
+            for region in regions:
+                if region.size > 0:
+                    region_density = np.count_nonzero(region) / region.size
+                    densities.append(region_density)
             
-            # Signatures usually have varied density across quadrants
             if len(densities) > 1:
                 density_std = np.std(densities)
-                # Too uniform density suggests geometric shapes/logos
-                if density_std < 0.01:
+                # Signatures should have some density variation
+                if density_std < 0.005:  # Too uniform
                     return False
+        
+        # 2. Edge complexity (signatures have complex edges)
+        edges = cv2.Canny(gray, 50, 150)
+        edge_density = np.count_nonzero(edges) / edges.size
+        
+        if edge_density < 0.03 or edge_density > 0.5:  # Wrong edge complexity
+            return False
+        
+        # 3. Aspect ratio check (signatures are usually wider than tall)
+        overall_aspect = w / h
+        if overall_aspect < 1.2 or overall_aspect > 8:  # Signatures are typically wide
+            return False
+        
+        # 4. Check for template/form elements by analyzing regularity
+        # Templates often have very regular spacing and shapes
+        if len(significant_contours) > 5:
+            areas = [cv2.contourArea(c) for c in significant_contours]
+            if len(areas) > 2:
+                area_variation = np.std(areas) / np.mean(areas) if np.mean(areas) > 0 else 0
+                if area_variation < 0.3:  # Too uniform = template
+                    return False
+        
+        # 5. Final handwriting verification
+        # Check for curved strokes (handwriting has curves)
+        curved_strokes = 0
+        for contour in significant_contours:
+            if len(contour) > 10:  # Enough points to analyze
+                # Check curvature by comparing contour to its convex hull
+                hull = cv2.convexHull(contour)
+                hull_area = cv2.contourArea(hull)
+                contour_area = cv2.contourArea(contour)
+                
+                if hull_area > 0:
+                    solidity = contour_area / hull_area
+                    if solidity < 0.8:  # More irregular = more likely handwritten
+                        curved_strokes += 1
+        
+        # Require some curved/irregular strokes
+        if len(significant_contours) > 0:
+            curved_ratio = curved_strokes / len(significant_contours)
+            if curved_ratio < 0.3:  # Not enough irregular strokes
+                return False
         
         return True
         
@@ -342,7 +385,7 @@ def analyze_signature_areas(page):
         return []
 
 def analyze_image_details(image, image_index=0):
-    """Analyze image details for debugging"""
+    """Analyze image details for debugging with detailed rejection reasons"""
     try:
         if image is None:
             return {"error": "Image is None"}
@@ -352,86 +395,142 @@ def analyze_image_details(image, image_index=0):
         
         # Basic metrics
         hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
-        background_color = np.argmax(hist)
+        light_pixels = np.sum(hist[230:256])
+        light_ratio = light_pixels / gray.size
         
-        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                    cv2.THRESH_BINARY_INV, 11, 2)
-        ink_pixels = cv2.countNonZero(thresh)
-        total_pixels = thresh.size
-        coverage = ink_pixels / total_pixels if total_pixels > 0 else 0
+        # Thresholding
+        thresh1 = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                       cv2.THRESH_BINARY_INV, 11, 2)
+        _, thresh2 = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
+        combined_thresh = cv2.bitwise_or(thresh1, thresh2)
         
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        significant_contours = [c for c in contours if cv2.contourArea(c) > 10]
+        ink_pixels = cv2.countNonZero(combined_thresh)
+        coverage = ink_pixels / gray.size
         
-        unique_colors = len(np.unique(gray))
-        edges = cv2.Canny(gray, 30, 100)
-        edge_density = np.count_nonzero(edges) / edges.size
+        # Contour analysis
+        contours, _ = cv2.findContours(combined_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        significant_contours = [c for c in contours if cv2.contourArea(c) > 20]
         
-        # Additional analysis
-        aspect_ratio = w / h if h > 0 else 0
-        
-        # Geometric shape analysis
-        geometric_shapes = 0
+        # Geometric analysis
+        geometric_count = 0
         for contour in significant_contours:
             epsilon = 0.02 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)
-            if len(approx) <= 6:
-                geometric_shapes += 1
+            if len(approx) <= 8:
+                geometric_count += 1
         
-        geometric_ratio = geometric_shapes / len(significant_contours) if significant_contours else 0
+        geometric_ratio = geometric_count / len(significant_contours) if significant_contours else 0
         
-        # Density variation
-        density_variation = 0
-        if w > 20 and h > 20:
-            mid_w, mid_h = w // 2, h // 2
-            quadrants = [
-                thresh[0:mid_h, 0:mid_w],
-                thresh[0:mid_h, mid_w:w],
-                thresh[mid_h:h, 0:mid_w],
-                thresh[mid_h:h, mid_w:w]
-            ]
-            
-            densities = []
-            for quad in quadrants:
-                if quad.size > 0:
-                    quad_density = np.count_nonzero(quad) / quad.size
-                    densities.append(quad_density)
-            
-            if len(densities) > 1:
-                density_variation = np.std(densities)
+        # Stroke complexity
+        avg_complexity = 0
+        if significant_contours:
+            complexities = []
+            for contour in significant_contours:
+                if cv2.contourArea(contour) > 30:
+                    perimeter = cv2.arcLength(contour, True)
+                    area = cv2.contourArea(contour)
+                    if area > 0:
+                        compactness = (perimeter * perimeter) / (4 * np.pi * area)
+                        complexities.append(compactness)
+            avg_complexity = np.mean(complexities) if complexities else 0
         
-        # Determine why it might be rejected
+        # Edge analysis
+        edges = cv2.Canny(gray, 50, 150)
+        edge_density = np.count_nonzero(edges) / edges.size
+        
+        # Aspect ratio
+        aspect_ratio = w / h if h > 0 else 0
+        
+        # Curvature analysis
+        curved_strokes = 0
+        for contour in significant_contours:
+            if len(contour) > 10:
+                hull = cv2.convexHull(contour)
+                hull_area = cv2.contourArea(hull)
+                contour_area = cv2.contourArea(contour)
+                if hull_area > 0:
+                    solidity = contour_area / hull_area
+                    if solidity < 0.8:
+                        curved_strokes += 1
+        
+        curved_ratio = curved_strokes / len(significant_contours) if significant_contours else 0
+        
+        # Detailed rejection analysis
         rejection_reasons = []
-        if w < 30 or h < 15 or w > 600 or h > 300:
+        rejection_details = {}
+        
+        if w < 50 or h < 25 or w > 400 or h > 150:
             rejection_reasons.append("size_out_of_range")
-        if background_color < 200:
-            rejection_reasons.append("background_too_dark")
-        if coverage < 0.005 or coverage > 0.5:
+            rejection_details["size_check"] = f"Size {w}x{h} not in range 50-400 x 25-150"
+            
+        if light_ratio < 0.7:
+            rejection_reasons.append("background_not_light_enough")
+            rejection_details["light_ratio"] = f"Light background ratio {light_ratio:.3f} < 0.7"
+            
+        if coverage < 0.008 or coverage > 0.3:
             rejection_reasons.append("ink_coverage_out_of_range")
-        if aspect_ratio < 0.3 or aspect_ratio > 12:
-            rejection_reasons.append("aspect_ratio_out_of_range")
-        if geometric_ratio > 0.7 and len(significant_contours) > 2:
+            rejection_details["coverage"] = f"Ink coverage {coverage:.4f} not in range 0.008-0.3"
+            
+        if len(significant_contours) < 2:
+            rejection_reasons.append("too_few_strokes")
+            rejection_details["strokes"] = f"Only {len(significant_contours)} strokes, need 2+"
+            
+        if geometric_ratio > 0.5:
             rejection_reasons.append("too_geometric")
-        if unique_colors < 5:
-            rejection_reasons.append("too_few_colors")
-        if edge_density < 0.02 or edge_density > 0.6:
-            rejection_reasons.append("edge_density_out_of_range")
-        if density_variation < 0.01:
-            rejection_reasons.append("too_uniform_density")
+            rejection_details["geometric"] = f"Geometric ratio {geometric_ratio:.3f} > 0.5"
+            
+        if avg_complexity < 2.0 and avg_complexity > 0:
+            rejection_reasons.append("strokes_too_simple")
+            rejection_details["complexity"] = f"Average stroke complexity {avg_complexity:.2f} < 2.0"
+            
+        if edge_density < 0.03 or edge_density > 0.5:
+            rejection_reasons.append("edge_density_wrong")
+            rejection_details["edge_density"] = f"Edge density {edge_density:.4f} not in range 0.03-0.5"
+            
+        if aspect_ratio < 1.2 or aspect_ratio > 8:
+            rejection_reasons.append("aspect_ratio_wrong")
+            rejection_details["aspect_ratio"] = f"Aspect ratio {aspect_ratio:.2f} not in range 1.2-8"
+            
+        if curved_ratio < 0.3:
+            rejection_reasons.append("not_enough_curved_strokes")
+            rejection_details["curved_ratio"] = f"Curved stroke ratio {curved_ratio:.3f} < 0.3"
+        
+        # Check for text patterns
+        text_like = False
+        if len(significant_contours) > 3:
+            bounding_rects = [cv2.boundingRect(c) for c in significant_contours]
+            heights = [rect[3] for rect in bounding_rects]
+            y_positions = [rect[1] for rect in bounding_rects]
+            
+            if len(heights) > 2:
+                height_variation = np.std(heights) / np.mean(heights) if np.mean(heights) > 0 else 0
+                if height_variation < 0.25:
+                    text_like = True
+                    rejection_reasons.append("text_like_uniform_height")
+                    rejection_details["height_variation"] = f"Height variation {height_variation:.3f} < 0.25"
+                    
+            if len(y_positions) > 2:
+                y_variation = np.std(y_positions)
+                if y_variation < 5:
+                    text_like = True
+                    rejection_reasons.append("text_like_horizontal_alignment")
+                    rejection_details["y_variation"] = f"Y variation {y_variation:.1f} < 5"
         
         return {
             "image_index": image_index,
             "dimensions": f"{w}x{h}",
             "aspect_ratio": round(aspect_ratio, 2),
-            "background_color": int(background_color),
+            "light_background_ratio": round(light_ratio, 3),
             "ink_coverage": round(coverage, 4),
             "num_contours": len(significant_contours),
-            "unique_colors": unique_colors,
+            "geometric_ratio": round(geometric_ratio, 3),
+            "avg_stroke_complexity": round(avg_complexity, 2),
             "edge_density": round(edge_density, 4),
-            "geometric_ratio": round(geometric_ratio, 2),
-            "density_variation": round(density_variation, 4),
+            "curved_stroke_ratio": round(curved_ratio, 3),
+            "text_like": text_like,
             "likely_signature": is_signature(image),
-            "rejection_reasons": rejection_reasons
+            "rejection_reasons": rejection_reasons,
+            "rejection_details": rejection_details
         }
     except Exception as e:
         return {"error": str(e)}
