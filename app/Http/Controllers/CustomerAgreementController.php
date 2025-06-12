@@ -634,39 +634,30 @@ class CustomerAgreementController extends Controller
 
             //Get Agreement
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
-             if (!$agreement) {
-                throw new Exception('Agreement not found for job ID: ' . $jobId);
-            }
-            
-            if (!$agreement->sign_pdf_url) {
-                throw new Exception('No signed PDF URL found in agreement');
-            }
-            
-            // Build the full file path
-            $filepath = public_path('storage/' . $agreement->sign_pdf_url);
-            
-            // Validate file exists
-            if (!file_exists($filepath)) {
-                throw new Exception('PDF file not found: ' . basename($filepath));
-            }
-            
-            // Validate it's actually a PDF
-            $mimeType = mime_content_type($filepath);
-            if ($mimeType !== 'application/pdf') {
-                throw new Exception('File is not a valid PDF. MIME type: ' . $mimeType);
-            }
-            
-            // Create Symfony UploadedFile instance
-            $symfonyFile = new SymfonyUploadedFile(
-                $filepath,
-                basename($filepath),
-                $mimeType,
-                null,
-                true // test mode - bypasses upload validation
-            );
-
-            // Convert to Laravel UploadedFile
-            $laravelFile = UploadedFile::createFromBase($symfonyFile);
+        if (!$agreement) {
+            throw new Exception('Agreement not found for job ID: ' . $jobId);
+        }
+        
+        if (!$agreement->sign_pdf_url) {
+            throw new Exception('No signed PDF URL found in agreement');
+        }
+        
+        // Build the full file path
+        $filepath = public_path('storage/' . $agreement->sign_pdf_url);
+        
+        // Validate file exists
+        if (!file_exists($filepath)) {
+            throw new Exception('PDF file not found: ' . basename($filepath));
+        }
+        
+        // Validate it's actually a PDF
+        $mimeType = mime_content_type($filepath);
+        if (!in_array($mimeType, ['application/pdf', 'application/x-pdf'])) {
+            throw new Exception('File is not a valid PDF. MIME type: ' . $mimeType);
+        }
+        
+        // Option 1: Direct file processing (RECOMMENDED - more efficient)
+        $result = $this->processDirectly($filepath);
             // if ($fileContent === false) {
             //     throw new Exception('Failed to download PDF file');
             // }
@@ -680,13 +671,13 @@ class CustomerAgreementController extends Controller
             // }
             try {
                 // Use extractSignatures() instead of extractSignaturesFromUpload()
-                $result = $this->pdfSignatureService->extractSignaturesFromUpload($laravelFile, [
+                #$result = $this->pdfSignatureService->extractSignaturesFromUpload($laravelFile, [
                // 'include_base64' => $request->get('include_base64', true),
                // 'save_images' => $request->get('save_images', true),
-                   'include_base64' => true, // or false depending on your logic
-                    'save_images' => true,    // or false depending on your logic
+                   //'include_base64' => true, // or false depending on your logic
+                //    'save_images' => true,    // or false depending on your logic
 
-            ]);
+            //]);
                 
                 dd($result);
                 

@@ -32,12 +32,12 @@ class PDFSignatureController extends Controller
             ]);
 
             $file = $request->file('pdf_file');
-
+            $result = $pdfService->extractSignatures($pdfPath);
             // Extract signatures
-            $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
-                'include_base64' => $request->get('include_base64', true),
-                'save_images' => $request->get('save_images', true),
-            ]);
+            // $result = $this->pdfSignatureService->extractSignaturesFromUpload($file, [
+            //     'include_base64' => $request->get('include_base64', true),
+            //     'save_images' => $request->get('save_images', true),
+            // ]);
 
             return response()->json([
                 'success' => true,
