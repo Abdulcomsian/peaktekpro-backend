@@ -26,28 +26,21 @@ class PDFSignatureExtractor:
         if self.output_dir:
             os.makedirs(self.output_dir, exist_ok=True)
     
-    def detect_canvas_signature(self, image):
+    def detect_genuine_signature(self, image):
         """
-        Detect canvas-drawn signatures inside rectangular areas
+        Detect genuine handwritten signatures, excluding slashes and special characters
         """
         try:
             # Convert to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             
-            # Apply different thresholding techniques to catch various signature types
-            # Binary threshold for dark signatures
-            _, binary = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
-            
-            # Adaptive threshold for varying lighting
+            # Apply adaptive thresholding for better ink detection
             adaptive = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                            cv2.THRESH_BINARY_INV, 15, 10)
             
-            # Combine both thresholding results
-            combined = cv2.bitwise_or(binary, adaptive)
-            
             # Remove noise with morphological operations
             kernel = np.ones((2,2), np.uint8)
-            cleaned = cv2.morphologyEx(combined, cv2.MORPH_CLOSE, kernel)
+            cleaned = cv2.morphologyEx(adaptive, cv2.MORPH_CLOSE, kernel)
             cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, kernel)
             
             # Count non-zero pixels (ink)
@@ -58,12 +51,14 @@ class PDFSignatureExtractor:
             # Find contours
             contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             
-            if not contours:
-                logger.debug("No contours found")
+            if not contours or len(contours) < 2:
+                logger.debug("Not enough contours for a genuine signature")
                 return False, 0
             
-            # Analyze contours for signature characteristics
+            # Analyze contours for genuine signature characteristics
             valid_contours = 0
+            curved_contours = 0
+            straight_line_contours = 0
             total_contour_area = 0
             
             for contour in contours:
@@ -71,57 +66,100 @@ class PDFSignatureExtractor:
                 perimeter = cv2.arcLength(contour, True)
                 
                 # Filter out very small contours (noise)
-                if area < 20:
+                if area < 30:
                     continue
                 
-                # Calculate aspect ratio of bounding rectangle
+                # Get bounding rectangle
                 x, y, w, h = cv2.boundingRect(contour)
                 aspect_ratio = w / h if h > 0 else 0
                 
-                # Calculate contour complexity (signatures are usually complex)
-                if perimeter > 0:
-                    compactness = (4 * np.pi * area) / (perimeter * perimeter)
-                else:
-                    compactness = 0
+                # Detect straight lines (slashes, underscores, etc.)
+                if aspect_ratio > 8 or (aspect_ratio > 5 and h < 10):
+                    straight_line_contours += 1
+                    continue
                 
-                # Canvas signatures typically have:
-                # - Reasonable size (not tiny dots or huge blocks)
-                # - Moderate aspect ratios
-                # - Complex shapes (low compactness)
-                if (area > 20 and area < (image.shape[0] * image.shape[1] * 0.8) and
-                    0.1 < aspect_ratio < 10 and
-                    compactness < 0.8):
-                    valid_contours += 1
-                    total_contour_area += area
+                # Detect vertical lines (like "I" or "|")
+                if aspect_ratio < 0.2 and w < 8:
+                    straight_line_contours += 1
+                    continue
+                
+                # Calculate contour complexity
+                if perimeter > 0:
+                    # Hull ratio - genuine signatures have more irregular shapes
+                    hull = cv2.convexHull(contour)
+                    hull_area = cv2.contourArea(hull)
+                    solidity = area / hull_area if hull_area > 0 else 0
+                    
+                    # Extent - how much of the bounding rectangle is filled
+                    extent = area / (w * h) if (w * h) > 0 else 0
+                    
+                    # Approximation to detect curves vs straight lines
+                    epsilon = 0.02 * perimeter
+                    approx = cv2.approxPolyDP(contour, epsilon, True)
+                    
+                    # Genuine signatures typically have:
+                    # - Irregular shapes (low solidity)
+                    # - Curved lines (many approximation points)
+                    # - Reasonable extent
+                    if (area > 30 and area < (image.shape[0] * image.shape[1] * 0.6) and
+                        0.2 < aspect_ratio < 6 and
+                        solidity < 0.9 and  # Not too regular
+                        extent > 0.1 and   # Not too sparse
+                        len(approx) > 6):   # Has curves
+                        valid_contours += 1
+                        curved_contours += 1
+                        total_contour_area += area
+                    else:
+                        # Check if it might be a simple character or line
+                        if len(approx) <= 4:  # Very simple shape
+                            straight_line_contours += 1
             
-            # Calculate confidence based on multiple factors
+            # Calculate confidence based on signature characteristics
             confidence = 0
             
-            # Coverage factor (should have some ink but not too much)
-            if 0.005 < coverage < 0.4:
-                confidence += 0.3
-            elif 0.001 < coverage < 0.005:
-                confidence += 0.1
+            # Reject if mostly straight lines or too few curved elements
+            if straight_line_contours > curved_contours:
+                logger.debug(f"Rejected: Too many straight lines ({straight_line_contours}) vs curves ({curved_contours})")
+                return False, 0
             
-            # Contour factor (should have multiple valid contours)
-            if valid_contours >= 3:
+            # Must have multiple curved contours for a genuine signature
+            if curved_contours < 2:
+                logger.debug(f"Rejected: Not enough curved contours ({curved_contours})")
+                return False, 0
+            
+            # Coverage factor (signatures have moderate ink coverage)
+            if 0.01 < coverage < 0.25:
+                confidence += 0.3
+            elif 0.005 < coverage < 0.01:
+                confidence += 0.1
+            else:
+                logger.debug(f"Rejected: Invalid coverage ({coverage:.4f})")
+                return False, 0
+            
+            # Curved contour factor (must have enough curved elements)
+            if curved_contours >= 5:
                 confidence += 0.4
-            elif valid_contours >= 1:
+            elif curved_contours >= 3:
+                confidence += 0.3
+            elif curved_contours >= 2:
                 confidence += 0.2
             
-            # Complexity factor (total contour area vs image area)
+            # Complexity factor
             if total_contour_area > 0:
                 complexity = total_contour_area / total_pixels
-                if 0.01 < complexity < 0.3:
+                if 0.015 < complexity < 0.2:
                     confidence += 0.3
+                elif 0.005 < complexity < 0.015:
+                    confidence += 0.1
             
-            logger.debug(f"Signature analysis - Coverage: {coverage:.4f}, Valid contours: {valid_contours}, Confidence: {confidence:.2f}")
+            logger.debug(f"Signature analysis - Coverage: {coverage:.4f}, Curved contours: {curved_contours}, "
+                        f"Straight lines: {straight_line_contours}, Confidence: {confidence:.2f}")
             
-            # Consider it a signature if confidence is high enough
-            return confidence > 0.5, confidence
+            # Higher threshold for genuine signatures
+            return confidence > 0.6, confidence
             
         except Exception as e:
-            logger.error(f"Error in canvas signature detection: {str(e)}")
+            logger.error(f"Error in genuine signature detection: {str(e)}")
             return False, 0
 
     def find_signature_fields(self, page):
@@ -205,7 +243,7 @@ class PDFSignatureExtractor:
                     # Filter rectangles by size (signature boxes are usually medium-sized)
                     if 50 < w < 300 and 30 < h < 150:
                         # Convert back to PDF coordinates
-                        pdf_x = search_x0 + (x / 2)  # Divide by 2 because we used 2x scale
+                        pdf_x = search_x0 + (x / 2)
                         pdf_y = search_y0 + (y / 2)
                         pdf_w = w / 2
                         pdf_h = h / 2
@@ -252,7 +290,7 @@ class PDFSignatureExtractor:
 
     def extract_signatures(self, pdf_path, include_base64=True, save_images=True):
         """
-        Extract canvas-drawn signatures from PDF by finding rectangles near signature fields
+        Extract genuine handwritten signatures from PDF, excluding slashes and special characters
         """
         signatures = []
         
@@ -290,17 +328,17 @@ class PDFSignatureExtractor:
                             ]
                             rectangles = [{'bbox': default_bbox, 'width': 150, 'height': 75}]
                         
-                        # Check each rectangle for signatures
+                        # Check each rectangle for genuine signatures
                         for rect_idx, rect in enumerate(rectangles):
                             cropped_img = self.crop_signature_region(page, rect["bbox"])
                             
                             if cropped_img is not None:
-                                has_signature, confidence = self.detect_canvas_signature(cropped_img)
+                                has_signature, confidence = self.detect_genuine_signature(cropped_img)
                                 
                                 if has_signature:
                                     signature_data = {
                                         'page': page_num + 1,
-                                        'type': 'canvas_signature',
+                                        'type': 'genuine_signature',
                                         'field_label': field['text'],
                                         'identifier': f"page_{page_num+1}_field_{field_idx}_rect_{rect_idx}",
                                         'width': cropped_img.shape[1],
@@ -321,16 +359,16 @@ class PDFSignatureExtractor:
                                         signature_data['base64'] = self.image_to_base64(cropped_img)
                                     
                                     signatures.append(signature_data)
-                                    logger.info(f"Found canvas signature for field '{field['text']}' on page {page_num+1}")
+                                    logger.info(f"Found genuine signature for field '{field['text']}' on page {page_num+1}")
                                     break  # Found signature for this field, move to next field
                                 else:
-                                    logger.debug(f"No signature detected in rectangle for field '{field['text']}'")
+                                    logger.debug(f"No genuine signature detected in rectangle for field '{field['text']}'")
                             
                     except Exception as e:
                         logger.error(f"Error processing signature field '{field['text']}': {str(e)}")
             
             doc.close()
-            logger.info(f"Extraction complete. Found {len(signatures)} canvas signatures")
+            logger.info(f"Extraction complete. Found {len(signatures)} genuine signatures")
             
         except Exception as e:
             logger.error(f"Error processing PDF: {str(e)}", exc_info=True)
@@ -344,7 +382,7 @@ class PDFSignatureExtractor:
         }
 
 def main():
-    parser = argparse.ArgumentParser(description='Extract canvas-drawn signatures from PDF files')
+    parser = argparse.ArgumentParser(description='Extract genuine handwritten signatures from PDF files')
     parser.add_argument('pdf_path', help='Path to the PDF file')
     parser.add_argument('--output-dir', '-o', help='Directory to save signature images')
     parser.add_argument('--no-base64', action='store_true', help='Don\'t include base64 encoded images')
