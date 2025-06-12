@@ -24,7 +24,7 @@ class PreciseSignatureExtractor:
             os.makedirs(self.output_dir, exist_ok=True)
     
     def is_signature(self, image):
-        """More robust signature detection using multiple features (exact Flask app algorithm)"""
+        """More precise signature detection to avoid false positives"""
         try:
             # Convert to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -48,9 +48,20 @@ class PreciseSignatureExtractor:
             x, y, w, h = cv2.boundingRect(largest_contour)
             aspect_ratio = w / h if h > 0 else 0
             
-            # More lenient signature heuristics (exact Flask logic)
-            logger.debug(f"Signature detection - Coverage: {coverage:.4f}, Aspect Ratio: {aspect_ratio:.2f}")
-            return (0.001 < coverage < 0.5) and (0.3 < aspect_ratio < 8)
+            # More strict signature heuristics to reduce false positives
+            logger.debug(f"Signature detection - Coverage: {coverage:.4f}, Aspect Ratio: {aspect_ratio:.2f}, Size: {w}x{h}")
+            
+            # Stricter criteria: 
+            # - Coverage between 0.005 and 0.3 (avoid tiny dots and full pages)
+            # - Aspect ratio between 0.5 and 6 (more realistic signature shapes)
+            # - Minimum size requirements
+            is_valid_signature = (
+                (0.005 < coverage < 0.3) and 
+                (0.5 < aspect_ratio < 6) and
+                (w > 50 and h > 20)  # Minimum size to avoid tiny artifacts
+            )
+            
+            return is_valid_signature
             
         except Exception as e:
             logger.error(f"Error in signature detection: {str(e)}")
@@ -68,7 +79,7 @@ class PreciseSignatureExtractor:
 
     def extract_signatures(self, pdf_path, include_base64=True, save_images=True):
         """
-        Extract signatures using the exact Flask app algorithm
+        Extract signatures with improved logic to avoid duplicates and false positives
         """
         signatures = []
         
@@ -88,7 +99,7 @@ class PreciseSignatureExtractor:
                 
                 page_signatures_found = False
                 
-                # First try extracting embedded images
+                # First try extracting embedded images (prioritize this)
                 if image_list:
                     for img_index, img in enumerate(image_list):
                         try:
@@ -105,7 +116,7 @@ class PreciseSignatureExtractor:
                                     'identifier': f"page_{page_num+1}_img_{img_index}",
                                     'width': img_cv.shape[1],
                                     'height': img_cv.shape[0],
-                                    'confidence': 0.8  # Fixed confidence for working signatures
+                                    'confidence': 0.8
                                 }
                                 
                                 # Save image to disk if requested
@@ -128,8 +139,8 @@ class PreciseSignatureExtractor:
                         except Exception as e:
                             logger.error(f"Error processing embedded image {img_index} on page {page_num+1}: {str(e)}")
                 
-                # If no embedded images found or no signatures in embedded images, try rendering the page
-                if not image_list or not page_signatures_found:
+                # Only try rendering if NO embedded signatures were found on this page
+                if not page_signatures_found:
                     try:
                         pix = page.get_pixmap(dpi=150)
                         img_bytes = pix.tobytes("png")
@@ -143,7 +154,7 @@ class PreciseSignatureExtractor:
                                 'identifier': f"page_{page_num+1}_rendered",
                                 'width': img_cv.shape[1],
                                 'height': img_cv.shape[0],
-                                'confidence': 0.7  # Fixed confidence for working signatures
+                                'confidence': 0.7
                             }
                             
                             # Save image to disk if requested
@@ -180,7 +191,7 @@ class PreciseSignatureExtractor:
         }
 
 def main():
-    parser = argparse.ArgumentParser(description='Extract signatures from PDF files using Flask app algorithm')
+    parser = argparse.ArgumentParser(description='Extract signatures from PDF files with precise detection')
     parser.add_argument('pdf_path', help='Path to the PDF file')
     parser.add_argument('--output-dir', '-o', help='Directory to save signature images')
     parser.add_argument('--no-base64', action='store_true', help='Don\'t include base64 encoded images')
