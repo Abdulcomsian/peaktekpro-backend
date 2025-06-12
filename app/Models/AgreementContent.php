@@ -10,6 +10,7 @@ class AgreementContent extends Model
     use HasFactory;
 
     protected $fillable=[
+        'title',
         'company_id',
         'content',
         'file_path'
