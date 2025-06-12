@@ -162,7 +162,7 @@ class PreciseSignatureExtractor:
             return False, 0
 
     def find_signature_field_labels(self, page):
-        """Find signature field labels with more focused pattern matching"""
+        """Find signature field labels with comprehensive pattern matching"""
         signature_fields = []
         try:
             # Get page dimensions to exclude footer area
@@ -171,40 +171,46 @@ class PreciseSignatureExtractor:
             
             text_dict = page.get_text("dict")
             
+            logger.debug(f"Scanning page for signature fields. Page height: {page_rect.height}, Footer threshold: {footer_threshold}")
+            
             for block in text_dict["blocks"]:
                 if "lines" in block:
                     for line in block["lines"]:
                         for span in line["spans"]:
                             # Skip text in footer area
                             if span["bbox"][1] > footer_threshold:
+                                logger.debug(f"Skipping footer text: '{span['text']}'")
                                 continue
                             
                             text = span["text"].strip().lower()
                             original_text = span["text"].strip()
                             
-                            # Check for your specific signature field patterns
+                            # Debug: log all text being processed
+                            logger.debug(f"Processing text: '{original_text}' (normalized: '{text}')")
+                            
+                            # Check for signature field patterns
                             is_signature_field = False
                             
-                            # Direct matches for your fields
-                            if any(pattern in text for pattern in [
-                                "customer signature",
-                                "company representative signature", 
-                                "company rep signature",
-                                "signature field"
-                            ]):
+                            # Specific patterns for your document
+                            if "customer signature" in text:
                                 is_signature_field = True
-                            
-                            # More generic patterns
-                            elif any(pattern in text for pattern in [
-                                "signature:",
-                                "sign here",
-                                "please sign"
-                            ]):
+                                logger.debug(f"Found customer signature field: '{original_text}'")
+                            elif "company representative signature" in text:
                                 is_signature_field = True
-                            
-                            # Check for standalone "signature" with validation
-                            elif text == "signature" or text.endswith(":signature") or text.endswith(" signature"):
+                                logger.debug(f"Found company representative signature field: '{original_text}'")
+                            elif "company rep signature" in text:
                                 is_signature_field = True
+                                logger.debug(f"Found company rep signature field: '{original_text}'")
+                            # Generic patterns
+                            elif text in ["signature", "signature:"]:
+                                is_signature_field = True
+                                logger.debug(f"Found generic signature field: '{original_text}'")
+                            elif text.endswith(" signature") or text.endswith(" signature:"):
+                                is_signature_field = True
+                                logger.debug(f"Found signature field ending with 'signature': '{original_text}'")
+                            elif "sign here" in text or "please sign" in text:
+                                is_signature_field = True
+                                logger.debug(f"Found sign instruction: '{original_text}'")
                             
                             if is_signature_field:
                                 bbox = span["bbox"]
@@ -212,11 +218,12 @@ class PreciseSignatureExtractor:
                                     "text": original_text,
                                     "bbox": bbox
                                 })
-                                logger.info(f"Found signature field: '{original_text}' at {bbox}")
+                                logger.info(f"*** FOUND SIGNATURE FIELD: '{original_text}' at {bbox}")
         
         except Exception as e:
             logger.error(f"Error finding signature fields: {str(e)}")
         
+        logger.info(f"Total signature fields found: {len(signature_fields)}")
         return signature_fields
 
     def find_rectangle_around_point(self, page, x, y, search_radius=100):
@@ -338,6 +345,8 @@ class PreciseSignatureExtractor:
                 # Process each field individually
                 for field_idx, field in enumerate(signature_fields):
                     try:
+                        logger.info(f"Processing field '{field['text']}' on page {page_num+1}")
+                        
                         # Extract area around this specific field (looking for rectangles)
                         signature_img = self.extract_signature_area_with_rectangle(page, field["bbox"])
                         
