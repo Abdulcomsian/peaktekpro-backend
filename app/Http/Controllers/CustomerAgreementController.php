@@ -634,16 +634,35 @@ class CustomerAgreementController extends Controller
 
             //Get Agreement
             $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
+             if (!$agreement) {
+                throw new Exception('Agreement not found for job ID: ' . $jobId);
+            }
+            
+            if (!$agreement->sign_pdf_url) {
+                throw new Exception('No signed PDF URL found in agreement');
+            }
+            
+            // Build the full file path
             $filepath = public_path('storage/' . $agreement->sign_pdf_url);
-            // Download the file content
-            // $fileContent = file_get_contents('https://peaktekcrm.com/backend/storage/' . $agreement->sign_pdf_url);
+            
+            // Validate file exists
+            if (!file_exists($filepath)) {
+                throw new Exception('PDF file not found: ' . basename($filepath));
+            }
+            
+            // Validate it's actually a PDF
+            $mimeType = mime_content_type($filepath);
+            if ($mimeType !== 'application/pdf') {
+                throw new Exception('File is not a valid PDF. MIME type: ' . $mimeType);
+            }
+            
             // Create Symfony UploadedFile instance
             $symfonyFile = new SymfonyUploadedFile(
                 $filepath,
                 basename($filepath),
-                mime_content_type($filepath),
+                $mimeType,
                 null,
-                true // set to true for 'test' mode to avoid file upload validation
+                true // test mode - bypasses upload validation
             );
 
             // Convert to Laravel UploadedFile
