@@ -16,7 +16,7 @@ class PDFSignatureService
     {
         // Configure these paths according to your setup
         $this->pythonScriptPath = base_path('scripts/app.py');
-        $this->pythonExecutable = '/var/www/html/backend/scripts/venv/bin/python'; // or 'python' depending on your system
+        $this->pythonExecutable = '/var/www/html/backend/scripts/venv/bin/python'; // or 'python3' depending on your system
         $this->outputDirectory = storage_path('app/signatures');
         
         // Create output directory if it doesn't exist
@@ -42,26 +42,24 @@ class PDFSignatureService
 
         // Default options
         $defaultOptions = [
-            'include_base64' => true,
-            'save_images' => true,
-            'output_dir' => $this->outputDirectory,
-            'quiet' => false
+            'output_format' => 'json', // json or file
+            'quiet' => true
         ];
 
         $options = array_merge($defaultOptions, $options);
 
-        // Build command
+        // Build command for the new Python script
         $command = $this->buildCommand($pdfPath, $options);
 
         Log::info("Executing PDF signature extraction", [
-            'command' => $command,
-            'pdf_path' => $pdfPath
+            'command' => $this->sanitizeCommandForLog($command),
+            'pdf_path' => basename($pdfPath)
         ]);
 
         // Execute command
         $output = [];
         $returnCode = 0;
-        exec($command, $output, $returnCode);
+        exec($command . ' 2>&1', $output, $returnCode);
 
         // Check if command executed successfully
         if ($returnCode !== 0) {
@@ -69,14 +67,29 @@ class PDFSignatureService
             if (!empty($output)) {
                 $errorMessage .= ". Output: " . implode("\n", $output);
             }
+            Log::error("PDF signature extraction failed", [
+                'return_code' => $returnCode,
+                'output' => $output,
+                'pdf_path' => basename($pdfPath)
+            ]);
             throw new Exception($errorMessage);
         }
 
         // Parse JSON output
         $jsonOutput = implode("\n", $output);
+        
+        // Try to extract JSON from output (in case there are extra messages)
+        if (preg_match('/\{.*\}/s', $jsonOutput, $matches)) {
+            $jsonOutput = $matches[0];
+        }
+
         $result = json_decode($jsonOutput, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
+            Log::error("Failed to parse JSON output", [
+                'json_error' => json_last_error_msg(),
+                'output' => $jsonOutput
+            ]);
             throw new Exception("Failed to parse JSON output: " . json_last_error_msg());
         }
 
@@ -84,7 +97,8 @@ class PDFSignatureService
             throw new Exception("Signature extraction failed: " . ($result['error'] ?? 'Unknown error'));
         }
 
-        return $result;
+        // Transform the result to match your expected format
+        return $this->transformResult($result);
     }
 
     /**
@@ -97,13 +111,12 @@ class PDFSignatureService
      */
     public function extractSignaturesFromUpload($file, $options = [])
     {
-        // dd($file);
-        // // Validate file
-        // if (!$file->isValid()) {
-        //     throw new Exception("Invalid file upload");
-        // }
+        // Validate file
+        if (!$file->isValid()) {
+            throw new Exception("Invalid file upload");
+        }
 
-        if ($file->getClientOriginalExtension() !== 'pdf') {
+        if (strtolower($file->getClientOriginalExtension()) !== 'pdf') {
             throw new Exception("Only PDF files are supported");
         }
 
@@ -117,12 +130,61 @@ class PDFSignatureService
             
             // Add original filename to result
             $result['original_filename'] = $file->getClientOriginalName();
+            $result['file_size'] = $file->getSize();
+            $result['processed_at'] = now()->toISOString();
             
             return $result;
         } finally {
             // Clean up temporary file
-            Storage::delete($tempPath);
+            if (Storage::exists($tempPath)) {
+                Storage::delete($tempPath);
+            }
         }
+    }
+
+    /**
+     * Check if PDF has signatures (simple boolean check)
+     *
+     * @param string $pdfPath
+     * @return bool
+     * @throws Exception
+     */
+    public function hasSignatures($pdfPath)
+    {
+        $result = $this->extractSignatures($pdfPath, ['quiet' => true]);
+        return $result['count'] > 0;
+    }
+
+    /**
+     * Check if uploaded file has signatures
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return bool
+     * @throws Exception
+     */
+    public function uploadHasSignatures($file)
+    {
+        $result = $this->extractSignaturesFromUpload($file, ['quiet' => true]);
+        return $result['count'] > 0;
+    }
+
+    /**
+     * Get signature summary (count and basic info only)
+     *
+     * @param string $pdfPath
+     * @return array
+     * @throws Exception
+     */
+    public function getSignatureSummary($pdfPath)
+    {
+        $result = $this->extractSignatures($pdfPath);
+        
+        return [
+            'has_signatures' => $result['count'] > 0,
+            'signature_count' => $result['count'],
+            'signatures' => array_keys($result['signatures']),
+            'message' => $result['message']
+        ];
     }
 
     /**
@@ -134,26 +196,107 @@ class PDFSignatureService
      */
     private function buildCommand($pdfPath, $options)
     {
+        // Use the new Python script with --file argument
         $command = escapeshellcmd($this->pythonExecutable) . ' ' . escapeshellarg($this->pythonScriptPath);
-        $command .= ' ' . escapeshellarg($pdfPath);
+        $command .= ' --file ' . escapeshellarg($pdfPath);
 
-        if (!empty($options['output_dir'])) {
-            $command .= ' --output-dir ' . escapeshellarg($options['output_dir']);
-        }
-
-        if (!$options['include_base64']) {
-            $command .= ' --no-base64';
-        }
-
-        if (!$options['save_images']) {
-            $command .= ' --no-save';
-        }
-
-        if ($options['quiet']) {
-            $command .= ' --quiet';
-        }
-
+        // The new script outputs JSON to stdout by default, no need for extra flags
+        
         return $command;
+    }
+
+    /**
+     * Transform the Python script result to match expected format
+     *
+     * @param array $result
+     * @return array
+     */
+    private function transformResult($result)
+    {
+        return [
+            'success' => $result['success'],
+            'count' => $result['count'],
+            'signatures' => $result['signatures'],
+            'message' => $result['message'],
+            'error' => $result['error'] ?? null
+        ];
+    }
+
+    /**
+     * Sanitize command for logging (remove sensitive paths)
+     *
+     * @param string $command
+     * @return string
+     */
+    private function sanitizeCommandForLog($command)
+    {
+        // Replace full paths with just filenames for security
+        $sanitized = preg_replace('/\/[^\s]*\/([^\/\s]+\.pdf)/', '***/$1', $command);
+        $sanitized = preg_replace('/\/[^\s]*\/([^\/\s]+\.py)/', '***/$1', $sanitized);
+        return $sanitized;
+    }
+
+    /**
+     * Test the service configuration
+     *
+     * @return array
+     */
+    public function testConfiguration()
+    {
+        $status = [
+            'python_executable' => $this->pythonExecutable,
+            'python_script' => $this->pythonScriptPath,
+            'output_directory' => $this->outputDirectory,
+            'python_exists' => false,
+            'script_exists' => false,
+            'output_dir_writable' => false,
+            'test_execution' => false,
+            'errors' => []
+        ];
+
+        // Check if Python executable exists
+        $output = [];
+        $returnCode = 0;
+        exec(escapeshellcmd($this->pythonExecutable) . ' --version 2>&1', $output, $returnCode);
+        $status['python_exists'] = ($returnCode === 0);
+        $status['python_version'] = implode(' ', $output);
+
+        if (!$status['python_exists']) {
+            $status['errors'][] = 'Python executable not found or not working';
+        }
+
+        // Check if script exists
+        $status['script_exists'] = file_exists($this->pythonScriptPath);
+        if (!$status['script_exists']) {
+            $status['errors'][] = 'Python script not found: ' . $this->pythonScriptPath;
+        }
+
+        // Check if output directory is writable
+        $status['output_dir_writable'] = is_writable($this->outputDirectory);
+        if (!$status['output_dir_writable']) {
+            $status['errors'][] = 'Output directory not writable: ' . $this->outputDirectory;
+        }
+
+        // Test basic script execution if everything else is OK
+        if ($status['python_exists'] && $status['script_exists']) {
+            try {
+                $output = [];
+                $returnCode = 0;
+                $testCommand = escapeshellcmd($this->pythonExecutable) . ' ' . escapeshellarg($this->pythonScriptPath) . ' --help 2>&1';
+                exec($testCommand, $output, $returnCode);
+                $status['test_execution'] = ($returnCode === 0);
+                $status['test_output'] = implode("\n", $output);
+                
+                if (!$status['test_execution']) {
+                    $status['errors'][] = 'Script execution test failed';
+                }
+            } catch (Exception $e) {
+                $status['test_execution'] = false;
+                $status['errors'][] = 'Script execution test error: ' . $e->getMessage();
+            }
+        }
+
+        return $status;
     }
 
     /**
@@ -196,5 +339,31 @@ class PDFSignatureService
     public function setPythonExecutable($executable)
     {
         $this->pythonExecutable = $executable;
+    }
+
+    /**
+     * Get the output directory
+     *
+     * @return string
+     */
+    public function getOutputDirectory()
+    {
+        return $this->outputDirectory;
+    }
+
+    /**
+     * Set the output directory
+     *
+     * @param string $directory
+     * @return void
+     */
+    public function setOutputDirectory($directory)
+    {
+        $this->outputDirectory = $directory;
+        
+        // Create directory if it doesn't exist
+        if (!file_exists($this->outputDirectory)) {
+            mkdir($this->outputDirectory, 0755, true);
+        }
     }
 }
