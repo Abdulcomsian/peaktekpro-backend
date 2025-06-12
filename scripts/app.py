@@ -1,4 +1,11 @@
-#!/usr/bin/env python3
+def analyze_image_details(image, image_index=0):
+    """Analyze image details for debugging"""
+    try:
+        if image is None:
+            return {"error": "Image is None"}
+            
+        h, w = image.shape[:2]
+        gray = cv2.cvtColor(image, cv#!/usr/bin/env python3
 import os
 import sys
 import logging
@@ -30,20 +37,15 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'pdf'
 
 def is_signature(image):
-    """Detect if image contains an actual signature (very strict detection)"""
+    """Detect if image contains an actual signature (balanced detection)"""
     try:
         if image is None or image.size == 0:
             return False
             
         h, w = image.shape[:2]
         
-        # Skip very small or very large images (signatures are usually medium-sized)
-        if w < 50 or h < 20 or w > 500 or h > 200:
-            return False
-            
-        # Skip images that are too square (signatures are usually wider than tall)
-        aspect_ratio = w / h
-        if aspect_ratio < 1.5 or aspect_ratio > 8:
+        # Basic size filtering - signatures can vary in size but shouldn't be tiny or huge
+        if w < 30 or h < 15 or w > 600 or h > 300:
             return False
             
         # Convert to grayscale
@@ -53,8 +55,8 @@ def is_signature(image):
         hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
         background_color = np.argmax(hist)
         
-        # If background is not white-ish (240-255), it's likely a logo/graphic
-        if background_color < 240:
+        # More lenient background check - many signature backgrounds are off-white
+        if background_color < 200:
             return False
             
         # Apply adaptive thresholding
@@ -66,9 +68,8 @@ def is_signature(image):
         total_pixels = thresh.size
         coverage = ink_pixels / total_pixels if total_pixels > 0 else 0
         
-        # Signatures typically have very specific coverage ranges
-        # Too low = noise, too high = text/graphics
-        if coverage < 0.01 or coverage > 0.25:
+        # Broader coverage range for signatures
+        if coverage < 0.005 or coverage > 0.5:
             return False
             
         # Find contours
@@ -76,62 +77,95 @@ def is_signature(image):
         if not contours:
             return False
             
-        # Filter out very small contours (noise)
-        significant_contours = [c for c in contours if cv2.contourArea(c) > 20]
-        if len(significant_contours) < 2:  # Signatures usually have multiple strokes
+        # Filter significant contours
+        significant_contours = [c for c in contours if cv2.contourArea(c) > 10]
+        if not significant_contours:
             return False
             
-        # Check for logo-like patterns (geometric shapes)
+        # Get aspect ratio
+        largest_contour = max(significant_contours, key=cv2.contourArea)
+        x, y, w_cont, h_cont = cv2.boundingRect(largest_contour)
+        aspect_ratio = w_cont / h_cont if h_cont > 0 else 0
+        
+        # More lenient aspect ratio for signatures
+        if aspect_ratio < 0.3 or aspect_ratio > 12:
+            return False
+            
+        # Check for obvious geometric shapes (logos)
+        geometric_shapes = 0
         for contour in significant_contours:
-            # Check if contour is too geometric (rectangles, circles)
             epsilon = 0.02 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)
             
-            # If too many contours are geometric shapes, it's likely a logo
-            if len(approx) <= 4:  # Rectangle or triangle
-                return False
+            # Count obvious geometric shapes
+            if len(approx) <= 6:  # Simple polygons
+                geometric_shapes += 1
                 
-        # Check stroke characteristics
-        total_area = sum(cv2.contourArea(c) for c in significant_contours)
-        total_perimeter = sum(cv2.arcLength(c, True) for c in significant_contours)
+        # If too many geometric shapes, likely a logo
+        if len(significant_contours) > 0:
+            geometric_ratio = geometric_shapes / len(significant_contours)
+            if geometric_ratio > 0.7 and len(significant_contours) > 2:
+                return False
         
-        if total_area > 0 and total_perimeter > 0:
-            # Signature strokes are usually more irregular than geometric shapes
-            complexity_ratio = total_perimeter / np.sqrt(total_area)
-            
-            # Signatures have higher complexity (more irregular strokes)
-            if complexity_ratio < 10:  # Too simple, likely geometric
-                return False
-                
-        # Check for text-like patterns
-        # Text usually has uniform height and spacing
-        if len(significant_contours) > 5:
+        # Check for text-like patterns (uniform spacing/height)
+        if len(significant_contours) > 4:
             bounding_rects = [cv2.boundingRect(c) for c in significant_contours]
             heights = [rect[3] for rect in bounding_rects]
             
-            # If heights are too uniform, it's likely text
             if len(heights) > 1:
                 height_std = np.std(heights)
                 height_mean = np.mean(heights)
                 if height_mean > 0:
                     height_variation = height_std / height_mean
-                    if height_variation < 0.3:  # Too uniform = text
+                    # Very uniform heights suggest text
+                    if height_variation < 0.15 and len(heights) > 6:
                         return False
         
-        # Additional checks for common false positives
+        # Additional quality checks
         
-        # Check color distribution - logos often have uniform colors
-        unique_colors = len(np.unique(gray))
-        if unique_colors < 10:  # Too few colors, likely simple graphic
-            return False
-            
-        # Check edge density - signatures have more varied edges
-        edges = cv2.Canny(gray, 50, 150)
+        # 1. Edge complexity check
+        edges = cv2.Canny(gray, 30, 100)
         edge_density = np.count_nonzero(edges) / edges.size
         
-        if edge_density < 0.05 or edge_density > 0.4:  # Wrong edge density
+        # Signatures should have reasonable edge complexity
+        if edge_density < 0.02 or edge_density > 0.6:
             return False
             
+        # 2. Color variety check (more lenient)
+        unique_colors = len(np.unique(gray))
+        if unique_colors < 5:  # Too few colors suggests simple graphic
+            return False
+            
+        # 3. Check stroke characteristics
+        total_area = sum(cv2.contourArea(c) for c in significant_contours)
+        if total_area < 50:  # Too small overall area
+            return False
+            
+        # 4. Density distribution check
+        # Signatures usually have varied density across the image
+        if w > 20 and h > 20:
+            # Divide image into quadrants and check density variation
+            mid_w, mid_h = w // 2, h // 2
+            quadrants = [
+                thresh[0:mid_h, 0:mid_w],
+                thresh[0:mid_h, mid_w:w],
+                thresh[mid_h:h, 0:mid_w],
+                thresh[mid_h:h, mid_w:w]
+            ]
+            
+            densities = []
+            for quad in quadrants:
+                if quad.size > 0:
+                    quad_density = np.count_nonzero(quad) / quad.size
+                    densities.append(quad_density)
+            
+            # Signatures usually have varied density across quadrants
+            if len(densities) > 1:
+                density_std = np.std(densities)
+                # Too uniform density suggests geometric shapes/logos
+                if density_std < 0.01:
+                    return False
+        
         return True
         
     except Exception as e:
@@ -182,12 +216,12 @@ def detect_filled_signature_fields(page):
         return []
 
 def analyze_signature_areas(page):
-    """Analyze page for actual signature drawings/marks (not text labels)"""
+    """Analyze page for actual signature drawings/marks with improved detection"""
     signature_areas = []
     
     try:
-        # Render page to image
-        pix = page.get_pixmap(dpi=200)  # Higher DPI for better analysis
+        # Render page to image with higher resolution for better detection
+        pix = page.get_pixmap(dpi=300)
         img_data = pix.tobytes("png")
         nparr = np.frombuffer(img_data, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -198,7 +232,7 @@ def analyze_signature_areas(page):
         # Convert to grayscale
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         
-        # Get text regions to exclude them
+        # Get text regions to exclude them - be more comprehensive
         text_blocks = page.get_text("dict")
         text_regions = []
         
@@ -210,57 +244,103 @@ def analyze_signature_areas(page):
                     for span in line.get("spans", []):
                         text_content += span.get("text", "")
                     
-                    # Skip regions that contain signature labels
-                    if any(label in text_content.lower() for label in 
-                          ['signature:', 'sign:', 'printed name:', 'date signed:', 'customer signature', 'company representative']):
+                    # Expand the list of text patterns to exclude
+                    text_indicators = [
+                        'signature:', 'sign:', 'printed name:', 'date signed:', 
+                        'customer signature', 'company representative', 'name:',
+                        'date:', 'title:', 'witness:', 'notary:', 'acknowledgment',
+                        'terms:', 'conditions:', 'agreement', 'contract', 'policy',
+                        'insurance', 'claim', 'customer', 'company', 'page', 'of'
+                    ]
+                    
+                    if any(indicator in text_content.lower() for indicator in text_indicators):
+                        # Expand the text region slightly to avoid nearby signature detection
+                        expanded_bbox = [
+                            bbox[0] - 20, bbox[1] - 10,
+                            bbox[2] + 20, bbox[3] + 10
+                        ]
                         text_regions.append({
-                            'bbox': bbox,
+                            'bbox': expanded_bbox,
                             'text': text_content
                         })
         
-        # Apply threshold to find dark areas (potential signatures)
-        _, thresh = cv2.threshold(gray, 230, 255, cv2.THRESH_BINARY_INV)
+        # Multiple threshold approaches for different types of signatures
+        signature_candidates = []
         
-        # Find contours
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Method 1: Standard threshold for dark ink signatures
+        _, thresh1 = cv2.threshold(gray, 230, 255, cv2.THRESH_BINARY_INV)
+        contours1, _ = cv2.findContours(thresh1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        signature_candidates.extend(contours1)
         
-        for contour in contours:
+        # Method 2: Adaptive threshold for varying lighting
+        thresh2 = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                       cv2.THRESH_BINARY_INV, 15, 8)
+        contours2, _ = cv2.findContours(thresh2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        signature_candidates.extend(contours2)
+        
+        # Method 3: Edge-based detection for light signatures
+        edges = cv2.Canny(gray, 30, 100)
+        contours3, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        signature_candidates.extend(contours3)
+        
+        # Remove duplicates and analyze candidates
+        processed_areas = set()
+        
+        for contour in signature_candidates:
             area = cv2.contourArea(contour)
-            if area > 100:  # Minimum area threshold
-                x, y, w, h = cv2.boundingRect(contour)
+            if area < 200 or area > 50000:  # Filter by area
+                continue
                 
-                # Skip if this region overlaps with known text labels
-                is_text_region = False
-                for text_region in text_regions:
-                    tx, ty, tx2, ty2 = text_region['bbox']
-                    # Convert PDF coordinates to image coordinates
-                    tx_img = int(tx * img.shape[1] / pix.width)
-                    ty_img = int(ty * img.shape[0] / pix.height)
-                    tx2_img = int(tx2 * img.shape[1] / pix.width)
-                    ty2_img = int(ty2 * img.shape[0] / pix.height)
-                    
-                    # Check for overlap
-                    if not (x + w < tx_img or x > tx2_img or y + h < ty_img or y > ty2_img):
-                        is_text_region = True
-                        break
+            x, y, w, h = cv2.boundingRect(contour)
+            
+            # Skip if already processed this area
+            area_key = (x//10, y//10, w//10, h//10)  # Rough grouping
+            if area_key in processed_areas:
+                continue
+            processed_areas.add(area_key)
+            
+            # Skip if this region overlaps with known text
+            is_text_region = False
+            for text_region in text_regions:
+                tx, ty, tx2, ty2 = text_region['bbox']
+                # Convert PDF coordinates to image coordinates
+                scale_x = img.shape[1] / pix.width
+                scale_y = img.shape[0] / pix.height
+                tx_img = int(tx * scale_x)
+                ty_img = int(ty * scale_y)
+                tx2_img = int(tx2 * scale_x)
+                ty2_img = int(ty2 * scale_y)
                 
-                if is_text_region:
-                    continue
+                # Check for overlap with expanded margin
+                margin = 30
+                if not (x + w < tx_img - margin or x > tx2_img + margin or 
+                       y + h < ty_img - margin or y > ty2_img + margin):
+                    is_text_region = True
+                    break
+            
+            if is_text_region:
+                continue
+            
+            # Check aspect ratio and size constraints
+            aspect_ratio = w / h if h > 0 else 0
+            if aspect_ratio < 0.3 or aspect_ratio > 15:  # Very lenient aspect ratio
+                continue
                 
-                aspect_ratio = w / h if h > 0 else 0
-                
-                # Check if it looks like a signature (not text)
-                if 1.0 < aspect_ratio < 8 and 30 < w < 300 and 10 < h < 100:
-                    # Extract the region and test if it's actually a signature
-                    roi = img[y:y+h, x:x+w]
-                    if is_signature(roi):
-                        signature_areas.append({
-                            'type': 'drawn_signature',
-                            'bbox': [x, y, w, h],
-                            'area': area,
-                            'aspect_ratio': aspect_ratio,
-                            'confidence': 'high'
-                        })
+            if w < 40 or h < 15 or w > 400 or h > 200:  # Size constraints
+                continue
+            
+            # Extract the region and test if it contains signature-like content
+            roi = img[max(0, y-5):min(img.shape[0], y+h+5), 
+                     max(0, x-5):min(img.shape[1], x+w+5)]
+            
+            if roi.size > 0 and is_signature(roi):
+                signature_areas.append({
+                    'type': 'drawn_signature',
+                    'bbox': [x, y, w, h],
+                    'area': area,
+                    'aspect_ratio': aspect_ratio,
+                    'confidence': 'medium'
+                })
         
         return signature_areas
         
