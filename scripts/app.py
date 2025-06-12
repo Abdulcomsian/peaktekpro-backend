@@ -30,14 +30,33 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'pdf'
 
 def is_signature(image):
-    """Detect if image contains an actual signature (not just text labels)"""
+    """Detect if image contains an actual signature (very strict detection)"""
     try:
         if image is None or image.size == 0:
+            return False
+            
+        h, w = image.shape[:2]
+        
+        # Skip very small or very large images (signatures are usually medium-sized)
+        if w < 50 or h < 20 or w > 500 or h > 200:
+            return False
+            
+        # Skip images that are too square (signatures are usually wider than tall)
+        aspect_ratio = w / h
+        if aspect_ratio < 1.5 or aspect_ratio > 8:
             return False
             
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
+        # Calculate background color (most common color)
+        hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+        background_color = np.argmax(hist)
+        
+        # If background is not white-ish (240-255), it's likely a logo/graphic
+        if background_color < 240:
+            return False
+            
         # Apply adaptive thresholding
         thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                     cv2.THRESH_BINARY_INV, 11, 2)
@@ -47,64 +66,75 @@ def is_signature(image):
         total_pixels = thresh.size
         coverage = ink_pixels / total_pixels if total_pixels > 0 else 0
         
+        # Signatures typically have very specific coverage ranges
+        # Too low = noise, too high = text/graphics
+        if coverage < 0.01 or coverage > 0.25:
+            return False
+            
         # Find contours
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not contours:
             return False
             
         # Filter out very small contours (noise)
-        significant_contours = [c for c in contours if cv2.contourArea(c) > 50]
-        if not significant_contours:
+        significant_contours = [c for c in contours if cv2.contourArea(c) > 20]
+        if len(significant_contours) < 2:  # Signatures usually have multiple strokes
             return False
             
-        # Get largest contour
-        largest_contour = max(significant_contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(largest_contour)
-        aspect_ratio = w / h if h > 0 else 0
+        # Check for logo-like patterns (geometric shapes)
+        for contour in significant_contours:
+            # Check if contour is too geometric (rectangles, circles)
+            epsilon = 0.02 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            
+            # If too many contours are geometric shapes, it's likely a logo
+            if len(approx) <= 4:  # Rectangle or triangle
+                return False
+                
+        # Check stroke characteristics
+        total_area = sum(cv2.contourArea(c) for c in significant_contours)
+        total_perimeter = sum(cv2.arcLength(c, True) for c in significant_contours)
         
-        # Calculate how many separate contours we have (signatures tend to have multiple strokes)
-        num_contours = len(significant_contours)
-        
-        # Check for text patterns vs signature patterns
-        # Text usually has very regular spacing and uniform height
-        if num_contours > 1:
-            # Check if contours are too uniform (indicates text)
-            heights = [cv2.boundingRect(c)[3] for c in significant_contours]
-            height_variance = np.var(heights) if len(heights) > 1 else 0
+        if total_area > 0 and total_perimeter > 0:
+            # Signature strokes are usually more irregular than geometric shapes
+            complexity_ratio = total_perimeter / np.sqrt(total_area)
+            
+            # Signatures have higher complexity (more irregular strokes)
+            if complexity_ratio < 10:  # Too simple, likely geometric
+                return False
+                
+        # Check for text-like patterns
+        # Text usually has uniform height and spacing
+        if len(significant_contours) > 5:
+            bounding_rects = [cv2.boundingRect(c) for c in significant_contours]
+            heights = [rect[3] for rect in bounding_rects]
             
             # If heights are too uniform, it's likely text
-            if height_variance < 2 and len(heights) > 3:
-                return False
+            if len(heights) > 1:
+                height_std = np.std(heights)
+                height_mean = np.mean(heights)
+                if height_mean > 0:
+                    height_variation = height_std / height_mean
+                    if height_variation < 0.3:  # Too uniform = text
+                        return False
         
-        # Stricter signature heuristics to avoid text detection
-        # Signatures typically have:
-        # - Less regular coverage (not uniform like text)
-        # - More varied stroke patterns
-        # - Different aspect ratios than typical text
+        # Additional checks for common false positives
         
-        # Reject if coverage is too low (likely just noise) or too high (likely text block)
-        if coverage < 0.005 or coverage > 0.3:
+        # Check color distribution - logos often have uniform colors
+        unique_colors = len(np.unique(gray))
+        if unique_colors < 10:  # Too few colors, likely simple graphic
             return False
             
-        # Reject if aspect ratio is too extreme (very wide text labels)
-        if aspect_ratio < 0.5 or aspect_ratio > 6:
+        # Check edge density - signatures have more varied edges
+        edges = cv2.Canny(gray, 50, 150)
+        edge_density = np.count_nonzero(edges) / edges.size
+        
+        if edge_density < 0.05 or edge_density > 0.4:  # Wrong edge density
             return False
             
-        # Additional check: analyze stroke patterns
-        # Signatures tend to have more curved/irregular strokes than text
-        perimeter = cv2.arcLength(largest_contour, True)
-        area = cv2.contourArea(largest_contour)
-        
-        if area > 0:
-            # Compactness ratio - signatures tend to be less compact than text
-            compactness = (perimeter * perimeter) / (4 * np.pi * area)
-            # Text letters are usually more compact
-            if compactness < 1.5:  # Too compact, likely text
-                return False
-        
         return True
         
-    except Exception:
+    except Exception as e:
         return False
 
 def detect_filled_signature_fields(page):
@@ -238,9 +268,50 @@ def analyze_signature_areas(page):
         logger.warning(f"Error analyzing signature areas: {str(e)}")
         return []
 
-def process_pdf_file(pdf_path):
+def analyze_image_details(image, image_index=0):
+    """Analyze image details for debugging"""
+    try:
+        if image is None:
+            return {"error": "Image is None"}
+            
+        h, w = image.shape[:2]
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        # Basic metrics
+        hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+        background_color = np.argmax(hist)
+        
+        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                    cv2.THRESH_BINARY_INV, 11, 2)
+        ink_pixels = cv2.countNonZero(thresh)
+        total_pixels = thresh.size
+        coverage = ink_pixels / total_pixels if total_pixels > 0 else 0
+        
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        significant_contours = [c for c in contours if cv2.contourArea(c) > 20]
+        
+        unique_colors = len(np.unique(gray))
+        edges = cv2.Canny(gray, 50, 150)
+        edge_density = np.count_nonzero(edges) / edges.size
+        
+        return {
+            "image_index": image_index,
+            "dimensions": f"{w}x{h}",
+            "aspect_ratio": round(w/h, 2) if h > 0 else 0,
+            "background_color": int(background_color),
+            "ink_coverage": round(coverage, 4),
+            "num_contours": len(significant_contours),
+            "unique_colors": unique_colors,
+            "edge_density": round(edge_density, 4),
+            "likely_signature": is_signature(image)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+def process_pdf_file(pdf_path, debug_mode=False):
     """Process PDF file and return accurate signature detection results"""
     signatures = {}
+    debug_info = {}
     
     try:
         if not os.path.exists(pdf_path):
@@ -252,6 +323,7 @@ def process_pdf_file(pdf_path):
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
             page_signatures = 0
+            page_debug = []
             
             # 1. Check for filled form fields (actual signature fields with content)
             filled_fields = detect_filled_signature_fields(page)
@@ -276,15 +348,22 @@ def process_pdf_file(pdf_path):
                     nparr = np.frombuffer(image_bytes, np.uint8)
                     img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                     
-                    if img_cv is not None and is_signature(img_cv):
-                        signature_key = f"Page {page_num+1}-Image{img_index}"
-                        signatures[signature_key] = {
-                            'type': 'embedded_signature_image',
-                            'page': page_num + 1,
-                            'confidence': 'very_high',
-                            'image_index': img_index
-                        }
-                        page_signatures += 1
+                    if img_cv is not None:
+                        # Get image analysis for debugging
+                        if debug_mode:
+                            analysis = analyze_image_details(img_cv, img_index)
+                            page_debug.append(analysis)
+                        
+                        # Only count as signature if it passes strict tests
+                        if is_signature(img_cv):
+                            signature_key = f"Page {page_num+1}-Image{img_index}"
+                            signatures[signature_key] = {
+                                'type': 'embedded_signature_image',
+                                'page': page_num + 1,
+                                'confidence': 'very_high',
+                                'image_index': img_index
+                            }
+                            page_signatures += 1
                 except Exception:
                     continue
             
@@ -302,6 +381,9 @@ def process_pdf_file(pdf_path):
                     }
                     page_signatures += 1
             
+            if debug_mode and page_debug:
+                debug_info[f"page_{page_num+1}"] = page_debug
+            
             total_signatures += page_signatures
         
         doc.close()
@@ -314,13 +396,18 @@ def process_pdf_file(pdf_path):
         else:
             message = f"Found {total_signatures} signatures - document is signed"
         
-        return {
+        result = {
             'success': True,
             'count': total_signatures,
             'signatures': signatures,
             'message': message,
-            'analysis_method': 'comprehensive_detection'
+            'analysis_method': 'strict_detection'
         }
+        
+        if debug_mode:
+            result['debug_info'] = debug_info
+            
+        return result
         
     except Exception as e:
         return {
@@ -341,6 +428,7 @@ def process_command_line():
     parser.add_argument('--no-base64', action='store_true', help='Do not include base64 images')
     parser.add_argument('--no-save', action='store_true', help='Do not save signature images')
     parser.add_argument('--quiet', action='store_true', help='Quiet mode')
+    parser.add_argument('--debug', action='store_true', help='Debug mode - show image analysis details')
     
     args = parser.parse_args()
     
@@ -352,14 +440,14 @@ def process_command_line():
             'count': 0
         }
     else:
-        result = process_pdf_file(args.file)
+        result = process_pdf_file(args.file, debug_mode=args.debug)
     
     # Output result
     if args.output:
         with open(args.output, 'w') as f:
             json.dump(result, f, indent=2)
     else:
-        print(json.dumps(result))
+        print(json.dumps(result, indent=2 if args.debug else None))
     
     # Exit with appropriate code
     sys.exit(0 if result['success'] else 1)
