@@ -1,232 +1,204 @@
 import os
 import logging
-import base64
+import json
 import tempfile
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 import fitz  # PyMuPDF
 import cv2
 import numpy as np
-from PIL import Image
-import io
 
 app = Flask(__name__)
 
+# Configure paths - use temp directory to avoid permission issues
+TEMP_DIR = tempfile.gettempdir()
+app.config['UPLOAD_FOLDER'] = os.path.join(TEMP_DIR, 'pdf_uploads')
+app.config['SIGNATURE_FOLDER'] = os.path.join(TEMP_DIR, 'signatures')
+app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
+
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-class SignatureDetector:
-    def __init__(self, temp_dir=None):
-        self.temp_dir = temp_dir or tempfile.gettempdir()
-        
-    def is_signature_image(self, image):
-        """Detect if an image contains a signature using computer vision"""
-        try:
-            # Convert to grayscale
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            
-            # Apply adaptive thresholding
-            thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                        cv2.THRESH_BINARY_INV, 11, 2)
-            
-            # Count non-zero pixels (ink)
-            ink_pixels = cv2.countNonZero(thresh)
-            total_pixels = thresh.size
-            coverage = ink_pixels / total_pixels
-            
-            # Find contours
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            if not contours:
-                return False
-                
-            # Get largest contour
-            largest_contour = max(contours, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(largest_contour)
-            aspect_ratio = w / h if h > 0 else 0
-            
-            # Signature heuristics
-            logger.debug(f"Image analysis - Coverage: {coverage:.4f}, Aspect Ratio: {aspect_ratio:.2f}")
-            return (0.001 < coverage < 0.5) and (0.3 < aspect_ratio < 8)
-            
-        except Exception as e:
-            logger.error(f"Error in signature image detection: {str(e)}")
+# Create directories if they don't exist
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['SIGNATURE_FOLDER'], exist_ok=True)
+    logger.info(f"Directories created: {app.config['UPLOAD_FOLDER']}, {app.config['SIGNATURE_FOLDER']}")
+except Exception as e:
+    logger.error(f"Failed to create directories: {str(e)}")
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+def is_signature(image):
+    """More robust signature detection using multiple features"""
+    try:
+        if image is None:
             return False
-    
-    def detect_filled_signature_fields(self, page):
-        """Detect if signature fields are filled with text or drawings"""
-        try:
-            # Get form fields
-            widgets = page.widgets()
-            filled_fields = []
             
-            for widget in widgets:
-                if widget.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE:
-                    # Check if signature field has content
-                    if widget.field_value:
-                        filled_fields.append({
-                            'type': 'signature_field',
-                            'field_name': widget.field_name,
-                            'has_content': True,
-                            'bbox': list(widget.rect)
-                        })
-                elif widget.field_type == fitz.PDF_WIDGET_TYPE_TEXT:
-                    # Check text fields that might be signature-related
-                    field_name = widget.field_name.lower() if widget.field_name else ""
-                    if any(keyword in field_name for keyword in ['signature', 'sign', 'name']):
-                        has_content = bool(widget.field_value and widget.field_value.strip())
-                        if has_content:
-                            filled_fields.append({
-                                'type': 'text_field',
-                                'field_name': widget.field_name,
-                                'value': widget.field_value,
-                                'bbox': list(widget.rect)
-                            })
+        # Convert to grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        # Apply adaptive thresholding
+        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                    cv2.THRESH_BINARY_INV, 11, 2)
+        
+        # Count non-zero pixels (ink)
+        ink_pixels = cv2.countNonZero(thresh)
+        total_pixels = thresh.size
+        coverage = ink_pixels / total_pixels if total_pixels > 0 else 0
+        
+        # Find contours
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            return False
             
-            return filled_fields
+        # Get largest contour
+        largest_contour = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest_contour)
+        aspect_ratio = w / h if h > 0 else 0
+        
+        # More lenient signature heuristics
+        logger.debug(f"Signature detection - Coverage: {coverage:.4f}, Aspect Ratio: {aspect_ratio:.2f}")
+        return (0.001 < coverage < 0.5) and (0.3 < aspect_ratio < 8)
+        
+    except Exception as e:
+        logger.error(f"Error in signature detection: {str(e)}")
+        return False
+
+def extract_signatures(pdf_path):
+    signatures = {}
+    try:
+        if not os.path.exists(pdf_path):
+            raise FileNotFoundError(f"PDF file not found: {pdf_path}")
             
-        except Exception as e:
-            logger.error(f"Error detecting filled fields: {str(e)}")
-            return []
-    
-    def detect_signature_areas(self, page):
-        """Detect signature-like areas by analyzing the page content"""
-        try:
-            # Render page to image
-            pix = page.get_pixmap(dpi=150)
-            img_data = pix.tobytes("png")
-            nparr = np.frombuffer(img_data, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        doc = fitz.open(pdf_path)
+        logger.info(f"Processing PDF with {len(doc)} pages")
+        
+        for page_num in range(len(doc)):
+            page = doc.load_page(page_num)
             
-            # Convert to grayscale
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            
-            # Apply threshold to find dark areas (potential signatures)
-            _, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY_INV)
-            
-            # Find contours
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            signature_areas = []
-            for contour in contours:
-                area = cv2.contourArea(contour)
-                if area > 100:  # Minimum area threshold
-                    x, y, w, h = cv2.boundingRect(contour)
-                    aspect_ratio = w / h if h > 0 else 0
-                    
-                    # Check if it looks like a signature
-                    if 0.5 < aspect_ratio < 10 and 10 < w < 500 and 5 < h < 100:
-                        # Extract the region
-                        roi = img[y:y+h, x:x+w]
-                        if self.is_signature_image(roi):
-                            # Convert to base64 for API response
-                            _, buffer = cv2.imencode('.png', roi)
-                            img_base64 = base64.b64encode(buffer).decode('utf-8')
-                            
-                            signature_areas.append({
-                                'type': 'signature_area',
-                                'bbox': [x, y, x+w, y+h],
-                                'confidence': 'medium',
-                                'image_base64': img_base64
-                            })
-            
-            return signature_areas
-            
-        except Exception as e:
-            logger.error(f"Error detecting signature areas: {str(e)}")
-            return []
-    
-    def extract_embedded_images(self, page, doc):
-        """Extract and analyze embedded images in the page"""
-        try:
+            # Get list of images on the page
             image_list = page.get_images(full=True)
-            signatures = []
+            logger.debug(f"Page {page_num+1} has {len(image_list)} images")
             
-            for img_index, img in enumerate(image_list):
+            # First try extracting embedded images
+            if image_list:
+                for img_index, img in enumerate(image_list):
+                    try:
+                        xref = img[0]
+                        base_image = doc.extract_image(xref)
+                        image_bytes = base_image["image"]
+                        nparr = np.frombuffer(image_bytes, np.uint8)
+                        img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                        
+                        if img_cv is not None and is_signature(img_cv):
+                            signature_key = f"Page {page_num+1}-Img{img_index}"
+                            signature_filename = f"signature_page_{page_num+1}_img{img_index}.png"
+                            full_path = os.path.join(app.config['SIGNATURE_FOLDER'], signature_filename)
+                            
+                            # Save signature image
+                            cv2.imwrite(full_path, img_cv)
+                            signatures[signature_key] = {
+                                'type': 'embedded_image',
+                                'page': page_num + 1,
+                                'file_path': full_path,
+                                'bbox': [0, 0, img_cv.shape[1], img_cv.shape[0]]  # width, height
+                            }
+                            logger.info(f"Found signature: {signature_key}")
+                    except Exception as e:
+                        logger.error(f"Error processing embedded image {img_index} on page {page_num+1}: {str(e)}")
+                        continue
+            
+            # If no embedded images found, try rendering the page and look for signature areas
+            if not image_list or len([s for s in signatures.keys() if f"Page {page_num+1}" in s]) == 0:
                 try:
-                    xref = img[0]
-                    base_image = doc.extract_image(xref)
-                    image_bytes = base_image["image"]
-                    
-                    # Convert to OpenCV format
-                    nparr = np.frombuffer(image_bytes, np.uint8)
+                    pix = page.get_pixmap(dpi=150)
+                    img_bytes = pix.tobytes("png")
+                    nparr = np.frombuffer(img_bytes, np.uint8)
                     img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                     
-                    if img_cv is not None and self.is_signature_image(img_cv):
-                        # Convert to base64
-                        _, buffer = cv2.imencode('.png', img_cv)
-                        img_base64 = base64.b64encode(buffer).decode('utf-8')
+                    if img_cv is not None:
+                        # Look for signature-like areas in the rendered page
+                        signature_areas = find_signature_areas(img_cv)
                         
-                        signatures.append({
-                            'type': 'embedded_image',
-                            'image_index': img_index,
-                            'confidence': 'high',
-                            'image_base64': img_base64
-                        })
-                        
+                        for area_index, area in enumerate(signature_areas):
+                            signature_key = f"Page {page_num+1}-Area{area_index}"
+                            signature_filename = f"signature_page_{page_num+1}_area{area_index}.png"
+                            full_path = os.path.join(app.config['SIGNATURE_FOLDER'], signature_filename)
+                            
+                            # Extract and save the signature area
+                            x, y, w, h = area['bbox']
+                            signature_roi = img_cv[y:y+h, x:x+w]
+                            cv2.imwrite(full_path, signature_roi)
+                            
+                            signatures[signature_key] = {
+                                'type': 'signature_area',
+                                'page': page_num + 1,
+                                'file_path': full_path,
+                                'bbox': area['bbox']
+                            }
+                            logger.info(f"Found signature area: {signature_key}")
+                            
                 except Exception as e:
-                    logger.error(f"Error processing embedded image {img_index}: {str(e)}")
+                    logger.error(f"Error rendering page {page_num+1}: {str(e)}")
                     continue
-            
-            return signatures
-            
-        except Exception as e:
-            logger.error(f"Error extracting embedded images: {str(e)}")
-            return []
+        
+        doc.close()
+        logger.info(f"Extracted {len(signatures)} signatures total")
+        
+    except Exception as e:
+        logger.error(f"Error processing PDF: {str(e)}")
+        raise RuntimeError(f"PDF processing error: {str(e)}")
     
-    def analyze_pdf(self, pdf_path):
-        """Main method to analyze PDF for signatures"""
-        try:
-            doc = fitz.open(pdf_path)
-            results = {
-                'total_pages': len(doc),
-                'signatures_found': 0,
-                'pages': []
-            }
-            
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)
-                page_results = {
-                    'page_number': page_num + 1,
-                    'filled_fields': [],
-                    'signature_areas': [],
-                    'embedded_images': []
-                }
-                
-                # Detect filled signature fields
-                page_results['filled_fields'] = self.detect_filled_signature_fields(page)
-                
-                # Detect signature areas by image analysis
-                page_results['signature_areas'] = self.detect_signature_areas(page)
-                
-                # Extract embedded images
-                page_results['embedded_images'] = self.extract_embedded_images(page, doc)
-                
-                # Count total signatures found on this page
-                page_signatures = (len(page_results['filled_fields']) + 
-                                 len(page_results['signature_areas']) + 
-                                 len(page_results['embedded_images']))
-                
-                page_results['signatures_count'] = page_signatures
-                results['signatures_found'] += page_signatures
-                results['pages'].append(page_results)
-            
-            doc.close()
-            return results
-            
-        except Exception as e:
-            logger.error(f"Error analyzing PDF: {str(e)}")
-            raise
+    return signatures
 
-# Initialize detector
-detector = SignatureDetector()
+def find_signature_areas(image):
+    """Find potential signature areas in a rendered page"""
+    try:
+        # Convert to grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        # Apply threshold to find dark areas (potential signatures)
+        _, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY_INV)
+        
+        # Find contours
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        signature_areas = []
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area > 500:  # Minimum area threshold
+                x, y, w, h = cv2.boundingRect(contour)
+                aspect_ratio = w / h if h > 0 else 0
+                
+                # Check if it looks like a signature
+                if 1.0 < aspect_ratio < 8 and 50 < w < 400 and 20 < h < 150:
+                    # Extract the region and test if it's a signature
+                    roi = image[y:y+h, x:x+w]
+                    if is_signature(roi):
+                        signature_areas.append({
+                            'bbox': [x, y, w, h],
+                            'area': area,
+                            'aspect_ratio': aspect_ratio
+                        })
+        
+        return signature_areas
+        
+    except Exception as e:
+        logger.error(f"Error finding signature areas: {str(e)}")
+        return []
 
 @app.route('/api/detect-signatures', methods=['POST'])
 def detect_signatures():
     """API endpoint to detect signatures in PDF"""
     try:
+        logger.info("Received signature detection request")
+        
         # Check if file is provided
         if 'pdf_file' not in request.files:
+            logger.warning("No file provided in request")
             return jsonify({
                 'success': False,
                 'error': 'No PDF file provided'
@@ -234,13 +206,15 @@ def detect_signatures():
         
         file = request.files['pdf_file']
         if file.filename == '':
+            logger.warning("Empty filename provided")
             return jsonify({
                 'success': False,
                 'error': 'No file selected'
             }), 400
         
         # Validate file type
-        if not file.filename.lower().endswith('.pdf'):
+        if not allowed_file(file.filename):
+            logger.warning(f"Invalid file type: {file.filename}")
             return jsonify({
                 'success': False,
                 'error': 'Invalid file type. Only PDF files are allowed.'
@@ -248,81 +222,55 @@ def detect_signatures():
         
         # Save file temporarily
         filename = secure_filename(file.filename)
-        temp_path = os.path.join(detector.temp_dir, filename)
-        file.save(temp_path)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         
         try:
-            # Analyze PDF
-            results = detector.analyze_pdf(temp_path)
+            file.save(filepath)
+            logger.info(f"File saved to: {filepath}")
             
-            # Clean up temporary file
-            os.remove(temp_path)
+            # Extract signatures
+            signatures = extract_signatures(filepath)
+            
+            # Clean up uploaded file
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            
+            # Format response similar to original
+            if not signatures:
+                return jsonify({
+                    'success': True,
+                    'signatures': {},
+                    'message': 'No signatures found in the PDF',
+                    'count': 0
+                })
+            
+            # Convert signatures to simpler format for API response
+            api_signatures = {}
+            for key, sig_info in signatures.items():
+                api_signatures[key] = {
+                    'type': sig_info['type'],
+                    'page': sig_info['page'],
+                    'bbox': sig_info['bbox']
+                }
             
             return jsonify({
                 'success': True,
-                'data': results,
-                'message': f'Found {results["signatures_found"]} signature(s) in {results["total_pages"]} page(s)'
+                'signatures': api_signatures,
+                'message': f'Found {len(signatures)} signature(s)',
+                'count': len(signatures)
             })
             
         except Exception as e:
-            # Clean up temporary file on error
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-            raise
+            # Clean up file on error
+            if os.path.exists(filepath):
+                try:
+                    os.remove(filepath)
+                except:
+                    pass
+            raise e
             
     except Exception as e:
-        logger.error(f"API error: {str(e)}", exc_info=True)
-        return jsonify({
-            'success': False,
-            'error': f'Processing error: {str(e)}'
-        }), 500
-
-@app.route('/api/detect-signatures-base64', methods=['POST'])
-def detect_signatures_base64():
-    """API endpoint to detect signatures in PDF sent as base64"""
-    try:
-        data = request.get_json()
-        if not data or 'pdf_base64' not in data:
-            return jsonify({
-                'success': False,
-                'error': 'No base64 PDF data provided'
-            }), 400
-        
-        # Decode base64 PDF
-        try:
-            pdf_bytes = base64.b64decode(data['pdf_base64'])
-        except Exception as e:
-            return jsonify({
-                'success': False,
-                'error': 'Invalid base64 data'
-            }), 400
-        
-        # Save to temporary file
-        temp_path = os.path.join(detector.temp_dir, f"temp_{os.getpid()}.pdf")
-        with open(temp_path, 'wb') as f:
-            f.write(pdf_bytes)
-        
-        try:
-            # Analyze PDF
-            results = detector.analyze_pdf(temp_path)
-            
-            # Clean up temporary file
-            os.remove(temp_path)
-            
-            return jsonify({
-                'success': True,
-                'data': results,
-                'message': f'Found {results["signatures_found"]} signature(s) in {results["total_pages"]} page(s)'
-            })
-            
-        except Exception as e:
-            # Clean up temporary file on error
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-            raise
-            
-    except Exception as e:
-        logger.error(f"API error: {str(e)}", exc_info=True)
+        logger.error(f"API error: {str(e)}")
         return jsonify({
             'success': False,
             'error': f'Processing error: {str(e)}'
@@ -337,5 +285,34 @@ def health_check():
         'version': '1.0.0'
     })
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Global error handler"""
+    logger.error(f"Unhandled exception: {str(e)}")
+    return jsonify({
+        'success': False,
+        'error': 'Internal server error'
+    }), 500
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    try:
+        logger.info("Starting PDF Signature Detection API...")
+        logger.info(f"Upload folder: {app.config['UPLOAD_FOLDER']}")
+        logger.info(f"Signature folder: {app.config['SIGNATURE_FOLDER']}")
+        
+        # Test dependencies
+        logger.info("Testing dependencies...")
+        import fitz
+        import cv2
+        import numpy as np
+        logger.info("All dependencies loaded successfully")
+        
+        app.run(host='0.0.0.0', port=5001, debug=False)
+        
+    except ImportError as e:
+        logger.error(f"Missing dependency: {str(e)}")
+        print(f"ERROR: Missing dependency: {str(e)}")
+        print("Please install required packages: pip install PyMuPDF opencv-python numpy flask")
+    except Exception as e:
+        logger.error(f"Failed to start server: {str(e)}")
+        print(f"ERROR: Failed to start server: {str(e)}")
