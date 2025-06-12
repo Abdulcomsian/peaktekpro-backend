@@ -25,12 +25,16 @@ class PreciseSignatureExtractor:
     
     def is_genuine_handwritten_signature(self, image):
         """
-        Detect only genuine handwritten signatures within a single rectangle
+        Enhanced signature detection for canvas-drawn signatures within rectangles
         """
         try:
             height, width = image.shape[:2]
             
-            # Skip if image is too small
+            # More lenient size requirements for canvas signatures
+            if width > 500 or height > 250:
+                logger.debug(f"Rejected: Image too large ({width}x{height})")
+                return False, 0
+            
             if width < 30 or height < 15:
                 logger.debug(f"Rejected: Image too small ({width}x{height})")
                 return False, 0
@@ -38,20 +42,25 @@ class PreciseSignatureExtractor:
             # Convert to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             
-            # Use adaptive thresholding to better detect signatures
-            binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+            # Use adaptive thresholding for better canvas signature detection
+            adaptive_thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+            
+            # Also try simple threshold as fallback
+            _, binary = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY_INV)
+            
+            # Combine both methods
+            combined = cv2.bitwise_or(adaptive_thresh, binary)
             
             # Remove small noise
             kernel = np.ones((2,2), np.uint8)
-            cleaned = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
-            cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, kernel)
+            cleaned = cv2.morphologyEx(combined, cv2.MORPH_OPEN, kernel)
             
             # Count ink pixels
             ink_pixels = cv2.countNonZero(cleaned)
             total_pixels = cleaned.size
             coverage = ink_pixels / total_pixels
             
-            # Signatures should have some ink but not too much
+            # More lenient coverage for canvas signatures
             if coverage < 0.005 or coverage > 0.4:
                 logger.debug(f"Rejected: Invalid coverage ({coverage:.4f})")
                 return False, 0
@@ -65,7 +74,8 @@ class PreciseSignatureExtractor:
             
             # Analyze contours for signature characteristics
             signature_strokes = 0
-            total_signature_area = 0
+            border_lines = 0
+            valid_contours = []
             
             for contour in contours:
                 area = cv2.contourArea(contour)
@@ -78,42 +88,72 @@ class PreciseSignatureExtractor:
                 x, y, w, h = cv2.boundingRect(contour)
                 aspect_ratio = w / h if h > 0 else 0
                 
-                # Skip very long thin lines (likely borders)
-                if aspect_ratio > 15 or aspect_ratio < 0.05:
+                # Check if this is likely a border/rectangle
+                contour_perimeter = cv2.arcLength(contour, True)
+                if contour_perimeter > 0:
+                    # Calculate how much of the image perimeter this contour covers
+                    image_perimeter = 2 * (width + height)
+                    perimeter_ratio = contour_perimeter / image_perimeter
+                    
+                    # If contour covers most of the image perimeter, it's likely a border
+                    if perimeter_ratio > 0.7:
+                        border_lines += 1
+                        continue
+                
+                # Check for very long thin lines (borders)
+                if (aspect_ratio > 15 or aspect_ratio < 0.067) and area > 100:
+                    border_lines += 1
                     continue
                 
-                # Calculate contour perimeter and complexity
-                perimeter = cv2.arcLength(contour, True)
-                if perimeter > 0:
-                    # Check if this looks like a signature stroke
-                    compactness = (4 * np.pi * area) / (perimeter * perimeter)
-                    
-                    # Signature strokes are usually not too compact (not circles/squares)
-                    if compactness < 0.8 and area > 30:
-                        signature_strokes += 1
-                        total_signature_area += area
+                # Check if contour is at the edge (likely border)
+                edge_threshold = 5
+                if (x <= edge_threshold or y <= edge_threshold or 
+                    x + w >= width - edge_threshold or y + h >= height - edge_threshold):
+                    if w > width * 0.7 or h > height * 0.7:
+                        border_lines += 1
+                        continue
+                
+                # This looks like a potential signature stroke
+                valid_contours.append(contour)
+                
+                # Analyze contour complexity for signature characteristics
+                epsilon = 0.02 * contour_perimeter
+                approx = cv2.approxPolyDP(contour, epsilon, True)
+                
+                # Signature strokes should have some complexity
+                if len(approx) > 6:  # Has curves
+                    signature_strokes += 1
+                elif len(approx) > 3 and area > 50:  # Moderate complexity
+                    signature_strokes += 0.5
             
-            # Must have at least one signature stroke
+            # Must have signature-like strokes
             if signature_strokes < 1:
-                logger.debug(f"Rejected: No signature strokes found")
+                logger.debug(f"Rejected: No signature strokes (found {signature_strokes})")
                 return False, 0
             
-            # Calculate confidence based on coverage and stroke count
+            # Calculate confidence based on multiple factors
             confidence = 0.4  # Base confidence
             
             # Bonus for good coverage
             if 0.01 < coverage < 0.2:
                 confidence += 0.3
-            elif 0.005 < coverage < 0.01:
+            elif 0.005 < coverage < 0.3:
                 confidence += 0.2
             
-            # Bonus for multiple strokes
-            if signature_strokes >= 2:
+            # Bonus for signature strokes
+            if signature_strokes >= 3:
                 confidence += 0.3
-            elif signature_strokes >= 1:
+            elif signature_strokes >= 2:
                 confidence += 0.2
+            elif signature_strokes >= 1:
+                confidence += 0.1
             
-            logger.debug(f"Signature analysis - Coverage: {coverage:.4f}, Strokes: {signature_strokes}, Confidence: {confidence:.2f}")
+            # Penalty for too many borders
+            if border_lines > signature_strokes:
+                confidence -= 0.2
+            
+            logger.debug(f"Signature analysis - Coverage: {coverage:.4f}, Signature strokes: {signature_strokes}, "
+                        f"Border lines: {border_lines}, Confidence: {confidence:.2f}")
             
             return confidence > 0.6, confidence
             
@@ -122,12 +162,12 @@ class PreciseSignatureExtractor:
             return False, 0
 
     def find_signature_field_labels(self, page):
-        """Find signature field labels including 'signature field 1', 'signature field 2', etc."""
+        """Find signature field labels with broader pattern matching"""
         signature_fields = []
         try:
             # Get page dimensions to exclude footer area
             page_rect = page.rect
-            footer_threshold = page_rect.height * 0.9  # Bottom 10% is likely footer
+            footer_threshold = page_rect.height * 0.85  # Bottom 15% is likely footer
             
             text_dict = page.get_text("dict")
             
@@ -141,94 +181,144 @@ class PreciseSignatureExtractor:
                             
                             text = span["text"].strip().lower()
                             
-                            # Look for signature field patterns
+                            # Expanded patterns to catch various signature field types
                             signature_patterns = [
-                                "signature field 1",
-                                "signature field 2", 
-                                "signature field 3",
-                                "signature field 4",
+                                # Numbered signature fields
+                                "signature field",
+                                # Common signature field names
                                 "customer signature",
+                                "client signature", 
                                 "company representative signature",
-                                "authorized signature"
+                                "company signature",
+                                "representative signature",
+                                "authorized signature",
+                                "employee signature",
+                                "manager signature",
+                                "supervisor signature",
+                                "director signature",
+                                "witness signature",
+                                # Generic patterns
+                                "signature:",
+                                "sign here",
+                                "please sign",
+                                # Just "signature" if it appears to be a label
+                                "signature"
                             ]
                             
+                            # Check if text matches any signature pattern
+                            is_signature_field = False
                             for pattern in signature_patterns:
                                 if pattern in text:
-                                    bbox = span["bbox"]
-                                    signature_fields.append({
-                                        "text": span["text"].strip(),
-                                        "bbox": bbox
-                                    })
-                                    logger.info(f"Found signature field: {span['text'].strip()}")
-                                    break
+                                    # For generic "signature" pattern, add extra validation
+                                    if pattern == "signature":
+                                        # Make sure it's not part of a larger word
+                                        if (text == "signature" or 
+                                            text.endswith(" signature") or 
+                                            text.startswith("signature ") or
+                                            " signature " in text):
+                                            is_signature_field = True
+                                            break
+                                    else:
+                                        is_signature_field = True
+                                        break
+                            
+                            if is_signature_field:
+                                bbox = span["bbox"]
+                                signature_fields.append({
+                                    "text": span["text"].strip(),
+                                    "bbox": bbox
+                                })
+                                logger.info(f"Found signature field: {span['text'].strip()}")
         
         except Exception as e:
             logger.error(f"Error finding signature fields: {str(e)}")
         
         return signature_fields
 
-    def find_signature_rectangles_near_field(self, page, field_bbox):
-        """Find actual signature rectangles/boxes near the field label"""
-        rectangles = []
+    def find_rectangle_around_point(self, page, x, y, search_radius=100):
+        """Find rectangle drawings around a specific point"""
         try:
-            # Define a larger search area around the field
-            search_padding = 200
-            x0 = max(0, field_bbox[0] - search_padding)
-            y0 = max(0, field_bbox[1] - search_padding)
-            x1 = min(page.rect.width, field_bbox[2] + search_padding)
-            y1 = min(page.rect.height, field_bbox[3] + search_padding)
+            # Get all drawings/paths on the page
+            drawings = page.get_drawings()
             
-            # Render the search area
-            search_rect = fitz.Rect(x0, y0, x1, y1)
-            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=search_rect)
-            img_bytes = pix.tobytes("png")
-            nparr = np.frombuffer(img_bytes, np.uint8)
-            img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            
-            # Convert to grayscale and find edges
-            gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-            edges = cv2.Canny(gray, 50, 150)
-            
-            # Find contours
-            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            for contour in contours:
-                # Get bounding rectangle
-                x, y, w, h = cv2.boundingRect(contour)
-                
-                # Look for signature-sized rectangles
-                if 80 < w < 250 and 40 < h < 120:
-                    # Convert back to PDF coordinates
-                    pdf_x = x0 + (x / 2)
-                    pdf_y = y0 + (y / 2)
-                    pdf_w = w / 2
-                    pdf_h = h / 2
-                    
-                    rectangles.append({
-                        'bbox': [pdf_x, pdf_y, pdf_x + pdf_w, pdf_y + pdf_h],
-                        'width': pdf_w,
-                        'height': pdf_h
-                    })
-                    
-                    logger.debug(f"Found signature rectangle: {pdf_w:.1f}x{pdf_h:.1f}")
-            
-            return rectangles
-            
-        except Exception as e:
-            logger.error(f"Error finding rectangles: {str(e)}")
-            return []
+            for drawing in drawings:
+                for item in drawing["items"]:
+                    if item[0] == "re":  # Rectangle
+                        rect = fitz.Rect(item[1])
+                        # Check if the point is near this rectangle
+                        if (abs(rect.x0 - x) < search_radius or abs(rect.x1 - x) < search_radius) and \
+                           (abs(rect.y0 - y) < search_radius or abs(rect.y1 - y) < search_radius):
+                            return rect
+            return None
+        except:
+            return None
 
-    def crop_signature_area(self, page, bbox):
-        """Crop a signature area from the page"""
+    def extract_signature_area_with_rectangle(self, page, field_bbox):
+        """Extract signature area, looking for rectangles around the field"""
         try:
-            rect = fitz.Rect(bbox[0], bbox[1], bbox[2], bbox[3])
-            pix = page.get_pixmap(matrix=fitz.Matrix(3, 3), clip=rect)
+            # First, try to find a rectangle near the field label
+            field_center_x = (field_bbox[0] + field_bbox[2]) / 2
+            field_center_y = (field_bbox[1] + field_bbox[3]) / 2
+            
+            # Look for rectangles to the right and below the field label
+            search_points = [
+                (field_bbox[2] + 50, field_center_y),     # Right of label
+                (field_center_x, field_bbox[3] + 30),     # Below label
+                (field_bbox[2] + 100, field_bbox[3] + 20) # Diagonal from label
+            ]
+            
+            signature_rect = None
+            for search_x, search_y in search_points:
+                signature_rect = self.find_rectangle_around_point(page, search_x, search_y)
+                if signature_rect:
+                    logger.debug(f"Found rectangle at {signature_rect}")
+                    break
+            
+            # If we found a rectangle, use it
+            if signature_rect:
+                # Add small padding inside the rectangle
+                padding = 5
+                x0 = signature_rect.x0 + padding
+                y0 = signature_rect.y0 + padding  
+                x1 = signature_rect.x1 - padding
+                y1 = signature_rect.y1 - padding
+            else:
+                # Fallback: create search areas near the field label
+                logger.debug("No rectangle found, using fallback area")
+                
+                # Try area to the right of the label
+                x0 = field_bbox[2] + 20
+                y0 = field_bbox[1] - 10
+                x1 = x0 + 150
+                y1 = y0 + 60
+                
+                # If that goes off page, try below the label
+                if x1 > page.rect.width:
+                    x0 = field_bbox[0]
+                    y0 = field_bbox[3] + 10
+                    x1 = x0 + 150
+                    y1 = y0 + 50
+            
+            # Ensure we don't go outside page bounds
+            x0 = max(0, x0)
+            y0 = max(0, y0)
+            x1 = min(page.rect.width, x1)
+            y1 = min(page.rect.height, y1)
+            
+            # Create rectangle and render
+            rect = fitz.Rect(x0, y0, x1, y1)
+            
+            # Render at higher resolution for better quality
+            pix = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5), clip=rect)
             img_bytes = pix.tobytes("png")
             nparr = np.frombuffer(img_bytes, np.uint8)
             img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            
+            logger.debug(f"Extracted area: {rect}, Image size: {img_cv.shape if img_cv is not None else 'None'}")
             return img_cv
+            
         except Exception as e:
-            logger.error(f"Error cropping signature area: {str(e)}")
+            logger.error(f"Error extracting signature area: {str(e)}")
             return None
 
     def image_to_base64(self, image):
@@ -243,7 +333,7 @@ class PreciseSignatureExtractor:
 
     def extract_signatures(self, pdf_path, include_base64=True, save_images=True):
         """
-        Extract signatures from rectangles near signature field labels
+        Extract signatures from areas near signature field labels
         """
         signatures = []
         
@@ -257,68 +347,46 @@ class PreciseSignatureExtractor:
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
                 
-                # Find signature field labels
+                # Find signature field labels (excluding footer)
                 signature_fields = self.find_signature_field_labels(page)
                 logger.info(f"Page {page_num+1}: Found {len(signature_fields)} signature fields")
                 
                 # Process each field individually
                 for field_idx, field in enumerate(signature_fields):
                     try:
-                        # Find rectangles near this field
-                        rectangles = self.find_signature_rectangles_near_field(page, field["bbox"])
+                        # Extract area around this specific field (looking for rectangles)
+                        signature_img = self.extract_signature_area_with_rectangle(page, field["bbox"])
                         
-                        if not rectangles:
-                            # Fallback: create search areas around the field
-                            search_areas = [
-                                # Right of the field
-                                [field["bbox"][2] + 10, field["bbox"][1] - 10, 
-                                 field["bbox"][2] + 150, field["bbox"][3] + 40],
-                                # Below the field
-                                [field["bbox"][0], field["bbox"][3] + 5,
-                                 field["bbox"][0] + 150, field["bbox"][3] + 55]
-                            ]
-                            rectangles = [{'bbox': area, 'width': 140, 'height': 50} for area in search_areas]
-                        
-                        # Check each rectangle for signatures
-                        found_signature = False
-                        for rect_idx, rect in enumerate(rectangles):
-                            if found_signature:
-                                break
-                                
-                            signature_img = self.crop_signature_area(page, rect["bbox"])
+                        if signature_img is not None:
+                            has_signature, confidence = self.is_genuine_handwritten_signature(signature_img)
                             
-                            if signature_img is not None:
-                                has_signature, confidence = self.is_genuine_handwritten_signature(signature_img)
+                            if has_signature:
+                                signature_data = {
+                                    'page': page_num + 1,
+                                    'type': 'handwritten_signature',
+                                    'field_label': field['text'],
+                                    'identifier': f"page_{page_num+1}_field_{field_idx}",
+                                    'width': signature_img.shape[1],
+                                    'height': signature_img.shape[0],
+                                    'confidence': confidence
+                                }
                                 
-                                if has_signature:
-                                    signature_data = {
-                                        'page': page_num + 1,
-                                        'type': 'canvas_signature',
-                                        'field_label': field['text'],
-                                        'identifier': f"page_{page_num+1}_field_{field_idx}",
-                                        'width': signature_img.shape[1],
-                                        'height': signature_img.shape[0],
-                                        'confidence': confidence
-                                    }
-                                    
-                                    # Save image to disk if requested
-                                    if save_images and self.output_dir:
-                                        signature_filename = f"signature_page_{page_num+1}_field_{field_idx}.png"
-                                        full_path = os.path.join(self.output_dir, signature_filename)
-                                        cv2.imwrite(full_path, signature_img)
-                                        signature_data['file_path'] = full_path
-                                        signature_data['filename'] = signature_filename
-                                    
-                                    # Include base64 if requested
-                                    if include_base64:
-                                        signature_data['base64'] = self.image_to_base64(signature_img)
-                                    
-                                    signatures.append(signature_data)
-                                    logger.info(f"Found signature for '{field['text']}' on page {page_num+1}")
-                                    found_signature = True
-                        
-                        if not found_signature:
-                            logger.debug(f"No signature found for '{field['text']}' on page {page_num+1}")
+                                # Save image to disk if requested
+                                if save_images and self.output_dir:
+                                    signature_filename = f"signature_page_{page_num+1}_field_{field_idx}.png"
+                                    full_path = os.path.join(self.output_dir, signature_filename)
+                                    cv2.imwrite(full_path, signature_img)
+                                    signature_data['file_path'] = full_path
+                                    signature_data['filename'] = signature_filename
+                                
+                                # Include base64 if requested
+                                if include_base64:
+                                    signature_data['base64'] = self.image_to_base64(signature_img)
+                                
+                                signatures.append(signature_data)
+                                logger.info(f"Found signature for '{field['text']}' on page {page_num+1}")
+                            else:
+                                logger.debug(f"No signature found for '{field['text']}' on page {page_num+1}")
                         
                     except Exception as e:
                         logger.error(f"Error processing field '{field['text']}': {str(e)}")
@@ -338,7 +406,7 @@ class PreciseSignatureExtractor:
         }
 
 def main():
-    parser = argparse.ArgumentParser(description='Extract canvas signatures from PDF files')
+    parser = argparse.ArgumentParser(description='Extract precise handwritten signatures from PDF files')
     parser.add_argument('pdf_path', help='Path to the PDF file')
     parser.add_argument('--output-dir', '-o', help='Directory to save signature images')
     parser.add_argument('--no-base64', action='store_true', help='Don\'t include base64 encoded images')
@@ -361,6 +429,7 @@ def main():
             save_images=not args.no_save
         )
         
+        # Output JSON result
         print(json.dumps(result, indent=2))
         
     except Exception as e:
