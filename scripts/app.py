@@ -1,224 +1,114 @@
-#!/usr/bin/env python3
 import os
+import sys
+import json
 import logging
-from flask import Flask, request, jsonify
-from werkzeug.utils import secure_filename
 import fitz  # PyMuPDF
 import cv2
 import numpy as np
-import base64
-
-# Initialize Flask app
-app = Flask(__name__)
-
-# Configuration
-app.config.update({
-    'UPLOAD_FOLDER': 'uploads',
-    'SIGNATURE_FOLDER': 'static/signatures',
-    'ALLOWED_EXTENSIONS': {'pdf'},
-    'MAX_CONTENT_LENGTH': 16 * 1024 * 1024  # 16MB max file size
-})
+from datetime import datetime
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('signature_extractor.log')
-    ]
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def setup_directories():
-    """Ensure required directories exist"""
-    try:
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        os.makedirs(app.config['SIGNATURE_FOLDER'], exist_ok=True)
-        logger.info("Directories setup complete")
-    except Exception as e:
-        logger.error(f"Directory setup failed: {str(e)}")
-        raise
+# Configuration
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(SCRIPT_DIR, '../../uploads')
+SIGNATURE_FOLDER = os.path.join(SCRIPT_DIR, '../../signatures')
 
-def allowed_file(filename):
-    """Check if the file has an allowed extension"""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-def image_to_base64(image):
-    """Convert OpenCV image to base64 string"""
-    try:
-        _, buffer = cv2.imencode('.png', image)
-        return base64.b64encode(buffer).decode('utf-8')
-    except Exception as e:
-        logger.error(f"Image to base64 conversion failed: {str(e)}")
-        return None
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(SIGNATURE_FOLDER, exist_ok=True)
 
 def is_signature(image):
-    """Precise signature detection with improved heuristics"""
+    """Signature detection logic"""
     try:
-        if image is None:
-            return False
-
-        # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                    cv2.THRESH_BINARY_INV, 11, 2)
         
-        # Apply adaptive thresholding
-        thresh = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY_INV, 11, 2
-        )
-        
-        # Calculate ink coverage
         ink_pixels = cv2.countNonZero(thresh)
-        coverage = ink_pixels / thresh.size
+        total_pixels = thresh.size
+        coverage = ink_pixels / total_pixels
         
-        # Find contours
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not contours:
             return False
             
-        # Analyze largest contour
         largest_contour = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(largest_contour)
-        aspect_ratio = w / max(h, 1)  # Avoid division by zero
+        aspect_ratio = w / h
         
-        # Signature validation criteria
-        valid_coverage = 0.005 < coverage < 0.3
-        valid_aspect = 0.5 < aspect_ratio < 6
-        valid_size = w > 50 and h > 20
-        
-        logger.debug(f"Signature check - Coverage: {coverage:.3f}, Aspect: {aspect_ratio:.2f}, Size: {w}x{h}")
-        
-        return valid_coverage and valid_aspect and valid_size
+        return (0.001 < coverage < 0.5) and (0.3 < aspect_ratio < 8)
         
     except Exception as e:
         logger.error(f"Signature detection error: {str(e)}")
         return False
 
 def extract_signatures(pdf_path):
-    """Extract signatures from PDF with improved detection"""
-    signatures = []
-    
+    signatures = {}
     try:
-        if not os.path.exists(pdf_path):
-            raise FileNotFoundError(f"PDF not found: {pdf_path}")
-        
         doc = fitz.open(pdf_path)
-        logger.info(f"Processing PDF with {len(doc)} pages")
         
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
-            found_signatures = False
+            image_list = page.get_images(full=True)
             
-            # Process embedded images first
-            for img_index, img in enumerate(page.get_images(full=True)):
-                try:
+            # Process embedded images
+            if image_list:
+                for img_index, img in enumerate(image_list):
                     xref = img[0]
                     base_image = doc.extract_image(xref)
-                    img_data = np.frombuffer(base_image["image"], np.uint8)
-                    img_cv = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
+                    image_bytes = base_image["image"]
+                    nparr = np.frombuffer(image_bytes, np.uint8)
+                    img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                     
-                    if img_cv is not None and is_signature(img_cv):
-                        # Save signature image
-                        filename = f"signature_page_{page_num+1}_img{img_index}.png"
-                        filepath = os.path.join(app.config['SIGNATURE_FOLDER'], filename)
-                        cv2.imwrite(filepath, img_cv)
-                        
-                        # Prepare response data
-                        signature_data = {
-                            'page': page_num + 1,
-                            'type': 'embedded',
-                            'width': img_cv.shape[1],
-                            'height': img_cv.shape[0],
-                            'file_path': filepath,
-                            'image_url': f"/static/signatures/{filename}",
-                            'image_data': f"data:image/png;base64,{image_to_base64(img_cv)}"
-                        }
-                        signatures.append(signature_data)
-                        found_signatures = True
-                        logger.info(f"Found signature on page {page_num+1}, image {img_index}")
-                        
-                except Exception as e:
-                    logger.error(f"Error processing image {img_index} on page {page_num+1}: {str(e)}")
+                    if is_signature(img_cv):
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        signature_filename = f"sig_{timestamp}_p{page_num+1}_i{img_index}.png"
+                        full_path = os.path.join(SIGNATURE_FOLDER, signature_filename)
+                        cv2.imwrite(full_path, img_cv)
+                        signatures[f"page_{page_num+1}_img_{img_index}"] = signature_filename
             
-            # Fallback to page rendering if no embedded signatures found
-            if not found_signatures:
-                try:
-                    pix = page.get_pixmap(dpi=150)
-                    img_data = np.frombuffer(pix.tobytes("png"), np.uint8)
-                    img_cv = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-                    
-                    if img_cv is not None and is_signature(img_cv):
-                        filename = f"signature_page_{page_num+1}_rendered.png"
-                        filepath = os.path.join(app.config['SIGNATURE_FOLDER'], filename)
-                        cv2.imwrite(filepath, img_cv)
-                        
-                        signature_data = {
-                            'page': page_num + 1,
-                            'type': 'rendered',
-                            'width': img_cv.shape[1],
-                            'height': img_cv.shape[0],
-                            'file_path': filepath,
-                            'image_url': f"/static/signatures/{filename}",
-                            'image_data': f"data:image/png;base64,{image_to_base64(img_cv)}"
-                        }
-                        signatures.append(signature_data)
-                        logger.info(f"Found rendered signature on page {page_num+1}")
-                        
-                except Exception as e:
-                    logger.error(f"Error rendering page {page_num+1}: {str(e)}")
+            # Fallback to rendered page
+            if not image_list or not signatures:
+                pix = page.get_pixmap(dpi=150)
+                img_bytes = pix.tobytes("png")
+                nparr = np.frombuffer(img_bytes, np.uint8)
+                img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                
+                if is_signature(img_cv):
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    signature_filename = f"sig_{timestamp}_p{page_num+1}_rendered.png"
+                    full_path = os.path.join(SIGNATURE_FOLDER, signature_filename)
+                    cv2.imwrite(full_path, img_cv)
+                    signatures[f"page_{page_num+1}"] = signature_filename
         
         doc.close()
-        return signatures
         
     except Exception as e:
-        logger.error(f"PDF processing failed: {str(e)}", exc_info=True)
-        raise
-
-@app.route('/api/extract-signatures', methods=['POST'])
-def handle_extraction():
-    """API endpoint for signature extraction"""
-    try:
-        if 'pdf_file' not in request.files:
-            return jsonify({'success': False, 'error': 'No file provided'}), 400
-        
-        file = request.files['pdf_file']
-        if file.filename == '':
-            return jsonify({'success': False, 'error': 'No file selected'}), 400
-        
-        if not allowed_file(file.filename):
-            return jsonify({'success': False, 'error': 'Invalid file type'}), 400
-        
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
-        signatures = extract_signatures(filepath)
-        
-        # Convert local paths to full URLs
-        base_url = request.host_url.rstrip('/')
-        for sig in signatures:
-            sig['image_url'] = base_url + sig['image_url']
-        
-        return jsonify({
-            'success': True,
-            'count': len(signatures),
-            'signatures': signatures
-        })
-        
-    except Exception as e:
-        logger.error(f"API error: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({'status': 'healthy', 'version': '1.0.0'})
+        logger.error(f"PDF processing error: {str(e)}")
+        raise RuntimeError(f"PDF processing failed: {str(e)}")
+    
+    return signatures
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print(json.dumps({"error": "No PDF file provided"}))
+        sys.exit(1)
+    
+    pdf_path = sys.argv[1]
+    
     try:
-        setup_directories()
-        app.run(host='0.0.0.0', port=5001, debug=True)
+        signatures = extract_signatures(pdf_path)
+        print(json.dumps({
+            "success": True,
+            "signatures": signatures,
+            "message": "Signatures extracted successfully"
+        }))
     except Exception as e:
-        logger.critical(f"Application failed to start: {str(e)}")
-        raise
+        print(json.dumps({
+            "success": False,
+            "error": str(e),
+            "message": "Failed to extract signatures"
+        }))
+        sys.exit(1)
