@@ -33,73 +33,84 @@ class PDFSignatureService
      * @return array
      * @throws Exception
      */
-    public function extractSignatures($pdfPath, $options = [])
-    {
-        // Validate PDF file exists
-        if (!file_exists($pdfPath)) {
-            throw new Exception("PDF file not found: {$pdfPath}");
+/**
+ * Extract signatures from a PDF file
+ *
+ * @param string $pdfPath Path to the PDF file
+ * @param array $options Options for extraction
+ * @return array
+ * @throws Exception
+ */
+public function extractSignatures($pdfPath, $options = [])
+{
+    // Validate PDF file exists
+    if (!file_exists($pdfPath)) {
+        throw new Exception("PDF file not found: {$pdfPath}");
+    }
+
+    // Default options
+    $defaultOptions = [
+        'output_format' => 'json',
+        'quiet' => true,
+        'strict_mode' => true,  // Default to strict mode for fewer false positives
+        'debug' => false
+    ];
+
+    $options = array_merge($defaultOptions, $options);
+
+    // Build command for the new Python script
+    $command = $this->buildCommand($pdfPath, $options);
+
+    Log::info("Executing PDF signature extraction", [
+        'command' => $this->sanitizeCommandForLog($command),
+        'pdf_path' => basename($pdfPath),
+        'mode' => $options['strict_mode'] ? 'strict' : 'lenient'
+    ]);
+
+    // Execute command
+    $output = [];
+    $returnCode = 0;
+    exec($command . ' 2>&1', $output, $returnCode);
+
+    // Check if command executed successfully
+    if ($returnCode !== 0) {
+        $errorMessage = "Python script execution failed with return code: {$returnCode}";
+        if (!empty($output)) {
+            $errorMessage .= ". Output: " . implode("\n", $output);
         }
-
-        // Default options
-        $defaultOptions = [
-            'output_format' => 'json', // json or file
-            'quiet' => true
-        ];
-
-        $options = array_merge($defaultOptions, $options);
-
-        // Build command for the new Python script
-        $command = $this->buildCommand($pdfPath, $options);
-
-        Log::info("Executing PDF signature extraction", [
-            'command' => $this->sanitizeCommandForLog($command),
+        Log::error("PDF signature extraction failed", [
+            'return_code' => $returnCode,
+            'output' => $output,
             'pdf_path' => basename($pdfPath)
         ]);
-
-        // Execute command
-        $output = [];
-        $returnCode = 0;
-        exec($command . ' 2>&1', $output, $returnCode);
-
-        // Check if command executed successfully
-        if ($returnCode !== 0) {
-            $errorMessage = "Python script execution failed with return code: {$returnCode}";
-            if (!empty($output)) {
-                $errorMessage .= ". Output: " . implode("\n", $output);
-            }
-            Log::error("PDF signature extraction failed", [
-                'return_code' => $returnCode,
-                'output' => $output,
-                'pdf_path' => basename($pdfPath)
-            ]);
-            throw new Exception($errorMessage);
-        }
-
-        // Parse JSON output
-        $jsonOutput = implode("\n", $output);
-        
-        // Try to extract JSON from output (in case there are extra messages)
-        if (preg_match('/\{.*\}/s', $jsonOutput, $matches)) {
-            $jsonOutput = $matches[0];
-        }
-
-        $result = json_decode($jsonOutput, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error("Failed to parse JSON output", [
-                'json_error' => json_last_error_msg(),
-                'output' => $jsonOutput
-            ]);
-            throw new Exception("Failed to parse JSON output: " . json_last_error_msg());
-        }
-
-        if (!$result['success']) {
-            throw new Exception("Signature extraction failed: " . ($result['error'] ?? 'Unknown error'));
-        }
-
-        // Transform the result to match your expected format
-        return $this->transformResult($result);
+        throw new Exception($errorMessage);
     }
+
+    // Parse JSON output
+    $jsonOutput = implode("\n", $output);
+    
+    // Try to extract JSON from output (in case there are extra messages)
+    if (preg_match('/\{.*\}/s', $jsonOutput, $matches)) {
+        $jsonOutput = $matches[0];
+    }
+
+    $result = json_decode($jsonOutput, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        Log::error("Failed to parse JSON output", [
+            'json_error' => json_last_error_msg(),
+            'output' => $jsonOutput
+        ]);
+        throw new Exception("Failed to parse JSON output: " . json_last_error_msg());
+    }
+
+    if (!$result['success']) {
+        throw new Exception("Signature extraction failed: " . ($result['error'] ?? 'Unknown error'));
+    }
+
+    // Transform the result to match your expected format
+    return $this->transformResult($result);
+}
 
     /**
      * Extract signatures from uploaded file
@@ -223,33 +234,46 @@ class PDFSignatureService
      * @param array $options
      * @return string
      */
-    private function buildCommand($pdfPath, $options)
-    {
-        // Use the updated script with --file argument (compatible with both app.py and pdf_signature_api.py)
-        $command = escapeshellcmd($this->pythonExecutable) . ' ' . escapeshellarg($this->pythonScriptPath);
-        $command .= ' --file ' . escapeshellarg($pdfPath);
+ private function buildCommand($pdfPath, $options)
+{
+    // Use the updated script with --file argument
+    $command = escapeshellcmd($this->pythonExecutable) . ' ' . escapeshellarg($this->pythonScriptPath);
+    $command .= ' --file ' . escapeshellarg($pdfPath);
 
-        // Add quiet flag if specified
-        if (isset($options['quiet']) && $options['quiet']) {
-            $command .= ' --quiet';
-        }
-
-        // Add output directory if specified
-        if (!empty($options['output_dir'])) {
-            $command .= ' --output-dir ' . escapeshellarg($options['output_dir']);
-        }
-
-        // Add other flags based on options
-        if (isset($options['save_images']) && !$options['save_images']) {
-            $command .= ' --no-save';
-        }
-
-        if (isset($options['include_base64']) && !$options['include_base64']) {
-            $command .= ' --no-base64';
-        }
-        
-        return $command;
+    // Add quiet flag if specified
+    if (isset($options['quiet']) && $options['quiet']) {
+        $command .= ' --quiet';
     }
+
+    // Add strict/lenient mode
+    if (isset($options['strict_mode']) && $options['strict_mode'] === false) {
+        $command .= ' --lenient';
+    } else {
+        // Default to strict mode
+        $command .= ' --strict';
+    }
+
+    // Add debug flag if needed
+    if (isset($options['debug']) && $options['debug']) {
+        $command .= ' --debug';
+    }
+
+    // Add output directory if specified
+    if (!empty($options['output_dir'])) {
+        $command .= ' --output-dir ' . escapeshellarg($options['output_dir']);
+    }
+
+    // Add other flags based on options
+    if (isset($options['save_images']) && !$options['save_images']) {
+        $command .= ' --no-save';
+    }
+
+    if (isset($options['include_base64']) && !$options['include_base64']) {
+        $command .= ' --no-base64';
+    }
+    
+    return $command;
+}
 
     /**
      * Transform the Python script result to match expected format
