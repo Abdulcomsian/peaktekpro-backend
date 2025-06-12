@@ -67,6 +67,7 @@ class SupplierController extends Controller
             'email' => 'required|email|unique:users,email',
             // 'password' => 'required|string|min:8',
             'location'=> 'nullable|string', 
+            'status' => 'nullable|string',
             //////new fiels
             'subject' => 'nullable|string',
             'content' => 'nullable|string'
@@ -90,7 +91,7 @@ class SupplierController extends Controller
                 'company_id'=> $user->company_id,
                 'created_by'=> $created_by,
                 'location' => $request->location,
-                'status' => 'active'
+                'status' => $request->status
             ]);
 
             //save supplier subj and content here
