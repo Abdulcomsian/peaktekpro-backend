@@ -162,7 +162,7 @@ class PreciseSignatureExtractor:
             return False, 0
 
     def find_signature_field_labels(self, page):
-        """Find signature field labels with broader pattern matching"""
+        """Find signature field labels with more focused pattern matching"""
         signature_fields = []
         try:
             # Get page dimensions to exclude footer area
@@ -180,55 +180,39 @@ class PreciseSignatureExtractor:
                                 continue
                             
                             text = span["text"].strip().lower()
+                            original_text = span["text"].strip()
                             
-                            # Expanded patterns to catch various signature field types
-                            signature_patterns = [
-                                # Numbered signature fields
-                                "signature field",
-                                # Common signature field names
+                            # Check for your specific signature field patterns
+                            is_signature_field = False
+                            
+                            # Direct matches for your fields
+                            if any(pattern in text for pattern in [
                                 "customer signature",
-                                "client signature", 
-                                "company representative signature",
-                                "company signature",
-                                "representative signature",
-                                "authorized signature",
-                                "employee signature",
-                                "manager signature",
-                                "supervisor signature",
-                                "director signature",
-                                "witness signature",
-                                # Generic patterns
+                                "company representative signature", 
+                                "company rep signature",
+                                "signature field"
+                            ]):
+                                is_signature_field = True
+                            
+                            # More generic patterns
+                            elif any(pattern in text for pattern in [
                                 "signature:",
                                 "sign here",
-                                "please sign",
-                                # Just "signature" if it appears to be a label
-                                "signature"
-                            ]
+                                "please sign"
+                            ]):
+                                is_signature_field = True
                             
-                            # Check if text matches any signature pattern
-                            is_signature_field = False
-                            for pattern in signature_patterns:
-                                if pattern in text:
-                                    # For generic "signature" pattern, add extra validation
-                                    if pattern == "signature":
-                                        # Make sure it's not part of a larger word
-                                        if (text == "signature" or 
-                                            text.endswith(" signature") or 
-                                            text.startswith("signature ") or
-                                            " signature " in text):
-                                            is_signature_field = True
-                                            break
-                                    else:
-                                        is_signature_field = True
-                                        break
+                            # Check for standalone "signature" with validation
+                            elif text == "signature" or text.endswith(":signature") or text.endswith(" signature"):
+                                is_signature_field = True
                             
                             if is_signature_field:
                                 bbox = span["bbox"]
                                 signature_fields.append({
-                                    "text": span["text"].strip(),
+                                    "text": original_text,
                                     "bbox": bbox
                                 })
-                                logger.info(f"Found signature field: {span['text'].strip()}")
+                                logger.info(f"Found signature field: '{original_text}' at {bbox}")
         
         except Exception as e:
             logger.error(f"Error finding signature fields: {str(e)}")
@@ -360,6 +344,8 @@ class PreciseSignatureExtractor:
                         if signature_img is not None:
                             has_signature, confidence = self.is_genuine_handwritten_signature(signature_img)
                             
+                            logger.info(f"Field '{field['text']}' - Has signature: {has_signature}, Confidence: {confidence:.2f}")
+                            
                             if has_signature:
                                 signature_data = {
                                     'page': page_num + 1,
@@ -384,15 +370,17 @@ class PreciseSignatureExtractor:
                                     signature_data['base64'] = self.image_to_base64(signature_img)
                                 
                                 signatures.append(signature_data)
-                                logger.info(f"Found signature for '{field['text']}' on page {page_num+1}")
+                                logger.info(f"SUCCESSFULLY extracted signature for '{field['text']}' on page {page_num+1}")
                             else:
-                                logger.debug(f"No signature found for '{field['text']}' on page {page_num+1}")
+                                logger.warning(f"No signature detected for '{field['text']}' on page {page_num+1} (confidence: {confidence:.2f})")
+                        else:
+                            logger.warning(f"Could not extract image for field '{field['text']}'")
                         
                     except Exception as e:
                         logger.error(f"Error processing field '{field['text']}': {str(e)}")
             
             doc.close()
-            logger.info(f"Extraction complete. Found {len(signatures)} signatures")
+            logger.info(f"Extraction complete. Found {len(signatures)} signatures total")
             
         except Exception as e:
             logger.error(f"Error processing PDF: {str(e)}", exc_info=True)
