@@ -38,7 +38,17 @@ class CustomerAgreementController extends Controller
     {
         $this->pdfSignatureService = $pdfSignatureService;
     }
-    
+     private function processDirectly($filepath)
+    {
+        // Use the direct file extraction method
+        return $this->pdfSignatureService->extractSignatures($filepath, [
+            'strict_mode' => true,  // Use strict mode for more accurate detection
+            'quiet' => true,
+            'debug' => false,
+            'include_base64' => false,  // Don't need base64 for just checking
+            'save_images' => false,     // Don't need to save images
+        ]);
+    }
     public function customerAgreement(Request $request, $id)
     {
         try {

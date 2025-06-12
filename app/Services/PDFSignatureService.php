@@ -122,6 +122,21 @@ public function extractSignatures($pdfPath, $options = [])
      */
     public function extractSignaturesFromUpload($file, $options = [])
     {
+
+        $options = [
+    'strict_mode' => true,   // Only high-confidence signatures
+    'quiet' => true,         // No console output
+    'include_base64' => false, // Don't generate base64 images
+    'save_images' => false    // Don't save images to disk
+];
+
+// For detailed analysis
+$options = [
+    'strict_mode' => false,  // Include all possible signatures
+    'debug' => true,         // Show detailed info
+    'include_base64' => true,
+    'save_images' => true
+];
         // For test mode files (created from existing files), validation is different
         $isTestMode = $file->getError() === UPLOAD_ERR_OK || $file->getPathname();
         
