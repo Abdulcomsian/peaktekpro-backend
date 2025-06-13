@@ -1,3 +1,106 @@
+#!/usr/bin/env python3
+import os
+import sys
+import logging
+import json
+import tempfile
+import argparse
+from flask import Flask, request, jsonify
+from werkzeug.utils import secure_filename
+import fitz  # PyMuPDF
+import cv2
+import numpy as np
+from datetime import datetime
+import re
+
+# Configure logging to be less verbose
+logging.basicConfig(level=logging.WARNING, format='%(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
+
+# Use temp directory to avoid permission issues
+TEMP_DIR = tempfile.gettempdir()
+UPLOAD_FOLDER = os.path.join(TEMP_DIR, 'pdf_uploads')
+SIGNATURE_FOLDER = os.path.join(TEMP_DIR, 'signatures')
+
+# Create directories
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(SIGNATURE_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'pdf'
+
+def is_field_actually_filled(field_value, field_name=''):
+    """
+    Determine if a form field contains actual user-entered content
+    vs just placeholder text or field labels
+    """
+    if not field_value:
+        return False
+    
+    # Clean the value
+    value = str(field_value).strip()
+    
+    # Empty or too short
+    if len(value) < 2:
+        return False
+    
+    # Check for empty field patterns
+    empty_patterns = [
+        r'^[\s_\-\.]+$',  # Just underscores, spaces, dashes, dots
+        r'^_{2,}$',       # Multiple underscores
+        r'^\s*$',         # Just whitespace
+        r'^\.{3,}$',      # Multiple dots
+        r'^-{2,}$',       # Multiple dashes
+    ]
+    
+    for pattern in empty_patterns:
+        if re.match(pattern, value):
+            return False
+    
+    # Check if value is just the field name/label
+    if field_name:
+        # Remove common separators and compare
+        clean_field_name = field_name.lower().replace('_', ' ').replace(':', '').strip()
+        clean_value = value.lower().replace('_', ' ').replace(':', '').strip()
+        
+        # If the value is just the field name, it's not filled
+        if clean_value == clean_field_name:
+            return False
+        
+        # Check if value is just field label keywords
+        label_keywords = [
+            'signature', 'customer signature', 'company representative signature',
+            'printed name', 'date signed', 'date', 'name', 'sign here',
+            'type here', 'your signature', 'your name', 'n/a', 'na', 'none'
+        ]
+        
+        if clean_value in label_keywords:
+            return False
+    
+    # If we get here, the field likely contains actual content
+    return True
+
+def detect_digital_signatures(doc):
+    """Detect cryptographic digital signatures in the PDF"""
+    digital_sigs = []
+    
+    try:
+        # Check if document has any digital signatures
+        if doc.is_signed:
+            # Get signature information
+            sig_dict = doc.get_sigflags()
+            digital_sigs.append({
+                'type': 'digital_signature',
+                'status': 'document_signed',
+                'flags': sig_dict
+            })
+    except Exception as e:
+        logger.debug(f"Error checking digital signatures: {e}")
+    
+    return digital_sigs
+
 def detect_form_signatures(page):
     """Detect signature fields in PDF forms with accurate detection"""
     signatures = []
@@ -83,7 +186,6 @@ def detect_form_signatures(page):
                         
                         elif is_date_field:
                             # For dates, check if it contains date-like patterns
-                            import re
                             date_patterns = [
                                 r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}',  # MM/DD/YYYY or MM-DD-YYYY
                                 r'\d{4}[/-]\d{1,2}[/-]\d{1,2}',    # YYYY-MM-DD
@@ -107,182 +209,6 @@ def detect_form_signatures(page):
                                 'value': field_value,
                                 'bbox': widget_info['rect'],
                                 'confidence': 'high'
-                            })
-                    #!/usr/bin/env python3
-import os
-import sys
-import logging
-import json
-import tempfile
-import argparse
-from flask import Flask, request, jsonify
-from werkzeug.utils import secure_filename
-import fitz  # PyMuPDF
-import cv2
-import numpy as np
-from datetime import datetime
-import re
-
-# Configure logging to be less verbose
-logging.basicConfig(level=logging.WARNING, format='%(levelname)s: %(message)s')
-logger = logging.getLogger(__name__)
-
-app = Flask(__name__)
-
-# Use temp directory to avoid permission issues
-TEMP_DIR = tempfile.gettempdir()
-UPLOAD_FOLDER = os.path.join(TEMP_DIR, 'pdf_uploads')
-SIGNATURE_FOLDER = os.path.join(TEMP_DIR, 'signatures')
-
-# Create directories
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(SIGNATURE_FOLDER, exist_ok=True)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'pdf'
-
-def detect_digital_signatures(doc):
-    """Detect cryptographic digital signatures in the PDF"""
-    digital_sigs = []
-    
-    try:
-        # Check if document has any digital signatures
-        if doc.is_signed:
-            # Get signature information
-            sig_dict = doc.get_sigflags()
-            digital_sigs.append({
-                'type': 'digital_signature',
-                'status': 'document_signed',
-                'flags': sig_dict
-            })
-    except Exception as e:
-        logger.debug(f"Error checking digital signatures: {e}")
-    
-    return digital_sigs
-
-def detect_form_signatures(page):
-    """Detect signature fields in PDF forms with improved detection"""
-    signatures = []
-    
-    try:
-        widgets = page.widgets()
-        
-        for widget in widgets:
-            widget_info = {
-                'field_name': widget.field_name or '',
-                'field_type': widget.field_type,
-                'field_value': widget.field_value or '',
-                'rect': list(widget.rect) if widget.rect else None
-            }
-            
-            # Check for signature widget fields
-            if widget.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE:
-                # This is a dedicated signature field
-                is_signed = False
-                
-                # Multiple methods to check if signature field is filled
-                # Method 1: Check field value
-                if widget.field_value and str(widget.field_value).strip():
-                    is_signed = True
-                
-                # Method 2: Check for appearance stream (visual representation)
-                try:
-                    if hasattr(widget, '_annot') and widget._annot:
-                        ap = widget._annot.get_ap()
-                        if ap:
-                            is_signed = True
-                except:
-                    pass
-                
-                # Method 3: Check if field has any content streams
-                try:
-                    # Get the PDF object for this widget
-                    xref = widget.xref
-                    if xref > 0:
-                        # Check if there's content associated with this field
-                        obj = page.parent.xref_object(xref)
-                        if obj and '/V' in obj:  # /V indicates a value
-                            v_value = obj.get('/V')
-                            if v_value and str(v_value).strip():
-                                is_signed = True
-                except:
-                    pass
-                
-                signatures.append({
-                    'type': 'signature_field',
-                    'field_name': widget_info['field_name'],
-                    'is_signed': is_signed,
-                    'bbox': widget_info['rect'],
-                    'confidence': 'high' if is_signed else 'field_empty',
-                    'field_value': widget_info['field_value']
-                })
-            
-            # Check text fields that might contain signatures
-            elif widget.field_type in [fitz.PDF_WIDGET_TYPE_TEXT, fitz.PDF_WIDGET_TYPE_FREETEXT]:
-                field_name_lower = widget_info['field_name'].lower()
-                field_value = widget_info['field_value'].strip()
-                
-                # Look for signature-related field names - be more specific
-                signature_keywords = ['signature', 'customer signature', 'company representative signature',
-                                    'signed', 'authorized', 'approval', 'endorsed', 'witness', 'notary']
-                
-                # Also check for "printed name" fields which often accompany signatures
-                printed_name_keywords = ['printed name', 'print name', 'name print']
-                
-                is_signature_related = any(keyword in field_name_lower for keyword in signature_keywords)
-                is_printed_name = any(keyword in field_name_lower for keyword in printed_name_keywords)
-                
-                if is_signature_related or is_printed_name:
-                    # Check if field has actual content
-                    if field_value and len(field_value) > 1:
-                        # Analyze the content more carefully
-                        is_likely_filled = False
-                        
-                        # Check if it's not just placeholder text or underscores
-                        placeholder_indicators = ['type here', 'sign here', 'your signature', 
-                                                'your name', 'n/a', 'na', '___', '...', 
-                                                'customer signature:', 'printed name:', 'date signed:']
-                        
-                        # Clean the value for comparison
-                        clean_value = field_value.replace('_', '').replace('.', '').strip()
-                        
-                        if clean_value and not any(indicator in field_value.lower() for indicator in placeholder_indicators):
-                            # Additional check: field should not be just the field label
-                            if field_value.lower() != field_name_lower.replace('_', ' '):
-                                is_likely_filled = True
-                        
-                        if is_likely_filled:
-                            field_type = 'printed_name_field' if is_printed_name else 'text_signature_field'
-                            signatures.append({
-                                'type': field_type,
-                                'field_name': widget_info['field_name'],
-                                'value': field_value,
-                                'bbox': widget_info['rect'],
-                                'confidence': 'high' if is_signature_related else 'medium'
-                            })
-                    else:
-                        # Empty signature-related field
-                        if is_signature_related:
-                            signatures.append({
-                                'type': 'text_signature_field',
-                                'field_name': widget_info['field_name'],
-                                'value': '',
-                                'bbox': widget_info['rect'],
-                                'confidence': 'field_empty',
-                                'is_signed': False
-                            })
-                
-                # Check for date fields associated with signatures
-                elif 'date' in field_name_lower and 'sign' in field_name_lower:
-                    if field_value and len(field_value) > 1:
-                        # Check if it's a real date, not placeholder
-                        if not all(c in '_/- ' for c in field_value):
-                            signatures.append({
-                                'type': 'signature_date_field',
-                                'field_name': widget_info['field_name'],
-                                'value': field_value,
-                                'bbox': widget_info['rect'],
-                                'confidence': 'medium'
                             })
             
             # Check for checkbox fields that might indicate signature presence
@@ -387,7 +313,6 @@ def analyze_signature_images(page, strict_mode=True):
                     continue
                 
                 # Get image position on page
-                # This requires checking where the image is used on the page
                 img_rect = None
                 for item in page.get_text("dict")["blocks"]:
                     if item.get("type") == 1:  # Image block
@@ -457,7 +382,6 @@ def detect_text_signatures(page):
                         r'authorized by:\s*\w+',  # "Authorized by: Name"
                     ]
                     
-                    import re
                     for pattern in signature_patterns:
                         if re.search(pattern, text, re.IGNORECASE):
                             signatures.append({
