@@ -77,7 +77,7 @@ $command = escapeshellcmd($this->pythonExecutable) . ' ' . escapeshellarg($this-
     $output = shell_exec($command);
     // $jsonOutput = implode("\n", $output);
      $result = json_decode($output, true);
-     return $this->transformResult($result);
+     return $result;
     // Check if command executed successfully
     if ($returnCode !== 0) {
         $errorMessage = "Python script execution failed with return code: {$returnCode}";
