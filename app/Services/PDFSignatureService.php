@@ -70,8 +70,14 @@ public function extractSignatures($pdfPath, $options = [])
     // Execute command
     $output = [];
     $returnCode = 0;
-    exec($command . ' 2>&1', $output, $returnCode);
+    //exec($command . ' 2>&1', $output, $returnCode);
+$command = escapeshellcmd($this->pythonExecutable) . ' ' . escapeshellarg($this->pythonScriptPath) . ' ' . escapeshellarg($pdfPath);
 
+    // Execute command
+    $output = shell_exec($command);
+    $jsonOutput = implode("\n", $output);
+     $result = json_decode($jsonOutput, true);
+     return $this->transformResult($result);
     // Check if command executed successfully
     if ($returnCode !== 0) {
         $errorMessage = "Python script execution failed with return code: {$returnCode}";
