@@ -630,85 +630,111 @@ class CustomerAgreementController extends Controller
         }
     }
 
-    public function getSignCustomerAgreement($jobId)
-    {
-        try {
-            //Check Job
-            $job = CompanyJob::find($jobId);
-            if(!$job) {
-                return response()->json([
-                    'status' => 422,
-                    'message' => 'Job Not Found'
-                ], 422);
-            }
+    // public function getSignCustomerAgreement($jobId)
+    // {
+    //     try {
+    //         //Check Job
+    //         $job = CompanyJob::find($jobId);
+    //         if(!$job) {
+    //             return response()->json([
+    //                 'status' => 422,
+    //                 'message' => 'Job Not Found'
+    //             ], 422);
+    //         }
 
-            //Get Agreement
-            $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
-        if (!$agreement) {
-            throw new Exception('Agreement not found for job ID: ' . $jobId);
-        }
+    //         //Get Agreement
+    //         $agreement = CustomerAgreement::where('company_job_id', $jobId)->first();
+    //     if (!$agreement) {
+    //         throw new Exception('Agreement not found for job ID: ' . $jobId);
+    //     }
         
-        if (!$agreement->sign_pdf_url) {
-            throw new Exception('No signed PDF URL found in agreement');
-        }
+    //     if (!$agreement->sign_pdf_url) {
+    //         throw new Exception('No signed PDF URL found in agreement');
+    //     }
         
-        // Build the full file path
-        $filepath = public_path('storage/' . $agreement->sign_pdf_url);
+    //     // Build the full file path
+    //     $filepath = public_path('storage/' . $agreement->sign_pdf_url);
         
-        // Validate file exists
-        if (!file_exists($filepath)) {
-            throw new Exception('PDF file not found: ' . basename($filepath));
-        }
+    //     // Validate file exists
+    //     if (!file_exists($filepath)) {
+    //         throw new Exception('PDF file not found: ' . basename($filepath));
+    //     }
         
-        // Validate it's actually a PDF
-        $mimeType = mime_content_type($filepath);
-        if (!in_array($mimeType, ['application/pdf', 'application/x-pdf'])) {
-            throw new Exception('File is not a valid PDF. MIME type: ' . $mimeType);
-        }
+    //     // Validate it's actually a PDF
+    //     $mimeType = mime_content_type($filepath);
+    //     if (!in_array($mimeType, ['application/pdf', 'application/x-pdf'])) {
+    //         throw new Exception('File is not a valid PDF. MIME type: ' . $mimeType);
+    //     }
         
-        // Option 1: Direct file processing (RECOMMENDED - more efficient)
-        $result = $this->processDirectly($filepath);
-            // if ($fileContent === false) {
-            //     throw new Exception('Failed to download PDF file');
-            // }
+    //     // Option 1: Direct file processing (RECOMMENDED - more efficient)
+    //     $result = $this->processDirectly($filepath);
+    //         // if ($fileContent === false) {
+    //         //     throw new Exception('Failed to download PDF file');
+    //         // }
             
-            // // Create a temporary file
-            // $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
-            // file_put_contents($tempFilePath, $fileContent);
-            // // dd($tempFilePath);
-            // if (!$tempFilePath->isValid()) {
-            //     throw new Exception('File not found');
-            // }
+    //         // // Create a temporary file
+    //         // $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_signature_') . '.pdf';
+    //         // file_put_contents($tempFilePath, $fileContent);
+    //         // // dd($tempFilePath);
+    //         // if (!$tempFilePath->isValid()) {
+    //         //     throw new Exception('File not found');
+    //         // }
+    //         try {
+    //             // Use extractSignatures() instead of extractSignaturesFromUpload()
+    //             #$result = $this->pdfSignatureService->extractSignaturesFromUpload($laravelFile, [
+    //            // 'include_base64' => $request->get('include_base64', true),
+    //            // 'save_images' => $request->get('save_images', true),
+    //                //'include_base64' => true, // or false depending on your logic
+    //             //    'save_images' => true,    // or false depending on your logic
+
+    //         //]);
+                
+    //             dd($result);
+                
+    //         } finally {
+    //             // Clean up the temporary file
+    //             // if (file_exists($tempFilePath)) {
+    //             //     unlink($tempFilePath);
+    //             // }
+    //         }
+            
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Agreement Found Successfully',
+    //             'agreement' => new SignCustomerAgreementResource($agreement),
+    //             'signatures' => $result
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
+    //     }
+    // }
+
+      public function getSignCustomerAgreement($jobId)
+        {
             try {
-                // Use extractSignatures() instead of extractSignaturesFromUpload()
-                #$result = $this->pdfSignatureService->extractSignaturesFromUpload($laravelFile, [
-               // 'include_base64' => $request->get('include_base64', true),
-               // 'save_images' => $request->get('save_images', true),
-                   //'include_base64' => true, // or false depending on your logic
-                //    'save_images' => true,    // or false depending on your logic
+                //Check Job
+                $job = CompanyJob::find($jobId);
+                if(!$job) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'Job Not Found'
+                    ], 422);
+                }
 
-            //]);
-                
-                dd($result);
-                
-            } finally {
-                // Clean up the temporary file
-                // if (file_exists($tempFilePath)) {
-                //     unlink($tempFilePath);
-                // }
+                //Get Agreement
+                $agreement = CustomerAgreement::where('company_job_id',$jobId)->first();
+
+                // dd($agreement);
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Agreement Found Successfully',
+                    'agreement' => new SignCustomerAgreementResource($agreement)
+                    // 'agreement' => $agreement
+                ], 200);
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
             }
-            
-            return response()->json([
-                'status' => 200,
-                'message' => 'Agreement Found Successfully',
-                'agreement' => new SignCustomerAgreementResource($agreement),
-                'signatures' => $result
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage().' on line '.$e->getLine().' in file '.$e->getFile()], 500);
         }
-    }
-
 
    public function signCustomerByEmail(Request $request, $id) //not used currently
     {
